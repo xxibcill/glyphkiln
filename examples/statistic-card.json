@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "example-statistic-card",
+  "template": {
+    "id": "statistic-card",
+    "version": "1.0.0"
+  },
+  "format": "instagram-square",
+  "seed": "metrics-retention-42",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-northstar-2026-07",
+    "version": "1.0.0",
+    "name": "Northstar Analytics",
+    "palette": {
+      "primary": "#164E63",
+      "secondary": "#0F766E",
+      "accent": "#C2410C",
+      "neutrals": ["#FFF7ED", "#132A35"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF7ED",
+        "surface": "#FFFFFF",
+        "text": "#132A35",
+        "mutedText": "#475569"
+      },
+      "dark": {
+        "background": "#132A35",
+        "surface": "#1F3B47",
+        "text": "#FFF7ED",
+        "mutedText": "#CBD5E1"
+      }
+    },
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter"
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": ["recursive-subdivision"],
+    "safeArea": {
+      "top": 0.07,
+      "right": 0.07,
+      "bottom": 0.07,
+      "left": 0.07
+    },
+    "prohibitedColors": [],
+    "prohibitedStyles": []
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "layers": [
+    {
+      "id": "background",
+      "type": "background"
+    },
+    {
+      "id": "grid",
+      "type": "procedural-decoration",
+      "style": "recursive-subdivision",
+      "intensity": 0.42,
+      "density": 0.44,
+      "complexity": 0.38,
+      "contrast": 0.3,
+      "quietRegion": {
+        "x": 0.04,
+        "y": 0.31,
+        "width": 0.92,
+        "height": 0.54
+      }
+    },
+    {
+      "id": "headline",
+      "type": "headline",
+      "text": "Customer retention after one quarter"
+    },
+    {
+      "id": "retention",
+      "type": "statistic",
+      "value": "87%",
+      "label": "of teams kept their weekly reporting habit",
+      "trend": "↑ 12 points compared with the previous cohort"
+    }
+  ],
+  "metadata": {
+    "source": "example-data",
+    "reviewed": true
+  }
+}

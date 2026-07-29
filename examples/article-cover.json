@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "example-article-cover",
+  "template": {
+    "id": "article-cover",
+    "version": "1.0.0"
+  },
+  "format": "youtube-thumbnail",
+  "seed": "editorial-rendering-19",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-practical-systems-2026-07",
+    "version": "1.0.0",
+    "name": "Practical Systems",
+    "palette": {
+      "primary": "#1D4ED8",
+      "secondary": "#0F766E",
+      "accent": "#B45309",
+      "neutrals": ["#F8FAFC", "#172033"]
+    },
+    "themes": {
+      "light": {
+        "background": "#F8FAFC",
+        "surface": "#FFFFFF",
+        "text": "#172033",
+        "mutedText": "#475569"
+      },
+      "dark": {
+        "background": "#172033",
+        "surface": "#263248",
+        "text": "#F8FAFC",
+        "mutedText": "#CBD5E1"
+      }
+    },
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter"
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "balanced",
+    "preferredProceduralStyles": ["flow-field"],
+    "safeArea": {
+      "top": 0.07,
+      "right": 0.07,
+      "bottom": 0.07,
+      "left": 0.07
+    },
+    "prohibitedColors": [],
+    "prohibitedStyles": []
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "layers": [
+    {
+      "id": "background",
+      "type": "background"
+    },
+    {
+      "id": "flow",
+      "type": "procedural-decoration",
+      "style": "flow-field",
+      "intensity": 0.5,
+      "density": 0.58,
+      "complexity": 0.61,
+      "contrast": 0.34,
+      "quietRegion": {
+        "x": 0.04,
+        "y": 0.34,
+        "width": 0.78,
+        "height": 0.58
+      }
+    },
+    {
+      "id": "eyebrow",
+      "type": "eyebrow",
+      "text": "ENGINEERING PRACTICE"
+    },
+    {
+      "id": "headline",
+      "type": "headline",
+      "text": "A practical determinism contract for graphics"
+    },
+    {
+      "id": "byline",
+      "type": "attribution",
+      "text": "By Arin Patel · 8 min read"
+    }
+  ],
+  "metadata": {
+    "articleSlug": "deterministic-graphics-contract",
+    "reviewed": true
+  }
+}
