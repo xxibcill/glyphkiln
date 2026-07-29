@@ -1,5 +1,5 @@
 import { fork, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,7 @@ import {
   assertFontResources,
 } from "../resources/index.js";
 import {
+  assertRenderGraphicOptionsResources,
   type RenderGraphicOptions,
   type RenderGraphicResult,
 } from "../renderer/index.js";
@@ -47,6 +48,7 @@ export function renderGraphicIsolated(
   assertDesignInputResources(input);
   assertAssetResources(options.assets ?? []);
   assertFontResources(options.fonts ?? []);
+  assertRenderGraphicOptionsResources(options);
   const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
   const render = renderQueue.then(
     () => runRenderProcess(input, options, timeoutMilliseconds),
@@ -147,7 +149,7 @@ function createRenderProcess(): ChildProcess {
     );
   }
   const packageRoot = resolve(dirname(workerPath), "../..");
-  const dependencyRoot = findDependencyRoot(packageRoot);
+  const dependencyReadRoots = findDependencyReadRoots(packageRoot);
   return fork(workerPath, {
     serialization: "advanced",
     stdio: ["ignore", "ignore", "ignore", "ipc"],
@@ -155,7 +157,7 @@ function createRenderProcess(): ChildProcess {
       "--permission",
       "--allow-addons",
       `--allow-fs-read=${packageRoot}`,
-      ...(dependencyRoot === packageRoot ? [] : [`--allow-fs-read=${dependencyRoot}`]),
+      ...dependencyReadRoots.map((root) => `--allow-fs-read=${root}`),
       `--allow-fs-read=${tmpdir()}`,
       `--allow-fs-write=${tmpdir()}`,
       `--max-old-space-size=${RENDER_WORKER_PROFILE.nodeResourceLimits.maxOldGenerationSizeMb}`,
@@ -167,13 +169,35 @@ function createRenderProcess(): ChildProcess {
   });
 }
 
-function findDependencyRoot(packageRoot: string): string {
-  let current = packageRoot;
+function findDependencyReadRoots(packageRoot: string): string[] {
+  const roots = new Set<string>();
+  for (const dependency of readDependencyNames(packageRoot)) {
+    const entryPath = fileURLToPath(import.meta.resolve(dependency));
+    const nodeModulesRoot = findAncestorNamed(entryPath, "node_modules");
+    if (nodeModulesRoot === undefined) continue;
+    roots.add(nodeModulesRoot);
+    roots.add(realpathSync(nodeModulesRoot));
+    const pnpmStoreRoot = findAncestorNamed(nodeModulesRoot, ".pnpm");
+    if (pnpmStoreRoot !== undefined) roots.add(pnpmStoreRoot);
+  }
+  roots.delete(packageRoot);
+  return [...roots].filter((root) => existsSync(root)).sort();
+}
+
+function readDependencyNames(packageRoot: string): string[] {
+  const packageJson = JSON.parse(
+    readFileSync(resolve(packageRoot, "package.json"), "utf8"),
+  ) as { dependencies?: Record<string, unknown> };
+  return Object.keys(packageJson.dependencies ?? {}).sort();
+}
+
+function findAncestorNamed(path: string, name: string): string | undefined {
+  let current = path;
   while (dirname(current) !== current) {
-    if (basename(current) === "node_modules") return current;
+    if (basename(current) === name) return current;
     current = dirname(current);
   }
-  return resolve(packageRoot, "node_modules");
+  return undefined;
 }
 
 function validateTimeout(value: number | undefined): number {

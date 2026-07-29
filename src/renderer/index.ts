@@ -48,6 +48,15 @@ export type RenderGraphicResult = {
   qualityIssues: QualityIssue[];
 };
 
+export function assertRenderGraphicOptionsResources(
+  options: RenderGraphicOptions,
+): void {
+  validateOutputFormats(options.formats ?? ["svg"]);
+  if (options.creationTimestamp !== undefined) {
+    validateCreationTimestamp(options.creationTimestamp);
+  }
+}
+
 export async function renderGraphic(
   input: unknown,
   options: RenderGraphicOptions = {},
