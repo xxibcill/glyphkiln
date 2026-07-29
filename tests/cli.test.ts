@@ -137,6 +137,30 @@ describe("CLI", () => {
     expect(await readFile(output, "utf8")).toBe("keep me");
   });
 
+  it("rejects an output path that collides with the manifest path", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-conflict-"));
+    temporaryDirectories.push(directory);
+    const sharedPath = join(directory, "shared-output");
+    const capture = captureIo();
+    const code = await runCli(
+      [
+        "render",
+        resolve("examples/article-cover.json"),
+        "--format",
+        "svg",
+        "--output",
+        sharedPath,
+        "--manifest",
+        sharedPath,
+        "--force",
+      ],
+      capture.io,
+    );
+    expect(code).toBe(1);
+    expect(capture.stderr.join("\n")).toContain("OUTPUT_PATH_CONFLICT");
+    await expect(readFile(sharedPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("reports the package version", async () => {
     const capture = captureIo();
     expect(await runCli(["--version"], capture.io)).toBe(0);

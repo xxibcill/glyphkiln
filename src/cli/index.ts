@@ -82,6 +82,13 @@ async function renderCommand(
   const manifestPath = !parsed.manifest
     ? undefined
     : resolve(parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`);
+  if (manifestPath === outputPath) {
+    throw new GlyphkilnError(
+      "The rendered output and manifest must use different paths.",
+      "OUTPUT_PATH_CONFLICT",
+      { file: basename(outputPath) },
+    );
+  }
   await assertOutputPathsAvailable(
     [outputPath, ...(manifestPath === undefined ? [] : [manifestPath])],
     parsed.force,

@@ -7,7 +7,9 @@ import { fileURLToPath } from "node:url";
 import { GlyphkilnError } from "../domain/types.js";
 import {
   RENDER_WORKER_PROFILE,
+  assertAssetResources,
   assertDesignInputResources,
+  assertFontResources,
 } from "../resources/index.js";
 import {
   type RenderGraphicOptions,
@@ -43,6 +45,8 @@ export function renderGraphicIsolated(
   isolation: IsolatedRenderOptions = {},
 ): Promise<RenderGraphicResult> {
   assertDesignInputResources(input);
+  assertAssetResources(options.assets ?? []);
+  assertFontResources(options.fonts ?? []);
   const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
   const render = renderQueue.then(
     () => runRenderProcess(input, options, timeoutMilliseconds),

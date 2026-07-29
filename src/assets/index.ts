@@ -3,7 +3,7 @@ import { PNG } from "pngjs";
 
 import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedAsset } from "../domain/types.js";
-import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
+import { RENDER_RESOURCE_LIMITS, assertAssetResources } from "../resources/index.js";
 import type { AssetDeclaration, DesignDocument } from "../schema/design-document.js";
 
 export class AssetRegistry {
@@ -13,9 +13,9 @@ export class AssetRegistry {
     declarations: readonly AssetDeclaration[],
     assets: readonly ResolvedAsset[],
   ) {
-    assertAssetCounts(declarations, assets);
+    assertAssetDeclarationCount(declarations, assets.length);
+    assertAssetResources(assets);
     const suppliedIds = new Set<string>();
-    let totalBytes = 0;
     let totalPixels = 0;
     for (const asset of assets) {
       if (suppliedIds.has(asset.id)) {
@@ -26,7 +26,6 @@ export class AssetRegistry {
         );
       }
       suppliedIds.add(asset.id);
-      totalBytes = addAssetBytes(totalBytes, asset);
       const verified = verifyAssetBytes(asset);
       totalPixels = addAssetPixels(totalPixels, verified);
       this.#assets.set(asset.id, verified);
@@ -298,40 +297,21 @@ function isStartOfFrame(marker: number): boolean {
   );
 }
 
-function assertAssetCounts(
+function assertAssetDeclarationCount(
   declarations: readonly AssetDeclaration[],
-  assets: readonly ResolvedAsset[],
+  resolvedCount: number,
 ): void {
-  if (
-    declarations.length > RENDER_RESOURCE_LIMITS.maxAssets ||
-    assets.length > RENDER_RESOURCE_LIMITS.maxAssets
-  ) {
+  if (declarations.length > RENDER_RESOURCE_LIMITS.maxAssets) {
     throw new GlyphkilnError(
       `At most ${RENDER_RESOURCE_LIMITS.maxAssets} assets are accepted.`,
       "ASSET_COUNT_LIMIT_EXCEEDED",
       {
         maximum: RENDER_RESOURCE_LIMITS.maxAssets,
         declarations: declarations.length,
-        resolved: assets.length,
+        resolved: resolvedCount,
       },
     );
   }
-}
-
-function addAssetBytes(totalBytes: number, asset: ResolvedAsset): number {
-  if (!(asset.bytes instanceof Uint8Array)) return totalBytes;
-  const nextTotal = totalBytes + asset.bytes.byteLength;
-  if (nextTotal > RENDER_RESOURCE_LIMITS.maxTotalAssetBytes) {
-    throw new GlyphkilnError(
-      "Resolved assets exceed the total byte limit.",
-      "TOTAL_ASSET_BYTES_LIMIT_EXCEEDED",
-      {
-        maximum: RENDER_RESOURCE_LIMITS.maxTotalAssetBytes,
-        actual: nextTotal,
-      },
-    );
-  }
-  return nextTotal;
 }
 
 function addAssetPixels(totalPixels: number, asset: ResolvedAsset): number {

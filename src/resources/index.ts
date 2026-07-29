@@ -1,4 +1,8 @@
-import { GlyphkilnError, type ResolvedFont } from "../domain/types.js";
+import {
+  GlyphkilnError,
+  type ResolvedAsset,
+  type ResolvedFont,
+} from "../domain/types.js";
 
 export type RenderResourceLimits = {
   maxDesignDocumentBytes: number;
@@ -112,6 +116,48 @@ export function assertDesignInputResources(input: unknown): void {
     "DESIGN_RESOURCE_LIMIT_EXCEEDED",
     { problems },
   );
+}
+
+export function assertAssetResources(assets: readonly ResolvedAsset[]): void {
+  if (assets.length > RENDER_RESOURCE_LIMITS.maxAssets) {
+    throw new GlyphkilnError(
+      `At most ${RENDER_RESOURCE_LIMITS.maxAssets} resolved assets are accepted.`,
+      "ASSET_COUNT_LIMIT_EXCEEDED",
+      { maximum: RENDER_RESOURCE_LIMITS.maxAssets, actual: assets.length },
+    );
+  }
+  let totalBytes = 0;
+  for (const asset of assets) {
+    if (!(asset.bytes instanceof Uint8Array)) {
+      throw new GlyphkilnError(
+        `Asset "${asset.id}" must provide Uint8Array bytes.`,
+        "INVALID_ASSET_BYTES",
+        { assetId: asset.id },
+      );
+    }
+    if (asset.bytes.byteLength > RENDER_RESOURCE_LIMITS.maxAssetBytes) {
+      throw new GlyphkilnError(
+        `Asset "${asset.id}" exceeds the per-asset byte limit.`,
+        "ASSET_BYTES_LIMIT_EXCEEDED",
+        {
+          assetId: asset.id,
+          maximum: RENDER_RESOURCE_LIMITS.maxAssetBytes,
+          actual: asset.bytes.byteLength,
+        },
+      );
+    }
+    totalBytes += asset.bytes.byteLength;
+    if (totalBytes > RENDER_RESOURCE_LIMITS.maxTotalAssetBytes) {
+      throw new GlyphkilnError(
+        "Resolved assets exceed the total byte limit.",
+        "TOTAL_ASSET_BYTES_LIMIT_EXCEEDED",
+        {
+          maximum: RENDER_RESOURCE_LIMITS.maxTotalAssetBytes,
+          actual: totalBytes,
+        },
+      );
+    }
+  }
 }
 
 export function assertFontResources(fonts: readonly ResolvedFont[]): void {

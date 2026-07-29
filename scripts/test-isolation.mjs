@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 import {
   GlyphkilnError,
+  RENDER_RESOURCE_LIMITS,
   RENDERER_VERSION,
   renderGraphicIsolated,
 } from "../dist/index.js";
@@ -33,6 +34,25 @@ await assert.rejects(
   renderGraphicIsolated({}),
   (error) =>
     error instanceof GlyphkilnError && error.code === "INVALID_DESIGN_DOCUMENT",
+);
+
+assert.throws(
+  () =>
+    renderGraphicIsolated(document, {
+      assets: [
+        {
+          id: "oversized",
+          mimeType: "image/png",
+          sha256: "0".repeat(64),
+          width: 1,
+          height: 1,
+          origin: { kind: "unknown" },
+          bytes: new Uint8Array(RENDER_RESOURCE_LIMITS.maxAssetBytes + 1),
+        },
+      ],
+    }),
+  (error) =>
+    error instanceof GlyphkilnError && error.code === "ASSET_BYTES_LIMIT_EXCEEDED",
 );
 
 process.stdout.write("Isolated child-process rendering passed.\n");
