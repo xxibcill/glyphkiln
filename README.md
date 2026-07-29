@@ -13,8 +13,7 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This repository is a production-quality vertical slice (`0.1.0`, with the
-`0.2.0` contract prepared by the current Changeset).
+This repository is a production-quality vertical slice (`0.2.0`).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 

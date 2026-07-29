@@ -192,7 +192,7 @@ describe("CLI", () => {
   it("reports the package version", async () => {
     const capture = captureIo();
     expect(await runCli(["--version"], capture.io)).toBe(0);
-    expect(capture.stdout).toEqual(["0.1.0"]);
+    expect(capture.stdout).toEqual(["0.2.0"]);
   });
 
   it("returns nonzero for invalid usage", async () => {
