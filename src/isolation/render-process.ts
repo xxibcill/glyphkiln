@@ -16,14 +16,14 @@ async function handleRequest(message: unknown): Promise<void> {
   try {
     const request = parseRequest(message);
     const result = await renderGraphic(request.input, request.options);
-    process.send?.({ ok: true, result }, () => process.disconnect());
+    process.send?.({ ok: true, result }, () => process.disconnect?.());
   } catch (error) {
     process.send?.(
       {
         ok: false,
         error: serializeError(error),
       },
-      () => process.disconnect(),
+      () => process.disconnect?.(),
     );
   }
 }
