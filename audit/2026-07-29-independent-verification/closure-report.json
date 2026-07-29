@@ -1,0 +1,54 @@
+{
+  "date": "2026-07-29",
+  "result": "PASS",
+  "parentReport": "report.md",
+  "closedFindings": [
+    "F-001",
+    "F-002",
+    "F-003",
+    "F-004",
+    "F-005",
+    "F-006",
+    "F-007",
+    "F-008",
+    "F-009",
+    "F-010",
+    "F-011",
+    "F-012",
+    "F-013",
+    "F-014",
+    "F-015",
+    "F-016",
+    "F-017"
+  ],
+  "versions": {
+    "package": "0.1.0",
+    "nextPackageChange": "minor",
+    "renderer": "0.2.0",
+    "templates": "1.1.0",
+    "proceduralAlgorithms": "1.1.0",
+    "manifest": "1.1.0"
+  },
+  "tests": {
+    "files": 13,
+    "passed": 128,
+    "failed": 0
+  },
+  "coverage": {
+    "statements": 82.18,
+    "branches": 73.32,
+    "functions": 79.71,
+    "lines": 83.87
+  },
+  "determinism": {
+    "processes": 2,
+    "inputsPerProcess": 192,
+    "outputsPerProcess": 384,
+    "mismatches": 0,
+    "sha256": "9c46fdf0f001c00866a0a168394c39b230b622bd89f45805925203743cc0cb3c"
+  },
+  "packageDryRun": {
+    "files": 135,
+    "bytes": 547919
+  }
+}

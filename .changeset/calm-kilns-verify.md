@@ -1,10 +1,10 @@
 ---
-"@glyphkiln/core": patch
+"@glyphkiln/core": minor
 ---
 
-Reject invalid runtime output formats, align generated JSON Schema with
-defaultable design inputs, correct minimum-size text fitting, and require every
-rendered font face to be declared and included in provenance fingerprints.
-Reject visible layers a template does not implement, and enforce bounded
-documents, metadata, raster assets, fonts, output requests, CLI reads, and a
-public process-isolation profile.
+Harden deterministic rendering contracts, fully decode bounded PNG/JPEG assets,
+outline text for portable SVG, add permission-limited child-process rendering,
+implement native procedural quiet regions and brand controls, clarify
+composition versus included-asset provenance, and add full fixtures, tracked
+examples, package/consumer CI, CLI overwrite/version behavior, reproduction
+checks, and a verified production-license inventory.

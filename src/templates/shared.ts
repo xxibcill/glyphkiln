@@ -32,6 +32,7 @@ export type TemplateCanvas = {
   textColor: string;
   mutedTextColor: string;
   accentColor: string;
+  spacingUnit: number;
   qualityIssues: QualityIssue[];
   proceduralAlgorithmVersions: Record<string, string>;
 };
@@ -52,6 +53,23 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
   const proceduralAlgorithmVersions: Record<string, string> = {};
   const procedural = findLayer(document.layers, "procedural-decoration");
   if (procedural !== undefined) {
+    const quietRegion = {
+      x: procedural.quietRegion.x * dimensions.width,
+      y: procedural.quietRegion.y * dimensions.height,
+      width: procedural.quietRegion.width * dimensions.width,
+      height: procedural.quietRegion.height * dimensions.height,
+    };
+    scene.elements.push({
+      id: "brand-surface",
+      type: "rect",
+      ...quietRegion,
+      fill: theme.surface,
+    });
+    const densityMultiplier = {
+      quiet: 0.7,
+      balanced: 1,
+      dense: 1.3,
+    }[document.brand.visualDensity];
     const result = createProceduralBackground(procedural.style, {
       ...dimensions,
       seed: document.seed,
@@ -62,7 +80,7 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
       ],
       backgroundColor,
       intensity: procedural.intensity,
-      density: procedural.density,
+      density: Math.min(1, procedural.density * densityMultiplier),
       complexity: procedural.complexity,
       contrast: procedural.contrast,
       quietRegion: procedural.quietRegion,
@@ -78,6 +96,7 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
     textColor: theme.text,
     mutedTextColor: theme.mutedText,
     accentColor: document.brand.palette.accent,
+    spacingUnit: document.brand.spacingScale[0]!,
     qualityIssues: [],
     proceduralAlgorithmVersions,
   };
@@ -139,6 +158,26 @@ export function addText(
           : box.x,
   };
   const fill = layer.color ?? options.color ?? canvas.textColor;
+  const lines = fitted.lines.slice(0, options.maximumLines);
+  const missingCodePoints = context.fonts.missingCodePoints(
+    lines.join(""),
+    family,
+    weight,
+    "normal",
+  );
+  if (missingCodePoints.length > 0) {
+    canvas.qualityIssues.push({
+      code: "MISSING_GLYPH",
+      severity: "error",
+      message: `Font "${family}" does not cover all text in layer "${layer.id}".`,
+      layerId: layer.id,
+      details: {
+        codePoints: missingCodePoints.map(
+          (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
+        ),
+      },
+    });
+  }
   canvas.qualityIssues.push(...fitted.issues);
   appendIssue(
     canvas.qualityIssues,
@@ -153,7 +192,7 @@ export function addText(
     type: "text",
     x,
     y: box.y,
-    lines: fitted.lines.slice(0, options.maximumLines),
+    lines,
     fill,
     fontFamily: family,
     fontWeight: weight,
@@ -162,6 +201,17 @@ export function addText(
     lineHeight: options.lineHeight ?? 1.08,
     align,
     bounds: actualBounds,
+    outlines: context.fonts.outlineText({
+      lines,
+      family,
+      weight,
+      style: "normal",
+      fontSize: fitted.fontSize,
+      lineHeight: options.lineHeight ?? 1.08,
+      x,
+      y: box.y,
+      align,
+    }),
   };
   canvas.scene.elements.push(element);
   return element;
@@ -252,7 +302,7 @@ export function addDecorativeBar(
     type: "rect",
     ...bounds,
     fill: canvas.accentColor,
-    radius: bounds.height / 2,
+    radius: Math.min(bounds.height / 2, canvas.spacingUnit),
   };
   canvas.scene.elements.push(element);
   return element;

@@ -1,20 +1,20 @@
 {
-  "manifestVersion": "1.0.0",
-  "renderId": "render_e0547926bd13767e0058ffb6",
-  "renderFingerprint": "e0547926bd13767e0058ffb6544374f3dcc3c575a0ae3760cdf27ffd600b645b",
+  "manifestVersion": "1.1.0",
+  "renderId": "render_06ba92fc58fcfe020ffc9cce",
+  "renderFingerprint": "06ba92fc58fcfe020ffc9cce9d38d501db008c1c16ff3124628b31b5404a4447",
   "designDocumentId": "example-statistic-card",
-  "designDocumentHash": "cfc4634ec1c5347166a83976905396b381a0e046e39c31bace8c7936cb8b718b",
+  "designDocumentHash": "a8873a0c0d40dfae848174585269ac3ababc3e97c03d831148bf682f889c82a6",
   "seed": "metrics-retention-42",
   "template": {
     "id": "statistic-card",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.1.1"
+    "version": "0.2.0"
   },
   "proceduralAlgorithmVersions": {
-    "recursive-subdivision": "1.0.0"
+    "recursive-subdivision": "1.1.0"
   },
   "assets": [],
   "fonts": [
@@ -49,12 +49,13 @@
   },
   "output": {
     "format": "png",
-    "sha256": "aaef6ca034574db418d1c79a5fdea3298c33008103b2475cef9d7e71fb633c31",
-    "byteSize": 41429
+    "sha256": "d452cbda16a7bf7cf3585a13b85f676c40ad09d61a182f654841fe80d2c909a4",
+    "byteSize": 41836
   },
   "creationTimestamp": "2026-07-29T10:00:00.000Z",
-  "generativeImageModelUsed": false,
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
-  "productClaim": "Created without generative image models and rendered deterministically from code."
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
 }

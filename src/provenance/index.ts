@@ -1,4 +1,4 @@
-import { hashCanonical } from "../cache/canonical.js";
+import { hashCanonical, sha256 } from "../cache/canonical.js";
 import {
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
@@ -10,7 +10,7 @@ import {
   type QualityIssue,
   type RenderingMethod,
 } from "../domain/types.js";
-import type { DesignDocument } from "../schema/index.js";
+import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 
 export type ManifestAsset = {
   id: string;
@@ -44,7 +44,8 @@ export type RenderManifest = {
     byteSize: number;
   };
   creationTimestamp: string;
-  generativeImageModelUsed: boolean;
+  compositionGenerativeImageModelUsed: false;
+  includedGenerativeAssetUsed: boolean;
   renderingMethod: RenderingMethod;
   qualityIssues: QualityIssue[];
   productClaim: typeof PRODUCT_CLAIM;
@@ -87,11 +88,67 @@ export function createRenderManifest(input: CreateManifestInput): RenderManifest
       byteSize: input.outputByteSize,
     },
     creationTimestamp: input.creationTimestamp,
-    generativeImageModelUsed: input.assets.some(
+    compositionGenerativeImageModelUsed: false,
+    includedGenerativeAssetUsed: input.assets.some(
       (asset) => asset.origin.generativeImageModel !== undefined,
     ),
     renderingMethod: input.renderingMethod,
     qualityIssues: input.qualityIssues,
     productClaim: PRODUCT_CLAIM,
   };
+}
+
+export function verifyRenderReproduction(input: {
+  document: DesignDocument;
+  bytes: Uint8Array;
+  manifest: RenderManifest;
+}): QualityIssue[] {
+  const issues: QualityIssue[] = [];
+  const validation = validateDesignDocument(input.document);
+  if (!validation.success) {
+    return [
+      {
+        code: "INVALID_REPRODUCTION_DOCUMENT",
+        severity: "error",
+        message: "The reproduction document is not a valid design document.",
+        details: { problems: validation.problems },
+      },
+    ];
+  }
+  const documentHash = hashCanonical(validation.data);
+  if (documentHash !== input.manifest.designDocumentHash) {
+    issues.push({
+      code: "DESIGN_DOCUMENT_HASH_MISMATCH",
+      severity: "error",
+      message: "The design document does not match the render manifest.",
+      details: {
+        expected: input.manifest.designDocumentHash,
+        actual: documentHash,
+      },
+    });
+  }
+  if (input.bytes.byteLength !== input.manifest.output.byteSize) {
+    issues.push({
+      code: "OUTPUT_SIZE_MISMATCH",
+      severity: "error",
+      message: "The reproduced output byte size does not match the manifest.",
+      details: {
+        expected: input.manifest.output.byteSize,
+        actual: input.bytes.byteLength,
+      },
+    });
+  }
+  const outputHash = sha256(input.bytes);
+  if (outputHash !== input.manifest.output.sha256) {
+    issues.push({
+      code: "OUTPUT_HASH_MISMATCH",
+      severity: "error",
+      message: "The reproduced output hash does not match the manifest.",
+      details: {
+        expected: input.manifest.output.sha256,
+        actual: outputHash,
+      },
+    });
+  }
+  return issues;
 }

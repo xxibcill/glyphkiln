@@ -21,6 +21,12 @@ preferences, normalized safe-area insets, and prohibited colors/styles. The
 snapshot is embedded so an old document does not change when a mutable brand kit
 in an application is edited.
 
+All declared controls have an explicit `1.1.0` behavior: the theme surface owns
+procedural quiet regions, spacing controls decorative radii, visual density
+scales procedural density, monospace typography is used for compact CTA/trend
+copy, non-preferred procedural styles warn, and prohibited template/procedural
+styles block rendering.
+
 ## Layer union
 
 | Type                                     | Role                                                   |
@@ -58,3 +64,8 @@ hashes, identifiers, semantic versions, metadata depth, and encoded input size
 are bounded. Layer and asset IDs must be unique. A schema-valid document can
 still fail template or quality rules, such as a missing required semantic layer
 or insufficient contrast. See [Resource limits](resource-limits.md).
+
+Standard JSON Schema cannot express uniqueness by an object property portably.
+`DESIGN_DOCUMENT_RUNTIME_REFINEMENTS` publishes the exact uniqueness and quiet
+region sum rules that `validateDesignDocument` applies after draft 2020-12
+validation.

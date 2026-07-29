@@ -3,8 +3,8 @@
 Glyphkiln Core is the open-source deterministic rendering engine for
 professional social-media graphics.
 
-> Created without generative image models and rendered deterministically from
-> code.
+> Composed without generative image models and rendered deterministically from
+> code; included asset origins are reported separately.
 
 It accepts an untrusted, versioned design document; validates it strictly; lays
 it out with an explicit font; renders safe SVG or PNG; and emits a provenance
@@ -13,23 +13,24 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This repository is an initial production-quality vertical slice (`0.1.0`).
+This repository is a production-quality vertical slice (`0.1.0`, with the
+`0.2.0` contract prepared by the current Changeset).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 
 Supported templates:
 
-- `product-announcement@1.0.0`
-- `statistic-card@1.0.0`
-- `quote-card@1.0.0`
-- `article-cover@1.0.0`
+- `product-announcement@1.1.0`
+- `statistic-card@1.1.0`
+- `quote-card@1.1.0`
+- `article-cover@1.1.0`
 
 Supported procedural styles:
 
-- `flow-field@1.0.0`
-- `layered-waves@1.0.0`
-- `topographic-contours@1.0.0`
-- `recursive-subdivision@1.0.0`
+- `flow-field@1.1.0`
+- `layered-waves@1.1.0`
+- `topographic-contours@1.1.0`
+- `recursive-subdivision@1.1.0`
 
 ## Develop
 
@@ -53,6 +54,7 @@ It makes local examples reproducible without proprietary fonts.
 import {
   createDesignDocument,
   renderGraphic,
+  renderGraphicIsolated,
   validateDesignDocument,
 } from "@glyphkiln/core";
 
@@ -62,7 +64,7 @@ if (!validation.success) {
 }
 
 const design = createDesignDocument({
-  template: { id: "product-announcement", version: "1.0.0" },
+  template: { id: "product-announcement", version: "1.1.0" },
   format: "linkedin-landscape",
   seed: "launch-analytics-01",
   mode: "dark",
@@ -82,6 +84,10 @@ for (const output of result.outputs) {
   console.log(output.format, output.bytes, output.manifest);
 }
 ```
+
+Use `renderGraphicIsolated` for untrusted workloads. It runs the same API in a
+permission-limited child process with a fixed memory ceiling, serialized
+concurrency, and a 15-second maximum timeout.
 
 `createDesignDocument` supplies schema version `1.0.0` and a stable content ID
 when omitted. `renderGraphic` validates again at the trust boundary. Assets and
@@ -116,6 +122,8 @@ normal consumers receive it from package installation. `--verify
 <fingerprint>` makes render verification fail when a result differs from an
 expected canonical fingerprint. Expected validation and quality failures print
 actionable messages and return a nonzero exit code without a stack trace.
+Existing output is preserved unless `--force` is supplied. `--version` prints
+the installed package version.
 
 ## Formats
 
@@ -134,13 +142,14 @@ versioned registry entries without scattering dimensions through templates.
 
 ## Examples and baselines
 
-Reviewed example designs live in [`examples/`](examples/). Generated local
-outputs go to `examples/generated/`. Exact reviewed PNG baselines, source
+Reviewed example designs and their tracked SVG/PNG outputs live in
+[`examples/`](examples/). Exact reviewed PNG baselines, source
 designs, and manifests live in [`tests/visual/baselines/`](tests/visual/baselines/).
 
 ```bash
 npm run build
 npm run examples:generate
+npm run examples:verify
 ```
 
 ## Documentation
@@ -151,6 +160,7 @@ npm run examples:generate
 - [Resource limits and worker profile](docs/resource-limits.md)
 - [Fonts](docs/fonts.md) and [assets](docs/assets.md)
 - [Provenance](docs/provenance.md)
+- [Validation and quality policy](docs/quality-policy.md)
 - [Template authoring](docs/template-authoring.md)
 - [Procedural backgrounds](docs/procedural-backgrounds.md)
 - [Visual regression](docs/visual-regression.md)
@@ -162,4 +172,5 @@ npm run examples:generate
 
 Glyphkiln Core is licensed under Apache-2.0. See [CONTRIBUTING.md](CONTRIBUTING.md)
 and [SECURITY.md](SECURITY.md). Font files retain their separate OFL terms in
-`assets/fonts/OFL.txt`.
+`assets/fonts/OFL.txt`. The generated production dependency inventory is
+[`THIRD_PARTY_LICENSES.json`](THIRD_PARTY_LICENSES.json).

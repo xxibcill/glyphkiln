@@ -3,6 +3,9 @@
 > Follow-up: F-005 and F-014 were subsequently resolved. See
 > [remediation-report.md](remediation-report.md). This report otherwise
 > preserves the earlier audit snapshot.
+>
+> Final closure: all F-001 through F-017 findings are resolved and the overall
+> result is PASS. See [closure-report.md](closure-report.md).
 
 Audit date: 2026-07-29
 

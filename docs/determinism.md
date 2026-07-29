@@ -42,8 +42,10 @@ Forks derive a new independent seed as `parent + NUL + label`.
 ## Environment
 
 Exact PNG hashes assume the pinned Node major, Resvg version, platform binary,
-font bytes, and renderer configuration used by CI. SVG output is less sensitive
-but remains versioned. A renderer migration must be treated as a deliberate
+font bytes, and renderer configuration used by CI (Ubuntu latest, Node 22 and
+24; coverage, examples, and package-consumer smoke on Node 24). SVG text is
+outlined and therefore independent of recipient fonts, but SVG bytes remain
+versioned. A renderer migration must be treated as a deliberate
 visual change: review images, bump the renderer version, regenerate manifests,
 and approve new exact baselines. Cross-environment perceptual comparison is a
 review aid, not a replacement for exact determinism.

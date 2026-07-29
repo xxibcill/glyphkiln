@@ -2,14 +2,13 @@
 
 ## Core next
 
-1. Glyph coverage and multilingual shaping diagnostics.
+1. Broader bidi/vertical-script shaping diagnostics.
 2. A validated CLI resource-bundle format for offline assets/fonts.
-3. Optional full adversarial pixel decoding in an isolated ingestion adapter.
-4. More spatially native quiet-region attenuation.
-5. Additional chart primitives and template versions driven by real product
+3. Optional color-profile normalization and upload malware-scanner adapters.
+4. Additional chart primitives and template versions driven by real product
    requirements.
-6. A browser-compatible SVG-only adapter that preserves the same contracts.
-7. Optional signed provenance/C2PA integration outside the pure renderer.
+5. A browser-compatible SVG-only adapter that preserves the same contracts.
+6. Optional signed provenance/C2PA integration outside the pure renderer.
 
 ## Glyphkiln App integration
 

@@ -42,6 +42,21 @@ export function assertSafeGeneratedSvg(svg: string): void {
 }
 
 function renderElement(element: SceneElement): string {
+  const rendered = renderPrimitive(element);
+  if (element.exclusion === undefined) return rendered;
+  const maskId = `exclusion-${element.id}`;
+  const { canvas, bounds } = element.exclusion;
+  return (
+    `<mask id="${escapeAttribute(maskId)}" maskUnits="userSpaceOnUse" x="0" y="0" ` +
+    `width="${number(canvas.width)}" height="${number(canvas.height)}">` +
+    `<rect width="${number(canvas.width)}" height="${number(canvas.height)}" fill="#FFFFFF"/>` +
+    `<rect x="${number(bounds.x)}" y="${number(bounds.y)}" width="${number(bounds.width)}" ` +
+    `height="${number(bounds.height)}" fill="#000000"/></mask>` +
+    `<g mask="url(#${escapeAttribute(maskId)})">${rendered}</g>`
+  );
+}
+
+function renderPrimitive(element: SceneElement): string {
   switch (element.type) {
     case "rect":
       return renderRect(element);
@@ -85,21 +100,23 @@ function renderPath(element: PathElement): string {
 }
 
 function renderText(element: TextElement): string {
-  const anchor = { left: "start", center: "middle", right: "end" }[element.align];
-  const spans = element.lines
+  if (element.outlines.length !== element.lines.length) {
+    throw new GlyphkilnError(
+      `Text element "${element.id}" is missing portable glyph outlines.`,
+      "TEXT_OUTLINES_REQUIRED",
+      { layerId: element.id },
+    );
+  }
+  const paths = element.outlines
     .map(
-      (line, index) =>
-        `<tspan x="${number(element.x)}" dy="${index === 0 ? "0" : number(element.fontSize * element.lineHeight)}">` +
-        `${escapeText(line)}</tspan>`,
+      (data, index) =>
+        `<path id="${escapeAttribute(`${element.id}-line-${index}`)}" ` +
+        `d="${escapeAttribute(data)}" fill="${escapeAttribute(element.fill)}"/>`,
     )
     .join("");
   return (
-    `<text id="${escapeAttribute(element.id)}" x="${number(element.x)}" y="${number(element.y)}" ` +
-    `fill="${escapeAttribute(element.fill)}" font-family="${escapeAttribute(element.fontFamily)}" ` +
-    `font-size="${number(element.fontSize)}" font-weight="${element.fontWeight}" ` +
-    `font-style="${element.fontStyle}" text-anchor="${anchor}" ` +
-    `dominant-baseline="hanging"${optional("letter-spacing", element.letterSpacing)}` +
-    `${optional("opacity", element.opacity)}>${spans}</text>`
+    `<g id="${escapeAttribute(element.id)}" role="group" aria-label="${escapeAttribute(element.lines.join(" "))}"` +
+    `${optional("opacity", element.opacity)}>${paths}</g>`
   );
 }
 

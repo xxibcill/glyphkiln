@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { realpathSync } from "node:fs";
+import { constants, readFileSync, realpathSync } from "node:fs";
 import { open, writeFile, mkdir } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
@@ -32,6 +32,10 @@ export async function runCli(
     const [command, inputPath, ...options] = arguments_;
     if (command === undefined || command === "--help" || command === "-h") {
       io.stdout(helpText());
+      return 0;
+    }
+    if (command === "--version" || command === "-v") {
+      io.stdout(packageVersion());
       return 0;
     }
     if (inputPath === undefined) {
@@ -75,21 +79,27 @@ async function renderCommand(
     );
   }
   const outputPath = resolve(parsed.outputPath);
+  const manifestPath = !parsed.manifest
+    ? undefined
+    : resolve(parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`);
+  await assertOutputPathsAvailable(
+    [outputPath, ...(manifestPath === undefined ? [] : [manifestPath])],
+    parsed.force,
+  );
   await mkdir(dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, output.bytes);
+  await writeOutput(outputPath, output.bytes, parsed.force);
   if (parsed.manifest) {
-    const manifestPath = resolve(
-      parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`,
-    );
-    await mkdir(dirname(manifestPath), { recursive: true });
-    await writeFile(
-      manifestPath,
+    await mkdir(dirname(manifestPath!), { recursive: true });
+    await writeOutput(
+      manifestPath!,
       `${JSON.stringify(output.manifest, null, 2)}\n`,
-      "utf8",
+      parsed.force,
     );
-    io.stdout(`Manifest: ${manifestPath}`);
+    io.stdout(
+      `Manifest: ${parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`}`,
+    );
   }
-  io.stdout(`Rendered ${parsed.format}: ${outputPath}`);
+  io.stdout(`Rendered ${parsed.format}: ${parsed.outputPath}`);
   io.stdout(`Fingerprint: ${output.fingerprint}`);
   return 0;
 }
@@ -111,6 +121,7 @@ type RenderArguments = {
   format: OutputFormat;
   outputPath: string;
   manifest: boolean;
+  force: boolean;
   manifestPath?: string;
   verifyFingerprint?: string;
 };
@@ -119,6 +130,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
   let format: OutputFormat | undefined;
   let outputPath: string | undefined;
   let manifest = false;
+  let force = false;
   let manifestPath: string | undefined;
   let verifyFingerprint: string | undefined;
   for (let index = 0; index < arguments_.length; index += 1) {
@@ -140,6 +152,8 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
       }
     } else if (argument === "--verify") {
       verifyFingerprint = requireOptionValue(arguments_[++index], "--verify");
+    } else if (argument === "--force") {
+      force = true;
     } else {
       throw new CliUsageError(`Unknown render option "${argument}".`);
     }
@@ -154,6 +168,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
     format,
     outputPath,
     manifest,
+    force,
     ...(manifestPath === undefined ? {} : { manifestPath }),
     ...(verifyFingerprint === undefined ? {} : { verifyFingerprint }),
   };
@@ -161,6 +176,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
 
 async function readJson(path: string): Promise<unknown> {
   const absolutePath = resolve(path);
+  const displayPath = basename(path);
   let handle;
   try {
     handle = await open(absolutePath, "r");
@@ -182,7 +198,7 @@ async function readJson(path: string): Promise<unknown> {
         "INPUT_FILE_BYTES_LIMIT_EXCEEDED",
         {
           maximum: RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes,
-          path: absolutePath,
+          file: displayPath,
         },
       );
     }
@@ -191,11 +207,11 @@ async function readJson(path: string): Promise<unknown> {
     if (error instanceof GlyphkilnError) throw error;
     if (error instanceof SyntaxError) {
       throw new GlyphkilnError(
-        `Could not parse JSON in ${absolutePath}: ${error.message}`,
+        `Could not parse JSON in ${displayPath}: ${error.message}`,
         "INVALID_JSON",
       );
     }
-    throw new GlyphkilnError(`Could not read ${absolutePath}.`, "INPUT_READ_FAILED", {
+    throw new GlyphkilnError(`Could not read ${displayPath}.`, "INPUT_READ_FAILED", {
       cause: error instanceof Error ? error.message : String(error),
     });
   } finally {
@@ -208,6 +224,49 @@ function requireOptionValue(value: string | undefined, option: string): string {
     throw new CliUsageError(`${option} requires a value.`);
   }
   return value;
+}
+
+async function assertOutputPathsAvailable(
+  paths: readonly string[],
+  force: boolean,
+): Promise<void> {
+  if (force) return;
+  for (const path of paths) {
+    try {
+      await open(path, constants.O_RDONLY).then((handle) => handle.close());
+    } catch (error) {
+      if (isNodeError(error) && error.code === "ENOENT") continue;
+      throw error;
+    }
+    throw new GlyphkilnError(
+      `Refusing to overwrite existing output "${basename(path)}"; pass --force to replace it.`,
+      "OUTPUT_EXISTS",
+      { file: basename(path) },
+    );
+  }
+}
+
+async function writeOutput(
+  path: string,
+  content: Uint8Array | string,
+  force: boolean,
+): Promise<void> {
+  try {
+    await writeFile(path, content, { flag: force ? "w" : "wx" });
+  } catch (error) {
+    if (isNodeError(error) && error.code === "EEXIST") {
+      throw new GlyphkilnError(
+        `Refusing to overwrite existing output "${basename(path)}"; pass --force to replace it.`,
+        "OUTPUT_EXISTS",
+        { file: basename(path) },
+      );
+    }
+    throw error;
+  }
+}
+
+function isNodeError(value: unknown): value is NodeJS.ErrnoException {
+  return value instanceof Error && "code" in value;
 }
 
 function reportExpectedError(error: unknown, io: CliIo): void {
@@ -275,11 +334,25 @@ function helpText(): string {
 Usage:
   glyphkiln validate <design.json>
   glyphkiln inspect <design.json>
+  glyphkiln --version
   glyphkiln render <design.json> --format <svg|png> --output <path>
-      [--manifest [path]] [--verify <fingerprint>]`;
+      [--manifest [path]] [--verify <fingerprint>] [--force]`;
 }
 
 class CliUsageError extends Error {}
+
+function packageVersion(): string {
+  const packageJson = JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+  ) as { version?: unknown };
+  if (typeof packageJson.version !== "string") {
+    throw new GlyphkilnError(
+      "Installed package metadata does not contain a version.",
+      "PACKAGE_VERSION_UNAVAILABLE",
+    );
+  }
+  return packageJson.version;
+}
 
 const invokedPath = process.argv[1];
 if (

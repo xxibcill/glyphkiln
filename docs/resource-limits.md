@@ -29,23 +29,26 @@ loading the whole file.
 
 PNG assets must have a complete bounded chunk structure with `IHDR` dimensions
 and an `IEND` at end of file. JPEG assets must have a bounded marker structure,
-a start-of-frame dimension record, a scan, and an end-of-image marker. Declared,
-resolved, and encoded dimensions must agree. These checks bound decode memory;
-they do not replace upload malware scanning or a full adversarial decoder in an
-ingestion service.
+a start-of-frame dimension record, a scan, and an end-of-image marker. Core then
+fully decompresses every raster with pinned PNG/JPEG decoders, verifies decoder
+dimensions, and enforces declared, encoded, per-image, and aggregate pixel
+limits before the asset can enter a scene.
 
 ## Process isolation
 
-`RENDER_WORKER_PROFILE` defines the required deployment boundary:
+`renderGraphicIsolated` applies `RENDER_WORKER_PROFILE` itself:
 
 - one concurrent render per worker;
 - a 15-second wall-clock timeout;
-- no outbound network access;
+- no network or executable-code capability exposed to render input;
+- package/dependency read access, temporary-directory read/write access, and no
+  child-process capability inside the render process;
 - Node worker limits of 256 MiB old generation, 64 MiB young generation, and a
   4 MiB stack.
 
-Core does not create a process or worker because lifecycle ownership belongs to
-the App, CLI host, or rendering service. Hosts handling hostile requests must
-apply this profile (or a stricter one), terminate timed-out workers, and avoid
-sharing credentials or writable application state with them. The fixed
-registries and offline render path ensure a worker does not need network access.
+The SDK serializes isolated calls, launches a permission-limited Node child
+process, applies V8 heap/stack limits, and kills it on timeout. The render job
+loads only fixed Core modules and receives data, never callbacks or module
+paths. A host can still add a container/seccomp policy for kernel-level network,
+credential, and tenant isolation; this is defense in depth rather than a
+missing Core lifecycle implementation.

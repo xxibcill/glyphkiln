@@ -145,4 +145,29 @@ describe("typography", () => {
       /Unsupported font/,
     );
   });
+
+  it("creates deterministic portable glyph outlines for every line", () => {
+    const input = {
+      lines: ["Portable", "SVG"],
+      family: "Inter",
+      weight: 700,
+      style: "normal" as const,
+      fontSize: 48,
+      lineHeight: 1.1,
+      x: 100,
+      y: 80,
+      align: "left" as const,
+    };
+    const first = registry.outlineText(input);
+    expect(first).toEqual(registry.outlineText(input));
+    expect(first).toHaveLength(2);
+    expect(first.every((path) => path.startsWith("M "))).toBe(true);
+    expect(first.join(" ")).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("reports code points missing from a resolved font", () => {
+    expect(registry.missingCodePoints("\u{10FFFF}", "Inter", 400, "normal")).toEqual([
+      0x10ffff,
+    ]);
+  });
 });

@@ -1,8 +1,11 @@
 import { Ajv2020 } from "ajv/dist/2020.js";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
   DESIGN_DOCUMENT_VERSION,
+  DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
   createDesignDocument,
   getDesignDocumentJsonSchema,
   validateDesignDocument,
@@ -77,6 +80,12 @@ describe("design document schema", () => {
     const schema = getDesignDocumentJsonSchema() as Record<string, unknown>;
     expect(schema["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema["additionalProperties"]).toBe(false);
+    expect(DESIGN_DOCUMENT_RUNTIME_REFINEMENTS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "UNIQUE_LAYER_IDS" }),
+        expect.objectContaining({ code: "QUIET_REGION_HORIZONTAL_BOUNDS" }),
+      ]),
+    );
     const validateJsonSchema = new Ajv2020().compile(schema);
     for (const name of [
       "product-announcement",
@@ -88,6 +97,23 @@ describe("design document schema", () => {
         validateJsonSchema(await loadExample(name)),
         JSON.stringify(validateJsonSchema.errors),
       ).toBe(true);
+    }
+  });
+
+  it("publishes conformance fixtures for runtime-only refinements", async () => {
+    const schema = getDesignDocumentJsonSchema();
+    const validateJsonSchema = new Ajv2020().compile(schema);
+    const expectations = JSON.parse(
+      await readFile(resolve("fixtures/schema-conformance/expectations.json"), "utf8"),
+    ) as Record<string, { jsonSchemaValid: boolean; runtimeValid: boolean }>;
+    for (const [name, expected] of Object.entries(expectations)) {
+      const document = JSON.parse(
+        await readFile(resolve(`fixtures/schema-conformance/${name}.json`), "utf8"),
+      ) as unknown;
+      expect(validateJsonSchema(document), name).toBe(expected.jsonSchemaValid);
+      expect(validateDesignDocument(document).success, name).toBe(
+        expected.runtimeValid,
+      );
     }
   });
 });

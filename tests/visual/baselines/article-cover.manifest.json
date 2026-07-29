@@ -1,20 +1,20 @@
 {
-  "manifestVersion": "1.0.0",
-  "renderId": "render_7d7d25e643c4fc4962dac3f7",
-  "renderFingerprint": "7d7d25e643c4fc4962dac3f7c94970eabe2dbb088db1443f696f1af563cdd36c",
+  "manifestVersion": "1.1.0",
+  "renderId": "render_46e132051f450a4c276963c6",
+  "renderFingerprint": "46e132051f450a4c276963c6af63a5d6ed66928a5fd97aa1a96277f5538f5111",
   "designDocumentId": "example-article-cover",
-  "designDocumentHash": "62f491fcaed9c70e0bf6470d6e78be8a7a6c4a860e8e5736089ac05a495c8aa7",
+  "designDocumentHash": "9c094284a680fe08c6eb0bf972e8dab4b52228e0ef8197d9add59de9ee647b17",
   "seed": "editorial-rendering-19",
   "template": {
     "id": "article-cover",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.1.1"
+    "version": "0.2.0"
   },
   "proceduralAlgorithmVersions": {
-    "flow-field": "1.0.0"
+    "flow-field": "1.1.0"
   },
   "assets": [],
   "fonts": [
@@ -43,12 +43,13 @@
   },
   "output": {
     "format": "png",
-    "sha256": "da635ae246027e1875f1a2a02ccf737fbaaff24eab6c8d16055a4f9ce68a13e0",
-    "byteSize": 82082
+    "sha256": "e071de2c7407134b5082b68df9424e0ac44bab51ede3bc17370b4b06319b2d85",
+    "byteSize": 83006
   },
   "creationTimestamp": "2026-07-29T10:00:00.000Z",
-  "generativeImageModelUsed": false,
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
-  "productClaim": "Created without generative image models and rendered deterministically from code."
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
 }

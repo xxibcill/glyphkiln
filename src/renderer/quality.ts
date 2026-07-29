@@ -34,6 +34,45 @@ export function runDocumentQualityChecks(document: DesignDocument): QualityIssue
       }
     }
   }
+  const procedural = document.layers.find(
+    (
+      layer,
+    ): layer is Extract<
+      (typeof document.layers)[number],
+      { type: "procedural-decoration" }
+    > => layer.type === "procedural-decoration" && layer.visible,
+  );
+  const prohibitedStyles = new Set(
+    document.brand.prohibitedStyles.map((style) => style.toLocaleLowerCase("en-US")),
+  );
+  const selectedStyles = [
+    document.template.id,
+    ...(procedural === undefined ? [] : [procedural.style]),
+  ];
+  for (const style of selectedStyles) {
+    if (!prohibitedStyles.has(style.toLocaleLowerCase("en-US"))) continue;
+    issues.push({
+      code: "PROHIBITED_STYLE",
+      severity: "error",
+      message: `Selected style "${style}" is prohibited by the brand snapshot.`,
+      details: { style },
+    });
+  }
+  if (
+    procedural !== undefined &&
+    !document.brand.preferredProceduralStyles.includes(procedural.style)
+  ) {
+    issues.push({
+      code: "NON_PREFERRED_PROCEDURAL_STYLE",
+      severity: "warning",
+      message: `Procedural style "${procedural.style}" is outside the brand preference list.`,
+      layerId: procedural.id,
+      details: {
+        selected: procedural.style,
+        preferred: document.brand.preferredProceduralStyles,
+      },
+    });
+  }
   return issues;
 }
 

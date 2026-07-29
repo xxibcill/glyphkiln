@@ -92,7 +92,9 @@ describe("render resource limits", () => {
   });
 
   it("publishes an actionable process-isolation profile", () => {
-    expect(RENDER_WORKER_PROFILE.networkAccess).toBe("deny");
+    expect(RENDER_WORKER_PROFILE.executionBoundary).toBe("node-child-process");
+    expect(RENDER_WORKER_PROFILE.networkAccess).toBe("not-exposed-to-render-input");
+    expect(RENDER_WORKER_PROFILE.subprocessAccess).toBe("deny");
     expect(RENDER_WORKER_PROFILE.maxConcurrentRenders).toBe(1);
     expect(RENDER_WORKER_PROFILE.timeoutMilliseconds).toBeGreaterThan(0);
     expect(

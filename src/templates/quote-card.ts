@@ -10,7 +10,7 @@ import type { TemplateDefinition } from "./types.js";
 
 export const quoteCardTemplate: TemplateDefinition = {
   id: "quote-card",
-  version: "1.0.0",
+  version: "1.1.0",
   requiredLayers: ["headline", "attribution"],
   supportedLayers: ["background", "procedural-decoration", "headline", "attribution"],
   supportedFormats: [

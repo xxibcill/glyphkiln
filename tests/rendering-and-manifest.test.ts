@@ -7,6 +7,7 @@ import {
   RENDERER_VERSION,
   renderGraphic,
   sha256,
+  verifyRenderReproduction,
 } from "../src/index.js";
 import { loadExample } from "./helpers.js";
 
@@ -22,6 +23,8 @@ describe("SVG and PNG rendering", () => {
     expect(svg).toMatch(/^<svg /);
     expect(svg).toContain("&lt;script&gt;");
     expect(svg).not.toContain("<script");
+    expect(svg).not.toContain("<text");
+    expect(svg).toContain("<path");
     expect(svg).not.toMatch(/\bhref=["']https?:/);
     expect(svg).toMatch(/<\/svg>$/);
   });
@@ -91,10 +94,10 @@ describe("render manifests", () => {
     });
     const output = result.outputs[0]!;
     expect(output.manifest).toMatchObject({
-      manifestVersion: "1.0.0",
+      manifestVersion: "1.1.0",
       designDocumentId: "example-article-cover",
       seed: "editorial-rendering-19",
-      template: { id: "article-cover", version: "1.0.0" },
+      template: { id: "article-cover", version: "1.1.0" },
       renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
       dimensions: { width: 1280, height: 720 },
       output: {
@@ -103,18 +106,48 @@ describe("render manifests", () => {
         byteSize: output.bytes.byteLength,
       },
       creationTimestamp: timestamp,
-      generativeImageModelUsed: false,
+      compositionGenerativeImageModelUsed: false,
+      includedGenerativeAssetUsed: false,
       renderingMethod: "deterministic-code-rendering/direct-svg",
       productClaim: PRODUCT_CLAIM,
     });
     expect(output.manifest.proceduralAlgorithmVersions).toEqual({
-      "flow-field": "1.0.0",
+      "flow-field": "1.1.0",
     });
     expect(output.manifest.fonts).toEqual([
       expect.objectContaining({ family: "Inter", weight: 700, style: "normal" }),
       expect.objectContaining({ family: "Inter", weight: 800, style: "normal" }),
       expect.objectContaining({ family: "Inter", weight: 500, style: "normal" }),
     ]);
+  });
+
+  it("verifies reproduced bytes and reports deterministic mismatches", async () => {
+    const document = await loadExample("article-cover");
+    const output = (
+      await renderGraphic(document, {
+        formats: ["svg"],
+        creationTimestamp: "2026-07-29T10:00:00.000Z",
+      })
+    ).outputs[0]!;
+    expect(
+      verifyRenderReproduction({
+        document,
+        bytes: output.bytes,
+        manifest: output.manifest,
+      }),
+    ).toEqual([]);
+    expect(
+      verifyRenderReproduction({
+        document,
+        bytes: output.bytes.slice(0, -1),
+        manifest: output.manifest,
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "OUTPUT_SIZE_MISMATCH" }),
+        expect.objectContaining({ code: "OUTPUT_HASH_MISMATCH" }),
+      ]),
+    );
   });
 
   it("uses distinct manifests and fingerprints for SVG and PNG", async () => {

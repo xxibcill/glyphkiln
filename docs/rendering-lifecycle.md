@@ -7,18 +7,19 @@
 4. Resolve the format and exact template version, then reject unsupported,
    duplicate, or mutually exclusive visible layers.
 5. Verify every declared asset against supplied bytes: ID, SHA-256, bounded
-   PNG/JPEG structure, dimensions, pixels, bytes, and origin metadata must
-   match.
+   PNG/JPEG structure, full decompression, decoder dimensions, pixels, bytes,
+   and origin metadata must match.
 6. Verify bounded declared fonts and hashes. Unsupported families fail; system
    fallback is disabled.
 7. Run document and required-layer quality checks.
 8. Execute the explicit versioned template with a seed and immutable brand
    snapshot.
-9. Measure and fit text, create deterministic procedural geometry, and emit a
-   renderer-neutral scene.
-10. Run layout, contrast, overflow, quiet-region, and logo checks. Error issues
+9. Measure, fit, coverage-check, shape, and outline text; create deterministic
+   procedural geometry; and emit a renderer-neutral scene.
+10. Run layout, contrast, overflow, brand, quiet-region, and logo checks. Error issues
     block export; warnings are recorded.
-11. Serialize safe SVG. For PNG, rasterize that SVG with pinned Resvg and
+11. Serialize safe SVG containing glyph paths. For PNG, rasterize that SVG with
+    pinned Resvg and
     temporary files containing only already-verified font bytes.
 12. Validate the output signature, hash the bytes, compute the canonical
     fingerprint, and return a manifest.
@@ -26,3 +27,7 @@
 The render performs no network access. Temporary font files are created in an
 OS-owned random directory and removed in a `finally` block. Successful SDK calls
 return bytes; only the CLI decides where to write them.
+
+`renderGraphicIsolated` runs this lifecycle in a serialized,
+permission-limited child process with V8 memory/stack limits and wall-clock
+termination.

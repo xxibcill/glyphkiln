@@ -23,6 +23,7 @@ export type { FormatId } from "./formats/index.js";
 
 export {
   DesignDocumentSchema,
+  DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
   PROCEDURAL_STYLE_IDS,
   TEMPLATE_IDS,
   createDesignDocument,
@@ -94,7 +95,10 @@ export type {
   Scene,
   SceneElement,
 } from "./renderer/index.js";
+export { renderGraphicIsolated } from "./isolation/index.js";
+export type { IsolatedRenderOptions } from "./isolation/index.js";
 
 export { inspectDesignDocument } from "./inspect.js";
 export type { DesignInspection } from "./inspect.js";
 export type { RenderManifest } from "./provenance/index.js";
+export { verifyRenderReproduction } from "./provenance/index.js";

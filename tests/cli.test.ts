@@ -108,10 +108,39 @@ describe("CLI", () => {
         output,
         "--verify",
         provenance.renderFingerprint,
+        "--force",
       ],
       secondCapture.io,
     );
     expect(secondCode).toBe(0);
+  });
+
+  it("refuses to overwrite output unless --force is explicit", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-overwrite-"));
+    temporaryDirectories.push(directory);
+    const output = join(directory, "graphic.svg");
+    await writeFile(output, "keep me");
+    const capture = captureIo();
+    const code = await runCli(
+      [
+        "render",
+        resolve("examples/article-cover.json"),
+        "--format",
+        "svg",
+        "--output",
+        output,
+      ],
+      capture.io,
+    );
+    expect(code).toBe(1);
+    expect(capture.stderr.join("\n")).toContain("OUTPUT_EXISTS");
+    expect(await readFile(output, "utf8")).toBe("keep me");
+  });
+
+  it("reports the package version", async () => {
+    const capture = captureIo();
+    expect(await runCli(["--version"], capture.io)).toBe(0);
+    expect(capture.stdout).toEqual(["0.1.0"]);
   });
 
   it("returns nonzero for invalid usage", async () => {
@@ -131,6 +160,18 @@ describe("CLI", () => {
     const capture = captureIo();
     expect(await runCli(["validate", input], capture.io)).toBe(1);
     expect(capture.stderr.join("\n")).toContain("INPUT_FILE_BYTES_LIMIT_EXCEEDED");
+  });
+
+  it("redacts absolute input directories from parse diagnostics", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-redaction-"));
+    temporaryDirectories.push(directory);
+    const input = join(directory, "invalid.json");
+    await writeFile(input, "{");
+    const capture = captureIo();
+    expect(await runCli(["validate", input], capture.io)).toBe(1);
+    const diagnostic = capture.stderr.join("\n");
+    expect(diagnostic).toContain("invalid.json");
+    expect(diagnostic).not.toContain(directory);
   });
 
   it("executes when Node receives a package-style symlink path", async () => {

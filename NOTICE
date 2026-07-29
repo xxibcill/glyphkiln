@@ -2,3 +2,9 @@ Glyphkiln Core
 Copyright 2026 Glyphkiln contributors
 
 This product includes software developed by Glyphkiln contributors.
+
+The bundled Inter variable font is Copyright 2020 The Inter Project Authors and
+is distributed under SIL Open Font License 1.1 in assets/fonts/OFL.txt.
+
+Production dependency names, pinned versions, and reviewed SPDX license
+identifiers are recorded in THIRD_PARTY_LICENSES.json.

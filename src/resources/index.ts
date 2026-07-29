@@ -41,9 +41,12 @@ export const RENDER_RESOURCE_LIMITS: Readonly<RenderResourceLimits> = Object.fre
 });
 
 export type RenderWorkerProfile = {
+  executionBoundary: "node-child-process";
   timeoutMilliseconds: number;
   maxConcurrentRenders: 1;
-  networkAccess: "deny";
+  networkAccess: "not-exposed-to-render-input";
+  fileSystemAccess: "package-read-and-temporary-write";
+  subprocessAccess: "deny";
   nodeResourceLimits: {
     maxOldGenerationSizeMb: number;
     maxYoungGenerationSizeMb: number;
@@ -52,9 +55,12 @@ export type RenderWorkerProfile = {
 };
 
 export const RENDER_WORKER_PROFILE: Readonly<RenderWorkerProfile> = Object.freeze({
+  executionBoundary: "node-child-process",
   timeoutMilliseconds: 15_000,
   maxConcurrentRenders: 1,
-  networkAccess: "deny",
+  networkAccess: "not-exposed-to-render-input",
+  fileSystemAccess: "package-read-and-temporary-write",
+  subprocessAccess: "deny",
   nodeResourceLimits: Object.freeze({
     maxOldGenerationSizeMb: 256,
     maxYoungGenerationSizeMb: 64,

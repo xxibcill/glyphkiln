@@ -15,7 +15,7 @@ untrusted JSON
   → bounded caller-supplied asset/font verification
   → explicit versioned template
   → deterministic scene primitives
-  → generated safe SVG
+  → shaped glyph outlines + generated safe SVG
   ├─→ SVG bytes
   └─→ Resvg with explicit font files → PNG bytes
        → canonical fingerprint + provenance manifest
@@ -37,8 +37,10 @@ same SVG bytes, not a separate layout implementation.
 | Node Canvas        | Familiar canvas API                                             | Native dependencies, raster-first architecture, and platform font discovery                   |
 
 Direct SVG scene generation plus pinned `@resvg/resvg-js` was selected. Font
-measurement uses `fontkit`; Resvg receives only explicitly loaded font files and
-has system-font loading disabled. The tradeoff is that Core owns text layout and
+measurement, shaping, coverage checks, and outlines use `fontkit`; successful
+SVG contains glyph paths rather than recipient-dependent text. Resvg receives
+only explicitly loaded font files and has system-font loading disabled. The
+tradeoff is that Core owns text layout and
 supports a deliberately small visual vocabulary. If richer layout becomes
 necessary, a scene-to-Satori or scene-to-Skia adapter can be evaluated without
 changing the design document, template metadata, asset interface, or manifest.
@@ -47,6 +49,7 @@ changing the design document, template metadata, asset interface, or manifest.
 
 - `schema`: untrusted-data contract and JSON Schema export
 - `resources`: iterative input guards and the public worker profile
+- `isolation`: serialized, permission-limited child-process rendering
 - `formats`: centralized immutable output dimensions
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
 - `fonts`, `assets`, `typography`, `layout`: verified resources and geometry
@@ -69,9 +72,9 @@ input file and may write an explicit command-line output; those paths are
 operator intent, not document data.
 
 [`RENDER_RESOURCE_LIMITS`](resource-limits.md) defines the in-process boundary.
-Hosts accepting hostile requests must apply `RENDER_WORKER_PROFILE` (or a
-stricter profile) for process-level memory, timeout, concurrency, filesystem,
-credential, and network isolation.
+`renderGraphicIsolated` applies `RENDER_WORKER_PROFILE` for process memory,
+timeout, concurrency, filesystem, and subprocess restrictions. Hosts may add a
+container policy for kernel-level tenant, credential, and network separation.
 
 See [SECURITY.md](../SECURITY.md) for boundaries across Core, App, Cloud,
 ingestion, workers, and optional LLM adapters.

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   GlyphkilnError,
   TEMPLATE_REGISTRY,
+  createDevelopmentFont,
   renderGraphic,
   type DesignDocument,
   type DesignLayer,
@@ -94,7 +95,7 @@ describe("template registry", () => {
       "article-cover",
     ]);
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
-      expect(template.version).toBe("1.0.0");
+      expect(template.version).toBe("1.1.0");
       expect(template.requiredLayers.length).toBeGreaterThan(0);
       expect(template.supportedLayers.length).toBeGreaterThan(0);
       expect(template.supportedFormats.length).toBeGreaterThan(0);
@@ -161,9 +162,98 @@ describe("template registry", () => {
     });
   });
 
+  it("blocks prohibited template or procedural styles", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    document.brand.prohibitedStyles = ["layered-waves"];
+    try {
+      await renderGraphic(document);
+      expect.fail("Expected prohibited style to block rendering.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GlyphkilnError);
+      const issues =
+        error instanceof GlyphkilnError ? error.details?.["issues"] : undefined;
+      expect(Array.isArray(issues)).toBe(true);
+      expect(
+        Array.isArray(issues) &&
+          issues.some(
+            (issue) =>
+              typeof issue === "object" &&
+              issue !== null &&
+              (issue as Record<string, unknown>)["code"] === "PROHIBITED_STYLE",
+          ),
+      ).toBe(true);
+    }
+  });
+
+  it("reports a non-preferred procedural style without blocking output", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    const procedural = document.layers.find(
+      (layer) => layer.type === "procedural-decoration",
+    );
+    if (procedural?.type === "procedural-decoration") {
+      procedural.style = "recursive-subdivision";
+    }
+    const result = await renderGraphic(document);
+    expect(result.qualityIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "NON_PREFERRED_PROCEDURAL_STYLE",
+          severity: "warning",
+        }),
+      ]),
+    );
+  });
+
+  it("uses brand surface, spacing, and visual density in pixels", async () => {
+    const source = cloneDocument(await loadExample("product-announcement"));
+    const baseline = await renderGraphic(source);
+    for (const mutate of [
+      (document: DesignDocument) => {
+        document.brand.themes.dark.surface = "#202840";
+      },
+      (document: DesignDocument) => {
+        document.brand.spacingScale[0] = 1;
+      },
+      (document: DesignDocument) => {
+        document.brand.visualDensity = "dense";
+      },
+    ]) {
+      const changed = cloneDocument(source);
+      mutate(changed);
+      const result = await renderGraphic(changed);
+      expect(result.outputs[0]?.bytes).not.toEqual(baseline.outputs[0]?.bytes);
+    }
+  });
+
+  it("uses the monospace brand face for compact CTA copy", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    const development = createDevelopmentFont();
+    document.brand.typography.monospaceFamily = "Brand Mono";
+    document.fonts.push({
+      family: "Brand Mono",
+      weight: 700,
+      style: "normal",
+      sha256: development.sha256,
+    });
+    const result = await renderGraphic(document, {
+      fonts: [
+        {
+          ...development,
+          family: "Brand Mono",
+          weight: 700,
+        },
+      ],
+    });
+    expect(result.outputs[0]?.manifest.fonts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ family: "Brand Mono", weight: 700 }),
+      ]),
+    );
+  });
+
   it("rejects unsupported template versions", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
-    document.template.version = "1.1.0";
+    document.template.version = "9.9.9";
     await expect(renderGraphic(document)).rejects.toMatchObject({
       code: "UNSUPPORTED_TEMPLATE_VERSION",
     });

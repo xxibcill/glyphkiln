@@ -1,3 +1,6 @@
+import { decode as decodeJpeg } from "jpeg-js";
+import { PNG } from "pngjs";
+
 import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedAsset } from "../domain/types.js";
 import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
@@ -139,6 +142,7 @@ function verifyAssetBytes(asset: ResolvedAsset): ResolvedAsset {
       },
     );
   }
+  assertRasterDecodes(asset);
   const actualHash = sha256(asset.bytes);
   if (actualHash !== asset.sha256) {
     throw new GlyphkilnError(
@@ -148,6 +152,31 @@ function verifyAssetBytes(asset: ResolvedAsset): ResolvedAsset {
     );
   }
   return { ...asset, bytes: new Uint8Array(asset.bytes) };
+}
+
+function assertRasterDecodes(asset: ResolvedAsset): void {
+  try {
+    const decoded =
+      asset.mimeType === "image/png"
+        ? PNG.sync.read(Buffer.from(asset.bytes), { checkCRC: true })
+        : decodeJpeg(asset.bytes, {
+            useTArray: true,
+            formatAsRGBA: false,
+            maxResolutionInMP: Math.ceil(
+              RENDER_RESOURCE_LIMITS.maxAssetPixels / 1_000_000,
+            ),
+            maxMemoryUsageInMB: 256,
+          });
+    if (decoded.width !== asset.width || decoded.height !== asset.height) {
+      throw new Error("Decoded dimensions disagree with raster metadata.");
+    }
+  } catch {
+    throw new GlyphkilnError(
+      `Asset "${asset.id}" could not be fully decoded as ${asset.mimeType}.`,
+      "ASSET_DECODE_FAILED",
+      { assetId: asset.id, mimeType: asset.mimeType },
+    );
+  }
 }
 
 function detectImageMimeType(bytes: Uint8Array): ResolvedAsset["mimeType"] | undefined {

@@ -15,11 +15,12 @@ Only the latest released minor version is supported during the pre-1.0 phase.
   fetches arbitrary URLs.
 - `glyphkiln-app` will own uploads, access control, project persistence, and
   browser-facing request limits. It must not bypass Core validation.
-- Asset-ingestion services must scan, fully decode, normalize, and verify files
-  before providing bytes to Core. Core independently checks hashes, bounded
-  PNG/JPEG structure, dimensions, bytes, and decoded-pixel counts.
-- Rendering workers must apply `RENDER_WORKER_PROFILE` or stricter limits, run
-  without network access, and receive only approved fonts/assets.
+- Asset-ingestion services should scan and normalize files before providing
+  bytes to Core. Core independently checks hashes, bounded PNG/JPEG structure,
+  fully decoded pixels, dimensions, bytes, and decoded-pixel counts.
+- Untrusted jobs should use `renderGraphicIsolated`, which applies
+  `RENDER_WORKER_PROFILE` in a permission-limited child process. Services may
+  add a container-level network/credential policy for tenant defense in depth.
 - Optional LLM adapters may propose a design document. Their output is untrusted
   data and receives exactly the same validation as any other caller.
 - Glyphkiln Cloud may orchestrate workers but is not trusted by, imported into,
@@ -31,6 +32,7 @@ executes arbitrary JavaScript, model-generated code, or template expressions.
 
 `RENDER_RESOURCE_LIMITS` bounds document/metadata bytes, depth and entries;
 asset count, bytes, dimensions and decoded pixels; font count and bytes; and
-requested outputs. The CLI performs a fixed-size input read. Production hosts
-must additionally enforce the public worker profile's concurrency, memory,
-network, and wall-clock limits because a library cannot sandbox its own process.
+requested outputs. The CLI performs a fixed-size input read.
+`renderGraphicIsolated` enforces serialized concurrency, V8 memory/stack
+limits, filesystem/subprocess permissions, and wall-clock termination without
+requiring a host to reimplement worker lifecycle.
