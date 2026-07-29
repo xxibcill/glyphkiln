@@ -20,6 +20,7 @@ profile:
 | Font bytes                       | 10 MiB each     |
 | Total caller-supplied font bytes | 32 MiB          |
 | Requested output formats         | 2               |
+| Manifest creation timestamp      | 128 bytes       |
 
 SDK input is inspected iteratively before Zod validation. Cycles, accessors,
 non-JSON object instances, excessive nesting, excessive entry counts, and
@@ -40,7 +41,8 @@ limits before the asset can enter a scene.
 
 - one concurrent render per worker;
 - a 15-second wall-clock timeout;
-- parent-side asset/font count and byte preflight before IPC serialization;
+- parent-side design, asset/font, output-format, and timestamp preflight before
+  IPC serialization;
 - no network or executable-code capability exposed to render input;
 - package/dependency read access, temporary-directory read/write access, and no
   child-process capability inside the render process;

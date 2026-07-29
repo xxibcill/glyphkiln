@@ -50,14 +50,14 @@ and regenerated under those versions.
 | Check                                      | Result                                                                   |
 | ------------------------------------------ | ------------------------------------------------------------------------ |
 | Build / strict typecheck / lint-security   | Passed                                                                   |
-| Unit, integration, visual, fixture tests   | Passed; 13 files, 131/131 tests                                          |
+| Unit, integration, visual, fixture tests   | Passed; 13 files, 133/133 tests                                          |
 | Isolated child-process smoke               | Passed for SVG+PNG, timeout, and serialized error propagation            |
-| Coverage                                   | 82.59% statements, 73.91% branches, 80.47% functions, 84.12% lines       |
+| Coverage                                   | 81.18% statements, 73.17% branches, 78.8% functions, 82.8% lines         |
 | Visual baselines                           | Passed; 4/4 exact PNG bytes                                              |
 | Tracked example regeneration               | Passed; 8 outputs and 8 manifests exact                                  |
 | Schema/full fixture verification           | Passed; 12 design fixtures plus 3 conformance documents                  |
 | Dependency audit and license inventory     | Passed; 0 vulnerabilities, 29 reviewed production package records        |
-| Package dry run                            | Passed; 135 files, 547,919-byte tarball                                  |
+| Package dry run                            | Passed; 135 files, 550,827-byte tarball                                  |
 | Fresh installed runtime consumer           | Passed; direct SVG and isolated PNG                                      |
 | Fresh installed strict TypeScript consumer | Passed                                                                   |
 | Two independent determinism processes      | Passed; 192/192 inputs and 384 outputs each, byte-identical result files |

@@ -36,14 +36,14 @@
   },
   "tests": {
     "files": 13,
-    "passed": 131,
+    "passed": 133,
     "failed": 0
   },
   "coverage": {
-    "statements": 82.59,
-    "branches": 73.91,
-    "functions": 80.47,
-    "lines": 84.12
+    "statements": 81.18,
+    "branches": 73.17,
+    "functions": 78.8,
+    "lines": 82.8
   },
   "determinism": {
     "processes": 2,
@@ -54,6 +54,6 @@
   },
   "packageDryRun": {
     "files": 135,
-    "bytes": 547919
+    "bytes": 550827
   }
 }
