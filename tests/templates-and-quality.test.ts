@@ -94,8 +94,14 @@ describe("template registry", () => {
       "quote-card",
       "article-cover",
     ]);
+    const expectedVersions = {
+      "product-announcement": "1.1.1",
+      "statistic-card": "1.1.0",
+      "quote-card": "1.1.0",
+      "article-cover": "1.1.0",
+    };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
-      expect(template.version).toBe("1.1.0");
+      expect(template.version).toBe(expectedVersions[template.id]);
       expect(template.requiredLayers.length).toBeGreaterThan(0);
       expect(template.supportedLayers.length).toBeGreaterThan(0);
       expect(template.supportedFormats.length).toBeGreaterThan(0);
@@ -185,6 +191,16 @@ describe("template registry", () => {
     }
   });
 
+  it("blocks prohibited colors supplied by visible layers", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline?.type === "headline") {
+      headline.color = "#FFFFFF";
+    }
+    document.brand.prohibitedColors = ["#FFFFFF"];
+    await expectQualityIssue(document, "PROHIBITED_COLOR", "headline");
+  });
+
   it("reports a non-preferred procedural style without blocking output", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     const procedural = document.layers.find(
@@ -228,6 +244,8 @@ describe("template registry", () => {
   it("uses the monospace brand face for compact CTA copy", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     const development = createDevelopmentFont();
+    const eyebrow = document.layers.find((layer) => layer.type === "eyebrow");
+    if (eyebrow !== undefined) eyebrow.visible = false;
     document.brand.typography.monospaceFamily = "Brand Mono";
     document.fonts.push({
       family: "Brand Mono",
@@ -249,6 +267,28 @@ describe("template registry", () => {
         expect.objectContaining({ family: "Brand Mono", weight: 700 }),
       ]),
     );
+  });
+
+  it("renders supported badge text instead of an unlabeled pill", async () => {
+    const source = cloneDocument(await loadExample("product-announcement"));
+    source.layers = source.layers.filter((layer) => layer.type !== "eyebrow");
+    const first = cloneDocument(source);
+    first.layers.push({
+      id: "announcement-badge",
+      type: "badge",
+      text: "BETA",
+      visible: true,
+    });
+    const second = cloneDocument(source);
+    second.layers.push({
+      id: "announcement-badge",
+      type: "badge",
+      text: "LIVE",
+      visible: true,
+    });
+    const firstOutput = await renderGraphic(first, { formats: ["svg"] });
+    const secondOutput = await renderGraphic(second, { formats: ["svg"] });
+    expect(firstOutput.outputs[0]?.bytes).not.toEqual(secondOutput.outputs[0]?.bytes);
   });
 
   it("rejects unsupported template versions", async () => {

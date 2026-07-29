@@ -21,18 +21,15 @@ export function runDocumentQualityChecks(document: DesignDocument): QualityIssue
   const prohibited = new Set(
     document.brand.prohibitedColors.map((value) => value.toLowerCase()),
   );
-  for (const [name, value] of Object.entries(document.brand.palette)) {
-    const colors = Array.isArray(value) ? value : [value];
-    for (const paletteColor of colors) {
-      if (prohibited.has(paletteColor.toLowerCase())) {
-        issues.push({
-          code: "PROHIBITED_COLOR",
-          severity: "error",
-          message: `Brand palette field "${name}" uses prohibited color ${paletteColor}.`,
-          details: { paletteField: name, color: paletteColor },
-        });
-      }
-    }
+  for (const colorUse of collectColorUses(document)) {
+    if (!prohibited.has(colorUse.color.toLowerCase())) continue;
+    issues.push({
+      code: "PROHIBITED_COLOR",
+      severity: "error",
+      message: `${colorUse.source} uses prohibited color ${colorUse.color}.`,
+      ...(colorUse.layerId === undefined ? {} : { layerId: colorUse.layerId }),
+      details: { source: colorUse.source, color: colorUse.color },
+    });
   }
   const procedural = document.layers.find(
     (
@@ -74,6 +71,45 @@ export function runDocumentQualityChecks(document: DesignDocument): QualityIssue
     });
   }
   return issues;
+}
+
+type ColorUse = {
+  source: string;
+  color: string;
+  layerId?: string;
+};
+
+function collectColorUses(document: DesignDocument): ColorUse[] {
+  const uses: ColorUse[] = [];
+  for (const [name, value] of Object.entries(document.brand.palette)) {
+    const colors = Array.isArray(value) ? value : [value];
+    for (const paletteColor of colors) {
+      uses.push({ source: `Brand palette field "${name}"`, color: paletteColor });
+    }
+  }
+  for (const [name, color] of Object.entries(document.brand.themes[document.mode])) {
+    uses.push({ source: `Selected theme field "${name}"`, color });
+  }
+  for (const layer of document.layers) {
+    if (!layer.visible) continue;
+    if ("color" in layer && layer.color !== undefined) {
+      uses.push({
+        source: `Layer "${layer.id}"`,
+        color: layer.color,
+        layerId: layer.id,
+      });
+    }
+    if (layer.type !== "chart") continue;
+    for (const [index, value] of layer.values.entries()) {
+      if (value.color === undefined) continue;
+      uses.push({
+        source: `Chart layer "${layer.id}" value ${index}`,
+        color: value.color,
+        layerId: layer.id,
+      });
+    }
+  }
+  return uses;
 }
 
 export function assertOutputValidity(format: "svg" | "png", bytes: Uint8Array): void {

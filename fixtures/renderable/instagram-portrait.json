@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "id": "fixture-instagram-portrait",
-  "template": { "id": "product-announcement", "version": "1.1.0" },
+  "template": { "id": "product-announcement", "version": "1.1.1" },
   "format": "instagram-portrait",
   "seed": "launch-analytics-01",
   "mode": "dark",

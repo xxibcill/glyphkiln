@@ -3,6 +3,7 @@ import { createProceduralBackground } from "../backgrounds/index.js";
 import type { Bounds, QualityIssue } from "../domain/types.js";
 import { getFormatDimensions } from "../formats/index.js";
 import {
+  contrastRatio,
   contrastIssue,
   isInside,
   safeAreaBounds,
@@ -116,6 +117,7 @@ export function addText(
     lineHeight?: number;
     align?: "left" | "center" | "right";
     family?: string;
+    contrastBackgroundColor?: string;
   },
 ): TextElement {
   const family =
@@ -185,7 +187,11 @@ export function addText(
   );
   appendIssue(
     canvas.qualityIssues,
-    contrastIssue(fill, canvas.backgroundColor, layer.id),
+    contrastIssue(
+      fill,
+      options.contrastBackgroundColor ?? canvas.backgroundColor,
+      layer.id,
+    ),
   );
   const element: TextElement = {
     id: layer.id,
@@ -306,6 +312,20 @@ export function addDecorativeBar(
   };
   canvas.scene.elements.push(element);
   return element;
+}
+
+export function bestContrastingColor(
+  background: string,
+  candidates: readonly [string, ...string[]],
+): string {
+  const [first, ...remaining] = candidates;
+  return remaining.reduce(
+    (best, candidate) =>
+      contrastRatio(candidate, background) > contrastRatio(best, background)
+        ? candidate
+        : best,
+    first,
+  );
 }
 
 function appendIssue(issues: QualityIssue[], issue: QualityIssue | undefined): void {
