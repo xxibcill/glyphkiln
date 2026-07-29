@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "example-quote-card",
+  "template": {
+    "id": "quote-card",
+    "version": "1.0.0"
+  },
+  "format": "instagram-portrait",
+  "seed": "quote-systems-07",
+  "mode": "dark",
+  "brand": {
+    "snapshotId": "brand-fieldnotes-2026-07",
+    "version": "1.0.0",
+    "name": "Fieldnotes Studio",
+    "palette": {
+      "primary": "#7C3AED",
+      "secondary": "#0891B2",
+      "accent": "#FBBF24",
+      "neutrals": ["#111827", "#F9FAFB"]
+    },
+    "themes": {
+      "light": {
+        "background": "#F9FAFB",
+        "surface": "#FFFFFF",
+        "text": "#111827",
+        "mutedText": "#4B5563"
+      },
+      "dark": {
+        "background": "#111827",
+        "surface": "#1F2937",
+        "text": "#F9FAFB",
+        "mutedText": "#D1D5DB"
+      }
+    },
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter"
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 14, 28],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": ["topographic-contours"],
+    "safeArea": {
+      "top": 0.07,
+      "right": 0.07,
+      "bottom": 0.07,
+      "left": 0.07
+    },
+    "prohibitedColors": [],
+    "prohibitedStyles": []
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "layers": [
+    {
+      "id": "background",
+      "type": "background"
+    },
+    {
+      "id": "contours",
+      "type": "procedural-decoration",
+      "style": "topographic-contours",
+      "intensity": 0.45,
+      "density": 0.52,
+      "complexity": 0.58,
+      "contrast": 0.38,
+      "quietRegion": {
+        "x": 0.08,
+        "y": 0.18,
+        "width": 0.84,
+        "height": 0.68
+      }
+    },
+    {
+      "id": "quote",
+      "type": "headline",
+      "text": "Good systems make the right thing repeatable without making the result feel repetitive."
+    },
+    {
+      "id": "attribution",
+      "type": "attribution",
+      "text": "Maya Chen · Design Systems Lead"
+    }
+  ],
+  "metadata": {
+    "permission": "fictional-example",
+    "reviewed": true
+  }
+}
