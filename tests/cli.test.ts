@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { link, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -159,6 +159,34 @@ describe("CLI", () => {
     expect(code).toBe(1);
     expect(capture.stderr.join("\n")).toContain("OUTPUT_PATH_CONFLICT");
     await expect(readFile(sharedPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("preserves hard-linked output aliases when --force is supplied", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-alias-"));
+    temporaryDirectories.push(directory);
+    const output = join(directory, "graphic.svg");
+    const manifest = join(directory, "manifest.json");
+    await writeFile(output, "keep me");
+    await link(output, manifest);
+    const capture = captureIo();
+    const code = await runCli(
+      [
+        "render",
+        resolve("examples/article-cover.json"),
+        "--format",
+        "svg",
+        "--output",
+        output,
+        "--manifest",
+        manifest,
+        "--force",
+      ],
+      capture.io,
+    );
+    expect(code).toBe(1);
+    expect(capture.stderr.join("\n")).toContain("OUTPUT_PATH_CONFLICT");
+    expect(await readFile(output, "utf8")).toBe("keep me");
+    expect(await readFile(manifest, "utf8")).toBe("keep me");
   });
 
   it("reports the package version", async () => {

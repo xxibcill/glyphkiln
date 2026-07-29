@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { constants, readFileSync, realpathSync } from "node:fs";
-import { open, writeFile, mkdir } from "node:fs/promises";
+import { readFileSync, realpathSync } from "node:fs";
+import { lstat, mkdir, open, stat, unlink, type FileHandle } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -83,25 +83,17 @@ async function renderCommand(
     ? undefined
     : resolve(parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`);
   if (manifestPath === outputPath) {
-    throw new GlyphkilnError(
-      "The rendered output and manifest must use different paths.",
-      "OUTPUT_PATH_CONFLICT",
-      { file: basename(outputPath) },
-    );
+    throw outputPathConflict(outputPath);
   }
-  await assertOutputPathsAvailable(
-    [outputPath, ...(manifestPath === undefined ? [] : [manifestPath])],
-    parsed.force,
-  );
-  await mkdir(dirname(outputPath), { recursive: true });
-  await writeOutput(outputPath, output.bytes, parsed.force);
-  if (parsed.manifest) {
-    await mkdir(dirname(manifestPath!), { recursive: true });
-    await writeOutput(
-      manifestPath!,
-      `${JSON.stringify(output.manifest, null, 2)}\n`,
-      parsed.force,
-    );
+  const files: PendingOutput[] = [{ path: outputPath, content: output.bytes }];
+  if (manifestPath !== undefined) {
+    files.push({
+      path: manifestPath,
+      content: `${JSON.stringify(output.manifest, null, 2)}\n`,
+    });
+  }
+  await writeOutputs(files, parsed.force);
+  if (manifestPath !== undefined) {
     io.stdout(
       `Manifest: ${parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`}`,
     );
@@ -233,43 +225,129 @@ function requireOptionValue(value: string | undefined, option: string): string {
   return value;
 }
 
-async function assertOutputPathsAvailable(
-  paths: readonly string[],
+type PendingOutput = {
+  path: string;
+  content: Uint8Array | string;
+};
+
+type OpenedOutput = PendingOutput & {
+  handle: FileHandle;
+  created: boolean;
+};
+
+async function writeOutputs(
+  outputs: readonly PendingOutput[],
   force: boolean,
 ): Promise<void> {
-  if (force) return;
-  for (const path of paths) {
-    try {
-      await open(path, constants.O_RDONLY).then((handle) => handle.close());
-    } catch (error) {
-      if (isNodeError(error) && error.code === "ENOENT") continue;
-      throw error;
+  const opened: OpenedOutput[] = [];
+  let writeStarted = false;
+  try {
+    for (const output of outputs) {
+      await mkdir(dirname(output.path), { recursive: true });
+      opened.push({ ...output, ...(await openOutput(output.path, force)) });
     }
+    await assertDistinctOutputFiles(opened);
+    writeStarted = true;
+    for (const output of opened) {
+      await output.handle.truncate(0);
+      await output.handle.writeFile(output.content);
+    }
+  } catch (error) {
+    const createdPaths = writeStarted
+      ? []
+      : opened.filter((output) => output.created).map((output) => output.path);
+    await settleOutputClosures(opened);
+    await Promise.allSettled(createdPaths.map((path) => unlink(path)));
+    throw error;
+  }
+  await closeOutputs(opened);
+}
+
+async function openOutput(
+  path: string,
+  force: boolean,
+): Promise<{ handle: FileHandle; created: boolean }> {
+  if (await isDanglingSymbolicLink(path)) {
     throw new GlyphkilnError(
-      `Refusing to overwrite existing output "${basename(path)}"; pass --force to replace it.`,
-      "OUTPUT_EXISTS",
+      `Output path "${basename(path)}" is a dangling symbolic link.`,
+      "OUTPUT_PATH_DANGLING_SYMLINK",
       { file: basename(path) },
     );
   }
+  try {
+    return { handle: await open(path, "ax+"), created: true };
+  } catch (error) {
+    if (!isNodeError(error) || error.code !== "EEXIST") throw error;
+    if (!force) throw outputExists(path);
+    return { handle: await open(path, "a+"), created: false };
+  }
 }
 
-async function writeOutput(
-  path: string,
-  content: Uint8Array | string,
-  force: boolean,
+async function assertDistinctOutputFiles(
+  outputs: readonly OpenedOutput[],
 ): Promise<void> {
+  const identities = await Promise.all(
+    outputs.map(async (output) => ({
+      path: output.path,
+      identity: await output.handle.stat(),
+    })),
+  );
+  for (let left = 0; left < identities.length; left += 1) {
+    for (let right = left + 1; right < identities.length; right += 1) {
+      const first = identities[left]!;
+      const second = identities[right]!;
+      if (
+        first.identity.dev === second.identity.dev &&
+        first.identity.ino === second.identity.ino
+      ) {
+        throw outputPathConflict(first.path);
+      }
+    }
+  }
+}
+
+async function isDanglingSymbolicLink(path: string): Promise<boolean> {
   try {
-    await writeFile(path, content, { flag: force ? "w" : "wx" });
+    if (!(await lstat(path)).isSymbolicLink()) return false;
   } catch (error) {
-    if (isNodeError(error) && error.code === "EEXIST") {
-      throw new GlyphkilnError(
-        `Refusing to overwrite existing output "${basename(path)}"; pass --force to replace it.`,
-        "OUTPUT_EXISTS",
-        { file: basename(path) },
-      );
+    if (isNodeError(error) && error.code === "ENOENT") return false;
+    throw error;
+  }
+  try {
+    await stat(path);
+    return false;
+  } catch (error) {
+    if (isNodeError(error) && (error.code === "ENOENT" || error.code === "ELOOP")) {
+      return true;
     }
     throw error;
   }
+}
+
+async function closeOutputs(outputs: OpenedOutput[]): Promise<void> {
+  const pending = outputs.splice(0);
+  await Promise.all(pending.map((output) => output.handle.close()));
+}
+
+async function settleOutputClosures(outputs: OpenedOutput[]): Promise<void> {
+  const pending = outputs.splice(0);
+  await Promise.allSettled(pending.map((output) => output.handle.close()));
+}
+
+function outputExists(path: string): GlyphkilnError {
+  return new GlyphkilnError(
+    `Refusing to overwrite existing output "${basename(path)}"; pass --force to replace it.`,
+    "OUTPUT_EXISTS",
+    { file: basename(path) },
+  );
+}
+
+function outputPathConflict(path: string): GlyphkilnError {
+  return new GlyphkilnError(
+    "The rendered output and manifest must use different paths.",
+    "OUTPUT_PATH_CONFLICT",
+    { file: basename(path) },
+  );
 }
 
 function isNodeError(value: unknown): value is NodeJS.ErrnoException {
