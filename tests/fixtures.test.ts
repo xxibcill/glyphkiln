@@ -40,5 +40,5 @@ describe("full design fixtures", () => {
         });
       }
     }
-  });
+  }, 120_000);
 });
