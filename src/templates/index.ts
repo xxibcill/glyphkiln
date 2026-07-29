@@ -36,10 +36,9 @@ export function checkTemplateRequirements(
   document: DesignDocument,
   template: TemplateDefinition,
 ): QualityIssue[] {
-  const visibleTypes = new Set(
-    document.layers.filter((layer) => layer.visible).map((layer) => layer.type),
-  );
-  return template.requiredLayers
+  const visibleLayers = document.layers.filter((layer) => layer.visible);
+  const visibleTypes = new Set(visibleLayers.map((layer) => layer.type));
+  const issues: QualityIssue[] = template.requiredLayers
     .filter((type) => !visibleTypes.has(type))
     .map((type) => ({
       code: "REQUIRED_LAYER_MISSING",
@@ -47,6 +46,49 @@ export function checkTemplateRequirements(
       message: `Template "${template.id}" requires a visible "${type}" layer.`,
       details: { templateId: template.id, layerType: type },
     }));
+  const supportedTypes = new Set(template.supportedLayers);
+  for (const layer of visibleLayers) {
+    if (!supportedTypes.has(layer.type)) {
+      issues.push({
+        code: "UNSUPPORTED_VISIBLE_LAYER",
+        severity: "error",
+        message: `Template "${template.id}" does not implement visible "${layer.type}" layers.`,
+        layerId: layer.id,
+        details: { templateId: template.id, layerType: layer.type },
+      });
+    }
+  }
+  const firstLayerByType = new Map<DesignDocument["layers"][number]["type"], string>();
+  for (const layer of visibleLayers) {
+    const firstLayerId = firstLayerByType.get(layer.type);
+    if (firstLayerId === undefined) {
+      firstLayerByType.set(layer.type, layer.id);
+      continue;
+    }
+    issues.push({
+      code: "DUPLICATE_VISIBLE_LAYER",
+      severity: "error",
+      message: `Template "${template.id}" accepts only one visible "${layer.type}" layer.`,
+      layerId: layer.id,
+      details: { templateId: template.id, layerType: layer.type, firstLayerId },
+    });
+  }
+  for (const group of template.mutuallyExclusiveLayers ?? []) {
+    const present = visibleLayers.filter((layer) => group.includes(layer.type));
+    for (const layer of present.slice(1)) {
+      issues.push({
+        code: "CONFLICTING_VISIBLE_LAYERS",
+        severity: "error",
+        message: `Template "${template.id}" does not accept "${layer.type}" with "${present[0]!.type}".`,
+        layerId: layer.id,
+        details: {
+          templateId: template.id,
+          layerTypes: present.map((item) => item.type),
+        },
+      });
+    }
+  }
+  return issues;
 }
 
 export type {

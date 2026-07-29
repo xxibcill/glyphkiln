@@ -3,6 +3,11 @@ import { z } from "zod";
 import { hashCanonical } from "../cache/canonical.js";
 import { DESIGN_DOCUMENT_VERSION } from "../domain/types.js";
 import { FORMAT_IDS } from "../formats/index.js";
+import {
+  assertDesignInputResources,
+  getDesignInputResourceProblems,
+  RENDER_RESOURCE_LIMITS,
+} from "../resources/index.js";
 
 const identifier = z
   .string()
@@ -12,7 +17,11 @@ const identifier = z
 const semanticVersion = z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const normalized = z.number().min(0).max(1);
-const positiveDimension = z.number().int().positive().max(16_384);
+const positiveDimension = z
+  .number()
+  .int()
+  .positive()
+  .max(RENDER_RESOURCE_LIMITS.maxAssetDimension);
 const sha256Hash = z.string().regex(/^[0-9a-f]{64}$/);
 
 export const QuietRegionSchema = z
@@ -315,6 +324,10 @@ export type CreateDesignDocumentInput = Omit<
 };
 
 export function validateDesignDocument(input: unknown): ValidationResult {
+  const resourceProblems = getDesignInputResourceProblems(input);
+  if (resourceProblems.length > 0) {
+    return { success: false, problems: resourceProblems };
+  }
   const result = DesignDocumentSchema.safeParse(input);
   if (result.success) {
     return { success: true, data: result.data, problems: [] };
@@ -330,6 +343,7 @@ export function validateDesignDocument(input: unknown): ValidationResult {
 }
 
 export function createDesignDocument(input: CreateDesignDocumentInput): DesignDocument {
+  assertDesignInputResources(input);
   const id = input.id ?? `gk_${hashCanonical(input).slice(0, 20)}`;
   return DesignDocumentSchema.parse({
     ...input,

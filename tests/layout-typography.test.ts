@@ -92,6 +92,28 @@ describe("typography", () => {
     );
   });
 
+  it("tests the minimum size when the responsive preferred size is smaller", () => {
+    const result = fitText({
+      text: "Fits at minimum",
+      registry,
+      style: {
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1,
+      },
+      box: { x: 0, y: 0, width: 300, height: 20 },
+      preferredFontSize: 12,
+      minimumFontSize: 16,
+      maximumLines: 1,
+      layerId: "minimum",
+    });
+    expect(result.fontSize).toBe(16);
+    expect(result.issues).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ severity: "error" })]),
+    );
+  });
+
   it("returns an error issue when text cannot fit", () => {
     const result = fitText({
       text: "One two three four five six seven eight nine ten eleven twelve",
@@ -122,5 +144,30 @@ describe("typography", () => {
     expect(() => registry.get("Not Installed", 400, "normal")).toThrow(
       /Unsupported font/,
     );
+  });
+
+  it("creates deterministic portable glyph outlines for every line", () => {
+    const input = {
+      lines: ["Portable", "SVG"],
+      family: "Inter",
+      weight: 700,
+      style: "normal" as const,
+      fontSize: 48,
+      lineHeight: 1.1,
+      x: 100,
+      y: 80,
+      align: "left" as const,
+    };
+    const first = registry.outlineText(input);
+    expect(first).toEqual(registry.outlineText(input));
+    expect(first).toHaveLength(2);
+    expect(first.every((path) => path.startsWith("M "))).toBe(true);
+    expect(first.join(" ")).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("reports code points missing from a resolved font", () => {
+    expect(registry.missingCodePoints("\u{10FFFF}", "Inter", 400, "normal")).toEqual([
+      0x10ffff,
+    ]);
   });
 });

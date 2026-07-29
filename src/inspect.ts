@@ -11,6 +11,8 @@ export type DesignInspection = {
     id: string;
     version: string;
     requiredLayers: readonly string[];
+    supportedLayers: readonly string[];
+    mutuallyExclusiveLayers: readonly (readonly string[])[];
     constraints: {
       headlineMaximumLines: number;
       safeAreaBehavior: string;
@@ -47,6 +49,8 @@ function inspectValidatedDocument(document: DesignDocument): DesignInspection {
       id: template.id,
       version: template.version,
       requiredLayers: template.requiredLayers,
+      supportedLayers: template.supportedLayers,
+      mutuallyExclusiveLayers: template.mutuallyExclusiveLayers ?? [],
       constraints: template.constraints,
     },
     format: document.format,

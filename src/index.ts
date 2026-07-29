@@ -23,6 +23,7 @@ export type { FormatId } from "./formats/index.js";
 
 export {
   DesignDocumentSchema,
+  DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
   PROCEDURAL_STYLE_IDS,
   TEMPLATE_IDS,
   createDesignDocument,
@@ -45,9 +46,19 @@ export type {
 export { PRNG_ALGORITHM, createSeededRandom } from "./seed/index.js";
 export type { SeededRandom } from "./seed/index.js";
 
+export { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "./resources/index.js";
+export type {
+  RenderResourceLimits,
+  RenderWorkerProfile,
+  ResourceProblem,
+} from "./resources/index.js";
+
 export { canonicalJson, hashCanonical, sha256 } from "./cache/canonical.js";
 export { RENDER_CONFIGURATION, createRenderFingerprint } from "./cache/fingerprint.js";
-export type { RenderFingerprintInput } from "./cache/fingerprint.js";
+export type {
+  RenderFingerprintFont,
+  RenderFingerprintInput,
+} from "./cache/fingerprint.js";
 
 export {
   PROCEDURAL_ALGORITHM_VERSIONS,
@@ -84,7 +95,10 @@ export type {
   Scene,
   SceneElement,
 } from "./renderer/index.js";
+export { renderGraphicIsolated } from "./isolation/index.js";
+export type { IsolatedRenderOptions } from "./isolation/index.js";
 
 export { inspectDesignDocument } from "./inspect.js";
 export type { DesignInspection } from "./inspect.js";
 export type { RenderManifest } from "./provenance/index.js";
+export { verifyRenderReproduction } from "./provenance/index.js";

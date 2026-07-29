@@ -5,6 +5,17 @@ export default tseslint.config(
   {
     ignores: ["dist/**", "coverage/**", "examples/generated/**"],
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        Buffer: "readonly",
+        URL: "readonly",
+        process: "readonly",
+        structuredClone: "readonly",
+      },
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked.map((configuration) => ({
     ...configuration,

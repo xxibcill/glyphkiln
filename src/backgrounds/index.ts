@@ -6,10 +6,10 @@ import type { SceneElement } from "../renderer/scene.js";
 export const PROCEDURAL_ALGORITHM_VERSIONS: Readonly<
   Record<ProceduralStyleId, string>
 > = Object.freeze({
-  "flow-field": "1.0.0",
-  "layered-waves": "1.0.0",
-  "topographic-contours": "1.0.0",
-  "recursive-subdivision": "1.0.0",
+  "flow-field": "1.1.0",
+  "layered-waves": "1.1.0",
+  "topographic-contours": "1.1.0",
+  "recursive-subdivision": "1.1.0",
 });
 
 export type ProceduralBackgroundInput = {
@@ -44,10 +44,14 @@ export function createProceduralBackground(
     "topographic-contours": generateContours,
     "recursive-subdivision": generateSubdivision,
   }[style](input, random);
+  const exclusion = {
+    canvas: { width: input.width, height: input.height },
+    bounds: denormalizeQuietRegion(input),
+  };
   return {
     style,
     version: PROCEDURAL_ALGORITHM_VERSIONS[style],
-    elements: [...generated, quietOverlay(input)],
+    elements: generated.map((element) => ({ ...element, exclusion })),
     quietRegion: input.quietRegion,
   };
 }
@@ -228,17 +232,18 @@ function generateSubdivision(
   }));
 }
 
-function quietOverlay(input: ProceduralBackgroundInput): SceneElement {
+function denormalizeQuietRegion(input: ProceduralBackgroundInput): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
   const region = input.quietRegion;
   return {
-    id: "procedural-quiet-region",
-    type: "rect",
     x: region.x * input.width,
     y: region.y * input.height,
     width: region.width * input.width,
     height: region.height * input.height,
-    fill: input.backgroundColor,
-    opacity: 0.88,
   };
 }
 

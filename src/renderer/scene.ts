@@ -3,6 +3,10 @@ import type { Bounds, Dimensions } from "../domain/types.js";
 type BaseElement = {
   id: string;
   opacity?: number;
+  exclusion?: {
+    canvas: Dimensions;
+    bounds: Bounds;
+  };
 };
 
 export type RectElement = BaseElement & {
@@ -51,6 +55,7 @@ export type TextElement = BaseElement & {
   align: "left" | "center" | "right";
   letterSpacing?: number;
   bounds: Bounds;
+  outlines: string[];
 };
 
 export type ImageElement = BaseElement & {

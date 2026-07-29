@@ -10,8 +10,15 @@ import type { TemplateDefinition } from "./types.js";
 
 export const articleCoverTemplate: TemplateDefinition = {
   id: "article-cover",
-  version: "1.0.0",
+  version: "1.1.0",
   requiredLayers: ["headline"],
+  supportedLayers: [
+    "background",
+    "procedural-decoration",
+    "eyebrow",
+    "headline",
+    "attribution",
+  ],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",

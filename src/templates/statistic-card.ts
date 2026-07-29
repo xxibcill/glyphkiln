@@ -10,8 +10,9 @@ import type { TemplateDefinition } from "./types.js";
 
 export const statisticCardTemplate: TemplateDefinition = {
   id: "statistic-card",
-  version: "1.0.0",
+  version: "1.1.0",
   requiredLayers: ["statistic"],
+  supportedLayers: ["background", "procedural-decoration", "headline", "statistic"],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",
@@ -132,6 +133,9 @@ export const statisticCardTemplate: TemplateDefinition = {
           minimumFontSize: 14,
           maximumLines: 1,
           weight: 600,
+          family:
+            context.document.brand.typography.monospaceFamily ??
+            context.document.brand.typography.bodyFamily,
           color: canvas.mutedTextColor,
           lineHeight: 1,
         },

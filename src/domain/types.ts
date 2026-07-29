@@ -1,9 +1,9 @@
 export const DESIGN_DOCUMENT_VERSION = "1.0.0" as const;
-export const MANIFEST_VERSION = "1.0.0" as const;
+export const MANIFEST_VERSION = "1.1.0" as const;
 export const RENDERER_NAME = "glyphkiln-svg" as const;
-export const RENDERER_VERSION = "0.1.0" as const;
+export const RENDERER_VERSION = "0.2.0" as const;
 export const PRODUCT_CLAIM =
-  "Created without generative image models and rendered deterministically from code." as const;
+  "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately." as const;
 
 export type QualityIssue = {
   code: string;

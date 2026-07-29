@@ -21,6 +21,13 @@ preferences, normalized safe-area insets, and prohibited colors/styles. The
 snapshot is embedded so an old document does not change when a mutable brand kit
 in an application is edited.
 
+All declared controls have explicit versioned behavior: the theme surface owns
+procedural quiet regions, spacing controls decorative radii, visual density
+scales procedural density, monospace typography is used for compact CTA/trend
+copy, badge labels render inside their supporting shape, non-preferred
+procedural styles warn, and prohibited colors and template/procedural styles
+block rendering.
+
 ## Layer union
 
 | Type                                     | Role                                                   |
@@ -34,12 +41,32 @@ in an application is edited.
 | `statistic`, `chart`                     | Structured business data                               |
 | `footer`, `attribution`                  | Supporting source or author copy                       |
 
-Templates decide where semantic layers are placed. Version `1.0.0` deliberately
-does not expose arbitrary coordinates, CSS, markup, expressions, or scripts.
-That constraint keeps composition quality predictable and prevents a document
-from becoming a programming language.
+Templates explicitly declare which semantic layers they implement:
+
+| Template               | Accepted visible layers                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `product-announcement` | `background`, `procedural-decoration`, `eyebrow` or `badge`, `headline`, `subtitle`, `cta`, `product-screenshot` |
+| `statistic-card`       | `background`, `procedural-decoration`, `headline`, `statistic`                                                   |
+| `quote-card`           | `background`, `procedural-decoration`, `headline`, `attribution`                                                 |
+| `article-cover`        | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                      |
+
+A template accepts at most one visible layer of each type. Unsupported,
+duplicate, or mutually exclusive visible layers are error-level quality issues
+and block rendering; they are never silently ignored. The larger schema union
+allows future versioned templates to adopt additional semantics without adding
+freeform code or layout instructions.
+
+Version `1.0.0` deliberately does not expose arbitrary coordinates, CSS,
+markup, expressions, or scripts. That constraint keeps composition quality
+predictable and prevents a document from becoming a programming language.
 
 String lengths, collection sizes, normalized values, dimensions, colors,
-hashes, identifiers, and semantic versions are bounded. Layer and asset IDs
-must be unique. A schema-valid document can still fail template or quality
-rules, such as a missing required semantic layer or insufficient contrast.
+hashes, identifiers, semantic versions, metadata depth, and encoded input size
+are bounded. Layer and asset IDs must be unique. A schema-valid document can
+still fail template or quality rules, such as a missing required semantic layer
+or insufficient contrast. See [Resource limits](resource-limits.md).
+
+Standard JSON Schema cannot express uniqueness by an object property portably.
+`DESIGN_DOCUMENT_RUNTIME_REFINEMENTS` publishes the exact uniqueness and quiet
+region sum rules that `validateDesignDocument` applies after draft 2020-12
+validation.

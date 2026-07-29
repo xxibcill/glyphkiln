@@ -1,0 +1,273 @@
+{
+  "result": "FAIL",
+  "followUp": "remediation-report.json",
+  "environment": {
+    "repository": "/Users/jjae/Documents/guthib/glyphkiln-core",
+    "baseCommit": "189ca4dc27219098e1aa33d17da26958e54c4d3c",
+    "branch": "main",
+    "node": "v22.23.1",
+    "packageManager": "npm 10.9.8",
+    "os": "Darwin 25.5.0 arm64",
+    "renderer": "glyphkiln-svg@0.1.1",
+    "rasterizer": "@resvg/resvg-js@2.6.2",
+    "fontkit": "2.0.4",
+    "zod": "4.4.3",
+    "jsonSchemaTestValidator": "ajv@8.20.0"
+  },
+  "commands": [
+    { "command": "npm ci", "exitCode": 0, "phase": "final" },
+    { "command": "npm run build", "exitCode": 0, "phase": "final" },
+    { "command": "npm run typecheck", "exitCode": 0, "phase": "final" },
+    { "command": "npm run lint", "exitCode": 0, "phase": "final" },
+    { "command": "npm test", "exitCode": 0, "phase": "final" },
+    { "command": "npm run test:coverage", "exitCode": 0, "phase": "final" },
+    { "command": "npm audit --audit-level=low", "exitCode": 0, "phase": "final" },
+    { "command": "npm pack --dry-run --json", "exitCode": 0, "phase": "final" },
+    { "command": "npm run test:update-visuals", "exitCode": 0, "phase": "remediation" },
+    {
+      "command": "node /tmp/glyphkiln-determinism-probe.mjs /tmp/glyphkiln-determinism-postfix-run1.json",
+      "exitCode": 0,
+      "phase": "remediation"
+    },
+    {
+      "command": "node /tmp/glyphkiln-determinism-probe.mjs /tmp/glyphkiln-determinism-postfix-run2.json",
+      "exitCode": 0,
+      "phase": "remediation"
+    }
+  ],
+  "tests": {
+    "files": 11,
+    "total": 84,
+    "passed": 84,
+    "failed": 0,
+    "skipped": 0,
+    "visualBaselinesPassed": 4,
+    "landscapeTemplatesPassed": 4,
+    "copiedBaselineCorruptionDetected": true
+  },
+  "coverage": {
+    "statements": { "percent": 90.75, "covered": 589, "total": 649 },
+    "branches": { "percent": 76.55, "covered": 258, "total": 337 },
+    "functions": { "percent": 91.85, "covered": 124, "total": 135 },
+    "lines": { "percent": 91.55, "covered": 564, "total": 616 }
+  },
+  "verificationChecks": {
+    "installation": "passed",
+    "build": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "tests": "passed",
+    "coverage": "passed",
+    "packageExports": "passed",
+    "cli": "partial",
+    "schema": "passed-with-runtime-only-refinements",
+    "templates": "partial",
+    "proceduralBackgrounds": "partial",
+    "typography": "passed-in-tested-ltr-boundary",
+    "assets": "failed",
+    "svg": "partial",
+    "png": "passed",
+    "determinism": "passed-in-named-environment-boundary",
+    "fingerprints": "passed-for-tested-inputs",
+    "provenance": "passed-with-claim-caveat",
+    "security": "conditional",
+    "documentation": "partial",
+    "licensing": "passed-with-review-item",
+    "ci": "partial",
+    "scopeBoundaries": "passed"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "high",
+      "status": "resolved",
+      "fixed": true,
+      "regressionTest": true,
+      "summary": "Generated input JSON Schema now accepts runtime-valid examples."
+    },
+    {
+      "id": "F-002",
+      "severity": "high",
+      "status": "resolved",
+      "fixed": true,
+      "regressionTest": true,
+      "summary": "Unsupported SDK output formats are rejected at runtime."
+    },
+    {
+      "id": "F-003",
+      "severity": "high",
+      "status": "resolved",
+      "fixed": true,
+      "regressionTest": true,
+      "summary": "Responsive minimum-size text fitting and landscape templates are corrected."
+    },
+    {
+      "id": "F-004",
+      "severity": "high",
+      "status": "resolved",
+      "fixed": true,
+      "regressionTest": true,
+      "summary": "Actual rendered font identities are declared, manifested, and fingerprinted."
+    },
+    {
+      "id": "F-005",
+      "severity": "high",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Several visible layer types are silently ignored."
+    },
+    {
+      "id": "F-006",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Raster content and decoded dimensions are not validated."
+    },
+    {
+      "id": "F-007",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "SVG appearance depends on recipient fonts."
+    },
+    {
+      "id": "F-008",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Three procedural quiet regions use overlay-only behavior."
+    },
+    {
+      "id": "F-009",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Declared brand controls are unused or partially enforced."
+    },
+    {
+      "id": "F-010",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Renderable fixtures and distributed example artifacts are incomplete."
+    },
+    {
+      "id": "F-011",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "CI lacks package/consumer/example smoke verification."
+    },
+    {
+      "id": "F-012",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "CLI version, path redaction, and overwrite policy are incomplete."
+    },
+    {
+      "id": "F-013",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Quality-control issue coverage remains narrower than requested."
+    },
+    {
+      "id": "F-014",
+      "severity": "high",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Untrusted input/resource limits and worker isolation are incomplete."
+    },
+    {
+      "id": "F-015",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "The product claim is ambiguous with generated upstream assets."
+    },
+    {
+      "id": "F-016",
+      "severity": "low",
+      "status": "review-required",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Dependency notices need release/legal review."
+    },
+    {
+      "id": "F-017",
+      "severity": "medium",
+      "status": "open",
+      "fixed": false,
+      "regressionTest": false,
+      "summary": "Duplicate-ID and quiet-region-sum refinements remain runtime-only."
+    }
+  ],
+  "generatedOutputHashes": {
+    "product-announcement": {
+      "svg": {
+        "sha256": "49bf5b51beadfb12fc41ddf5618fa80c61416c08b31aa6f59b76b08cf7ae64db",
+        "fingerprint": "a19cdd6f669b97fcd98af71ce9b46b12085b6fed115dceecb3e13d452aa3a9ce"
+      },
+      "png": {
+        "sha256": "1e76233366ed03b30c84f2e71b7d8ba49610bfb3be665386cf6fbbdfe63b85eb",
+        "fingerprint": "ba6fd9318eed096e47cf77e314a63baf038af1c3d6b9858d720b94b9cc6f5246"
+      }
+    },
+    "statistic-card": {
+      "svg": {
+        "sha256": "8e32d7efa73688274485643182648ba98f278dbe5b3a624fa8d23b122c022c24",
+        "fingerprint": "f9ba333103482039f73d69634e1cd6ee44c1cc6a2064ce9f48227cfe2c8750aa"
+      },
+      "png": {
+        "sha256": "aaef6ca034574db418d1c79a5fdea3298c33008103b2475cef9d7e71fb633c31",
+        "fingerprint": "e0547926bd13767e0058ffb6544374f3dcc3c575a0ae3760cdf27ffd600b645b"
+      }
+    },
+    "quote-card": {
+      "svg": {
+        "sha256": "a9294d8bcf3b75ccfb68a3f4f22201d6a832ce76b12f56bb4b017e0148a18a4a",
+        "fingerprint": "fb71863d98b731647f123532567205de1477a93d4caf9c3d952c10a3f93736d3"
+      },
+      "png": {
+        "sha256": "98560f719b38d5d2ea10180680d18ab5b3854eb86984b727dec42ea6554a2af8",
+        "fingerprint": "285f01e319a15cd1115f2220b9a60a2067934d55c9fcbb64448f79196ccfec4b"
+      }
+    },
+    "article-cover": {
+      "svg": {
+        "sha256": "f54914c2255728fa737715b719b3b1fcf572c3020d658576c079683a19a1a2bf",
+        "fingerprint": "9b71fbd5d397b90aab9803dcd3fd9c696a1224b5473a3db53deb2836b354a77e"
+      },
+      "png": {
+        "sha256": "da635ae246027e1875f1a2a02ccf737fbaaff24eab6c8d16055a4f9ce68a13e0",
+        "fingerprint": "7d7d25e643c4fc4962dac3f7c94970eabe2dbb088db1443f696f1af563cdd36c"
+      }
+    }
+  },
+  "determinism": {
+    "boundary": "Node v22.23.1, Darwin arm64, @resvg/resvg-js 2.6.2, glyphkiln-svg 0.1.1, exact declared resources and versioned inputs",
+    "templates": 4,
+    "proceduralStyles": 4,
+    "formats": 3,
+    "themes": 2,
+    "seeds": 2,
+    "inputsPerProcess": 192,
+    "outputsPerProcess": 384,
+    "processes": 2,
+    "mismatches": 0,
+    "summarySha256": "f45c841fc001cffdb0ec0a627b0b175cc33200adc9a3e1109f21d2a33617ad8c"
+  },
+  "recommendedNextAction": "Requires another core implementation cycle. Resolve F-005 and F-014 before beginning glyphkiln-app."
+}

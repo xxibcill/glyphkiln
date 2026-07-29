@@ -3,7 +3,7 @@
   "id": "example-statistic-card",
   "template": {
     "id": "statistic-card",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "format": "instagram-square",
   "seed": "metrics-retention-42",
@@ -60,6 +60,12 @@
     {
       "family": "Inter",
       "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
       "style": "normal",
       "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
     },

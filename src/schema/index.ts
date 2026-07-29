@@ -22,4 +22,7 @@ export type {
   ValidationProblem,
   ValidationResult,
 } from "./design-document.js";
-export { getDesignDocumentJsonSchema } from "./json-schema.js";
+export {
+  DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
+  getDesignDocumentJsonSchema,
+} from "./json-schema.js";

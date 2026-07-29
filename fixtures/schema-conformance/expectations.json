@@ -1,0 +1,5 @@
+{
+  "valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "duplicate-layer-id": { "jsonSchemaValid": true, "runtimeValid": false },
+  "quiet-region-sum": { "jsonSchemaValid": true, "runtimeValid": false }
+}

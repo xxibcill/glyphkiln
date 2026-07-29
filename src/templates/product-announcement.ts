@@ -3,6 +3,7 @@ import {
   addDecorativeBar,
   addQuietRegionIssue,
   addText,
+  bestContrastingColor,
   createTemplateCanvas,
   findLayer,
   finishTemplate,
@@ -11,8 +12,19 @@ import type { TemplateDefinition } from "./types.js";
 
 export const productAnnouncementTemplate: TemplateDefinition = {
   id: "product-announcement",
-  version: "1.0.0",
+  version: "1.1.1",
   requiredLayers: ["headline"],
+  supportedLayers: [
+    "background",
+    "procedural-decoration",
+    "eyebrow",
+    "badge",
+    "headline",
+    "subtitle",
+    "cta",
+    "product-screenshot",
+  ],
+  mutuallyExclusiveLayers: [["eyebrow", "badge"]],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",
@@ -59,17 +71,50 @@ export const productAnnouncementTemplate: TemplateDefinition = {
         },
       );
     } else if (badge !== undefined) {
+      const badgeFill = badge.color ?? canvas.accentColor;
+      const badgeWidth = Math.min(copyWidth, badge.text.length * 13 * unit + 40 * unit);
+      const badgeY = safe.y + 24 * unit;
       canvas.scene.elements.push({
-        id: badge.id,
+        id: `${badge.id}-background`,
         type: "rect",
         x: safe.x,
-        y: safe.y + 24 * unit,
-        width: Math.min(copyWidth, badge.text.length * 13 * unit + 40 * unit),
+        y: badgeY,
+        width: badgeWidth,
         height: 38 * unit,
-        fill: badge.color ?? canvas.accentColor,
+        fill: badgeFill,
         radius: 19 * unit,
         opacity: 0.92,
       });
+      addText(
+        canvas,
+        context,
+        {
+          id: badge.id,
+          type: "eyebrow",
+          text: badge.text,
+          visible: true,
+        },
+        {
+          x: safe.x + 20 * unit,
+          y: badgeY + 9 * unit,
+          width: badgeWidth - 40 * unit,
+          height: 20 * unit,
+        },
+        {
+          preferredFontSize: 16 * unit,
+          minimumFontSize: 12,
+          maximumLines: 1,
+          weight: 700,
+          family: context.document.brand.typography.bodyFamily,
+          color: bestContrastingColor(badgeFill, [
+            canvas.textColor,
+            canvas.backgroundColor,
+          ]),
+          contrastBackgroundColor: badgeFill,
+          lineHeight: 1,
+          align: "center",
+        },
+      );
     }
     const headlineBox = {
       x: safe.x,
@@ -123,6 +168,9 @@ export const productAnnouncementTemplate: TemplateDefinition = {
           minimumFontSize: 15,
           maximumLines: 1,
           weight: 700,
+          family:
+            context.document.brand.typography.monospaceFamily ??
+            context.document.brand.typography.bodyFamily,
           color: canvas.accentColor,
           lineHeight: 1,
         },
