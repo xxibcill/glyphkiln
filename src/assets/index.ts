@@ -15,20 +15,18 @@ export class AssetRegistry {
   ) {
     assertAssetDeclarationCount(declarations, assets.length);
     assertAssetResources(assets);
-    const suppliedIds = new Set<string>();
+    assertUniqueResolvedAssetIds(assets);
+    const inspectedAssets = assets.map((asset) => inspectAssetBytes(asset));
     let totalPixels = 0;
-    for (const asset of assets) {
-      if (suppliedIds.has(asset.id)) {
-        throw new GlyphkilnError(
-          `Resolved asset ID "${asset.id}" was supplied more than once.`,
-          "DUPLICATE_RESOLVED_ASSET",
-          { assetId: asset.id },
-        );
-      }
-      suppliedIds.add(asset.id);
-      const verified = verifyAssetBytes(asset);
-      totalPixels = addAssetPixels(totalPixels, verified);
-      this.#assets.set(asset.id, verified);
+    for (const asset of inspectedAssets) {
+      totalPixels = addAssetPixels(totalPixels, asset);
+    }
+    for (const asset of inspectedAssets) {
+      assertRasterDecodes(asset);
+      this.#assets.set(asset.id, {
+        ...asset,
+        bytes: new Uint8Array(asset.bytes),
+      });
     }
     for (const declaration of declarations) {
       this.#verifyDeclaration(declaration);
@@ -98,7 +96,7 @@ export function assetDataUri(asset: ResolvedAsset): string {
   return `data:${asset.mimeType};base64,${Buffer.from(asset.bytes).toString("base64")}`;
 }
 
-function verifyAssetBytes(asset: ResolvedAsset): ResolvedAsset {
+function inspectAssetBytes(asset: ResolvedAsset): ResolvedAsset {
   if (!(asset.bytes instanceof Uint8Array)) {
     throw new GlyphkilnError(
       `Asset "${asset.id}" must provide Uint8Array bytes.`,
@@ -141,7 +139,6 @@ function verifyAssetBytes(asset: ResolvedAsset): ResolvedAsset {
       },
     );
   }
-  assertRasterDecodes(asset);
   const actualHash = sha256(asset.bytes);
   if (actualHash !== asset.sha256) {
     throw new GlyphkilnError(
@@ -150,7 +147,7 @@ function verifyAssetBytes(asset: ResolvedAsset): ResolvedAsset {
       { assetId: asset.id, expected: asset.sha256, actual: actualHash },
     );
   }
-  return { ...asset, bytes: new Uint8Array(asset.bytes) };
+  return asset;
 }
 
 function assertRasterDecodes(asset: ResolvedAsset): void {
@@ -311,6 +308,20 @@ function assertAssetDeclarationCount(
         resolved: resolvedCount,
       },
     );
+  }
+}
+
+function assertUniqueResolvedAssetIds(assets: readonly ResolvedAsset[]): void {
+  const suppliedIds = new Set<string>();
+  for (const asset of assets) {
+    if (suppliedIds.has(asset.id)) {
+      throw new GlyphkilnError(
+        `Resolved asset ID "${asset.id}" was supplied more than once.`,
+        "DUPLICATE_RESOLVED_ASSET",
+        { assetId: asset.id },
+      );
+    }
+    suppliedIds.add(asset.id);
   }
 }
 

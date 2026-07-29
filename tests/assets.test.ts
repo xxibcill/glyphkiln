@@ -190,6 +190,34 @@ describe("asset resolution", () => {
     );
   });
 
+  it("rejects aggregate decoded pixels before decompressing any raster", () => {
+    const width = RENDER_RESOURCE_LIMITS.maxAssetDimension;
+    const height = 4_000;
+    const oversizedTotal = Array.from({ length: 3 }, (_, index) => {
+      const bytes = png.slice();
+      bytes[16] = (width >>> 24) & 0xff;
+      bytes[17] = (width >>> 16) & 0xff;
+      bytes[18] = (width >>> 8) & 0xff;
+      bytes[19] = width & 0xff;
+      bytes[20] = (height >>> 24) & 0xff;
+      bytes[21] = (height >>> 16) & 0xff;
+      bytes[22] = (height >>> 8) & 0xff;
+      bytes[23] = height & 0xff;
+      return asset({
+        id: `asset-${index}`,
+        bytes,
+        sha256: sha256(bytes),
+        width,
+        height,
+      });
+    });
+    expect(() => new AssetRegistry([], oversizedTotal)).toThrow(
+      expect.objectContaining({
+        code: "TOTAL_ASSET_PIXELS_LIMIT_EXCEEDED",
+      }),
+    );
+  });
+
   it("rejects an asset before hashing when its byte limit is exceeded", () => {
     const oversized = new Uint8Array(RENDER_RESOURCE_LIMITS.maxAssetBytes + 1);
     expect(
