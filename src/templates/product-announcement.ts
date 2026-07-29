@@ -13,6 +13,17 @@ export const productAnnouncementTemplate: TemplateDefinition = {
   id: "product-announcement",
   version: "1.0.0",
   requiredLayers: ["headline"],
+  supportedLayers: [
+    "background",
+    "procedural-decoration",
+    "eyebrow",
+    "badge",
+    "headline",
+    "subtitle",
+    "cta",
+    "product-screenshot",
+  ],
+  mutuallyExclusiveLayers: [["eyebrow", "badge"]],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",

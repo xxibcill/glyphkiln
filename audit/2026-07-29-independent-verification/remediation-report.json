@@ -1,0 +1,56 @@
+{
+  "result": "PASS_FOR_REQUESTED_REMEDIATION",
+  "parentAudit": "report.json",
+  "resolvedFindings": [
+    {
+      "id": "F-005",
+      "severity": "high",
+      "status": "resolved",
+      "regressionTest": true,
+      "summary": "Templates explicitly reject unsupported, duplicate, and mutually exclusive visible layers before resource resolution."
+    },
+    {
+      "id": "F-014",
+      "severity": "high",
+      "status": "resolved-within-core-scope",
+      "regressionTest": true,
+      "summary": "Core enforces bounded inputs and resources and publishes the required hostile-request worker profile."
+    }
+  ],
+  "openHighSeverityFindings": [],
+  "tests": {
+    "files": 12,
+    "total": 110,
+    "passed": 110,
+    "failed": 0,
+    "visualBaselinesPassed": 4
+  },
+  "coverage": {
+    "statements": { "percent": 88.75, "covered": 781, "total": 880 },
+    "branches": { "percent": 78.01, "covered": 408, "total": 523 },
+    "functions": { "percent": 92.54, "covered": 149, "total": 161 },
+    "lines": { "percent": 90.74, "covered": 745, "total": 821 }
+  },
+  "package": {
+    "entryCount": 126,
+    "packedBytes": 536398,
+    "runtimeConsumerPassed": true,
+    "typescriptConsumerPassed": true,
+    "published": false
+  },
+  "determinism": {
+    "processes": 2,
+    "inputsPerProcess": 192,
+    "outputsPerProcess": 384,
+    "mismatches": 0,
+    "summarySha256": "f45c841fc001cffdb0ec0a627b0b175cc33200adc9a3e1109f21d2a33617ad8c",
+    "unchangedFromParentAudit": true
+  },
+  "versions": {
+    "renderer": "0.1.1",
+    "pixelChange": false,
+    "baselinePngChange": false,
+    "versionBumpRequired": false
+  },
+  "remainingAuditResult": "FAIL_FOR_UNRESOLVED_MEDIUM_AND_LOW_ACCEPTANCE_CRITERIA"
+}

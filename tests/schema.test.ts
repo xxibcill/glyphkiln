@@ -1,3 +1,4 @@
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -72,9 +73,21 @@ describe("design document schema", () => {
     );
   });
 
-  it("exports strict draft 2020-12 JSON Schema", () => {
+  it("exports strict draft 2020-12 input JSON Schema", async () => {
     const schema = getDesignDocumentJsonSchema() as Record<string, unknown>;
     expect(schema["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema["additionalProperties"]).toBe(false);
+    const validateJsonSchema = new Ajv2020().compile(schema);
+    for (const name of [
+      "product-announcement",
+      "statistic-card",
+      "quote-card",
+      "article-cover",
+    ]) {
+      expect(
+        validateJsonSchema(await loadExample(name)),
+        JSON.stringify(validateJsonSchema.errors),
+      ).toBe(true);
+    }
   });
 });

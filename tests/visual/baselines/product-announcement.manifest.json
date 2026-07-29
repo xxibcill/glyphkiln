@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.0.0",
-  "renderId": "render_db68772fe57a5c9d0ac93226",
-  "renderFingerprint": "db68772fe57a5c9d0ac932269262bca4a577473b67a5bfbbdde89acc1b8a137a",
+  "renderId": "render_ba6fd9318eed096e47cf77e3",
+  "renderFingerprint": "ba6fd9318eed096e47cf77e314a63baf038af1c3d6b9858d720b94b9cc6f5246",
   "designDocumentId": "example-product-announcement",
   "designDocumentHash": "fe71538d6e83e5a9829070e88f4dc651b742fb851052f6e5c1c3c898fd2c116b",
   "seed": "launch-analytics-01",
@@ -11,19 +11,13 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "proceduralAlgorithmVersions": {
     "layered-waves": "1.0.0"
   },
   "assets": [],
   "fonts": [
-    {
-      "family": "Inter",
-      "weight": 400,
-      "style": "normal",
-      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
-    },
     {
       "family": "Inter",
       "weight": 700,
@@ -33,6 +27,12 @@
     {
       "family": "Inter",
       "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
       "style": "normal",
       "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
     }
@@ -46,7 +46,7 @@
     "sha256": "1e76233366ed03b30c84f2e71b7d8ba49610bfb3be665386cf6fbbdfe63b85eb",
     "byteSize": 79432
   },
-  "creationTimestamp": "2026-07-29T11:02:05.073Z",
+  "creationTimestamp": "2026-07-29T10:00:00.000Z",
   "generativeImageModelUsed": false,
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],

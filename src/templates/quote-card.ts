@@ -12,6 +12,7 @@ export const quoteCardTemplate: TemplateDefinition = {
   id: "quote-card",
   version: "1.0.0",
   requiredLayers: ["headline", "attribution"],
+  supportedLayers: ["background", "procedural-decoration", "headline", "attribution"],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",

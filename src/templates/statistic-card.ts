@@ -12,6 +12,7 @@ export const statisticCardTemplate: TemplateDefinition = {
   id: "statistic-card",
   version: "1.0.0",
   requiredLayers: ["statistic"],
+  supportedLayers: ["background", "procedural-decoration", "headline", "statistic"],
   supportedFormats: [
     "linkedin-landscape",
     "instagram-square",

@@ -21,6 +21,8 @@ export type TemplateDefinition = {
   id: TemplateId;
   version: "1.0.0";
   requiredLayers: readonly DesignLayer["type"][];
+  supportedLayers: readonly DesignLayer["type"][];
+  mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];
   supportedFormats: readonly FormatId[];
   constraints: {
     headlineMaximumLines: number;

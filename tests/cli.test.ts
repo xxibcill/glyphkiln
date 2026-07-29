@@ -1,11 +1,12 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm, symlink } from "node:fs/promises";
+import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { RENDER_RESOURCE_LIMITS } from "../src/index.js";
 import { runCli } from "../src/cli/index.js";
 
 const temporaryDirectories: string[] = [];
@@ -62,10 +63,12 @@ describe("CLI", () => {
     );
     expect(code).toBe(0);
     const inspection = JSON.parse(capture.stdout.join("\n")) as {
-      template: { id: string };
+      template: { id: string; supportedLayers: string[] };
       dimensions: { width: number; height: number };
     };
     expect(inspection.template.id).toBe("quote-card");
+    expect(inspection.template.supportedLayers).toContain("attribution");
+    expect(inspection.template.supportedLayers).not.toContain("chart");
     expect(inspection.dimensions).toEqual({ width: 1080, height: 1350 });
   });
 
@@ -115,6 +118,19 @@ describe("CLI", () => {
     const capture = captureIo();
     expect(await runCli(["render"], capture.io)).toBe(1);
     expect(capture.stderr.join("\n")).toContain("requires a design file");
+  });
+
+  it("rejects an oversized design file before parsing it", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-limit-test-"));
+    temporaryDirectories.push(directory);
+    const input = join(directory, "oversized.json");
+    await writeFile(
+      input,
+      Buffer.alloc(RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes + 1, 0x20),
+    );
+    const capture = captureIo();
+    expect(await runCli(["validate", input], capture.io)).toBe(1);
+    expect(capture.stderr.join("\n")).toContain("INPUT_FILE_BYTES_LIMIT_EXCEEDED");
   });
 
   it("executes when Node receives a package-style symlink path", async () => {

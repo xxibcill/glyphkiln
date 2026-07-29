@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   PRODUCT_CLAIM,
+  RENDER_RESOURCE_LIMITS,
   RENDERER_NAME,
   RENDERER_VERSION,
   renderGraphic,
@@ -44,6 +45,41 @@ describe("SVG and PNG rendering", () => {
     const second = await renderGraphic(document, { formats: ["png"] });
     expect(sha256(first.outputs[0]!.bytes)).toBe(sha256(second.outputs[0]!.bytes));
   });
+
+  it("rejects unsupported output formats at the runtime boundary", async () => {
+    await expect(
+      renderGraphic(await loadExample("product-announcement"), {
+        formats: ["gif" as never],
+      }),
+    ).rejects.toMatchObject({
+      code: "UNSUPPORTED_OUTPUT_FORMAT",
+    });
+  });
+
+  it("rejects an unbounded output-format request before iterating it", async () => {
+    await expect(
+      renderGraphic(await loadExample("product-announcement"), {
+        formats: Array.from(
+          { length: RENDER_RESOURCE_LIMITS.maxOutputFormats + 1 },
+          () => "svg",
+        ),
+      }),
+    ).rejects.toMatchObject({
+      code: "OUTPUT_FORMAT_LIMIT_EXCEEDED",
+    });
+  });
+
+  it("rejects an oversized manifest timestamp at the option boundary", async () => {
+    await expect(
+      renderGraphic(await loadExample("product-announcement"), {
+        creationTimestamp: "x".repeat(
+          RENDER_RESOURCE_LIMITS.maxCreationTimestampBytes + 1,
+        ),
+      }),
+    ).rejects.toMatchObject({
+      code: "CREATION_TIMESTAMP_LIMIT_EXCEEDED",
+    });
+  });
 });
 
 describe("render manifests", () => {
@@ -74,7 +110,11 @@ describe("render manifests", () => {
     expect(output.manifest.proceduralAlgorithmVersions).toEqual({
       "flow-field": "1.0.0",
     });
-    expect(output.manifest.fonts).toHaveLength(4);
+    expect(output.manifest.fonts).toEqual([
+      expect.objectContaining({ family: "Inter", weight: 700, style: "normal" }),
+      expect.objectContaining({ family: "Inter", weight: 800, style: "normal" }),
+      expect.objectContaining({ family: "Inter", weight: 500, style: "normal" }),
+    ]);
   });
 
   it("uses distinct manifests and fingerprints for SVG and PNG", async () => {

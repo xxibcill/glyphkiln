@@ -4,7 +4,7 @@
 
 1. Glyph coverage and multilingual shaping diagnostics.
 2. A validated CLI resource-bundle format for offline assets/fonts.
-3. Full image-dimension decoding and hardened decode limits.
+3. Optional full adversarial pixel decoding in an isolated ingestion adapter.
 4. More spatially native quiet-region attenuation.
 5. Additional chart primitives and template versions driven by real product
    requirements.

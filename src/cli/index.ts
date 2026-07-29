@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 import { realpathSync } from "node:fs";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { open, writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
   GlyphkilnError,
   inspectDesignDocument,
+  RENDER_RESOURCE_LIMITS,
   renderGraphic,
   validateDesignDocument,
   type OutputFormat,
@@ -160,9 +161,34 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
 
 async function readJson(path: string): Promise<unknown> {
   const absolutePath = resolve(path);
+  let handle;
   try {
-    return JSON.parse(await readFile(absolutePath, "utf8")) as unknown;
+    handle = await open(absolutePath, "r");
+    const buffer = Buffer.alloc(RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes + 1);
+    let bytesRead = 0;
+    while (bytesRead < buffer.byteLength) {
+      const result = await handle.read(
+        buffer,
+        bytesRead,
+        buffer.byteLength - bytesRead,
+        null,
+      );
+      if (result.bytesRead === 0) break;
+      bytesRead += result.bytesRead;
+    }
+    if (bytesRead > RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes) {
+      throw new GlyphkilnError(
+        `Design file exceeds ${RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes} bytes.`,
+        "INPUT_FILE_BYTES_LIMIT_EXCEEDED",
+        {
+          maximum: RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes,
+          path: absolutePath,
+        },
+      );
+    }
+    return JSON.parse(buffer.toString("utf8", 0, bytesRead)) as unknown;
   } catch (error) {
+    if (error instanceof GlyphkilnError) throw error;
     if (error instanceof SyntaxError) {
       throw new GlyphkilnError(
         `Could not parse JSON in ${absolutePath}: ${error.message}`,
@@ -172,6 +198,8 @@ async function readJson(path: string): Promise<unknown> {
     throw new GlyphkilnError(`Could not read ${absolutePath}.`, "INPUT_READ_FAILED", {
       cause: error instanceof Error ? error.message : String(error),
     });
+  } finally {
+    await handle?.close();
   }
 }
 

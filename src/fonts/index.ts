@@ -5,6 +5,7 @@ import type { Font } from "fontkit";
 
 import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedFont } from "../domain/types.js";
+import { assertFontResources } from "../resources/index.js";
 import type { FontDeclaration } from "../schema/index.js";
 
 const DEVELOPMENT_FONT_PATH = new URL(
@@ -19,6 +20,7 @@ export class FontRegistry {
   readonly #faces = new Map<string, Font>();
 
   public constructor(fonts: readonly ResolvedFont[] = []) {
+    assertFontResources(fonts);
     for (const font of [createDevelopmentFont(), ...fonts]) {
       this.add(font);
     }

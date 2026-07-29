@@ -2,7 +2,7 @@ import type { OutputFormat } from "../domain/types.js";
 import { RENDERER_NAME, RENDERER_VERSION } from "../domain/types.js";
 import type { DesignDocument } from "../schema/index.js";
 import { getFormatDimensions } from "../formats/index.js";
-import { hashCanonical } from "./canonical.js";
+import { canonicalJson, hashCanonical } from "./canonical.js";
 
 export const RENDER_CONFIGURATION = Object.freeze({
   svgNumericPrecision: 3,
@@ -12,14 +12,32 @@ export const RENDER_CONFIGURATION = Object.freeze({
   imageRendering: "optimizeQuality",
 });
 
-export type RenderFingerprintInput = {
+export type RenderFingerprintFont = {
+  family: string;
+  weight: number;
+  style: string;
+  sha256: string;
+};
+
+type RenderFingerprintBaseInput = {
   document: DesignDocument;
   outputFormat: OutputFormat;
   assetHashes: readonly string[];
-  fontHashes: readonly string[];
   proceduralAlgorithmVersions: Readonly<Record<string, string>>;
   rendererConfiguration?: Readonly<Record<string, unknown>>;
 };
+
+export type RenderFingerprintInput = RenderFingerprintBaseInput &
+  (
+    | {
+        fonts: readonly RenderFingerprintFont[];
+        fontHashes?: never;
+      }
+    | {
+        fontHashes: readonly string[];
+        fonts?: never;
+      }
+  );
 
 export function createRenderFingerprint(input: RenderFingerprintInput): string {
   const pixelDocument = Object.fromEntries(
@@ -37,8 +55,20 @@ export function createRenderFingerprint(input: RenderFingerprintInput): string {
     },
     proceduralAlgorithmVersions: input.proceduralAlgorithmVersions,
     assetHashes: [...input.assetHashes].sort(),
-    fontHashes: [...input.fontHashes].sort(),
+    fonts:
+      input.fonts === undefined
+        ? [...input.fontHashes].sort()
+        : [...input.fonts].sort(compareCanonical),
     outputFormat: input.outputFormat,
     rendererConfiguration: input.rendererConfiguration ?? RENDER_CONFIGURATION,
   });
+}
+
+function compareCanonical(
+  left: RenderFingerprintFont,
+  right: RenderFingerprintFont,
+): number {
+  const leftJson = canonicalJson(left);
+  const rightJson = canonicalJson(right);
+  return leftJson < rightJson ? -1 : leftJson > rightJson ? 1 : 0;
 }

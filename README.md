@@ -89,7 +89,9 @@ fonts are byte-oriented caller inputs; the renderer performs no network access.
 
 See [Design document](docs/design-document.md),
 [SDK and architecture](docs/architecture.md), and
-[Determinism contract](docs/determinism.md).
+[Determinism contract](docs/determinism.md). Public input, asset, font, and
+deployment bounds are documented in
+[Resource limits and worker profile](docs/resource-limits.md).
 
 ## CLI
 
@@ -146,6 +148,7 @@ npm run examples:generate
 - [Architecture](docs/architecture.md)
 - [Rendering lifecycle](docs/rendering-lifecycle.md)
 - [Design-document specification](docs/design-document.md)
+- [Resource limits and worker profile](docs/resource-limits.md)
 - [Fonts](docs/fonts.md) and [assets](docs/assets.md)
 - [Provenance](docs/provenance.md)
 - [Template authoring](docs/template-authoring.md)

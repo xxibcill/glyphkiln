@@ -83,7 +83,7 @@ export function wrapText(
 
 export function fitText(options: FitTextOptions): FittedText {
   for (
-    let fontSize = options.preferredFontSize;
+    let fontSize = Math.max(options.preferredFontSize, options.minimumFontSize);
     fontSize >= options.minimumFontSize;
     fontSize -= 1
   ) {

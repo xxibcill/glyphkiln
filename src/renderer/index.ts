@@ -19,10 +19,12 @@ import {
   type ManifestFont,
   type RenderManifest,
 } from "../provenance/index.js";
+import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
 import { rasterizeSvg } from "./png.js";
 import { assertOutputValidity, runDocumentQualityChecks } from "./quality.js";
+import type { Scene } from "./scene.js";
 import { renderSceneToSvg } from "./svg.js";
 
 export type RenderGraphicOptions = {
@@ -60,15 +62,19 @@ export async function renderGraphic(
   }
   const document = validation.data;
   const formats = validateOutputFormats(options.formats ?? ["svg"]);
-  const assets = new AssetRegistry(document.assets, options.assets ?? []);
-  validateAssetReferences(document, assets);
-  const fonts = new FontRegistry(options.fonts ?? []);
-  fonts.validateDeclarations(document.fonts);
+  const createdAt = validateCreationTimestamp(
+    options.creationTimestamp ?? new Date().toISOString(),
+  );
   const template = getTemplate(document);
   const requirementIssues = checkTemplateRequirements(document, template);
   const documentIssues = runDocumentQualityChecks(document);
   blockOnQualityErrors([...requirementIssues, ...documentIssues]);
+  const assets = new AssetRegistry(document.assets, options.assets ?? []);
+  validateAssetReferences(document, assets);
+  const fonts = new FontRegistry(options.fonts ?? []);
+  fonts.validateDeclarations(document.fonts);
   const templateResult = template.render({ document, assets, fonts });
+  const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
   const qualityIssues = [
     ...requirementIssues,
     ...documentIssues,
@@ -78,10 +84,7 @@ export async function renderGraphic(
 
   const svg = renderSceneToSvg(templateResult.scene);
   const manifestAssets = collectManifestAssets(document);
-  const manifestFonts = collectManifestFonts(document, fonts);
   const assetHashes = manifestAssets.map((asset) => asset.sha256);
-  const fontHashes = manifestFonts.map((font) => font.sha256);
-  const createdAt = options.creationTimestamp ?? new Date().toISOString();
   const outputs: RenderedOutput[] = [];
 
   for (const format of formats) {
@@ -94,7 +97,7 @@ export async function renderGraphic(
       document,
       outputFormat: format,
       assetHashes,
-      fontHashes,
+      fonts: manifestFonts,
       proceduralAlgorithmVersions: templateResult.proceduralAlgorithmVersions,
     };
     const fingerprint = createRenderFingerprint(fingerprintInput);
@@ -137,21 +140,52 @@ function collectManifestAssets(document: DesignDocument): ManifestAsset[] {
 
 function collectManifestFonts(
   document: DesignDocument,
+  scene: Scene,
   registry: FontRegistry,
 ): ManifestFont[] {
-  return document.fonts.map((declaration) => {
-    const font = registry.get(
-      declaration.family,
-      declaration.weight,
-      declaration.style,
+  const declarations = new Set(
+    document.fonts.map((declaration) =>
+      fontReferenceKey(declaration.family, declaration.weight, declaration.style),
+    ),
+  );
+  const used = new Map<string, ManifestFont>();
+  for (const element of scene.elements) {
+    if (element.type !== "text") continue;
+    const key = fontReferenceKey(
+      element.fontFamily,
+      element.fontWeight,
+      element.fontStyle,
     );
-    return {
-      family: declaration.family,
-      weight: declaration.weight,
-      style: declaration.style,
+    if (!declarations.has(key)) {
+      throw new GlyphkilnError(
+        `Scene text uses undeclared font "${element.fontFamily}" (${element.fontWeight} ${element.fontStyle}).`,
+        "UNDECLARED_FONT_REFERENCE",
+        {
+          layerId: element.id,
+          family: element.fontFamily,
+          weight: element.fontWeight,
+          style: element.fontStyle,
+        },
+      );
+    }
+    if (used.has(key)) continue;
+    const font = registry.get(
+      element.fontFamily,
+      element.fontWeight,
+      element.fontStyle,
+    );
+    used.set(key, {
+      family: element.fontFamily,
+      weight: element.fontWeight,
+      style: element.fontStyle,
       sha256: font.sha256!,
-    };
-  });
+    });
+  }
+  return [...used.values()];
+}
+
+function fontReferenceKey(family: string, weight: number, style: string): string {
+  return `${family.toLocaleLowerCase("en-US")}\u0000${weight}\u0000${style}`;
 }
 
 function blockOnQualityErrors(issues: QualityIssue[]): void {
@@ -165,10 +199,29 @@ function blockOnQualityErrors(issues: QualityIssue[]): void {
   }
 }
 
-function validateOutputFormats(
-  formats: readonly OutputFormat[],
-): readonly OutputFormat[] {
-  const unique = [...new Set(formats)];
+function validateOutputFormats(formats: readonly unknown[]): readonly OutputFormat[] {
+  if (formats.length > RENDER_RESOURCE_LIMITS.maxOutputFormats) {
+    throw new GlyphkilnError(
+      `At most ${RENDER_RESOURCE_LIMITS.maxOutputFormats} output formats may be requested.`,
+      "OUTPUT_FORMAT_LIMIT_EXCEEDED",
+      {
+        maximum: RENDER_RESOURCE_LIMITS.maxOutputFormats,
+        actual: formats.length,
+      },
+    );
+  }
+  const validated: OutputFormat[] = [];
+  for (const format of formats) {
+    if (format !== "svg" && format !== "png") {
+      throw new GlyphkilnError(
+        `Unsupported output format "${String(format)}".`,
+        "UNSUPPORTED_OUTPUT_FORMAT",
+        { supportedFormats: ["svg", "png"] },
+      );
+    }
+    validated.push(format);
+  }
+  const unique = [...new Set(validated)];
   if (unique.length === 0) {
     throw new GlyphkilnError(
       "At least one output format is required.",
@@ -176,6 +229,20 @@ function validateOutputFormats(
     );
   }
   return unique;
+}
+
+function validateCreationTimestamp(timestamp: unknown): string {
+  if (
+    typeof timestamp !== "string" ||
+    Buffer.byteLength(timestamp) > RENDER_RESOURCE_LIMITS.maxCreationTimestampBytes
+  ) {
+    throw new GlyphkilnError(
+      "Manifest creation timestamp exceeds the renderer resource boundary.",
+      "CREATION_TIMESTAMP_LIMIT_EXCEEDED",
+      { maximum: RENDER_RESOURCE_LIMITS.maxCreationTimestampBytes },
+    );
+  }
+  return timestamp;
 }
 
 export { assertSafeGeneratedSvg, renderSceneToSvg } from "./svg.js";

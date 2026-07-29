@@ -92,6 +92,28 @@ describe("typography", () => {
     );
   });
 
+  it("tests the minimum size when the responsive preferred size is smaller", () => {
+    const result = fitText({
+      text: "Fits at minimum",
+      registry,
+      style: {
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1,
+      },
+      box: { x: 0, y: 0, width: 300, height: 20 },
+      preferredFontSize: 12,
+      minimumFontSize: 16,
+      maximumLines: 1,
+      layerId: "minimum",
+    });
+    expect(result.fontSize).toBe(16);
+    expect(result.issues).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ severity: "error" })]),
+    );
+  });
+
   it("returns an error issue when text cannot fit", () => {
     const result = fitText({
       text: "One two three four five six seven eight nine ten eleven twelve",

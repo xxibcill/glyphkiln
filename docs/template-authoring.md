@@ -5,6 +5,7 @@ expressions. A definition declares:
 
 - stable ID and semantic version
 - required semantic layer types
+- supported semantic layer types and mutually exclusive groups
 - supported registry formats
 - headline line limit
 - layout and safe-area policy
@@ -16,7 +17,8 @@ To add a template:
 2. Use registry dimensions and brand safe-area bounds.
 3. Fit all text with the typography helpers and exact loaded family.
 4. Use only renderer-neutral scene primitives.
-5. Declare and test required layers, formats, and line limits.
+5. Declare and test required, supported, duplicate, mutually exclusive layers,
+   formats, and line limits.
 6. Add a reviewed example, exact PNG baseline, design, and manifest.
 7. Register the new ID in the strict schema and template registry.
 8. Document a changeset.

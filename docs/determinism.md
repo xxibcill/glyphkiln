@@ -13,7 +13,7 @@ The render fingerprint includes:
 - selected registry dimensions
 - export format
 - resolved asset hashes
-- resolved font hashes
+- resolved font family/weight/style identities and hashes
 - relevant SVG and rasterizer configuration
 
 The document's request timestamp, manifest creation timestamp, document ID, and
