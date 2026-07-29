@@ -6,7 +6,7 @@
   bytes work through the SDK but the CLI has no font/asset bundle option yet.
 - Asset inputs are PNG/JPEG only. Core fully decodes bounded pixels but does not
   replace an upload malware scanner or normalize color profiles/metadata.
-- Template `1.1.0` is semantic and constrained; arbitrary freeform positions,
+- Template `1.1.x` is semantic and constrained; arbitrary freeform positions,
   arbitrary charts, uploaded SVG, and custom icons are intentionally absent.
 - Exact PNG baselines are guaranteed only in the pinned renderer environment.
 - Quality contrast is calculated against the canvas color, not a composited

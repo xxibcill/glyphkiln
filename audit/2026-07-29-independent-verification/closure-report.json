@@ -25,20 +25,25 @@
     "package": "0.1.0",
     "nextPackageChange": "minor",
     "renderer": "0.2.0",
-    "templates": "1.1.0",
+    "templates": {
+      "product-announcement": "1.1.1",
+      "statistic-card": "1.1.0",
+      "quote-card": "1.1.0",
+      "article-cover": "1.1.0"
+    },
     "proceduralAlgorithms": "1.1.0",
     "manifest": "1.1.0"
   },
   "tests": {
     "files": 13,
-    "passed": 128,
+    "passed": 131,
     "failed": 0
   },
   "coverage": {
-    "statements": 82.18,
-    "branches": 73.32,
-    "functions": 79.71,
-    "lines": 83.87
+    "statements": 82.59,
+    "branches": 73.91,
+    "functions": 80.47,
+    "lines": 84.12
   },
   "determinism": {
     "processes": 2,

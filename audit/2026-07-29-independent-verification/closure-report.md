@@ -38,7 +38,7 @@ lifecycle, timeout, V8 memory, filesystem, or subprocess enforcement.
 
 - package remains `0.1.0` until the committed minor Changeset is released;
 - renderer is `glyphkiln-svg@0.2.0`;
-- all four templates are `1.1.0`;
+- `product-announcement` is `1.1.1`; the other three templates are `1.1.0`;
 - all four procedural algorithms are `1.1.0`;
 - manifest is `1.1.0`.
 
@@ -50,9 +50,9 @@ and regenerated under those versions.
 | Check                                      | Result                                                                   |
 | ------------------------------------------ | ------------------------------------------------------------------------ |
 | Build / strict typecheck / lint-security   | Passed                                                                   |
-| Unit, integration, visual, fixture tests   | Passed; 13 files, 128/128 tests                                          |
+| Unit, integration, visual, fixture tests   | Passed; 13 files, 131/131 tests                                          |
 | Isolated child-process smoke               | Passed for SVG+PNG, timeout, and serialized error propagation            |
-| Coverage                                   | 82.18% statements, 73.32% branches, 79.71% functions, 83.87% lines       |
+| Coverage                                   | 82.59% statements, 73.91% branches, 80.47% functions, 84.12% lines       |
 | Visual baselines                           | Passed; 4/4 exact PNG bytes                                              |
 | Tracked example regeneration               | Passed; 8 outputs and 8 manifests exact                                  |
 | Schema/full fixture verification           | Passed; 12 design fixtures plus 3 conformance documents                  |

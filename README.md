@@ -20,7 +20,7 @@ make documented breaking changes.
 
 Supported templates:
 
-- `product-announcement@1.1.0`
+- `product-announcement@1.1.1`
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
@@ -64,7 +64,7 @@ if (!validation.success) {
 }
 
 const design = createDesignDocument({
-  template: { id: "product-announcement", version: "1.1.0" },
+  template: { id: "product-announcement", version: "1.1.1" },
   format: "linkedin-landscape",
   seed: "launch-analytics-01",
   mode: "dark",

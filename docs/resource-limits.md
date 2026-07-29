@@ -40,6 +40,7 @@ limits before the asset can enter a scene.
 
 - one concurrent render per worker;
 - a 15-second wall-clock timeout;
+- parent-side asset/font count and byte preflight before IPC serialization;
 - no network or executable-code capability exposed to render input;
 - package/dependency read access, temporary-directory read/write access, and no
   child-process capability inside the render process;

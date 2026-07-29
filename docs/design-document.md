@@ -21,11 +21,12 @@ preferences, normalized safe-area insets, and prohibited colors/styles. The
 snapshot is embedded so an old document does not change when a mutable brand kit
 in an application is edited.
 
-All declared controls have an explicit `1.1.0` behavior: the theme surface owns
+All declared controls have explicit versioned behavior: the theme surface owns
 procedural quiet regions, spacing controls decorative radii, visual density
 scales procedural density, monospace typography is used for compact CTA/trend
-copy, non-preferred procedural styles warn, and prohibited template/procedural
-styles block rendering.
+copy, badge labels render inside their supporting shape, non-preferred
+procedural styles warn, and prohibited colors and template/procedural styles
+block rendering.
 
 ## Layer union
 
