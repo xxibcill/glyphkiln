@@ -1,0 +1,2286 @@
+# Glyphkiln Ecosystem: Full Implementation Plan
+
+## 1. Executive summary
+
+Glyphkiln will be developed as three related but independently deployable products:
+
+1. **`glyphkiln-core`**
+   An Apache-2.0 open-source TypeScript package containing deterministic rendering, schemas, templates, procedural graphics, export logic, provenance, an SDK, and a CLI.
+
+2. **`glyphkiln-app`**
+   A self-hostable web application built on `glyphkiln-core`. It will provide brand management, asset ingestion, editing, saved designs, preview generation, user accounts, workspaces, and optional LLM-based brief interpretation.
+
+3. **Glyphkiln Cloud**
+   A managed commercial service built around the same application and rendering contracts. It will add hosted infrastructure, teams, billing, usage limits, managed storage, asynchronous rendering, enterprise security, collaboration, integrations, and support.
+
+The implementation should proceed in that order:
+
+```text
+glyphkiln-core
+→ independent verification
+→ glyphkiln-app
+→ self-hosted verification
+→ Glyphkiln Cloud
+→ commercial beta
+```
+
+Do not begin cloud-specific work until the public Core API and design-document contract have stabilized.
+
+---
+
+# 2. Product objective
+
+Glyphkiln should turn structured content and creative direction into reproducible business graphics using conventional code-rendering techniques.
+
+The core rendering flow is:
+
+```text
+Manual controls or optional LLM interpretation
+→ validated DesignDocument
+→ versioned template
+→ deterministic procedural geometry
+→ brand and asset resolution
+→ vector scene
+→ SVG
+→ PNG rasterization
+→ quality report
+→ provenance manifest
+```
+
+The accurate product claim is:
+
+> Created without generative image models and rendered deterministically from code.
+
+The system must not:
+
+- Generate final pixels with diffusion models, GANs, text-to-image systems, or image-to-image systems
+- Execute arbitrary user JavaScript
+- Execute model-generated rendering code
+- Fetch arbitrary remote resources during rendering
+- Remove or falsify provenance
+- Advertise classifier evasion or platform-detection avoidance
+- Claim that uploaded assets were not AI-generated when their origin is unknown
+
+---
+
+# 3. Guiding architecture principles
+
+## 3.1 Determinism
+
+The same rendering inputs must produce identical output within a pinned renderer environment.
+
+The determinism boundary includes:
+
+- Design-document contents
+- Design-document schema version
+- Seed and seed-algorithm version
+- Template ID and version
+- Procedural algorithm IDs and versions
+- Renderer name and version
+- Font files and hashes
+- Asset files and hashes
+- Canvas dimensions
+- Export options
+- Relevant renderer configuration
+- Native rasterizer version
+
+Timestamps, database IDs, user IDs, and other non-pixel metadata must not affect the render fingerprint.
+
+## 3.2 Structured generation
+
+The renderer accepts validated data rather than arbitrary code.
+
+```text
+Untrusted input
+→ runtime validation
+→ normalized internal representation
+→ fixed template registry
+→ fixed procedural registry
+→ render
+```
+
+An optional LLM adapter may create a candidate `DesignDocument`, but the result must pass exactly the same validation path as manually authored input.
+
+## 3.3 Vector-first output
+
+Use SVG as the canonical intermediate format.
+
+Advantages:
+
+- Inspectable output
+- Natural support for geometry and typography
+- Scalable exports
+- Straightforward procedural graphics
+- Content-addressed caching
+- Consistent PNG rasterization
+- Easier security inspection than browser-rendered HTML
+
+PNG is generated from the validated SVG output.
+
+## 3.4 Stable contracts, replaceable infrastructure
+
+Core domain contracts must not depend on:
+
+- Authentication
+- Databases
+- Cloud storage
+- Billing
+- Job queues
+- HTTP frameworks
+- Browser frameworks
+- A specific hosting provider
+
+The application and cloud products should consume Core through its public API rather than import private modules.
+
+## 3.5 Constrained design quality
+
+Glyphkiln should prioritize a focused library of approved composition systems.
+
+Version one should not attempt to become a fully freeform graphic-design editor.
+
+The system should generate a narrower range of graphics reliably rather than a broad range inconsistently.
+
+---
+
+# 4. Product and repository boundaries
+
+## 4.1 Repository: `glyphkiln-core`
+
+**Visibility:** Public
+**Recommended license:** Apache-2.0
+**Primary package:** `@glyphkiln/core`
+**CLI:** `glyphkiln`
+
+### Responsibilities
+
+- Design-document schemas
+- Format registry
+- Brand snapshot model
+- Seeded randomness
+- Canonical JSON serialization
+- Render fingerprints
+- Renderer-neutral scene primitives
+- SVG construction
+- PNG rasterization
+- Typography measurement
+- Font resolution
+- Asset resolution interfaces
+- Procedural background algorithms
+- Versioned templates
+- Quality checks
+- Render manifests
+- CLI
+- Public SDK
+- Fixtures
+- Visual baselines
+- Documentation
+
+### Explicit non-responsibilities
+
+- User accounts
+- Workspaces
+- Database persistence
+- Hosted storage
+- Upload endpoints
+- Billing
+- API rate limits
+- Job queues
+- Social publishing
+- Team collaboration
+- Live LLM APIs
+- Cloud deployment logic
+
+---
+
+## 4.2 Repository: `glyphkiln-app`
+
+**Visibility:** Public
+**Recommended license:** AGPL-3.0 with legal review
+**Possible commercial license:** Offered separately
+
+### Responsibilities
+
+- Browser interface
+- Authentication
+- Users and workspaces
+- Brand-kit management
+- Asset upload and sanitization
+- Font registration
+- Design creation and editing
+- Structured control editor
+- Saved designs
+- Render requests
+- Local render workers
+- Render and export history
+- Self-hosted object storage adapters
+- Optional LLM adapters
+- Local deployment
+- Administration
+- Workspace permissions
+
+### Internal structure
+
+```text
+glyphkiln-app/
+  apps/
+    web/
+    api/
+    worker/
+  packages/
+    auth/
+    database/
+    storage/
+    queue/
+    core-adapter/
+    ui/
+    config/
+    testing/
+```
+
+The application should import only documented exports from `@glyphkiln/core`.
+
+---
+
+## 4.3 Repository: `glyphkiln-cloud`
+
+**Visibility:** Private
+**License:** Proprietary
+
+### Responsibilities
+
+- Managed multi-tenant deployment
+- Subscription plans
+- Billing
+- Usage metering
+- Render quotas
+- Hosted object storage
+- Managed job queues
+- Autoscaling workers
+- Team subscriptions
+- Enterprise identity
+- SAML SSO
+- SCIM
+- Audit exports
+- Data-retention controls
+- Regional deployment
+- SLA monitoring
+- Private templates
+- Approval workflows
+- Webhooks
+- Public API keys
+- Integrations
+- Customer support tools
+- Feature entitlements
+
+### Boundary rule
+
+Glyphkiln Cloud must not maintain a private fork of the Core renderer.
+
+Cloud-specific capabilities should integrate through:
+
+- Public Core APIs
+- Application provider interfaces
+- Feature-entitlement checks
+- Private service packages
+- External service adapters
+
+---
+
+# 5. Selected technical architecture
+
+## 5.1 `glyphkiln-core`
+
+### Language and tooling
+
+- TypeScript
+- Node.js LTS
+- ESM package output
+- pnpm
+- Vitest
+- ESLint
+- Prettier
+- Changesets
+- GitHub Actions
+- Exact direct dependency versions
+- Committed lockfile
+
+### Schema validation
+
+**Recommended:** TypeBox with Ajv in strict mode.
+
+TypeBox creates JSON Schema structures that also infer TypeScript types. Ajv strict mode is intended to detect ambiguous or silently ignored schema mistakes. This is well aligned with a public, language-neutral design-document contract.
+
+Requirements:
+
+- JSON Schema 2020-12
+- `additionalProperties: false`
+- Discriminated layer unions
+- Explicit schema version
+- Explicit template version
+- Useful validation paths
+- Cross-field validation after structural validation
+- Generated schema committed for external consumers
+- Schema-drift test in CI
+
+### Rendering
+
+**Recommended:** direct SVG scene generation followed by `resvg-js` for PNG output.
+
+`resvg-js` exposes the Rust-based resvg renderer through Node.js and WebAssembly backends, providing a focused SVG-to-raster boundary.
+
+Rendering pipeline:
+
+```text
+DesignDocument
+→ normalized render model
+→ template layout
+→ scene graph
+→ serialized SVG
+→ SVG safety validation
+→ resvg
+→ PNG bytes
+```
+
+### Typography
+
+Initial implementation:
+
+- Explicit font-file registration
+- Font-family registry
+- Font hash calculation
+- Width measurement
+- Line wrapping
+- Explicit line-break support
+- Long-token splitting
+- Font-size fitting
+- Text-to-path conversion for production SVG
+- Structured layout records
+- Overflow issues
+- Safe-area checks
+
+Default production SVG should outline text.
+
+A future editable-SVG mode may preserve `<text>` elements only when font embedding and licensing are handled explicitly.
+
+### Seeded randomness
+
+Use:
+
+- SHA-256 for string-seed normalization
+- Versioned xoshiro or SplitMix-derived PRNG
+- Named random namespaces
+- Independent streams per algorithm and layer
+
+Example namespaces:
+
+```text
+template/product-announcement
+background/flow-field
+background/flow-field/particle/0042
+layer/decorative-grid
+variant/0002
+```
+
+Named streams prevent unrelated template changes from altering every downstream random choice.
+
+---
+
+## 5.2 `glyphkiln-app`
+
+### Web frontend
+
+**Recommended:** Next.js App Router with TypeScript.
+
+The App Router provides file-based routing and supports server and client component boundaries.
+
+Use Next.js for:
+
+- Application shell
+- Project and design pages
+- Authentication UI
+- Brand editor
+- Graphic editor
+- Render galleries
+- Export UI
+- Administration
+- Server-rendered public pages
+
+Do not run final rendering in the web process.
+
+### API
+
+**Recommended:** Fastify as a separate API service.
+
+Fastify supports schema-driven request and response handling and an encapsulated plugin architecture, making it suitable for organizing domains such as brands, assets, designs, renders, and workspaces.
+
+Important security rule:
+
+Fastify route schemas must be application-owned static schemas. Never allow users or LLM output to supply executable validation schemas.
+
+### Database
+
+**Recommended:** PostgreSQL with Drizzle ORM.
+
+Drizzle supports PostgreSQL through standard drivers and maintains generated SQL migrations with Drizzle Kit.
+
+Use PostgreSQL from the beginning of `glyphkiln-app` rather than starting with SQLite and later rewriting tenancy, locking, JSON querying, and job state.
+
+### Queue
+
+Local development:
+
+- Inline or in-process queue adapter
+- Optional Redis profile through Docker Compose
+
+Production and Cloud:
+
+- BullMQ with Redis
+
+BullMQ provides Redis-backed queues, workers, retries, and backoff behavior.
+
+### Object storage
+
+Provider interface:
+
+```ts
+interface ObjectStorage {
+  put(input: PutObjectInput): Promise<StoredObject>;
+  get(key: string): Promise<ReadableStream>;
+  head(key: string): Promise<ObjectMetadata | null>;
+  delete(key: string): Promise<void>;
+  createDownloadUrl(key: string, expiresIn: number): Promise<string>;
+}
+```
+
+Implementations:
+
+- Local filesystem for development
+- S3-compatible storage for production
+- Optional MinIO profile for self-hosting
+
+---
+
+## 5.3 Glyphkiln Cloud
+
+### Runtime topology
+
+```text
+CDN
+  ↓
+Web application
+  ↓
+API service
+  ├── PostgreSQL
+  ├── Redis
+  ├── Object storage
+  ├── Billing provider
+  └── Event/webhook system
+         ↓
+Render queues
+         ↓
+Isolated CPU workers
+         ↓
+Immutable exports and manifests
+```
+
+### Observability
+
+Use OpenTelemetry for traces and metrics across the API, queue, and workers. OpenTelemetry provides JavaScript instrumentation for traces, metrics, and logs, and can export through a collector to different observability backends.
+
+Required trace linkage:
+
+```text
+HTTP request
+→ render request
+→ queue job
+→ worker attempt
+→ Core render
+→ object-storage writes
+→ database completion
+```
+
+---
+
+# 6. Core domain model
+
+## 6.1 Design document
+
+```ts
+interface DesignDocument {
+  schemaVersion: "1.0.0";
+  id: string;
+  name: string;
+  format: FormatId;
+  dimensions: Dimensions;
+  seed: string;
+  brand: BrandSnapshot;
+  template: TemplateReference;
+  layers: DesignLayer[];
+  metadata?: DesignMetadata;
+}
+```
+
+## 6.2 Brand snapshot
+
+```ts
+interface BrandSnapshot {
+  id: string;
+  version: string;
+  name: string;
+  defaultMode: "light" | "dark";
+  palette: BrandPalette;
+  typography: BrandTypography;
+  spacing: SpacingScale;
+  radii: RadiusScale;
+  density: number;
+  safeArea: SafeArea;
+  preferredStyles: ProceduralStyleId[];
+  prohibitedColors: string[];
+  prohibitedStyles: string[];
+}
+```
+
+The design stores an immutable snapshot, not only a mutable brand ID.
+
+## 6.3 Layer types
+
+Initial layer union:
+
+- Background layer
+- Procedural layer
+- Text layer
+- CTA layer
+- Logo layer
+- Asset layer
+- Icon layer
+- Badge layer
+- Shape layer
+- Statistic layer
+- Chart layer
+- Footer layer
+- Attribution layer
+
+Each layer requires:
+
+- Stable ID
+- Discriminator
+- Visibility
+- Z-order or document order
+- Optional normalized bounds
+- Layer-specific properties
+
+## 6.4 Template reference
+
+```ts
+interface TemplateReference {
+  id: "product-announcement" | "statistic-card" | "quote-card" | "article-cover";
+  version: string;
+}
+```
+
+Template versions are immutable.
+
+A rendering behavior change requires a new template version.
+
+## 6.5 Render manifest
+
+```ts
+interface RenderManifest {
+  manifestVersion: string;
+  renderId: string;
+  designDocumentId: string;
+  designDocumentHash: string;
+  renderFingerprint: string;
+  seed: string;
+  template: TemplateReference;
+  renderer: RendererReference;
+  proceduralAlgorithms: AlgorithmReference[];
+  assets: AssetProvenance[];
+  fonts: FontProvenance[];
+  dimensions: Dimensions;
+  outputs: OutputProvenance[];
+  qualityIssues: QualityIssue[];
+  generativeImageModelUsed: false;
+  renderingMethod: "deterministic-code-rendering";
+  claim: string;
+  createdAt: string;
+}
+```
+
+---
+
+# 7. Application domain model
+
+Initial `glyphkiln-app` entities:
+
+- User
+- Workspace
+- WorkspaceMember
+- Brand
+- BrandVersion
+- BrandAsset
+- FontAsset
+- Template
+- TemplateVersion
+- Design
+- DesignRevision
+- Render
+- RenderVariant
+- Export
+- PromptInterpretation
+- ProvenanceRecord
+- ApiKey
+- WebhookEndpoint
+- UsageRecord
+- AuditEvent
+
+## Important relationships
+
+```text
+Workspace
+├── Members
+├── Brands
+│   ├── Brand versions
+│   ├── Logos
+│   └── Fonts
+├── Designs
+│   ├── Revisions
+│   └── Prompt interpretations
+└── Renders
+    ├── Variants
+    ├── Exports
+    └── Provenance records
+```
+
+Design revisions should be append-only after a render references them.
+
+---
+
+# 8. Implementation milestones
+
+## Milestone 0: Governance and repository foundation
+
+### Objective
+
+Create the project boundaries, licensing model, naming, contributor process, and release conventions before implementation expands.
+
+### Work
+
+#### `glyphkiln-core`
+
+- Create public repository
+- Add Apache-2.0 license
+- Define trademark policy separately
+- Reserve npm organization and package name
+- Add contribution guidelines
+- Add security policy
+- Add code of conduct
+- Configure branch protection
+- Configure automated dependency updates
+- Configure Changesets
+- Configure CI
+- Define supported Node versions
+- Add ADR template
+- Add issue templates
+- Add pull-request template
+
+#### Ecosystem
+
+- Create architecture-boundary document
+- Define Core/App/Cloud dependency direction
+- Define compatibility policy
+- Define public versus private packages
+- Decide contributor-license strategy with legal review
+- Register domains and official organization accounts
+
+### Exit criteria
+
+- Repositories exist
+- Licensing is explicit
+- CI skeleton passes
+- Package naming is reserved
+- Architectural boundaries are documented
+
+---
+
+## Milestone 1: `glyphkiln-core` foundation
+
+### Objective
+
+Establish the package, schema, determinism utilities, and public contracts.
+
+### Workstreams
+
+#### Tooling
+
+- Initialize TypeScript
+- Configure strict compiler settings
+- Configure ESM output
+- Configure package exports
+- Configure CLI binary
+- Add linting and formatting
+- Add Vitest
+- Add coverage
+- Add lockfile
+- Add package dry-run test
+- Add temporary-consumer package test
+
+#### Format registry
+
+Implement:
+
+- LinkedIn landscape: 1200 × 627
+- Instagram square: 1080 × 1080
+- Instagram portrait: 1080 × 1350
+- Instagram story: 1080 × 1920
+- X landscape: documented default
+- YouTube thumbnail: 1280 × 720
+
+#### Determinism
+
+- Seed normalization
+- Versioned PRNG
+- Named random streams
+- Variant-seed derivation
+- Canonical JSON
+- SHA-256 fingerprints
+- Stable numerical serialization
+- Test vectors
+
+#### Schema
+
+- DesignDocument 1.0.0
+- Strict nested schemas
+- Layer discriminators
+- Brand snapshot
+- Asset references
+- Template references
+- Procedural parameters
+- Quality issues
+- Render manifest
+- Generated JSON Schema
+
+### Exit criteria
+
+- Design documents can be created and validated
+- Unknown fields are rejected
+- Seed test vectors pass across processes
+- Fingerprints are stable
+- Generated schema matches source schema
+- Package can be imported from a temporary consumer
+
+---
+
+## Milestone 2: SVG renderer foundation
+
+### Objective
+
+Produce deterministic SVG and PNG for basic compositions.
+
+### Work
+
+#### Scene model
+
+Implement primitives for:
+
+- Group
+- Rectangle
+- Rounded rectangle
+- Circle
+- Ellipse
+- Line
+- Polyline
+- Polygon
+- Path
+- Gradient
+- Clip path
+- Mask
+- Image
+- Outlined text
+- Transform
+
+#### SVG serializer
+
+Requirements:
+
+- Stable attribute ordering
+- Stable element ordering
+- Deterministic numeric precision
+- Deterministic IDs
+- XML escaping
+- No active content
+- No external references
+- Correct dimensions and viewBox
+- Output validation
+
+#### Rasterization
+
+- Integrate resvg-js
+- Configure fonts explicitly
+- Validate output dimensions
+- Validate PNG signature
+- Record rasterizer version
+- Add malformed-SVG tests
+
+#### Asset resolver
+
+- Caller-provided bytes
+- Asset hash verification
+- MIME verification hooks
+- Dimension metadata
+- No URL fetching
+- No arbitrary paths
+
+### Exit criteria
+
+- Basic SVG and PNG export succeeds
+- Same input produces identical bytes
+- Unsupported fonts fail clearly
+- Missing assets fail clearly
+- SVG active-content tests pass
+- PNG dimensions are correct
+
+---
+
+## Milestone 3: Typography and layout
+
+### Objective
+
+Make business copy render reliably within template constraints.
+
+### Work
+
+- Load font files
+- Hash font files
+- Measure text
+- Preserve explicit line breaks
+- Wrap words
+- Split oversized tokens
+- Fit text within min/max font sizes
+- Enforce maximum line counts
+- Calculate text boxes
+- Detect overflow
+- Detect safe-area violations
+- Calculate contrast
+- Preserve logo aspect ratio
+- Produce structured layout reports
+
+### Required fixtures
+
+- Short headline
+- Long headline
+- Very long word
+- Explicit line breaks
+- Missing subtitle
+- Empty optional copy
+- Unsupported font
+- Unicode text
+- Low-contrast palette
+- Maximum text length
+
+### Exit criteria
+
+- No fixture escapes the canvas
+- Overflow produces structured errors or warnings
+- Unsupported fonts never silently fall back
+- Line-count limits are enforced
+- Contrast failures are reported
+- Typography tests are deterministic
+
+---
+
+## Milestone 4: Procedural background engine
+
+### Objective
+
+Implement four polished, deterministic procedural systems.
+
+### Algorithms
+
+1. Flow fields
+2. Layered waves
+3. Topographic contour lines
+4. Recursive rectangular subdivision
+
+### Shared API
+
+```ts
+interface ProceduralInput {
+  width: number;
+  height: number;
+  seed: string;
+  palette: string[];
+  mode: "light" | "dark";
+  intensity: number;
+  density: number;
+  complexity: number;
+  contrast: number;
+  quietRegion?: NormalizedBox;
+}
+```
+
+### Required behavior
+
+- Stable algorithm version
+- Seeded output
+- Separate random namespace
+- Quiet-region attenuation
+- Finite coordinates
+- Canvas clipping
+- Palette compliance
+- Light and dark modes
+- Parameter-effect tests
+
+### Exit criteria
+
+For every algorithm:
+
+- Same input produces identical output
+- Seed changes output
+- Intensity changes output
+- Density changes output
+- Complexity changes output
+- Contrast changes output
+- Quiet region measurably reduces detail
+- Algorithm version appears in manifest and fingerprint
+
+---
+
+## Milestone 5: Initial template set
+
+### Objective
+
+Implement the four MVP composition systems.
+
+## Template 1: Product announcement
+
+Content:
+
+- Eyebrow
+- Headline
+- Subtitle
+- CTA
+- Logo
+- Product screenshot or mock
+- Procedural background
+- Footer
+
+Layout branches:
+
+- Landscape
+- Square
+- Portrait
+- Story
+
+## Template 2: Statistic card
+
+Content:
+
+- Eyebrow
+- Large statistic
+- Statistic label
+- Delta
+- Supporting copy
+- Optional chart
+- Source
+- Logo
+
+## Template 3: Quote card
+
+Content:
+
+- Quote
+- Attribution
+- Role or company
+- Optional portrait or logo
+- Decorative quotation mark
+- Procedural background
+
+## Template 4: Article cover
+
+Content:
+
+- Category
+- Headline
+- Description
+- Author or publication
+- Optional image
+- Logo
+- Publication date
+
+### Every template requires
+
+- Stable ID
+- Semantic version
+- Supported formats
+- Required-layer rules
+- Format-specific layouts
+- Safe areas
+- Headline limits
+- Optional-layer behavior
+- Light and dark fixtures
+- Determinism tests
+- Visual baselines
+- Documentation
+
+### Exit criteria
+
+- All four templates produce valid SVG and PNG
+- Each has a visibly distinct composition
+- Landscape and portrait branches are reviewed
+- Required fixtures pass
+- Template versions affect fingerprints
+- Visual baselines are committed
+
+---
+
+## Milestone 6: Core SDK, CLI, provenance, and release candidate
+
+### Public SDK
+
+Target exports:
+
+```ts
+createDesignDocument;
+validateDesignDocument;
+renderGraphic;
+renderSvg;
+renderPng;
+computeRenderFingerprint;
+verifyRenderManifest;
+listFormats;
+listTemplates;
+listProceduralStyles;
+```
+
+### CLI
+
+Commands:
+
+```text
+glyphkiln validate <design>
+glyphkiln inspect <design>
+glyphkiln render <design>
+glyphkiln verify <manifest>
+glyphkiln formats
+glyphkiln templates
+glyphkiln backgrounds
+glyphkiln version
+```
+
+### Provenance
+
+- Generate manifest
+- Verify file hashes
+- Preserve asset-origin metadata
+- Verify design-document hash
+- Record font hashes
+- Record procedural versions
+- Record renderer versions
+- Record output sizes and hashes
+
+### Documentation
+
+- README
+- Architecture
+- Determinism contract
+- Schema specification
+- Template guide
+- Background guide
+- Font guide
+- Asset guide
+- Provenance guide
+- Security guide
+- Visual-regression guide
+- Versioning policy
+- Release process
+- Known limitations
+- Roadmap
+- ADRs
+
+### Exit criteria for Core 0.1.0
+
+```text
+pnpm install --frozen-lockfile
+pnpm build
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm test:coverage
+pnpm test:visual
+pnpm pack
+```
+
+Also required:
+
+- External consumer package succeeds
+- CLI examples succeed
+- Four example designs regenerate
+- Manifest verification succeeds
+- Independent verification report reaches at least “pass with minor findings”
+
+---
+
+# 9. `glyphkiln-app` implementation
+
+Begin only after the Core release candidate passes verification.
+
+## Milestone 7: Application foundation
+
+### Work
+
+- Initialize app monorepo
+- Create Next.js web application
+- Create Fastify API
+- Create worker service
+- Create PostgreSQL database
+- Add migrations
+- Add storage provider interface
+- Add queue provider interface
+- Add authentication provider
+- Add workspace authorization
+- Add structured API error format
+- Add OpenAPI output
+- Import `@glyphkiln/core`
+- Pin supported Core version
+
+### Initial authentication
+
+Support:
+
+- Email login or OAuth
+- Session management
+- Workspace creation
+- Workspace invitation
+- Owner, admin, editor, and viewer roles
+
+### Exit criteria
+
+- User can register or log in
+- User can create a workspace
+- Workspace access checks are enforced
+- API and worker can call Core
+- Local Docker Compose environment starts successfully
+
+---
+
+## Milestone 8: Brand and asset management
+
+### Brand features
+
+- Create brand
+- Edit brand
+- Version brand
+- Light and dark palettes
+- Typography selection
+- Spacing and radii
+- Safe areas
+- Preferred styles
+- Prohibited styles and colors
+- Logo variants
+
+### Asset ingestion
+
+- Direct upload only
+- File-signature verification
+- MIME verification
+- Raster decode and re-encode
+- SVG sanitization
+- Dimension limits
+- Pixel-count limits
+- File-size limits
+- SHA-256 addressing
+- Duplicate detection
+- Malware-scanning hook
+- Origin metadata
+- License notes
+- Workspace ownership
+
+### Font ingestion
+
+Initial self-hosted implementation:
+
+- Administrator-controlled font registration
+- License metadata
+- Immutable font versions
+- Font hashes
+- Preview
+- Deactivation without deleting referenced versions
+
+### Exit criteria
+
+- Brand kit can be created
+- Assets can be uploaded safely
+- Asset hashes are recorded
+- Font versions remain reproducible
+- Old designs retain their brand snapshots
+
+---
+
+## Milestone 9: Design creation flow
+
+### Required UX
+
+1. Select or create brand
+2. Select graphic type
+3. Select format
+4. Enter content
+5. Add optional screenshot or image
+6. Enter creative brief
+7. Generate or manually construct structured design
+8. Inspect key structured controls
+9. Generate seeded variations
+10. Compare previews
+11. Save design
+12. Export PNG, SVG, and manifest
+
+### Manual mode
+
+Must work without an LLM key.
+
+Controls:
+
+- Template
+- Format
+- Theme
+- Procedural style
+- Quiet region
+- Intensity
+- Density
+- Complexity
+- Contrast
+- Seed
+- Headline
+- Subtitle
+- CTA
+- Assets
+- Logo
+- Attribution
+- Statistic
+- Footer
+
+### Optional LLM adapter
+
+Contract:
+
+```ts
+interface BriefInterpreter {
+  interpret(input: BriefInput): Promise<unknown>;
+}
+```
+
+Rules:
+
+- Output is treated as unknown
+- Validate with Core
+- Reject unknown template versions
+- Never execute generated code
+- Store input, provider, model, response hash, validation result, and accepted normalized document
+- Manual mode remains first-class
+
+### Exit criteria
+
+- Complete browser flow works without an LLM
+- Invalid structured output cannot reach the renderer
+- Three or more seeded variants can be rendered
+- Designs and revisions can be reopened
+- Exported manifest verifies against exported files
+
+---
+
+## Milestone 10: Self-hosted application release
+
+### Self-hosting package
+
+Provide:
+
+- Dockerfiles
+- Docker Compose
+- PostgreSQL
+- Redis
+- MinIO or filesystem storage profile
+- API
+- Web
+- Worker
+- Migration command
+- Health checks
+- Backup guide
+- Upgrade guide
+- Environment reference
+- Reverse-proxy example
+- TLS guidance
+
+### Administration
+
+- Workspace list
+- User management
+- Storage use
+- Queue health
+- Failed render inspection
+- Font management
+- Template registry
+- Data export
+- Data deletion
+
+### Exit criteria for App 0.1.0
+
+- Fresh self-hosted installation succeeds
+- Complete create-to-export E2E test passes
+- Worker retry behavior is tested
+- Backup and restore are tested
+- Workspace isolation tests pass
+- Security audit has no unresolved critical findings
+- Documentation matches actual deployment
+
+---
+
+# 10. Glyphkiln Cloud implementation
+
+Start Cloud after real users have validated the self-hosted application workflow.
+
+## Milestone 11: Cloud control plane
+
+### Infrastructure
+
+- Managed PostgreSQL
+- Managed Redis
+- S3-compatible object storage
+- CDN
+- API autoscaling
+- Dedicated render-worker pools
+- Secret manager
+- Container registry
+- Infrastructure as code
+- Staging and production environments
+- Automated migrations
+- Rollback procedure
+
+### Multi-tenancy
+
+- Workspace tenant ID on every tenant-owned row
+- Authorization at service layer
+- Database constraints
+- Tenant-aware storage keys
+- Tenant-aware queue payloads
+- Audit events
+- Cross-tenant access tests
+
+### Render processing
+
+Job lifecycle:
+
+```text
+queued
+→ claimed
+→ validating
+→ rendering
+→ validating output
+→ uploading
+→ completed
+```
+
+Failure states:
+
+```text
+validation_failed
+asset_failed
+font_failed
+render_failed
+output_failed
+storage_failed
+cancelled
+exhausted
+```
+
+### Worker isolation
+
+- No public inbound access
+- Outbound network disabled by default
+- Read-only container filesystem
+- Temporary writable directory
+- CPU limits
+- Memory limits
+- Job timeout
+- Asset size limits
+- Process recycling
+- Dependency and container scanning
+
+---
+
+## Milestone 12: Billing and usage
+
+### Initial plans
+
+#### Community
+
+- Self-hosted
+- Core templates
+- Local rendering
+- Community support
+
+#### Creator
+
+- Managed hosting
+- Individual account
+- Limited brand kits
+- Included render allowance
+- Premium templates
+- Cloud history
+
+#### Studio
+
+- More brands
+- Batch generation
+- API access
+- Private templates
+- Higher usage allowance
+
+#### Team
+
+- Multiple members
+- Shared assets
+- Roles
+- Approvals
+- Audit history
+- Higher limits
+
+#### Enterprise
+
+- SSO
+- SCIM
+- Dedicated infrastructure
+- Data residency
+- SLA
+- Custom retention
+- Support
+- Private deployment
+
+### Metering events
+
+- Render requested
+- Render completed
+- Render failed
+- Export downloaded
+- Storage bytes
+- API request
+- Batch row processed
+- User seat
+- Premium-template use
+
+Usage events must be idempotent and separate from billing calculations.
+
+### Entitlements
+
+Use an internal entitlement model rather than scattering plan-name checks.
+
+```ts
+interface Entitlements {
+  maxMembers: number;
+  maxBrandKits: number;
+  monthlyRenders: number;
+  batchGeneration: boolean;
+  apiAccess: boolean;
+  privateTemplates: boolean;
+  approvalWorkflow: boolean;
+  auditLogs: boolean;
+  sso: boolean;
+}
+```
+
+---
+
+## Milestone 13: Team workflow
+
+Implement:
+
+- Comments
+- Review requests
+- Approval status
+- Locked revisions
+- Approved-template versions
+- Brand-rule enforcement
+- Role-based publishing permission
+- Audit history
+- Shareable previews
+- Expiring external review links
+
+A design approved at revision 12 must not silently change when revision 13 is created.
+
+---
+
+## Milestone 14: API, batch, and integrations
+
+### Public API
+
+- API keys
+- Scoped permissions
+- Idempotency keys
+- Rate limits
+- Render creation
+- Status lookup
+- Export retrieval
+- Webhook delivery
+- Webhook signing
+- Retry policy
+- Usage reporting
+
+### Batch generation
+
+Inputs:
+
+- CSV
+- JSON
+- Spreadsheet import
+- API collection
+
+Features:
+
+- Row validation
+- Preview sample
+- Dry run
+- Partial failure handling
+- Retry failed rows
+- Export archive
+- Per-row manifest
+
+### Initial integrations
+
+Prioritize:
+
+1. Webhooks
+2. Zapier or generic automation adapter
+3. CMS integration
+4. Scheduling-platform integration
+5. Figma asset import
+6. Direct social publishing
+
+Direct publishing should come after stable export and approval workflows.
+
+---
+
+# 11. Testing strategy
+
+## 11.1 Core
+
+### Unit tests
+
+- Schemas
+- Seeded randomness
+- Canonical JSON
+- Fingerprints
+- Color functions
+- Geometry
+- Layout
+- Typography
+- Contrast
+- Asset resolution
+- Manifest verification
+
+### Determinism tests
+
+Matrix:
+
+- Four templates
+- Four procedural styles
+- Three formats
+- Light and dark themes
+- Two seeds
+
+Run in separate processes and compare:
+
+- SVG hashes
+- PNG hashes
+- Fingerprints
+- Render-relevant manifest fields
+
+### Visual regression
+
+- Baselines generated in pinned container
+- Exact hash checks in same environment
+- Explicit baseline-update command
+- Baseline design and manifest stored together
+- Pull-request artifact showing old and new outputs
+- Human review required before updates
+
+### Security tests
+
+- Unknown schema properties
+- Active SVG content
+- External references
+- Remote asset URL
+- Path traversal
+- Dynamic execution scan
+- Unsupported fonts
+- Oversized dimensions
+- Excessive procedural complexity
+- Malformed asset bytes
+
+---
+
+## 11.2 Application
+
+- API unit tests
+- Repository integration tests
+- PostgreSQL migration tests
+- Storage-provider contract tests
+- Queue-provider contract tests
+- Workspace-isolation tests
+- Upload-security tests
+- Permission tests
+- Worker retry tests
+- Complete E2E create-to-export flow
+- Backup-and-restore test
+- Self-hosted installation smoke test
+
+---
+
+## 11.3 Cloud
+
+- Tenant-isolation penetration tests
+- Billing-event idempotency tests
+- Entitlement tests
+- Queue-failure tests
+- Worker-timeout tests
+- Regional-storage tests
+- Disaster-recovery exercises
+- Load tests
+- Webhook replay tests
+- API rate-limit tests
+- SSO and SCIM tests
+- Audit-log completeness tests
+
+---
+
+# 12. Security plan
+
+## Core security boundary
+
+Core receives:
+
+- Parsed design data
+- Explicit font files
+- Explicit asset bytes
+- Renderer options
+
+Core must not:
+
+- Fetch URLs
+- Read user-selected filesystem paths
+- Run subprocesses based on document values
+- Load modules based on template IDs
+- Evaluate code
+- Resolve external SVG resources
+- Execute scripts
+
+## Application security boundary
+
+Application is responsible for:
+
+- Authentication
+- Authorization
+- Workspace ownership
+- Upload validation
+- Asset sanitization
+- Rate limiting
+- CSRF protection
+- Session security
+- File limits
+- Database isolation
+- Secure download URLs
+
+## Cloud security boundary
+
+Cloud additionally owns:
+
+- Secret rotation
+- Tenant isolation
+- Encryption
+- Worker sandboxing
+- Audit trails
+- Abuse prevention
+- Billing integrity
+- Operational security
+- Incident response
+- Data retention
+- Regional controls
+
+---
+
+# 13. Provenance roadmap
+
+## MVP
+
+JSON render manifest with hashes.
+
+## Version 1
+
+- Manifest verification command
+- Signed application-level manifest
+- Asset-origin declarations
+- Optional inspection of existing content credentials
+- Provenance UI
+
+## Later
+
+- C2PA signing
+- Protected signing keys
+- Certificate lifecycle
+- Verification service
+- Credential display
+- Preservation of uploaded credentials
+- Export policies by workspace
+
+C2PA should enhance the manifest system rather than replace it.
+
+---
+
+# 14. Versioning and compatibility
+
+## Core package
+
+Use semantic versioning.
+
+### Patch
+
+- Bug fix with unchanged rendering output
+- Documentation
+- Error-message improvement
+- Non-rendering performance improvement
+
+### Minor
+
+- New template
+- New procedural style
+- New optional schema property
+- New output format
+- New public SDK function
+
+### Major
+
+- Schema-breaking change
+- Public API break
+- Seed-algorithm change
+- Existing template behavior change without a retained old version
+- Manifest-breaking change
+
+## Renderer behavior
+
+Do not silently change pixels under the same combination of:
+
+```text
+template ID
+template version
+renderer version
+algorithm version
+seed version
+```
+
+Old template versions may be deprecated but must remain available while saved designs depend on them.
+
+## App compatibility
+
+`glyphkiln-app` should declare an explicit compatible Core range.
+
+CI should test:
+
+- Minimum supported Core version
+- Current Core version
+- Next Core release candidate where practical
+
+---
+
+# 15. Deployment strategy
+
+## Local Core development
+
+No external services.
+
+```text
+Node.js
+font fixtures
+asset fixtures
+resvg
+```
+
+## Self-hosted application
+
+Docker Compose:
+
+```text
+web
+api
+worker
+postgres
+redis
+object storage
+```
+
+## Cloud
+
+Containers deployed independently:
+
+```text
+web
+api
+worker-small
+worker-large
+webhook-delivery
+billing-consumer
+scheduler
+migration-job
+```
+
+Render workers should scale based on:
+
+- Queue depth
+- Oldest queued-job age
+- Average job duration
+- Worker CPU
+- Worker memory
+
+Do not scale only on API traffic.
+
+---
+
+# 16. Observability requirements
+
+## Logs
+
+Structured JSON logs containing:
+
+- Request ID
+- Trace ID
+- Workspace ID
+- User ID
+- Render ID
+- Variant ID
+- Job ID
+- Template ID and version
+- Renderer version
+- Duration
+- Cache result
+- Error code
+
+Avoid logging:
+
+- Full design copy by default
+- Asset bytes
+- Font bytes
+- Authentication tokens
+- Signed URLs
+- Private API keys
+
+## Metrics
+
+- Render duration
+- Queue wait time
+- Queue depth
+- Render success rate
+- Render failure rate by code
+- Cache-hit rate
+- PNG and SVG sizes
+- Worker memory
+- Worker CPU
+- Asset upload failures
+- API latency
+- Webhook delivery success
+- Usage-event lag
+
+## Traces
+
+Trace complete render lifecycles from API through storage.
+
+---
+
+# 17. Performance and caching
+
+## Core cache key
+
+Include:
+
+- Canonical design document
+- Seed
+- Template version
+- Renderer version
+- Algorithm versions
+- Asset hashes
+- Font hashes
+- Dimensions
+- Relevant export configuration
+
+## Application cache layers
+
+1. In-process font cache
+2. In-process parsed-asset cache
+3. Redis render-state cache
+4. Object-storage pixel cache
+5. CDN immutable export cache
+
+## Immutable output paths
+
+Use content-addressed keys:
+
+```text
+renders/{fingerprint}/graphic.png
+renders/{fingerprint}/graphic.svg
+renders/{fingerprint}/manifest.json
+```
+
+Render database records may have unique IDs while referencing shared immutable export objects.
+
+---
+
+# 18. Suggested delivery sequence
+
+## Phase A: Core alpha
+
+Deliver:
+
+- Schemas
+- Seed system
+- SVG primitives
+- One procedural style
+- Product-announcement template
+- SVG export
+- PNG export
+- CLI
+
+Purpose:
+
+Prove the complete vertical rendering path early.
+
+## Phase B: Core beta
+
+Add:
+
+- Remaining templates
+- Remaining procedural styles
+- Typography hardening
+- Quality checks
+- Provenance
+- SDK stabilization
+- Visual baselines
+
+## Phase C: Core release candidate
+
+Complete:
+
+- Packaging
+- Consumer test
+- Security review
+- Determinism matrix
+- Independent verification
+- Documentation
+
+## Phase D: App alpha
+
+Deliver:
+
+- Authentication
+- Workspaces
+- Brand kit
+- Asset upload
+- Manual design flow
+- Inline render
+- Saved design
+- Export
+
+## Phase E: App beta
+
+Add:
+
+- Worker queue
+- Optional LLM adapter
+- Revision history
+- Self-hosted deployment
+- Administration
+- Security hardening
+
+## Phase F: Cloud private beta
+
+Add:
+
+- Managed infrastructure
+- Multi-tenancy
+- Billing
+- Usage
+- Hosted rendering
+- Monitoring
+- Support tools
+
+## Phase G: Paid launch
+
+Launch:
+
+- Creator
+- Studio
+- Team plans
+- Premium templates
+- Batch generation
+- API access
+
+Enterprise capabilities should follow demonstrated demand.
+
+---
+
+# 19. Illustrative staffing and schedule
+
+This is a planning range, not a delivery commitment.
+
+## Small focused team
+
+- One senior graphics/Core engineer
+- One full-stack application engineer
+- One backend/platform engineer
+- Part-time product designer
+- Part-time security or DevOps support
+
+## Approximate phases
+
+| Phase                                   | Typical range |
+| --------------------------------------- | ------------: |
+| Repository and governance               |        1 week |
+| Core alpha                              |     3–5 weeks |
+| Core beta                               |     3–5 weeks |
+| Core verification and release candidate |     2–3 weeks |
+| App alpha                               |     5–7 weeks |
+| App beta and self-hosting               |     4–6 weeks |
+| Cloud private beta                      |     5–8 weeks |
+| Paid-launch hardening                   |     3–5 weeks |
+
+Several application and design tasks can overlap after the Core public API stabilizes.
+
+A single engineer should keep the same milestone order but reduce parallel scope rather than attempt all three products simultaneously.
+
+---
+
+# 20. Risk register
+
+## Risk: Typography differs between environments
+
+Mitigation:
+
+- Immutable font files
+- Font hashes
+- Pinned renderer container
+- Outlined SVG
+- Exact visual baselines
+
+## Risk: Core API changes while App is being built
+
+Mitigation:
+
+- Release Core 0.1 candidate first
+- Use public package exports only
+- Add compatibility tests
+- Preserve template versions
+
+## Risk: Procedural art overwhelms text
+
+Mitigation:
+
+- Quiet regions
+- Density measurements
+- Contrast checks
+- Template overlays
+- Reviewed parameter bounds
+
+## Risk: Open-source hosted competitor
+
+Mitigation:
+
+- Strong trademark control
+- Superior hosted operations
+- Premium templates
+- Collaboration
+- Integrations
+- Enterprise features
+- Commercial support
+- AGPL application licensing with legal review
+
+## Risk: Render-worker abuse
+
+Mitigation:
+
+- Schema limits
+- Asset limits
+- Complexity limits
+- Job timeout
+- Memory limits
+- Isolated workers
+- No outbound network
+- Rate limits
+
+## Risk: Uploaded asset provenance is inaccurate
+
+Mitigation:
+
+- Preserve declared origin
+- Use “unknown” when unknown
+- Inspect credentials where available
+- Never infer human authorship
+- Distinguish final renderer from source-asset origin
+
+## Risk: Cloud work begins before product validation
+
+Mitigation:
+
+- Release Core first
+- Obtain self-hosted users
+- Manually onboard early customers
+- Build paid features only after repeated requests
+
+---
+
+# 21. Commercial launch strategy
+
+## Open-source adoption
+
+Release publicly:
+
+- Core renderer
+- CLI
+- Four templates
+- Four backgrounds
+- Schema
+- Dockerized examples
+- Documentation
+- Example gallery
+
+## Early revenue
+
+Prioritize:
+
+- Managed Glyphkiln hosting
+- Custom template services
+- Brand onboarding
+- Premium template packs
+- Batch generation
+- API access
+
+## Later revenue
+
+- Team workflows
+- Enterprise SSO
+- Dedicated workers
+- Managed private deployments
+- Template marketplace
+- OEM licensing
+- Direct publishing
+- C2PA signing
+- Compliance controls
+
+The product should monetize operational convenience, scale, workflow, governance, support, and design expertise—not cripple the open renderer.
+
+---
+
+# 22. Release gates
+
+## Core release gate
+
+Do not start the application against an unstable source checkout.
+
+Core must have:
+
+- Published or locally installable release candidate
+- Frozen schema version
+- Frozen seed version
+- Four templates
+- Four backgrounds
+- Valid SVG and PNG
+- Manifest verification
+- Determinism matrix
+- External consumer test
+- Independent audit
+
+## App release gate
+
+App must have:
+
+- Workspace isolation
+- Safe uploads
+- Manual no-LLM flow
+- Saved designs
+- Asynchronous render path
+- Self-hosted deployment
+- Backup and restore
+- E2E export verification
+- No critical security findings
+
+## Cloud launch gate
+
+Cloud must have:
+
+- Multi-tenant isolation tests
+- Billing-event idempotency
+- Usage enforcement
+- Worker isolation
+- Monitoring
+- Alerting
+- Incident response
+- Data deletion
+- Support process
+- Restore test
+- Customer-facing status mechanism
+
+---
+
+# 23. Immediate backlog
+
+The first implementation cycle should create these issues in order:
+
+1. Initialize `glyphkiln-core`
+2. Add Apache-2.0 licensing and governance files
+3. Configure TypeScript, pnpm, linting, testing, and CI
+4. Write renderer-selection ADR
+5. Write schema-selection ADR
+6. Implement format registry
+7. Implement canonical JSON
+8. Implement versioned seed algorithm
+9. Add seed test vectors
+10. Define DesignDocument 1.0.0
+11. Generate JSON Schema
+12. Add strict schema-negative tests
+13. Define scene primitives
+14. Implement deterministic SVG serializer
+15. Add SVG security checks
+16. Integrate resvg PNG output
+17. Define font provider
+18. Implement text measurement and wrapping
+19. Define asset provider
+20. Implement flow fields
+21. Implement product-announcement template
+22. Add first CLI render command
+23. Add render fingerprint
+24. Add render manifest
+25. Add first visual baseline
+26. Implement remaining backgrounds
+27. Implement remaining templates
+28. Add full determinism matrix
+29. Add package-consumer test
+30. Run independent implementation audit
+
+Only after issue 30 passes should `glyphkiln-app` begin active implementation.
+
+---
+
+# 24. Final definition of done
+
+The Glyphkiln ecosystem reaches its initial product objective when:
+
+- `glyphkiln-core` is independently usable from Node.js
+- Core renders four business templates
+- Core implements four procedural systems
+- Core exports valid SVG and PNG
+- Identical inputs reproduce identical output in the pinned environment
+- Render manifests verify exported files
+- `glyphkiln-app` works without an LLM key
+- A user can create a brand, add assets, create a design, generate variants, save it, and export it
+- The self-hosted application has documented deployment and backup processes
+- Glyphkiln Cloud runs the same Core renderer without a private fork
+- Cloud usage and billing are auditable
+- Uploaded asset origins are preserved honestly
+- No arbitrary code runs in the rendering path
+- The product can accurately claim:
+
+> Created without generative image models and rendered deterministically from code.
