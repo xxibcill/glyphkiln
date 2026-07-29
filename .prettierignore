@@ -1,0 +1,5 @@
+dist
+coverage
+examples/generated
+package-lock.json
+LICENSE
