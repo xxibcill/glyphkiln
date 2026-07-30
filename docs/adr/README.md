@@ -11,6 +11,7 @@
 | [0007](0007-provenance.md)                      | Per-output JSON render manifests              |
 | [0008](0008-package-public-api.md)              | Single package with intentional exports       |
 | [0009](0009-text-layout-support-diagnostics.md) | Deterministic text-layout support diagnostics |
+| [0010](0010-glyphkiln-monorepo.md)              | Core and App in one npm workspace             |
 
 ADRs are immutable after acceptance. Superseding decisions add a new ADR and
 link back to the old one.

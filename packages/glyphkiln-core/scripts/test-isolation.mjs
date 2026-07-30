@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -10,6 +11,8 @@ import {
   renderGraphicIsolated,
 } from "../dist/index.js";
 
+const require = createRequire(import.meta.url);
+const dependenciesDirectory = dirname(dirname(require.resolve("zod/package.json")));
 const document = JSON.parse(
   await readFile(new URL("../examples/article-cover.json", import.meta.url), "utf8"),
 );
@@ -121,7 +124,7 @@ async function verifySymlinkedDependencyIsolation(input) {
       cp(join(scriptsDirectory, "../package.json"), join(packageRoot, "package.json")),
     ]);
     await symlink(
-      join(scriptsDirectory, "../node_modules"),
+      dependenciesDirectory,
       join(packageRoot, "node_modules"),
       process.platform === "win32" ? "junction" : "dir",
     );

@@ -1,5 +1,6 @@
-dist
-coverage
-examples/generated
+**/dist
+**/coverage
+**/.next
+packages/glyphkiln-core/examples/generated
 package-lock.json
 LICENSE

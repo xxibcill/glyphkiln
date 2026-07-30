@@ -1,9 +1,10 @@
 # Architecture
 
-Glyphkiln Core is a single ESM package with internal module boundaries and one
-intentional public entry point. A monorepo would add release and dependency
-coordination without giving this milestone a second independently useful
-package, so it is deferred.
+Glyphkiln Core remains a single ESM package with internal module boundaries and
+one intentional public entry point. It lives in the Glyphkiln npm workspace
+beside the independently useful application runtime. The workspace coordinates
+development, but the application consumes Core only through its package exports.
+See [ADR 0010](adr/0010-glyphkiln-monorepo.md).
 
 ## Pipeline
 

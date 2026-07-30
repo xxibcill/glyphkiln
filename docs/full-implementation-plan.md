@@ -143,9 +143,13 @@ The system should generate a narrower range of graphics reliably rather than a b
 
 ---
 
-# 4. Product and repository boundaries
+# 4. Product and workspace boundaries
 
-## 4.1 Repository: `glyphkiln-core`
+Core and App now share the public Glyphkiln npm-workspaces repository. They
+remain independently deployable products with explicit package boundaries.
+Glyphkiln Cloud remains private and outside this repository.
+
+## 4.1 Workspace: `packages/glyphkiln-core`
 
 **Visibility:** Public
 **Recommended license:** Apache-2.0
@@ -193,7 +197,7 @@ The system should generate a narrower range of graphics reliably rather than a b
 
 ---
 
-## 4.2 Repository: `glyphkiln-app`
+## 4.2 Workspace: `apps/glyphkiln-app`
 
 **Visibility:** Public
 **Recommended license:** AGPL-3.0 with legal review
@@ -222,27 +226,33 @@ The system should generate a narrower range of graphics reliably rather than a b
 ### Internal structure
 
 ```text
-glyphkiln-app/
-  apps/
-    web/
-    api/
-    worker/
-  packages/
-    auth/
-    database/
-    storage/
-    queue/
-    core-adapter/
-    ui/
-    config/
-    testing/
+apps/glyphkiln-app/
+  src/
+    app/
+    features/
+    lib/
+
+# Added as later milestones justify independent runtimes:
+apps/glyphkiln-api/
+apps/glyphkiln-worker/
+packages/app-auth/
+packages/app-database/
+packages/app-storage/
+packages/app-queue/
+packages/app-core-adapter/
+packages/app-ui/
+packages/app-config/
+packages/app-testing/
 ```
 
-The application should import only documented exports from `@glyphkiln/core`.
+The initial application is one Next.js workspace. API, worker, and reusable
+application packages should be extracted only when they become independently
+useful. Every application workspace should import only documented exports from
+`@glyphkiln/core`.
 
 ---
 
-## 4.3 Repository: `glyphkiln-cloud`
+## 4.3 External repository: `glyphkiln-cloud`
 
 **Visibility:** Private
 **License:** Proprietary
@@ -1135,7 +1145,7 @@ Begin only after the Core release candidate passes verification.
 
 ### Work
 
-- Initialize app monorepo
+- Initialize the app workspace in the Glyphkiln monorepo
 - Create Next.js web application
 - Create Fastify API
 - Create worker service
@@ -2184,7 +2194,9 @@ The product should monetize operational convenience, scale, workflow, governance
 
 ## Core release gate
 
-Do not start the application against an unstable source checkout.
+Do not couple the application to unversioned Core internals. The monorepo may
+link the local Core workspace during development, but the same commit must pass
+the packed-package consumer test and declare an explicit compatible Core range.
 
 Core must have:
 

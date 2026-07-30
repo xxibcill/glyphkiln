@@ -53,8 +53,9 @@ npm run text-layout-data:verify
 ```
 
 The checked-in source hashes are in
-`vendor/unicode/17.0.0/source-checksums.json`; licensing is retained in
-`vendor/unicode/LICENSE.txt` and `NOTICE`.
+`packages/glyphkiln-core/vendor/unicode/17.0.0/source-checksums.json`; licensing
+is retained in `packages/glyphkiln-core/vendor/unicode/LICENSE.txt` and
+`packages/glyphkiln-core/NOTICE`.
 
 ## Documents, rendering, and CLI
 

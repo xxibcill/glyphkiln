@@ -16,7 +16,8 @@ unassociated hash sets or unused declarations.
 The repository includes the Inter variable font from Google Fonts at pinned
 source commit `7ff85c87f93ea6cca5f41c69f2e4edcb90240f26`. Its SHA-256 is
 `29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031`.
-The font is licensed separately under SIL OFL 1.1 in `assets/fonts/OFL.txt`.
+The font is licensed separately under SIL OFL 1.1 in
+`packages/glyphkiln-core/assets/fonts/OFL.txt`.
 This open development font makes a clone immediately renderable without
 proprietary files.
 
