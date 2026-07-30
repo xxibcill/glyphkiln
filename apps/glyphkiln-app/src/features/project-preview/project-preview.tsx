@@ -50,6 +50,7 @@ export function ProjectPreview({ catalog }: ProjectPreviewProps) {
   async function renderProof(): Promise<void> {
     if (isRendering) return;
     const submittedPayload = documentPayload;
+    const submittedDocument = document;
     const prerequisiteFailure = previewIntegrityPrerequisiteFailure();
     if (prerequisiteFailure !== null) {
       setResponse(prerequisiteFailure);
@@ -76,7 +77,7 @@ export function ProjectPreview({ catalog }: ProjectPreviewProps) {
       const payload = (await httpResponse.json()) as unknown;
       const parsed = parsePreviewResponse(payload, httpResponse.status);
       const integrityFailure = parsed.ok
-        ? await verifyPreviewIntegrity(parsed, catalog)
+        ? await verifyPreviewIntegrity(parsed, catalog, submittedDocument)
         : null;
       const inspectedResponse = integrityFailure ?? parsed;
       setResponse(inspectedResponse);

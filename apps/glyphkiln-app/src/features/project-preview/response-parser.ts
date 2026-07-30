@@ -1,4 +1,5 @@
-import type { QualityIssue, RenderManifest } from "@glyphkiln/core";
+import type { DesignDocument, QualityIssue, RenderManifest } from "@glyphkiln/core";
+import { canonicalJson, createRenderFingerprintPayload } from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -45,6 +46,7 @@ export function previewIntegrityPrerequisiteFailure(): PreviewFailure | null {
 export async function verifyPreviewIntegrity(
   response: PreviewSuccess,
   catalog: PreviewCatalog,
+  submittedDocument: DesignDocument,
 ): Promise<PreviewFailure | null> {
   const prerequisiteFailure = previewIntegrityPrerequisiteFailure();
   if (prerequisiteFailure !== null) return prerequisiteFailure;
@@ -53,6 +55,14 @@ export async function verifyPreviewIntegrity(
     const documentHash = await sha256(
       new TextEncoder().encode(canonicalJson(response.document)),
     );
+    const submittedDocumentHash = await sha256(
+      new TextEncoder().encode(canonicalJson(submittedDocument)),
+    );
+    if (documentHash !== submittedDocumentHash) {
+      return integrityFailure(
+        "The returned proof does not match the submitted design document.",
+      );
+    }
     const firstManifest = response.outputs[0].manifest;
     if (documentHash !== firstManifest.designDocumentHash) {
       return integrityFailure(
@@ -211,29 +221,18 @@ async function renderFingerprint(
   output: PreviewOutput,
   catalog: PreviewCatalog,
 ): Promise<string> {
-  const pixelDocument = Object.fromEntries(
-    Object.entries(response.document).filter(
-      ([key]) => key !== "id" && key !== "metadata",
-    ),
-  );
-  const fonts = [...output.manifest.fonts].sort((left, right) => {
-    const leftJson = canonicalJson(left);
-    const rightJson = canonicalJson(right);
-    return leftJson < rightJson ? -1 : leftJson > rightJson ? 1 : 0;
-  });
   return sha256(
     new TextEncoder().encode(
-      canonicalJson({
-        designDocument: pixelDocument,
-        dimensions: output.manifest.dimensions,
-        template: response.document.template,
-        renderer: catalog.renderer,
-        proceduralAlgorithmVersions: output.manifest.proceduralAlgorithmVersions,
-        assetHashes: response.document.assets.map((asset) => asset.sha256).sort(),
-        fonts,
-        outputFormat: output.format,
-        rendererConfiguration: catalog.rendererConfiguration,
-      }),
+      canonicalJson(
+        createRenderFingerprintPayload({
+          document: response.document,
+          outputFormat: output.format,
+          assetHashes: response.document.assets.map((asset) => asset.sha256),
+          fonts: output.manifest.fonts,
+          proceduralAlgorithmVersions: output.manifest.proceduralAlgorithmVersions,
+          rendererConfiguration: catalog.rendererConfiguration,
+        }),
+      ),
     ),
   );
 }
@@ -559,27 +558,6 @@ function readSubtleCrypto(): SubtleCrypto | undefined {
     crypto?: { subtle?: SubtleCrypto };
   };
   return runtime.crypto?.subtle;
-}
-
-function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === "boolean" || typeof value === "string") {
-    return JSON.stringify(value);
-  }
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new Error("Non-finite canonical number.");
-    return JSON.stringify(Object.is(value, -0) ? 0 : value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalJson(item)).join(",")}]`;
-  }
-  if (isRecord(value)) {
-    return `{${Object.keys(value)
-      .filter((key) => value[key] !== undefined)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
-      .join(",")}}`;
-  }
-  throw new Error("Unsupported canonical value.");
 }
 
 function integrityFailure(detail: string): PreviewFailure {

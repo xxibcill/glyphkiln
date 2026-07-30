@@ -30,7 +30,9 @@ describe("parsePreviewResponse", () => {
 
     expect(parsePreviewResponse(result.body, result.status)).toEqual(result.body);
     if (!result.body.ok) throw new Error("Expected a rendered preview.");
-    await expect(verifyPreviewIntegrity(result.body, CATALOG)).resolves.toBeNull();
+    await expect(
+      verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
+    ).resolves.toBeNull();
   });
 
   it("accepts a status-aligned problem response", () => {
@@ -89,7 +91,7 @@ describe("parsePreviewResponse", () => {
     svg.base64 = `${svg.base64.slice(0, 24)}${replacement}${svg.base64.slice(25)}`;
 
     expect(parsePreviewResponse(tampered, 200).ok).toBe(true);
-    const failure = await verifyPreviewIntegrity(tampered, CATALOG);
+    const failure = await verifyPreviewIntegrity(tampered, CATALOG, response.document);
     expect(failure).toMatchObject({
       ok: false,
       code: "PREVIEW_INTEGRITY_FAILED",
@@ -101,7 +103,11 @@ describe("parsePreviewResponse", () => {
     const response = await renderSuccess();
     const changedDocument = structuredClone(response);
     changedDocument.document.brand.name = "Tampered brand";
-    const documentFailure = await verifyPreviewIntegrity(changedDocument, CATALOG);
+    const documentFailure = await verifyPreviewIntegrity(
+      changedDocument,
+      CATALOG,
+      response.document,
+    );
     expect(documentFailure).toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
     });
@@ -111,7 +117,11 @@ describe("parsePreviewResponse", () => {
     const png = changedManifest.outputs.find((output) => output.format === "png");
     if (png === undefined) throw new Error("Expected a PNG output.");
     png.manifest.creationTimestamp = "2026-07-30T07:00:00.000Z";
-    const manifestFailure = await verifyPreviewIntegrity(changedManifest, CATALOG);
+    const manifestFailure = await verifyPreviewIntegrity(
+      changedManifest,
+      CATALOG,
+      response.document,
+    );
     expect(manifestFailure).toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
     });
@@ -121,8 +131,25 @@ describe("parsePreviewResponse", () => {
     const svg = changedMethod.outputs.find((output) => output.format === "svg");
     if (svg === undefined) throw new Error("Expected an SVG output.");
     svg.manifest.renderingMethod = "deterministic-code-rendering/resvg";
-    const methodFailure = await verifyPreviewIntegrity(changedMethod, CATALOG);
+    const methodFailure = await verifyPreviewIntegrity(
+      changedMethod,
+      CATALOG,
+      response.document,
+    );
     expect(methodFailure?.detail).toContain("wrong rendering method");
+  });
+
+  it("rejects an internally valid proof for a different submitted document", async () => {
+    const response = await renderSuccess();
+    const submittedDocument = structuredClone(response.document);
+    submittedDocument.seed = "different-submitted-seed";
+
+    const failure = await verifyPreviewIntegrity(response, CATALOG, submittedDocument);
+
+    expect(failure).toMatchObject({
+      code: "PREVIEW_INTEGRITY_FAILED",
+    });
+    expect(failure?.detail).toContain("submitted design document");
   });
 
   it("binds shared claims and font hashes to the trusted catalog and document", async () => {
@@ -132,7 +159,9 @@ describe("parsePreviewResponse", () => {
       const manifest = output.manifest as { productClaim: string };
       manifest.productClaim = "Fabricated provenance claim";
     }
-    await expect(verifyPreviewIntegrity(changedClaim, CATALOG)).resolves.toMatchObject({
+    await expect(
+      verifyPreviewIntegrity(changedClaim, CATALOG, response.document),
+    ).resolves.toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
     });
 
@@ -143,7 +172,9 @@ describe("parsePreviewResponse", () => {
       };
       manifest.fonts[0].sha256 = "b".repeat(64);
     }
-    await expect(verifyPreviewIntegrity(changedFont, CATALOG)).resolves.toMatchObject({
+    await expect(
+      verifyPreviewIntegrity(changedFont, CATALOG, response.document),
+    ).resolves.toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
     });
   });
@@ -156,7 +187,9 @@ describe("parsePreviewResponse", () => {
       ok: false,
       code: "PREVIEW_SECURE_CONTEXT_REQUIRED",
     });
-    await expect(verifyPreviewIntegrity(response, CATALOG)).resolves.toMatchObject({
+    await expect(
+      verifyPreviewIntegrity(response, CATALOG, response.document),
+    ).resolves.toMatchObject({
       ok: false,
       code: "PREVIEW_SECURE_CONTEXT_REQUIRED",
     });

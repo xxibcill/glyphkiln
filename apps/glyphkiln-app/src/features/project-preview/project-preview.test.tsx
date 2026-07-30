@@ -15,7 +15,13 @@ import type { PreviewFailure, PreviewResponse, PreviewSuccess } from "./types";
 const responseParserMocks = vi.hoisted(() => ({
   prerequisiteFailure: vi.fn<() => PreviewFailure | null>(),
   verifyIntegrity:
-    vi.fn<(response: PreviewSuccess) => Promise<PreviewFailure | null>>(),
+    vi.fn<
+      (
+        response: PreviewSuccess,
+        catalog: ReturnType<typeof createPreviewCatalog>,
+        submittedDocument: PreviewSuccess["document"],
+      ) => Promise<PreviewFailure | null>
+    >(),
 }));
 
 vi.mock("./response-parser", () => ({
