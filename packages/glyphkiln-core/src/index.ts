@@ -54,7 +54,11 @@ export type {
 } from "./resources/index.js";
 
 export { canonicalJson, hashCanonical, sha256 } from "./cache/canonical.js";
-export { RENDER_CONFIGURATION, createRenderFingerprint } from "./cache/fingerprint.js";
+export {
+  RENDER_CONFIGURATION,
+  createRenderFingerprint,
+  createRenderFingerprintPayload,
+} from "./cache/fingerprint.js";
 export type {
   RenderFingerprintFont,
   RenderFingerprintInput,

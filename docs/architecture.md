@@ -54,6 +54,8 @@ changing the design document, template metadata, asset interface, or manifest.
 - `isolation`: serialized, permission-limited child-process rendering
 - `formats`: centralized immutable output dimensions
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
+- `browser`: browser-safe canonical JSON and fingerprint payloads for independent
+  response verification
 - `fonts`, `assets`, `typography`, `layout`: verified resources, pinned
   Unicode 17 text-layout diagnostics, and geometry
 - `backgrounds`: deterministic versioned algorithms

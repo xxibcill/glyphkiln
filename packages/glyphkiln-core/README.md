@@ -98,6 +98,11 @@ concurrency, and a 15-second maximum timeout.
 when omitted. `renderGraphic` validates again at the trust boundary. Assets and
 fonts are byte-oriented caller inputs; the renderer performs no network access.
 
+Browser applications can import `canonicalJson` and
+`createRenderFingerprintPayload` from `@glyphkiln/core/browser`. This subpath
+contains no Node renderer or hashing dependency; callers hash its canonical
+payload with their platform's SHA-256 implementation.
+
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
 `BIDI_LAYOUT_UNSUPPORTED`, and `VERTICAL_LAYOUT_UNSUPPORTED` diagnostics with
 bounded numeric evidence. `inspectDesignDocument` applies the same policy to

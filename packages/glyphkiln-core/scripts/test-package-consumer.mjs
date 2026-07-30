@@ -77,8 +77,23 @@ import {
   renderGraphic,
   renderGraphicIsolated,
 } from "@glyphkiln/core";
+import {
+  canonicalJson,
+  createRenderFingerprintPayload,
+} from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+assert.equal(canonicalJson({ z: 2, a: 1 }), '{"a":1,"z":2}');
+assert.equal(
+  createRenderFingerprintPayload({
+    document,
+    outputFormat: "svg",
+    assetHashes: [],
+    fontHashes: [],
+    proceduralAlgorithmVersions: {},
+  }).outputFormat,
+  "svg",
+);
 assert.equal(
   analyzeTextLayoutSupport("Latin").version,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
@@ -119,8 +134,21 @@ await assert.rejects(
   type TextLayoutMatch,
   type TextLayoutMatchProperty,
 } from "@glyphkiln/core";
+import {
+  canonicalJson,
+  createRenderFingerprintPayload,
+  type RenderFingerprintInput,
+} from "@glyphkiln/core/browser";
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
+const browserInput = {
+  document: {} as never,
+  outputFormat: "svg",
+  assetHashes: [],
+  fontHashes: [],
+  proceduralAlgorithmVersions: {},
+} satisfies RenderFingerprintInput;
+void [canonicalJson({ stable: true }), createRenderFingerprintPayload(browserInput)];
 const code: TextLayoutDiagnosticCode = "BIDI_LAYOUT_UNSUPPORTED";
 const property: TextLayoutMatchProperty = "Bidi_Class=R";
 const match: TextLayoutMatch = { codePoint: 0x05d0, scalarIndex: 0, property };
