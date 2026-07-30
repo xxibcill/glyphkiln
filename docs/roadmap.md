@@ -21,3 +21,9 @@ that trust boundary and resource-resolution path are proven.
 The App should preserve immutable brand snapshots, content-address uploaded
 assets/fonts, pass bytes explicitly to Core, and display provenance without
 rewriting asset origins.
+
+**Initiated 2026-07-30:** the first local preview slice now covers structured
+brand and composition controls, Core-backed validation, isolated SVG/PNG
+rendering with explicit font bytes, manifest-derived provenance, and individual
+artifact/manifest downloads. Authentication, persistence, uploads, prompt
+interpretation, and cloud infrastructure remain intentionally deferred.

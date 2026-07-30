@@ -14,8 +14,8 @@ internal path, and one package with curated root/schema exports.
 
 ## Decision
 
-Ship one ESM package, `@glyphkiln/core`, with a curated root API, a public
-`./schema` subpath, and a `glyphkiln` binary.
+Ship one ESM package, `@glyphkiln/core`, with a curated root API, public
+`./schema` and browser-safe `./browser` subpaths, and a `glyphkiln` binary.
 
 ## Rationale
 
@@ -25,8 +25,9 @@ internal API commitments.
 
 ## Tradeoffs
 
-Consumers install PNG native dependencies even for schema-only use, and browser
-consumers cannot yet import the Node renderer wholesale.
+Consumers install PNG native dependencies even for schema-only or browser-safe
+contract use. Browser consumers can import canonical serialization and
+fingerprint-payload helpers, but cannot import the Node renderer wholesale.
 
 ## Migration path
 

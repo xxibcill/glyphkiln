@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { canonicalJson, createRenderFingerprint, hashCanonical } from "../src/index.js";
+import {
+  canonicalJson as browserCanonicalJson,
+  createRenderFingerprintPayload,
+} from "../src/browser.js";
+import {
+  canonicalJson,
+  createRenderFingerprint,
+  hashCanonical,
+  sha256,
+} from "../src/index.js";
 import { cloneDocument, loadExample } from "./helpers.js";
 
 describe("canonical JSON", () => {
@@ -18,6 +27,14 @@ describe("canonical JSON", () => {
   it("hashes equivalent objects identically", () => {
     expect(hashCanonical({ b: 2, a: 1 })).toBe(hashCanonical({ a: 1, b: 2 }));
   });
+
+  it("keeps byte hashing in the Node entry point", () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    expect(canonicalJson(bytes)).toBe(`{"$bytesSha256":"${sha256(bytes)}"}`);
+    expect(() => browserCanonicalJson(bytes)).toThrow(
+      "requires the Node.js Core entry point",
+    );
+  });
 });
 
 describe("render fingerprints", () => {
@@ -33,6 +50,18 @@ describe("render fingerprints", () => {
     const first = createRenderFingerprint({ document, ...baseInputs });
     const second = createRenderFingerprint({ document, ...baseInputs });
     expect(first).toBe(second);
+  });
+
+  it("publishes a browser-safe payload with the exact Core fingerprint contract", async () => {
+    const document = await loadExample("product-announcement");
+    const input = { document, ...baseInputs };
+
+    expect(hashCanonical(createRenderFingerprintPayload(input))).toBe(
+      createRenderFingerprint(input),
+    );
+    expect(browserCanonicalJson(createRenderFingerprintPayload(input))).toBe(
+      canonicalJson(createRenderFingerprintPayload(input)),
+    );
   });
 
   it("changes with the seed", async () => {

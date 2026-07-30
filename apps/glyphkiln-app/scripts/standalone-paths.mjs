@@ -3,6 +3,8 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+export const repositoryRoot = resolve(appRoot, "../..");
+export const stagedCoreRoot = join(appRoot, "node_modules", "@glyphkiln", "core");
 
 export async function readStandaloneLayout() {
   const manifestPath = join(appRoot, ".next/required-server-files.json");
@@ -26,6 +28,7 @@ export async function readStandaloneLayout() {
   return {
     relativeAppDir,
     standaloneAppRoot,
+    standaloneCoreRoot: join(standaloneAppRoot, "node_modules", "@glyphkiln", "core"),
     standaloneRoot,
   };
 }

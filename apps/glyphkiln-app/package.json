@@ -9,9 +9,9 @@
     "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build && node scripts/package-standalone.mjs",
-    "start": "node .next/standalone/apps/glyphkiln-app/server.js",
+    "dev": "node scripts/start-development.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node .next/standalone/apps/glyphkiln-app/start.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run && npm run test:standalone",
@@ -32,6 +32,7 @@
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "10.8.0",
+    "jsdom": "29.1.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.65.0",
     "vitest": "4.1.10"
