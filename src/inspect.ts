@@ -2,6 +2,10 @@ import { getFormatDimensions } from "./formats/index.js";
 import { validateDesignDocument, type DesignDocument } from "./schema/index.js";
 import { getTemplate } from "./templates/index.js";
 import { GlyphkilnError } from "./domain/types.js";
+import {
+  inspectDesignTextLayout,
+  type DesignTextLayoutInspection,
+} from "./typography/design-text-layout.js";
 
 export type DesignInspection = {
   valid: true;
@@ -25,6 +29,7 @@ export type DesignInspection = {
   layerTypes: string[];
   assets: number;
   fonts: number;
+  textLayout: DesignTextLayoutInspection;
 };
 
 export function inspectDesignDocument(input: unknown): DesignInspection {
@@ -59,5 +64,6 @@ function inspectValidatedDocument(document: DesignDocument): DesignInspection {
     layerTypes: document.layers.map((layer) => layer.type),
     assets: document.assets.length,
     fonts: document.fonts.length,
+    textLayout: inspectDesignTextLayout(document),
   };
 }

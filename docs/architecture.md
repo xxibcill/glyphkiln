@@ -12,6 +12,7 @@ untrusted JSON
   → iterative byte/depth/entry resource preflight
   → strict DesignDocument 1.0.0 validation
   → format + template registry lookup
+  → required-layer, brand, and pinned Unicode text-layout quality checks
   → bounded caller-supplied asset/font verification
   → explicit versioned template
   → deterministic scene primitives
@@ -52,7 +53,8 @@ changing the design document, template metadata, asset interface, or manifest.
 - `isolation`: serialized, permission-limited child-process rendering
 - `formats`: centralized immutable output dimensions
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
-- `fonts`, `assets`, `typography`, `layout`: verified resources and geometry
+- `fonts`, `assets`, `typography`, `layout`: verified resources, pinned
+  Unicode 17 text-layout diagnostics, and geometry
 - `backgrounds`: deterministic versioned algorithms
 - `templates`: concrete composition policy
 - `renderer`: scene, SVG serialization, PNG rasterization, quality gating
@@ -70,6 +72,11 @@ a document. Cyclic, accessor-backed, non-JSON, oversized, or excessively nested
 SDK values fail before recursive schema validation. The CLI reads only a bounded
 input file and may write an explicit command-line output; those paths are
 operator intent, not document data.
+
+Text-layout classification imports generated range tables compiled from
+checksum-verified Unicode 17.0.0 files. Runtime classification does not consult
+host ICU, locale, the filesystem, or the network. It diagnoses a narrow known
+unsupported set and does not normalize, reorder, strip, or echo user text.
 
 [`RENDER_RESOURCE_LIMITS`](resource-limits.md) defines the in-process boundary.
 `renderGraphicIsolated` applies `RENDER_WORKER_PROFILE` for process memory,

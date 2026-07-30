@@ -177,3 +177,19 @@ function measure(text: string, style: TextStyle, registry: FontRegistry): number
   );
   return base + Math.max(0, text.length - 1) * (style.letterSpacing ?? 0);
 }
+
+export {
+  TEXT_LAYOUT_DIAGNOSTICS_VERSION,
+  analyzeTextLayoutSupport,
+} from "./text-layout.js";
+export type {
+  TextLayoutAnalysis,
+  TextLayoutDiagnostic,
+  TextLayoutDiagnosticCode,
+  TextLayoutMatch,
+  TextLayoutMatchProperty,
+} from "./text-layout.js";
+export type {
+  DesignTextLayoutDiagnostic,
+  DesignTextLayoutInspection,
+} from "./design-text-layout.js";

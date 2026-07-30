@@ -1,6 +1,6 @@
 # Core 0.3 milestone plan: deterministic text-layout diagnostics
 
-Status: in progress
+Status: implementation complete; local release gates passed
 
 Target package release: `0.3.0`
 
@@ -260,8 +260,8 @@ The collector must use an exhaustive `DesignLayer` switch with a compile-time
 
 ## Rendering contract
 
-Every unsupported visible-field diagnostic maps to an error-severity
-`QualityIssue` with the same stable code:
+Unsupported visible-field diagnostics map in collection order to
+error-severity `QualityIssue` records with the same stable code:
 
 - `BIDI_CONTROL_UNSUPPORTED`
 - `BIDI_LAYOUT_UNSUPPORTED`
@@ -273,9 +273,11 @@ The outer render error remains:
 QUALITY_VALIDATION_FAILED
 ```
 
-Its `details.issues` contains the stable inner codes and bounded diagnostic
-details. Text-layout checks run in the existing document-quality phase before
-asset/font resolution.
+Its `details.issues` retains at most 128 visible text-layout issues with stable
+inner codes and bounded diagnostic details. `details.textLayout` reports
+`totalDiagnostics`, `retainedDiagnostics`, and `truncated`, so omitted records
+are explicit. Text-layout checks run in the existing document-quality phase
+before asset/font resolution.
 
 Hidden unsupported text does not block rendering. Unsupported visible text does
 block both SVG and PNG before output bytes, fingerprints, or manifests are
@@ -393,7 +395,7 @@ Acceptance criteria:
 
 ### PR 2: Unicode data and offline generation
 
-Status: blocked by PR 1
+Status: complete
 
 Dependencies: PR 1
 
@@ -406,17 +408,17 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Regeneration is byte-identical.
-- [ ] Verification detects stale generated output.
-- [ ] Checksum, malformed-range, overlap, and ordering negatives pass.
-- [ ] Generated vertical ranges exactly match
+- [x] Regeneration is byte-identical.
+- [x] Verification detects stale generated output.
+- [x] Checksum, malformed-range, overlap, and ordering negatives pass.
+- [x] Generated vertical ranges exactly match
       `Decomposition_Type=Vertical`.
-- [ ] No runtime or generator network fetching exists.
-- [ ] Required license material is included by `npm pack --dry-run`.
+- [x] No runtime or generator network fetching exists.
+- [x] Required license material is included by `npm pack --dry-run`.
 
 ### PR 3: Public string analyzer
 
-Status: blocked by PR 2
+Status: complete
 
 Dependencies: PR 2
 
@@ -428,18 +430,18 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Classification corpus passes.
-- [ ] Scalar indexes are correct with astral prefixes.
-- [ ] Lone surrogates advance the scalar index once without emitting matches.
-- [ ] Evidence property values match the public union exactly.
-- [ ] Ordering, precedence, deduplication, and truncation are exact.
-- [ ] Messages contain no raw controls or user text.
-- [ ] Invalid runtime input throws `INVALID_TEXT_INPUT`.
-- [ ] Strict TypeScript and package export checks pass.
+- [x] Classification corpus passes.
+- [x] Scalar indexes are correct with astral prefixes.
+- [x] Lone surrogates advance the scalar index once without emitting matches.
+- [x] Evidence property values match the public union exactly.
+- [x] Ordering, precedence, deduplication, and truncation are exact.
+- [x] Messages contain no raw controls or user text.
+- [x] Invalid runtime input throws `INVALID_TEXT_INPUT`.
+- [x] Strict TypeScript and package export checks pass.
 
 ### PR 4: Document collector and inspection
 
-Status: blocked by PR 3
+Status: complete
 
 Dependencies: PR 3
 
@@ -451,16 +453,16 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Every semantic field has a positive and negative test.
-- [ ] Field paths are exact document-rooted JSON Pointers, including text,
+- [x] Every semantic field has a positive and negative test.
+- [x] Field paths are exact document-rooted JSON Pointers, including text,
       statistic, and chart examples.
-- [ ] Layer and field ordering is deterministic.
-- [ ] The 128-record cap and total count are correct.
-- [ ] New layer variants fail compilation until handled.
+- [x] Layer and field ordering is deterministic.
+- [x] The 128-record cap and total count are correct.
+- [x] New layer variants fail compilation until handled.
 
 ### PR 5: Quality, rendering, CLI, and isolation integration
 
-Status: blocked by PR 4
+Status: complete
 
 Dependencies: PR 4
 
@@ -473,17 +475,17 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Unsupported visible text fails with outer
+- [x] Unsupported visible text fails with outer
       `QUALITY_VALIDATION_FAILED`.
-- [ ] Nested issues retain exact diagnostic codes and paths.
-- [ ] Hidden unsupported text does not block rendering.
-- [ ] Diagnostics run before missing asset/font resolution.
-- [ ] Direct, isolated, and CLI paths agree.
-- [ ] No SVG, PNG, fingerprint, or manifest is created for blocked input.
+- [x] Nested issues retain exact diagnostic codes and paths.
+- [x] Hidden unsupported text does not block rendering.
+- [x] Diagnostics run before missing asset/font resolution.
+- [x] Direct, isolated, and CLI paths agree.
+- [x] No SVG, PNG, fingerprint, or manifest is created for blocked input.
 
 ### PR 6: Fixtures, determinism, security, and package consumption
 
-Status: blocked by PR 5
+Status: complete
 
 Dependencies: PRs 3–5
 
@@ -496,18 +498,18 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Fixture verification includes exact expected inner codes.
-- [ ] Two fresh processes produce byte-identical diagnostic JSON and SHA-256.
-- [ ] Node 22 and 24 agree.
-- [ ] Existing exact PNG baselines remain unchanged.
-- [ ] Existing tracked SVG/PNG examples and fingerprints remain unchanged.
-- [ ] Fresh tarball JavaScript, strict TypeScript, CLI, and isolated consumers
+- [x] Fixture verification includes exact expected inner codes.
+- [x] Two fresh processes produce byte-identical diagnostic JSON and SHA-256.
+- [x] Node 22 and 24 agree.
+- [x] Existing exact PNG baselines remain unchanged.
+- [x] Existing tracked SVG/PNG examples and fingerprints remain unchanged.
+- [x] Fresh tarball JavaScript, strict TypeScript, CLI, and isolated consumers
       pass.
-- [ ] Security-negative and worst-case bounded-input tests pass.
+- [x] Security-negative and worst-case bounded-input tests pass.
 
 ### PR 7: Release metadata and documentation reconciliation
 
-Status: blocked by PRs 1–6
+Status: complete
 
 Dependencies: PRs 1–6
 
@@ -521,93 +523,93 @@ Work:
 
 Acceptance criteria:
 
-- [ ] Every public export and diagnostic code is documented.
-- [ ] CLI validation/inspection/render semantics are explicit.
-- [ ] Unicode source/version/licensing policy is documented.
-- [ ] The next roadmap item becomes the offline CLI resource bundle.
-- [ ] npm publication remains optional and owner-controlled.
-- [ ] All stale planning claims listed below are addressed.
+- [x] Every public export and diagnostic code is documented.
+- [x] CLI validation/inspection/render semantics are explicit.
+- [x] Unicode source/version/licensing policy is documented.
+- [x] The next roadmap item becomes the offline CLI resource bundle.
+- [x] npm publication remains optional and owner-controlled.
+- [x] All stale planning claims listed below are addressed.
 
 ## Test matrix
 
 ### Unit
 
-- [ ] ASCII is supported.
-- [ ] Accented LTR text is supported.
-- [ ] Emoji is supported.
-- [ ] Ordinary horizontal CJK without a rejected classification is supported.
-- [ ] Standalone Arabic-Indic digits follow the locked policy.
-- [ ] Hebrew and Arabic strong-direction text are rejected.
-- [ ] Mixed LTR/RTL text is rejected.
-- [ ] Every bidi-control family is rejected.
-- [ ] Mongolian, Phags-pa, and `Decomposition_Type=Vertical` scalars are
+- [x] ASCII is supported.
+- [x] Accented LTR text is supported.
+- [x] Emoji is supported.
+- [x] Ordinary horizontal CJK without a rejected classification is supported.
+- [x] Standalone Arabic-Indic digits follow the locked policy.
+- [x] Hebrew and Arabic strong-direction text are rejected.
+- [x] Mixed LTR/RTL text is rejected.
+- [x] Every bidi-control family is rejected.
+- [x] Mongolian, Phags-pa, and `Decomposition_Type=Vertical` scalars are
       rejected.
-- [ ] Astral-prefix scalar indexes are correct.
-- [ ] Empty input is supported.
-- [ ] Lone surrogates advance `scalarIndex` once, emit no match, and do not
+- [x] Astral-prefix scalar indexes are correct.
+- [x] Empty input is supported.
+- [x] Lone surrogates advance `scalarIndex` once, emit no match, and do not
       crash the analyzer.
-- [ ] Ordering, precedence, deduplication, and caps are exact.
+- [x] Ordering, precedence, deduplication, and caps are exact.
 
 ### Integration
 
-- [ ] Every semantic text field is collected.
-- [ ] Multiple fields and codes aggregate deterministically.
-- [ ] Hidden versus visible behavior is correct.
-- [ ] Text diagnostics run before missing resource errors.
-- [ ] Existing quality aggregation and warning behavior remain intact.
+- [x] Every semantic text field is collected.
+- [x] Multiple fields and codes aggregate deterministically.
+- [x] Hidden versus visible behavior is correct.
+- [x] Text diagnostics run before missing resource errors.
+- [x] Existing quality aggregation and warning behavior remain intact.
 
 ### Fixtures
 
-- [ ] LTR render-success fixture.
-- [ ] Strong-bidi quality-failure fixture.
-- [ ] Bidi-control quality-failure fixture.
-- [ ] Vertical-primary quality-failure fixture.
-- [ ] Fixture metadata records exact expected inner codes.
+- [x] LTR render-success fixture.
+- [x] Strong-bidi quality-failure fixture.
+- [x] Bidi-control quality-failure fixture.
+- [x] Vertical-primary quality-failure fixture.
+- [x] Fixture metadata records exact expected inner codes.
 
 ### Determinism
 
-- [ ] Fixed corpus serialized in two fresh processes.
-- [ ] Result bytes and SHA-256 match exactly.
-- [ ] Node 22 and Node 24 results agree.
+- [x] Fixed corpus serialized in two fresh processes.
+- [x] Result bytes and SHA-256 match exactly.
+- [x] Node 22 and Node 24 results agree.
 
 ### Visual and pixel
 
-- [ ] Existing four exact PNG baselines pass without update.
-- [ ] Existing eight tracked SVG/PNG examples remain byte-identical.
-- [ ] Existing successful fingerprints remain unchanged.
-- [ ] Any unexpected pixel difference stops the milestone for version review.
+- [x] Existing four exact PNG baselines pass without update.
+- [x] Existing eight tracked SVG/PNG examples remain byte-identical.
+- [x] Existing successful fingerprints remain unchanged.
+- [x] Any unexpected pixel difference stops the milestone for version review.
 
 ### Security-negative
 
-- [ ] No network or dynamic-execution primitive is introduced.
-- [ ] Invisible controls are not emitted raw in messages or CLI output.
-- [ ] Maximum-sized accepted documents remain bounded.
-- [ ] Diagnostic evidence cannot grow without limit.
-- [ ] Unicode generator rejects unexpected checksums and corrupt ranges.
-- [ ] Runtime never reads Unicode source files.
+- [x] No network or dynamic-execution primitive is introduced.
+- [x] Invisible controls are not emitted raw in messages or CLI output.
+- [x] Maximum-sized accepted documents remain bounded.
+- [x] Diagnostic evidence cannot grow without limit.
+- [x] Unicode generator rejects unexpected checksums and corrupt ranges.
+- [x] Runtime never reads Unicode source files.
 
 ### Isolation
 
-- [ ] Direct and isolated rendering retain the outer error code.
-- [ ] Nested diagnostic details survive child-process serialization.
-- [ ] Timeout, memory, permissions, and serialization behavior remain unchanged.
+- [x] Direct and isolated rendering retain the outer error code.
+- [x] Nested diagnostic details survive child-process serialization.
+- [x] Timeout, memory, permissions, and serialization behavior remain unchanged.
 
 ### Package consumer
 
-- [ ] Fresh tarball install succeeds.
-- [ ] Strict TypeScript imports all new public types.
-- [ ] JavaScript imports and runs the public analyzer.
-- [ ] CLI inspect exposes text-layout JSON.
-- [ ] CLI render rejects unsupported visible text.
-- [ ] Internal module paths remain inaccessible.
+- [x] Fresh tarball install succeeds.
+- [x] Strict TypeScript imports all new public types.
+- [x] JavaScript imports and runs the public analyzer.
+- [x] CLI inspect exposes text-layout JSON.
+- [x] CLI render rejects unsupported visible text.
+- [x] Internal module paths remain inaccessible.
 
 ### Documentation
 
-- [ ] README example typechecks.
-- [ ] Public names and diagnostic codes match source.
-- [ ] CLI behavior matches tests.
-- [ ] Unicode version and policy match generated data.
-- [ ] Limitations do not imply RTL or vertical rendering support.
+- [x] README example typechecks.
+- [x] Public names and diagnostic codes match source.
+- [x] CLI behavior matches tests.
+- [x] Unicode version and policy match generated data.
+- [x] Limitations do not imply RTL or vertical rendering support.
 
 ## Risks
 
@@ -669,59 +671,59 @@ diagnostic acceptance-policy version.
 
 ## Milestone exit gates
 
-- [ ] ADR 0009 and the diagnostic-code contract are accepted.
-- [ ] No release-blocking decision remains open.
-- [ ] Unicode generation and licensing verification are reproducible offline.
-- [ ] Unit, integration, fixture, determinism, visual, security-negative,
+- [x] ADR 0009 and the diagnostic-code contract are accepted.
+- [x] No release-blocking decision remains open.
+- [x] Unicode generation and licensing verification are reproducible offline.
+- [x] Unit, integration, fixture, determinism, visual, security-negative,
       isolation, CLI, and packed-consumer tests pass on Node 22 and 24.
-- [ ] Existing accepted SVG/PNG bytes and fingerprints are unchanged, or the
+- [x] Existing accepted SVG/PNG bytes and fingerprints are unchanged, or the
       work has been explicitly re-scoped with appropriate version bumps.
-- [ ] `npm ci` passes.
-- [ ] `npm run build` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run lint` passes, including the security scan.
-- [ ] `npm test` passes.
-- [ ] `npm run test:coverage` passes existing thresholds.
-- [ ] `npm run fixtures:verify` passes.
-- [ ] `npm run examples:verify` passes.
-- [ ] `npm run licenses:verify` passes.
-- [ ] `npm audit --audit-level=low` passes.
-- [ ] `npm pack --dry-run` passes.
-- [ ] A fresh local tarball consumer passes strict TypeScript, SDK, CLI, and
+- [x] `npm ci` passes.
+- [x] `npm run build` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run lint` passes, including the security scan.
+- [x] `npm test` passes.
+- [x] `npm run test:coverage` passes existing thresholds.
+- [x] `npm run fixtures:verify` passes.
+- [x] `npm run examples:verify` passes.
+- [x] `npm run licenses:verify` passes.
+- [x] `npm audit --audit-level=low` passes.
+- [x] `npm pack --dry-run` passes.
+- [x] A fresh local tarball consumer passes strict TypeScript, SDK, CLI, and
       isolated-render checks.
-- [ ] A minor Changeset describes the public exports and new rejection
+- [x] A minor Changeset describes the public exports and new rejection
       behavior.
-- [ ] Documentation and roadmap are reconciled.
-- [ ] Registry publication is not required.
+- [x] Documentation and roadmap are reconciled.
+- [x] Registry publication is not required.
 
 ## Stale planning claims to update in PR 7
 
-- [ ] Replace `pnpm` with the repository's actual npm workflow in
+- [x] Replace `pnpm` with the repository's actual npm workflow in
       `docs/full-implementation-plan.md`.
-- [ ] Replace the old TypeBox recommendation with the accepted Zod 4 decision.
-- [ ] Replace the aspirational SDK and CLI lists with actual exports and
+- [x] Replace the old TypeBox recommendation with the accepted Zod 4 decision.
+- [x] Replace the aspirational SDK and CLI lists with actual exports and
       commands.
-- [ ] Mark the Core `0.1.0` milestone and immediate backlog as
+- [x] Mark the Core `0.1.0` milestone and immediate backlog as
       historical/completed.
-- [ ] Insert this `0.3.0` milestone after the audit closure.
-- [ ] Update the old product claim to the current asset-origin-aware
+- [x] Insert this `0.3.0` milestone after the audit closure.
+- [x] Update the old product claim to the current asset-origin-aware
       `PRODUCT_CLAIM`.
-- [ ] Separate signed source/local-tarball release readiness from optional npm
+- [x] Separate signed source/local-tarball release readiness from optional npm
       publication in `docs/release-process.md`.
-- [ ] Preserve accepted ADR history; use ADR 0009 or a dated note to explain
+- [x] Preserve accepted ADR history; use ADR 0009 or a dated note to explain
       that ADR 0005's old glyph-coverage limitation is historical.
-- [ ] Preserve audit metrics as historical evidence while clarifying that its
+- [x] Preserve audit metrics as historical evidence while clarifying that its
       "package remains 0.1.0" statement predates the signed `v0.2.0` release.
 
 ## Tracking summary
 
 - [x] PR 1: ADR and contract decisions
-- [ ] PR 2: Unicode data and offline generation
-- [ ] PR 3: Public string analyzer
-- [ ] PR 4: Document collector and inspection
-- [ ] PR 5: Quality, rendering, CLI, and isolation integration
-- [ ] PR 6: Fixtures, determinism, security, and package consumption
-- [ ] PR 7: Release metadata and documentation reconciliation
-- [ ] Milestone exit gates complete
+- [x] PR 2: Unicode data and offline generation
+- [x] PR 3: Public string analyzer
+- [x] PR 4: Document collector and inspection
+- [x] PR 5: Quality, rendering, CLI, and isolation integration
+- [x] PR 6: Fixtures, determinism, security, and package consumption
+- [x] PR 7: Release metadata and documentation reconciliation
+- [x] Milestone exit gates complete
 - [ ] Signed source release prepared
 - [ ] npm publication considered separately by the owner

@@ -25,8 +25,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - run: npm run text-layout-data:verify
       - run: npm run fixtures:verify
       - run: npm run licenses:verify
+      - run: npm audit --audit-level=low
       - run: npm pack --dry-run
       - if: matrix.node == 24
         run: npm run test:coverage
@@ -34,18 +36,4 @@ jobs:
         run: npm run examples:verify
       - if: matrix.node == 24
         name: Installed-package consumer smoke
-        run: |
-          package_name=$(npm pack --pack-destination "$RUNNER_TEMP" --silent)
-          consumer_directory="$RUNNER_TEMP/glyphkiln-consumer"
-          mkdir "$consumer_directory"
-          cd "$consumer_directory"
-          npm init --yes
-          npm install "$RUNNER_TEMP/$package_name"
-          node --input-type=module --eval "
-            import { readFile } from 'node:fs/promises';
-            import { renderGraphic, renderGraphicIsolated } from '@glyphkiln/core';
-            const document = JSON.parse(await readFile('$GITHUB_WORKSPACE/examples/article-cover.json', 'utf8'));
-            const direct = await renderGraphic(document, { formats: ['svg'] });
-            const isolated = await renderGraphicIsolated(document, { formats: ['png'] });
-            if (direct.outputs[0].bytes.length === 0 || isolated.outputs[0].bytes.length === 0) process.exit(1);
-          "
+        run: npm run test:package-consumer

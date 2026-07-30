@@ -38,6 +38,24 @@ await assert.rejects(
     error instanceof GlyphkilnError && error.code === "INVALID_DESIGN_DOCUMENT",
 );
 
+const unsupportedTextDocument = structuredClone(document);
+unsupportedTextDocument.layers.find((layer) => layer.type === "headline").text =
+  "\u05D0";
+await assert.rejects(
+  renderGraphicIsolated(unsupportedTextDocument),
+  (error) =>
+    error instanceof GlyphkilnError &&
+    error.code === "QUALITY_VALIDATION_FAILED" &&
+    error.details.textLayout.totalDiagnostics === 1 &&
+    error.details.textLayout.retainedDiagnostics === 1 &&
+    error.details.textLayout.truncated === false &&
+    error.details.issues.some(
+      (issue) =>
+        issue.code === "BIDI_LAYOUT_UNSUPPORTED" &&
+        issue.details.fieldPath === "/layers/3/text",
+    ),
+);
+
 assert.throws(
   () =>
     renderGraphicIsolated(document, {

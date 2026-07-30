@@ -35,6 +35,34 @@ const fixtures = [
     textLayer(document, "headline").text =
       "Crème brûlée, naïve façade — deterministic in 2026";
   }),
+  fixture("ltr-layout", (document) => {
+    textLayer(document, "headline").text =
+      "Café façade — deterministic metrics 123 remain horizontal";
+  }),
+  fixture(
+    "strong-bidi-layout",
+    (document) => {
+      textLayer(document, "headline").text = "Strong bidi \u05D0";
+    },
+    "quality-failure",
+    "BIDI_LAYOUT_UNSUPPORTED",
+  ),
+  fixture(
+    "bidi-control-layout",
+    (document) => {
+      textLayer(document, "headline").text = "Bidi control \u200F";
+    },
+    "quality-failure",
+    "BIDI_CONTROL_UNSUPPORTED",
+  ),
+  fixture(
+    "vertical-layout",
+    (document) => {
+      textLayer(document, "headline").text = "Vertical primary \u1820";
+    },
+    "quality-failure",
+    "VERTICAL_LAYOUT_UNSUPPORTED",
+  ),
   fixture(
     "low-contrast",
     (document) => {
@@ -85,10 +113,13 @@ process.stdout.write(
   `${process.argv.includes("--verify") ? "Verified" : "Wrote"} ${fixtures.length} full design fixtures.\n`,
 );
 
-function fixture(name, mutate, expected = "render-success") {
+function fixture(name, mutate, expected = "render-success", expectedCode) {
   const document = structuredClone(source);
   document.id = `fixture-${name}`;
-  document.metadata = { fixtureExpected: expected };
+  document.metadata = {
+    fixtureExpected: expected,
+    ...(expectedCode === undefined ? {} : { fixtureExpectedCode: expectedCode }),
+  };
   mutate(document);
   return { name, document };
 }

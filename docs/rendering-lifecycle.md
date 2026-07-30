@@ -4,24 +4,25 @@
 2. Iteratively reject cyclic, accessor-backed, non-JSON, oversized, overly
    deep, or over-populated input.
 3. Validate with the strict `DesignDocument 1.0.0` schema.
-4. Resolve the format and exact template version, then reject unsupported,
-   duplicate, or mutually exclusive visible layers.
+4. Resolve the format and exact template version. Aggregate required,
+   unsupported, duplicate, or mutually exclusive layers; brand restrictions;
+   and pinned Unicode text-layout diagnostics. Any error blocks before asset or
+   font resolution.
 5. Verify every declared asset against supplied bytes: ID, SHA-256, bounded
    PNG/JPEG structure, full decompression, decoder dimensions, pixels, bytes,
    and origin metadata must match.
 6. Verify bounded declared fonts and hashes. Unsupported families fail; system
    fallback is disabled.
-7. Run document and required-layer quality checks.
-8. Execute the explicit versioned template with a seed and immutable brand
+7. Execute the explicit versioned template with a seed and immutable brand
    snapshot.
-9. Measure, fit, coverage-check, shape, and outline text; create deterministic
+8. Measure, fit, coverage-check, shape, and outline text; create deterministic
    procedural geometry; and emit a renderer-neutral scene.
-10. Run layout, contrast, overflow, brand, quiet-region, and logo checks. Error issues
-    block export; warnings are recorded.
-11. Serialize safe SVG containing glyph paths. For PNG, rasterize that SVG with
-    pinned Resvg and
-    temporary files containing only already-verified font bytes.
-12. Validate the output signature, hash the bytes, compute the canonical
+9. Run layout, contrast, overflow, quiet-region, and glyph checks. Error issues
+   block export; warnings are recorded.
+10. Serialize safe SVG containing glyph paths. For PNG, rasterize that SVG with
+    pinned Resvg and temporary files containing only already-verified font
+    bytes.
+11. Validate the output signature, hash the bytes, compute the canonical
     fingerprint, and return a manifest.
 
 The render performs no network access. Temporary font files are created in an

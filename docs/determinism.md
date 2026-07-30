@@ -39,6 +39,15 @@ Stable unsigned 32-bit test vectors:
 
 Forks derive a new independent seed as `parent + NUL + label`.
 
+## Text-layout diagnostics
+
+Text-layout acceptance uses generated Unicode 17.0.0 range tables and policy
+`unicode-17.0.0/ltr-horizontal-v1`. It does not depend on host ICU, locale, or
+Unicode regular-expression properties. Diagnostic codes, evidence, ordering,
+and truncation are byte-tested in fresh processes and across the Node 22/24 CI
+matrix. The policy version is independent of render fingerprints because
+blocked input produces no output and accepted input is pixel-identical.
+
 ## Environment
 
 Exact PNG hashes assume the pinned Node major, Resvg version, platform binary,

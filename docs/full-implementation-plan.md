@@ -49,7 +49,8 @@ Manual controls or optional LLM interpretation
 
 The accurate product claim is:
 
-> Created without generative image models and rendered deterministically from code.
+> Composed without generative image models and rendered deterministically from
+> code; included asset origins are reported separately.
 
 The system must not:
 
@@ -295,7 +296,7 @@ Cloud-specific capabilities should integrate through:
 - TypeScript
 - Node.js LTS
 - ESM package output
-- pnpm
+- npm with a committed `package-lock.json`
 - Vitest
 - ESLint
 - Prettier
@@ -306,9 +307,11 @@ Cloud-specific capabilities should integrate through:
 
 ### Schema validation
 
-**Recommended:** TypeBox with Ajv in strict mode.
+**Accepted:** Zod 4 strict runtime schemas with draft 2020-12 JSON Schema export.
 
-TypeBox creates JSON Schema structures that also infer TypeScript types. Ajv strict mode is intended to detect ambiguous or silently ignored schema mistakes. This is well aligned with a public, language-neutral design-document contract.
+Zod owns runtime validation and TypeScript inference. Ajv remains a development
+conformance consumer for the exported JSON Schema rather than a second runtime
+schema implementation. See ADR 0002.
 
 Requirements:
 
@@ -657,6 +660,16 @@ Design revisions should be append-only after a render references them.
 ---
 
 # 8. Implementation milestones
+
+## Current Core state
+
+Milestones 0–6 and the original Core `0.1.0` backlog are historical and
+complete. A signed `v0.2.0` release passed independent verification. The work
+targeting package `0.3.0` adds deterministic Unicode 17.0.0 text-layout
+diagnostics while preserving accepted output bytes, renderer `0.2.0`, schema
+`1.0.0`, manifest `1.1.0`, and all template and procedural versions. The next
+active Core item is the offline CLI resource-bundle milestone in
+`docs/roadmap.md`.
 
 ## Milestone 0: Governance and repository foundation
 
@@ -1038,19 +1051,16 @@ Content:
 
 ### Public SDK
 
-Target exports:
+Current primary exports include:
 
 ```ts
+analyzeTextLayoutSupport;
 createDesignDocument;
-validateDesignDocument;
+inspectDesignDocument;
 renderGraphic;
-renderSvg;
-renderPng;
-computeRenderFingerprint;
-verifyRenderManifest;
-listFormats;
-listTemplates;
-listProceduralStyles;
+renderGraphicIsolated;
+validateDesignDocument;
+verifyRenderReproduction;
 ```
 
 ### CLI
@@ -1060,12 +1070,8 @@ Commands:
 ```text
 glyphkiln validate <design>
 glyphkiln inspect <design>
-glyphkiln render <design>
-glyphkiln verify <manifest>
-glyphkiln formats
-glyphkiln templates
-glyphkiln backgrounds
-glyphkiln version
+glyphkiln render <design> --format <svg|png> --output <path>
+glyphkiln --version
 ```
 
 ### Provenance
@@ -1098,17 +1104,17 @@ glyphkiln version
 - Roadmap
 - ADRs
 
-### Exit criteria for Core 0.1.0
+### Historical exit criteria for Core 0.1.0
 
 ```text
-pnpm install --frozen-lockfile
-pnpm build
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm test:coverage
-pnpm test:visual
-pnpm pack
+npm ci
+npm run build
+npm run typecheck
+npm run lint
+npm test
+npm run test:coverage
+npm run examples:verify
+npm pack --dry-run
 ```
 
 Also required:
@@ -2225,13 +2231,14 @@ Cloud must have:
 
 ---
 
-# 23. Immediate backlog
+# 23. Historical initial backlog
 
-The first implementation cycle should create these issues in order:
+The initial Core implementation cycle completed these items in order. Current
+work is tracked in `docs/roadmap.md` and dated milestone plans.
 
 1. Initialize `glyphkiln-core`
 2. Add Apache-2.0 licensing and governance files
-3. Configure TypeScript, pnpm, linting, testing, and CI
+3. Configure TypeScript, npm, linting, testing, and CI
 4. Write renderer-selection ADR
 5. Write schema-selection ADR
 6. Implement format registry
@@ -2283,4 +2290,5 @@ The Glyphkiln ecosystem reaches its initial product objective when:
 - No arbitrary code runs in the rendering path
 - The product can accurately claim:
 
-> Created without generative image models and rendered deterministically from code.
+> Composed without generative image models and rendered deterministically from
+> code; included asset origins are reported separately.

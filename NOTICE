@@ -6,5 +6,9 @@ This product includes software developed by Glyphkiln contributors.
 The bundled Inter variable font is Copyright 2020 The Inter Project Authors and
 is distributed under SIL Open Font License 1.1 in assets/fonts/OFL.txt.
 
+Text-layout diagnostics include data derived from the Unicode Character
+Database 17.0.0, Copyright © 1991-2025 Unicode, Inc. Unicode data is distributed
+under the Unicode License v3 in vendor/unicode/LICENSE.txt.
+
 Production dependency names, pinned versions, and reviewed SPDX license
 identifiers are recorded in THIRD_PARTY_LICENSES.json.

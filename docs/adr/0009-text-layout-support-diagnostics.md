@@ -137,3 +137,10 @@ Add real bidi or vertical layout only with explicit document controls, a new
 diagnostic-policy version, renderer-version review, and pixel baselines. Expand
 or relax classification only in a newly reviewed diagnostics policy. Preserve
 this policy for callers that require its exact acceptance boundary.
+
+## 2026-07-30 clarification
+
+Rendering applies the same 128-record amplification bound independently to
+visible blocking diagnostics. `QUALITY_VALIDATION_FAILED` retains those issues
+in collection order and exposes total, retained, and truncated counts in
+`details.textLayout`, so omitted diagnostic records are never silent.

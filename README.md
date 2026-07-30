@@ -17,6 +17,11 @@ This repository is a production-quality vertical slice (`0.2.0`).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 
+Core detects known bidi controls, strong right-to-left text, and
+vertical-primary text that its LTR-horizontal layout cannot faithfully render.
+The policy is pinned as `unicode-17.0.0/ltr-horizontal-v1`; unsupported visible
+copy is rejected before asset or font resolution.
+
 Supported templates:
 
 - `product-announcement@1.1.1`
@@ -42,6 +47,11 @@ npm run typecheck
 npm run lint
 npm test
 npm run test:coverage
+npm run text-layout-data:verify
+npm run fixtures:verify
+npm run examples:verify
+npm run licenses:verify
+npm run test:package-consumer
 ```
 
 The included Inter variable font is open source under the SIL Open Font License.
@@ -50,35 +60,30 @@ It makes local examples reproducible without proprietary fonts.
 ## SDK
 
 ```ts
+import { readFile } from "node:fs/promises";
+
 import {
-  createDesignDocument,
+  analyzeTextLayoutSupport,
+  inspectDesignDocument,
   renderGraphic,
-  renderGraphicIsolated,
   validateDesignDocument,
 } from "@glyphkiln/core";
 
-const validation = validateDesignDocument(untrustedJson);
+const input: unknown = JSON.parse(
+  await readFile(new URL("./design.json", import.meta.url), "utf8"),
+);
+const validation = validateDesignDocument(input);
 if (!validation.success) {
-  console.error(validation.problems);
+  throw new Error(JSON.stringify(validation.problems));
 }
 
-const design = createDesignDocument({
-  template: { id: "product-announcement", version: "1.1.1" },
-  format: "linkedin-landscape",
-  seed: "launch-analytics-01",
-  mode: "dark",
-  brand,
-  fonts,
-  assets: [],
-  layers,
-});
+const headline = validation.data.layers.find((layer) => layer.type === "headline");
+if (headline?.type === "headline") {
+  console.log(analyzeTextLayoutSupport(headline.text));
+}
 
-const result = await renderGraphic(design, {
-  formats: ["svg", "png"],
-  assets: resolvedAssets,
-  fonts: resolvedFonts,
-});
-
+console.log(inspectDesignDocument(validation.data).textLayout);
+const result = await renderGraphic(validation.data, { formats: ["svg", "png"] });
 for (const output of result.outputs) {
   console.log(output.format, output.bytes, output.manifest);
 }
@@ -91,6 +96,12 @@ concurrency, and a 15-second maximum timeout.
 `createDesignDocument` supplies schema version `1.0.0` and a stable content ID
 when omitted. `renderGraphic` validates again at the trust boundary. Assets and
 fonts are byte-oriented caller inputs; the renderer performs no network access.
+
+`analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
+`BIDI_LAYOUT_UNSUPPORTED`, and `VERTICAL_LAYOUT_UNSUPPORTED` diagnostics with
+bounded numeric evidence. `inspectDesignDocument` applies the same policy to
+every rendered semantic text field, including hidden layers. Hidden copy is
+reported but does not block rendering.
 
 See [Design document](docs/design-document.md),
 [SDK and architecture](docs/architecture.md), and
@@ -122,7 +133,9 @@ normal consumers receive it from package installation. `--verify
 expected canonical fingerprint. Expected validation and quality failures print
 actionable messages and return a nonzero exit code without a stack trace.
 Existing output is preserved unless `--force` is supplied. `--version` prints
-the installed package version.
+the installed package version. `validate` remains structural; `inspect` returns
+`textLayout.renderable` and its diagnostics; `render` rejects unsupported
+visible text with `QUALITY_VALIDATION_FAILED`.
 
 ## Formats
 
@@ -158,6 +171,7 @@ npm run examples:verify
 - [Design-document specification](docs/design-document.md)
 - [Resource limits and worker profile](docs/resource-limits.md)
 - [Fonts](docs/fonts.md) and [assets](docs/assets.md)
+- [Text-layout diagnostics](docs/text-layout-diagnostics.md)
 - [Provenance](docs/provenance.md)
 - [Validation and quality policy](docs/quality-policy.md)
 - [Template authoring](docs/template-authoring.md)
@@ -172,4 +186,6 @@ npm run examples:verify
 Glyphkiln Core is licensed under Apache-2.0. See [CONTRIBUTING.md](CONTRIBUTING.md)
 and [SECURITY.md](SECURITY.md). Font files retain their separate OFL terms in
 `assets/fonts/OFL.txt`. The generated production dependency inventory is
-[`THIRD_PARTY_LICENSES.json`](THIRD_PARTY_LICENSES.json).
+[`THIRD_PARTY_LICENSES.json`](THIRD_PARTY_LICENSES.json). Unicode 17.0.0 data
+used by text-layout diagnostics retains the Unicode License v3 in
+`vendor/unicode/LICENSE.txt`.

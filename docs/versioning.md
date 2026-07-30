@@ -20,3 +20,10 @@ that produces a new reviewed document.
 Public exports in `src/index.ts` are intentional. Internal file paths are not
 public API. The `./schema` subpath is public for applications that need the
 runtime schema and JSON Schema export.
+
+Text-layout acceptance has the independent
+`TEXT_LAYOUT_DIAGNOSTICS_VERSION`. Package `0.3.0` adds
+`unicode-17.0.0/ltr-horizontal-v1` without changing design schema `1.0.0`,
+manifest `1.1.0`, template or procedural versions, or renderer `0.2.0`.
+Accepted documents retain identical output bytes and fingerprints; rejected
+documents produce no output or manifest.

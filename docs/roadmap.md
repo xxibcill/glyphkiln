@@ -2,8 +2,8 @@
 
 ## Core next
 
-1. Broader bidi/vertical-script shaping diagnostics.
-2. A validated CLI resource-bundle format for offline assets/fonts.
+1. A validated CLI resource-bundle format for offline assets/fonts.
+2. Broader bidi/vertical-script shaping support with explicit document controls.
 3. Optional color-profile normalization and upload malware-scanner adapters.
 4. Additional chart primitives and template versions driven by real product
    requirements.
