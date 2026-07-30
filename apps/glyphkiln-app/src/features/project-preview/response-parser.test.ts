@@ -1,3 +1,6 @@
+import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createPreviewDesign } from "@/test/preview-design";
@@ -97,6 +100,51 @@ describe("parsePreviewResponse", () => {
       code: "PREVIEW_INTEGRITY_FAILED",
     });
     expect(failure?.detail).toContain("bytes do not match");
+  });
+
+  it("rejects correctly hashed artifacts with dimensions outside the trusted format", async () => {
+    const response = await renderSuccess();
+    const wrongSvg = structuredClone(response);
+    const svg = wrongSvg.outputs.find((output) => output.format === "svg");
+    if (svg === undefined) throw new Error("Expected an SVG output.");
+    const { width, height } = svg.manifest.dimensions;
+    replaceOutputBytes(
+      wrongSvg,
+      "svg",
+      new TextEncoder().encode(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width.toString()}" height="${height.toString()}" viewBox="0 0 1 1"></svg>`,
+      ),
+    );
+
+    const svgFailure = await verifyPreviewIntegrity(
+      wrongSvg,
+      CATALOG,
+      response.document,
+    );
+    expect(svgFailure).toMatchObject({
+      code: "PREVIEW_INTEGRITY_FAILED",
+    });
+    expect(svgFailure?.detail).toContain("dimensions");
+
+    const wrongPng = structuredClone(response);
+    replaceOutputBytes(
+      wrongPng,
+      "png",
+      Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=",
+        "base64",
+      ),
+    );
+
+    const pngFailure = await verifyPreviewIntegrity(
+      wrongPng,
+      CATALOG,
+      response.document,
+    );
+    expect(pngFailure).toMatchObject({
+      code: "PREVIEW_INTEGRITY_FAILED",
+    });
+    expect(pngFailure?.detail).toContain("dimensions");
   });
 
   it("rejects document and cross-format provenance tampering", async () => {
@@ -206,4 +254,17 @@ async function renderSuccess(): Promise<PreviewSuccess> {
   });
   if (!result.body.ok) throw new Error("Expected a rendered preview.");
   return result.body;
+}
+
+function replaceOutputBytes(
+  response: PreviewSuccess,
+  format: "svg" | "png",
+  bytes: Uint8Array,
+): void {
+  const output = response.outputs.find((candidate) => candidate.format === format);
+  if (output === undefined) throw new Error(`Expected a ${format} output.`);
+  output.base64 = Buffer.from(bytes).toString("base64");
+  output.byteSize = bytes.byteLength;
+  output.manifest.output.byteSize = bytes.byteLength;
+  output.manifest.output.sha256 = createHash("sha256").update(bytes).digest("hex");
 }
