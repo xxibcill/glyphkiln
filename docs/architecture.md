@@ -1,7 +1,7 @@
 # Architecture
 
 Glyphkiln Core remains a single ESM package with internal module boundaries and
-one intentional public entry point. It lives in the Glyphkiln npm workspace
+curated public entry points. It lives in the Glyphkiln npm workspace
 beside the independently useful application runtime. The workspace coordinates
 development, but the application consumes Core only through its package exports.
 See [ADR 0010](adr/0010-glyphkiln-monorepo.md).

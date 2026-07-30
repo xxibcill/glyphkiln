@@ -6,13 +6,13 @@
   "author": "Glyphkiln contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xxibcill/glyphkiln.git",
+    "url": "git+https://github.com/xxibcill/glyphkiln-core.git",
     "directory": "packages/glyphkiln-core"
   },
   "bugs": {
-    "url": "https://github.com/xxibcill/glyphkiln/issues"
+    "url": "https://github.com/xxibcill/glyphkiln-core/issues"
   },
-  "homepage": "https://github.com/xxibcill/glyphkiln/tree/main/packages/glyphkiln-core#readme",
+  "homepage": "https://github.com/xxibcill/glyphkiln-core/tree/main/packages/glyphkiln-core#readme",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24.0.0"
