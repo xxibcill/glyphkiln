@@ -76,10 +76,22 @@ export {
 } from "./fonts/index.js";
 export { AssetRegistry } from "./assets/index.js";
 export { contrastRatio, isInside, safeAreaBounds } from "./layout/index.js";
-export { fitText, wrapText } from "./typography/index.js";
+export {
+  TEXT_LAYOUT_DIAGNOSTICS_VERSION,
+  analyzeTextLayoutSupport,
+  fitText,
+  wrapText,
+} from "./typography/index.js";
 export type {
+  DesignTextLayoutDiagnostic,
+  DesignTextLayoutInspection,
   FitTextOptions,
   FittedText,
+  TextLayoutAnalysis,
+  TextLayoutDiagnostic,
+  TextLayoutDiagnosticCode,
+  TextLayoutMatch,
+  TextLayoutMatchProperty,
   TextStyle,
   WrappedText,
 } from "./typography/index.js";

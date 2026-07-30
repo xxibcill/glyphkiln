@@ -1,0 +1,15 @@
+{
+  "unicodeVersion": "17.0.0",
+  "files": {
+    "DerivedBidiClass.txt": "4867b4b7f0731ed1bfcd34cc6251211ff1542541fce0734b6fbda139ee80b3a4",
+    "DerivedDecompositionType.txt": "f44e5ceaf40edc1fe06ea0404e8bebc7d356dcc38aac076543b6874008a06e3e",
+    "PropList.txt": "130dcddcaadaf071008bdfce1e7743e04fdfbc910886f017d9f9ac931d8c64dd",
+    "Scripts.txt": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf"
+  },
+  "sources": {
+    "DerivedBidiClass.txt": "https://www.unicode.org/Public/17.0.0/ucd/extracted/DerivedBidiClass.txt",
+    "DerivedDecompositionType.txt": "https://www.unicode.org/Public/17.0.0/ucd/extracted/DerivedDecompositionType.txt",
+    "PropList.txt": "https://www.unicode.org/Public/17.0.0/ucd/PropList.txt",
+    "Scripts.txt": "https://www.unicode.org/Public/17.0.0/ucd/Scripts.txt"
+  }
+}

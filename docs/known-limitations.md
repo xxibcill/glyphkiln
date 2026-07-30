@@ -1,7 +1,11 @@
 # Known limitations
 
-- Text supports left-to-right horizontal layout; bidi, vertical scripts,
-  hyphenation dictionaries, and explicit OpenType features are not implemented.
+- Text supports left-to-right horizontal layout. The pinned
+  `unicode-17.0.0/ltr-horizontal-v1` policy rejects known bidi controls, assigned
+  strong `R`/`AL` text, Mongolian, Phags-pa, and characters with exact Vertical
+  decomposition. It does not implement bidi or vertical layout and does not
+  prove every accepted string correct. Hyphenation dictionaries and explicit
+  OpenType features are also absent.
 - Inter normal variable is the only bundled development font. Additional font
   bytes work through the SDK but the CLI has no font/asset bundle option yet.
 - Asset inputs are PNG/JPEG only. Core fully decodes bounded pixels but does not

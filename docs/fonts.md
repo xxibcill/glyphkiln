@@ -28,6 +28,17 @@ elements or external font references. The application/operator remains
 responsible for commercial-use and redistribution rights for caller-supplied
 font bytes. Core's Apache license does not grant rights to third-party fonts.
 
+Font shaping and text-layout capability diagnostics are separate. Before font
+resolution, Core classifies known bidi-control, strong right-to-left, and
+vertical-primary input using generated Unicode 17.0.0 tables. This prevents a
+font that contains the glyphs from making unsupported layout appear valid.
+Glyph coverage remains a later font-specific quality check.
+
+ADR 0005's statement that Core did not report glyph coverage records the
+original decision state. Glyph coverage shipped before `v0.2.0`; the accepted
+ADR remains unchanged as historical evidence.
+
 Current limitations: normal Inter variable is the built-in face, font fallback
 stacks are not supported, explicit OpenType feature selection is not exposed,
-and color/bitmap glyphs are rejected by the portable SVG outliner.
+and color/bitmap glyphs are rejected by the portable SVG outliner. Bidi and
+vertical layout are diagnosed but not implemented.

@@ -1,8 +1,23 @@
 import type { QualityIssue } from "../domain/types.js";
 import { getFormatDimensions } from "../formats/index.js";
 import type { DesignDocument } from "../schema/index.js";
+import { collectVisibleDesignTextLayoutDiagnostics } from "../typography/design-text-layout.js";
+import { TEXT_LAYOUT_DIAGNOSTICS_VERSION } from "../typography/text-layout.js";
 
-export function runDocumentQualityChecks(document: DesignDocument): QualityIssue[] {
+export type TextLayoutQualitySummary = {
+  totalDiagnostics: number;
+  retainedDiagnostics: number;
+  truncated: boolean;
+};
+
+export type DocumentQualityCheckResult = {
+  issues: QualityIssue[];
+  textLayout: TextLayoutQualitySummary;
+};
+
+export function runDocumentQualityChecks(
+  document: DesignDocument,
+): DocumentQualityCheckResult {
   const issues: QualityIssue[] = [];
   const dimensions = getFormatDimensions(document.format);
   if (
@@ -18,6 +33,8 @@ export function runDocumentQualityChecks(document: DesignDocument): QualityIssue
       details: { dimensions },
     });
   }
+  const textLayout = collectTextLayoutQualityIssues(document);
+  issues.push(...textLayout.issues);
   const prohibited = new Set(
     document.brand.prohibitedColors.map((value) => value.toLowerCase()),
   );
@@ -70,7 +87,35 @@ export function runDocumentQualityChecks(document: DesignDocument): QualityIssue
       },
     });
   }
-  return issues;
+  return { issues, textLayout: textLayout.summary };
+}
+
+function collectTextLayoutQualityIssues(document: DesignDocument): {
+  issues: QualityIssue[];
+  summary: TextLayoutQualitySummary;
+} {
+  const collection = collectVisibleDesignTextLayoutDiagnostics(document);
+  return {
+    issues: collection.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      severity: "error",
+      message: diagnostic.message,
+      layerId: diagnostic.layerId,
+      details: {
+        diagnosticsVersion: TEXT_LAYOUT_DIAGNOSTICS_VERSION,
+        fieldPath: diagnostic.fieldPath,
+        layerType: diagnostic.layerType,
+        totalMatches: diagnostic.totalMatches,
+        matches: diagnostic.matches,
+        truncated: diagnostic.truncated,
+      },
+    })),
+    summary: {
+      totalDiagnostics: collection.totalDiagnostics,
+      retainedDiagnostics: collection.diagnostics.length,
+      truncated: collection.truncated,
+    },
+  };
 }
 
 type ColorUse = {

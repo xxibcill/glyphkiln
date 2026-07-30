@@ -23,7 +23,11 @@ import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
 import { rasterizeSvg } from "./png.js";
-import { assertOutputValidity, runDocumentQualityChecks } from "./quality.js";
+import {
+  assertOutputValidity,
+  runDocumentQualityChecks,
+  type TextLayoutQualitySummary,
+} from "./quality.js";
 import type { Scene } from "./scene.js";
 import { renderSceneToSvg } from "./svg.js";
 
@@ -76,8 +80,11 @@ export async function renderGraphic(
   );
   const template = getTemplate(document);
   const requirementIssues = checkTemplateRequirements(document, template);
-  const documentIssues = runDocumentQualityChecks(document);
-  blockOnQualityErrors([...requirementIssues, ...documentIssues]);
+  const documentQuality = runDocumentQualityChecks(document);
+  blockOnQualityErrors(
+    [...requirementIssues, ...documentQuality.issues],
+    documentQuality.textLayout,
+  );
   const assets = new AssetRegistry(document.assets, options.assets ?? []);
   validateAssetReferences(document, assets);
   const fonts = new FontRegistry(options.fonts ?? []);
@@ -86,10 +93,10 @@ export async function renderGraphic(
   const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
   const qualityIssues = [
     ...requirementIssues,
-    ...documentIssues,
+    ...documentQuality.issues,
     ...templateResult.qualityIssues,
   ];
-  blockOnQualityErrors(qualityIssues);
+  blockOnQualityErrors(qualityIssues, documentQuality.textLayout);
 
   const svg = renderSceneToSvg(templateResult.scene);
   const manifestAssets = collectManifestAssets(document);
@@ -197,15 +204,31 @@ function fontReferenceKey(family: string, weight: number, style: string): string
   return `${family.toLocaleLowerCase("en-US")}\u0000${weight}\u0000${style}`;
 }
 
-function blockOnQualityErrors(issues: QualityIssue[]): void {
+function blockOnQualityErrors(
+  issues: QualityIssue[],
+  textLayout: TextLayoutQualitySummary,
+): void {
   const errors = issues.filter((issue) => issue.severity === "error");
   if (errors.length > 0) {
     throw new GlyphkilnError(
-      `Render blocked by ${errors.length} quality error${errors.length === 1 ? "" : "s"}.`,
+      qualityFailureMessage(errors.length, textLayout),
       "QUALITY_VALIDATION_FAILED",
-      { issues },
+      { issues, textLayout },
     );
   }
+}
+
+function qualityFailureMessage(
+  retainedErrorCount: number,
+  textLayout: TextLayoutQualitySummary,
+): string {
+  const base = `Render blocked by ${retainedErrorCount} quality error${
+    retainedErrorCount === 1 ? "" : "s"
+  }.`;
+  if (!textLayout.truncated) return base;
+  const omittedDiagnostics =
+    textLayout.totalDiagnostics - textLayout.retainedDiagnostics;
+  return `${base} ${omittedDiagnostics} additional text-layout diagnostics were omitted by the retained-record limit.`;
 }
 
 function validateOutputFormats(formats: readonly unknown[]): readonly OutputFormat[] {

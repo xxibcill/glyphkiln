@@ -66,6 +66,12 @@ are bounded. Layer and asset IDs must be unique. A schema-valid document can
 still fail template or quality rules, such as a missing required semantic layer
 or insufficient contrast. See [Resource limits](resource-limits.md).
 
+Text remains data. `inspectDesignDocument` reports pinned Unicode text-layout
+diagnostics for every rendered semantic text field, including hidden layers.
+Unsupported visible bidi or vertical-primary copy blocks rendering before
+resource resolution; `validateDesignDocument` remains structural. See
+[Text-layout diagnostics](text-layout-diagnostics.md).
+
 Standard JSON Schema cannot express uniqueness by an object property portably.
 `DESIGN_DOCUMENT_RUNTIME_REFINEMENTS` publishes the exact uniqueness and quiet
 region sum rules that `validateDesignDocument` applies after draft 2020-12

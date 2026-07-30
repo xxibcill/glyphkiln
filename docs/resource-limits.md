@@ -22,6 +22,13 @@ profile:
 | Requested output formats         | 2               |
 | Manifest creation timestamp      | 128 bytes       |
 
+Text-layout analysis retains at most 16 code-point matches per diagnostic and
+128 diagnostics per document inspection. Full counts and truncation flags are
+preserved. Rendering independently retains at most 128 visible blocking
+diagnostics, so hidden inspection records cannot displace render errors. A
+render failure's `details.textLayout` reports the total and retained diagnostic
+counts plus a truncation flag.
+
 SDK input is inspected iteratively before Zod validation. Cycles, accessors,
 non-JSON object instances, excessive nesting, excessive entry counts, and
 oversized metadata fail with structured validation problems. The CLI reads at

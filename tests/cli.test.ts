@@ -65,11 +65,57 @@ describe("CLI", () => {
     const inspection = JSON.parse(capture.stdout.join("\n")) as {
       template: { id: string; supportedLayers: string[] };
       dimensions: { width: number; height: number };
+      textLayout: { renderable: boolean; diagnostics: unknown[] };
     };
     expect(inspection.template.id).toBe("quote-card");
     expect(inspection.template.supportedLayers).toContain("attribution");
     expect(inspection.template.supportedLayers).not.toContain("chart");
     expect(inspection.dimensions).toEqual({ width: 1080, height: 1350 });
+    expect(inspection.textLayout).toEqual(
+      expect.objectContaining({ renderable: true, diagnostics: [] }),
+    );
+  });
+
+  it("inspects and rejects unsupported visible text without writing output", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-text-layout-"));
+    temporaryDirectories.push(directory);
+    const input = join(directory, "unsupported.json");
+    const output = join(directory, "graphic.svg");
+    const document = JSON.parse(
+      await readFile(resolve("examples/product-announcement.json"), "utf8"),
+    ) as { layers: { type: string; text?: string }[] };
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline === undefined) throw new Error("Missing headline.");
+    headline.text = "\u05D0";
+    await writeFile(input, `${JSON.stringify(document)}\n`);
+
+    const inspectionCapture = captureIo();
+    expect(await runCli(["inspect", input], inspectionCapture.io)).toBe(0);
+    const inspection = JSON.parse(inspectionCapture.stdout.join("\n")) as {
+      textLayout: {
+        renderable: boolean;
+        diagnostics: { fieldPath: string; code: string }[];
+      };
+    };
+    expect(inspection.textLayout.renderable).toBe(false);
+    expect(inspection.textLayout.diagnostics).toEqual([
+      expect.objectContaining({
+        fieldPath: "/layers/3/text",
+        code: "BIDI_LAYOUT_UNSUPPORTED",
+      }),
+    ]);
+
+    const renderCapture = captureIo();
+    expect(
+      await runCli(
+        ["render", input, "--format", "svg", "--output", output],
+        renderCapture.io,
+      ),
+    ).toBe(1);
+    expect(renderCapture.stderr.join("\n")).toContain(
+      "BIDI_LAYOUT_UNSUPPORTED (headline)",
+    );
+    await expect(readFile(output)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("renders output and a manifest, then verifies the fingerprint", async () => {

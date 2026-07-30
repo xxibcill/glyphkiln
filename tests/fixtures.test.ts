@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  GlyphkilnError,
   renderGraphic,
   validateDesignDocument,
   type DesignDocument,
@@ -31,9 +32,29 @@ describe("full design fixtures", () => {
           file,
         ).resolves.toBeDefined();
       } else if (expected === "quality-failure") {
-        await expect(renderGraphic(document), file).rejects.toMatchObject({
-          code: "QUALITY_VALIDATION_FAILED",
-        });
+        try {
+          await renderGraphic(document);
+          expect.fail(`Expected ${file} to fail quality validation.`);
+        } catch (error) {
+          expect(error, file).toBeInstanceOf(GlyphkilnError);
+          if (!(error instanceof GlyphkilnError)) continue;
+          expect(error.code, file).toBe("QUALITY_VALIDATION_FAILED");
+          const expectedCode = document.metadata?.["fixtureExpectedCode"];
+          if (typeof expectedCode === "string") {
+            const issues = error.details?.["issues"];
+            expect(Array.isArray(issues), file).toBe(true);
+            expect(
+              Array.isArray(issues) &&
+                issues.some(
+                  (issue) =>
+                    typeof issue === "object" &&
+                    issue !== null &&
+                    (issue as Record<string, unknown>)["code"] === expectedCode,
+                ),
+              file,
+            ).toBe(true);
+          }
+        }
       } else {
         await expect(renderGraphic(document), file).rejects.toMatchObject({
           code: "UNSUPPORTED_FONT",
