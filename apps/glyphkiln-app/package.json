@@ -9,8 +9,8 @@
     "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build && node scripts/package-standalone.mjs",
+    "dev": "node scripts/start-development.mjs",
+    "build": "node scripts/build.mjs",
     "start": "node .next/standalone/apps/glyphkiln-app/start.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 export const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const repositoryRoot = resolve(appRoot, "../..");
-export const corePackageRoot = join(repositoryRoot, "packages", "glyphkiln-core");
 export const stagedCoreRoot = join(appRoot, "node_modules", "@glyphkiln", "core");
 
 export async function readStandaloneLayout() {

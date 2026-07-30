@@ -1,3 +1,5 @@
-process.env.HOSTNAME = process.env.GLYPHKILN_HOSTNAME?.trim() || "127.0.0.1";
+import { readGlyphkilnHostname } from "./runtime-hostname.mjs";
+
+process.env.HOSTNAME = readGlyphkilnHostname();
 
 await import("./server.js");

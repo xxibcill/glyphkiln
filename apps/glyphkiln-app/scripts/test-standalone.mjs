@@ -17,7 +17,7 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, sep } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
-import { appRoot, readStandaloneLayout } from "./standalone-paths.mjs";
+import { appRoot, readStandaloneLayout, stagedCoreRoot } from "./standalone-paths.mjs";
 
 const PRODUCT_ANNOUNCEMENT_DOCUMENT = {
   schemaVersion: "1.0.0",
@@ -159,6 +159,11 @@ const REQUIRED_CORE_DISTRIBUTION_FILES = [
 ];
 
 const layout = await readStandaloneLayout();
+await assert.rejects(
+  access(stagedCoreRoot),
+  (error) => error?.code === "ENOENT",
+  "The build must remove its temporary Core package stage.",
+);
 const serverPath = join(layout.standaloneAppRoot, "server.js");
 const staticAssetsPath = join(layout.standaloneAppRoot, ".next/static");
 await assert.doesNotReject(

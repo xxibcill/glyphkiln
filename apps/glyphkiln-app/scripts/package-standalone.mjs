@@ -3,7 +3,6 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 import {
   appRoot,
-  corePackageRoot,
   readStandaloneLayout,
   repositoryRoot,
   stagedCoreRoot,
@@ -29,6 +28,10 @@ await copyRequiredFile(
   join(standaloneAppRoot, "start.mjs"),
 );
 await copyRequiredFile(
+  join(appRoot, "scripts/runtime-hostname.mjs"),
+  join(standaloneAppRoot, "runtime-hostname.mjs"),
+);
+await copyRequiredFile(
   join(repositoryRoot, "LICENSE"),
   join(standaloneRoot, "LICENSE"),
 );
@@ -44,7 +47,7 @@ async function packageCoreRuntime(destinationRoot) {
   await rm(destinationRoot, { recursive: true, force: true });
   for (const relativePath of [...runtimeFiles].sort()) {
     await copyRequiredFile(
-      join(corePackageRoot, relativePath),
+      join(stagedCoreRoot, relativePath),
       join(destinationRoot, relativePath),
     );
   }
