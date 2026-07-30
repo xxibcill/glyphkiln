@@ -25,7 +25,10 @@ npm run dev
 Development and the packaged launcher bind `127.0.0.1` by default because this
 milestone has no authentication or remote rate controls. A self-hosting
 operator must explicitly set `GLYPHKILN_HOSTNAME` (for example, `0.0.0.0`) only
-behind their own trusted access boundary.
+behind their own trusted access boundary. Non-loopback browser access must use
+HTTPS, normally through a trusted reverse proxy; Web Crypto is intentionally
+required before the browser will request or accept a proof. Plain HTTP remains
+supported only on the local machine through `localhost` or `127.0.0.1`.
 
 For a production build:
 

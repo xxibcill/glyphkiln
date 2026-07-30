@@ -6,7 +6,11 @@ import { buildPreviewDocument, createInitialPreviewForm } from "./document-build
 import { EditorControls } from "./editor-controls";
 import { PreviewStage } from "./preview-stage";
 import { ProofLedger } from "./proof-ledger";
-import { parsePreviewResponse, verifyPreviewIntegrity } from "./response-parser";
+import {
+  parsePreviewResponse,
+  previewIntegrityPrerequisiteFailure,
+  verifyPreviewIntegrity,
+} from "./response-parser";
 import type {
   PreviewCatalog,
   PreviewFormState,
@@ -46,6 +50,13 @@ export function ProjectPreview({ catalog }: ProjectPreviewProps) {
   async function renderProof(): Promise<void> {
     if (isRendering) return;
     const submittedPayload = documentPayload;
+    const prerequisiteFailure = previewIntegrityPrerequisiteFailure();
+    if (prerequisiteFailure !== null) {
+      setResponse(prerequisiteFailure);
+      setLastInspectedInput(submittedPayload);
+      return;
+    }
+
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
       controller.abort();

@@ -150,6 +150,14 @@ const EXPECTED_OUTPUT_INTEGRITY = {
   },
 };
 
+const REQUIRED_CORE_DISTRIBUTION_FILES = [
+  "LICENSE",
+  "NOTICE",
+  "THIRD_PARTY_LICENSES.json",
+  "assets/fonts/OFL.txt",
+  "vendor/unicode/LICENSE.txt",
+];
+
 const layout = await readStandaloneLayout();
 const serverPath = join(layout.standaloneAppRoot, "server.js");
 const staticAssetsPath = join(layout.standaloneAppRoot, ".next/static");
@@ -172,10 +180,29 @@ try {
   });
   const isolatedAppRoot = join(isolatedStandaloneRoot, layout.relativeAppDir);
   const isolatedCoreRoot = join(isolatedAppRoot, "node_modules", "@glyphkiln", "core");
+  await verifyDistributionFiles(isolatedStandaloneRoot, isolatedCoreRoot);
   await verifyContainedRuntime(isolatedStandaloneRoot, isolatedCoreRoot);
   await verifyStandaloneRuntime(isolatedAppRoot);
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
+}
+
+async function verifyDistributionFiles(isolatedStandaloneRoot, isolatedCoreRoot) {
+  await assertNonEmptyFile(
+    join(isolatedStandaloneRoot, "LICENSE"),
+    "The standalone distribution must retain the application license.",
+  );
+  for (const relativePath of REQUIRED_CORE_DISTRIBUTION_FILES) {
+    await assertNonEmptyFile(
+      join(isolatedCoreRoot, relativePath),
+      `The standalone Core package must retain ${relativePath}.`,
+    );
+  }
+}
+
+async function assertNonEmptyFile(path, message) {
+  const bytes = await readFile(path);
+  assert.ok(bytes.byteLength > 0, message);
 }
 
 async function verifyStartCommand(relativeAppDir) {

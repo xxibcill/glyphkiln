@@ -30,10 +30,25 @@ export function parsePreviewResponse(
   return malformedResponse(httpStatus);
 }
 
+export function previewIntegrityPrerequisiteFailure(): PreviewFailure | null {
+  if (readSubtleCrypto() !== undefined) return null;
+  return {
+    ok: false,
+    status: 0,
+    title: "Secure browser context required",
+    code: "PREVIEW_SECURE_CONTEXT_REQUIRED",
+    detail:
+      "Open the remote workshop over HTTPS, or use localhost on this machine, before rendering a proof.",
+  };
+}
+
 export async function verifyPreviewIntegrity(
   response: PreviewSuccess,
   catalog: PreviewCatalog,
 ): Promise<PreviewFailure | null> {
+  const prerequisiteFailure = previewIntegrityPrerequisiteFailure();
+  if (prerequisiteFailure !== null) return prerequisiteFailure;
+
   try {
     const documentHash = await sha256(
       new TextEncoder().encode(canonicalJson(response.document)),
@@ -527,12 +542,23 @@ function sharedManifestFields(manifest: RenderManifest): Record<string, unknown>
 }
 
 async function sha256(bytes: Uint8Array): Promise<string> {
+  const subtle = readSubtleCrypto();
+  if (subtle === undefined) {
+    throw new Error("SubtleCrypto is unavailable outside a secure browser context.");
+  }
   const ownedBytes = new Uint8Array(bytes.byteLength);
   ownedBytes.set(bytes);
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", ownedBytes.buffer);
+  const digest = await subtle.digest("SHA-256", ownedBytes.buffer);
   return Array.from(new Uint8Array(digest), (byte) =>
     byte.toString(16).padStart(2, "0"),
   ).join("");
+}
+
+function readSubtleCrypto(): SubtleCrypto | undefined {
+  const runtime = globalThis as unknown as {
+    crypto?: { subtle?: SubtleCrypto };
+  };
+  return runtime.crypto?.subtle;
 }
 
 function canonicalJson(value: unknown): string {

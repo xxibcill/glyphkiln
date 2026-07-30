@@ -832,7 +832,11 @@ function TextField({
     <div className="field">
       <label htmlFor={id}>
         {label}
-        {required ? <span className="required-mark">required</span> : null}
+        {required ? (
+          <span className="required-mark" aria-hidden="true">
+            required
+          </span>
+        ) : null}
       </label>
       <input
         id={id}
@@ -880,7 +884,11 @@ function TextAreaField({
     <div className="field">
       <label htmlFor={id}>
         {label}
-        {required ? <span className="required-mark">required</span> : null}
+        {required ? (
+          <span className="required-mark" aria-hidden="true">
+            required
+          </span>
+        ) : null}
       </label>
       <textarea
         id={id}

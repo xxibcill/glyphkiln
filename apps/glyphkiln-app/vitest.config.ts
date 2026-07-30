@@ -19,6 +19,7 @@ export default defineConfig({
         "src/app/api/preview/route.ts",
         "src/features/project-preview/document-builder.ts",
         "src/features/project-preview/preview-stage.tsx",
+        "src/features/project-preview/project-preview.tsx",
         "src/features/project-preview/proof-ledger.tsx",
         "src/features/project-preview/response-parser.ts",
         "src/lib/project-preview/catalog.ts",

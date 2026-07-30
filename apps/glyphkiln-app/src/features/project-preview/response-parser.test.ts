@@ -1,16 +1,24 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createPreviewDesign } from "@/test/preview-design";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
 
-import { parsePreviewResponse, verifyPreviewIntegrity } from "./response-parser";
+import {
+  parsePreviewResponse,
+  previewIntegrityPrerequisiteFailure,
+  verifyPreviewIntegrity,
+} from "./response-parser";
 import type { PreviewSuccess } from "./types";
 
 const FIXED_NOW = new Date("2026-07-30T06:00:00.000Z");
 const CATALOG = createPreviewCatalog();
 
 describe("parsePreviewResponse", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("accepts a complete render response", async () => {
     const result = await createProjectPreview(createPreviewDesign(), {
       render: async (document, options) => {
@@ -137,6 +145,20 @@ describe("parsePreviewResponse", () => {
     }
     await expect(verifyPreviewIntegrity(changedFont, CATALOG)).resolves.toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
+    });
+  });
+
+  it("requires secure-context Web Crypto before accepting proof artifacts", async () => {
+    const response = await renderSuccess();
+    vi.stubGlobal("crypto", undefined);
+
+    expect(previewIntegrityPrerequisiteFailure()).toMatchObject({
+      ok: false,
+      code: "PREVIEW_SECURE_CONTEXT_REQUIRED",
+    });
+    await expect(verifyPreviewIntegrity(response, CATALOG)).resolves.toMatchObject({
+      ok: false,
+      code: "PREVIEW_SECURE_CONTEXT_REQUIRED",
     });
   });
 });

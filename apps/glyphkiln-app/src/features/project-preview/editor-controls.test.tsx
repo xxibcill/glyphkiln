@@ -40,6 +40,14 @@ describe("EditorControls", () => {
     expect(markup).not.toContain('aria-invalid="true"');
     expect(markup).not.toContain("Preview could not be rendered");
   });
+
+  it("keeps required badges visual without changing control names", () => {
+    const markup = renderControls(false);
+
+    expect(markup).toContain(
+      '<span class="required-mark" aria-hidden="true">required</span>',
+    );
+  });
 });
 
 function renderControls(validationIsStale: boolean): string {
