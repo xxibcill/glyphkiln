@@ -1,100 +1,62 @@
 {
-  "name": "@glyphkiln/core",
-  "version": "0.2.0",
-  "description": "Deterministic, vector-first rendering for professional social-media graphics.",
+  "name": "glyphkiln",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Glyphkiln's deterministic rendering engine and self-hostable application.",
   "license": "Apache-2.0",
-  "author": "Glyphkiln contributors",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xxibcill/glyphkiln-core.git"
-  },
-  "bugs": {
-    "url": "https://github.com/xxibcill/glyphkiln-core/issues"
-  },
-  "homepage": "https://github.com/xxibcill/glyphkiln-core#readme",
-  "type": "module",
+  "packageManager": "npm@10.9.8",
   "engines": {
-    "node": ">=22.11.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.13.0 || >=24.0.0",
+      "onFail": "error"
     },
-    "./schema": {
-      "types": "./dist/schema/index.d.ts",
-      "import": "./dist/schema/index.js"
-    },
-    "./package.json": "./package.json"
+    "packageManager": {
+      "name": "npm",
+      "version": "10.9.8",
+      "onFail": "error"
+    }
   },
-  "bin": {
-    "glyphkiln": "./dist/cli/index.js"
-  },
-  "files": [
-    "dist",
-    "assets/fonts",
-    "vendor/unicode/LICENSE.txt",
-    "README.md",
-    "LICENSE",
-    "NOTICE",
-    "THIRD_PARTY_LICENSES.json"
+  "workspaces": [
+    "packages/glyphkiln-core",
+    "apps/glyphkiln-app"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint . && prettier --check . && node scripts/security-check.mjs",
+    "dev": "npm run build --workspace @glyphkiln/core && npm run dev --workspace @glyphkiln/app",
+    "build": "npm run build --workspace @glyphkiln/core && npm run build --workspace @glyphkiln/app",
+    "start": "npm run start --workspace @glyphkiln/app",
+    "typecheck": "npm run build --workspace @glyphkiln/core && npm run typecheck --workspace @glyphkiln/core && npm run typecheck --workspace @glyphkiln/app",
+    "lint": "npm run build --workspace @glyphkiln/core && npm run lint --workspaces --if-present && prettier --check .",
     "format": "prettier --write .",
-    "test": "npm run build && vitest run && node scripts/test-isolation.mjs && node scripts/test-text-layout-determinism.mjs && node scripts/test-readme-example.mjs",
-    "test:isolation": "npm run build && node scripts/test-isolation.mjs",
-    "test:text-layout-determinism": "npm run build && node scripts/test-text-layout-determinism.mjs",
-    "test:readme": "npm run build && node scripts/test-readme-example.mjs",
-    "test:package-consumer": "node scripts/test-package-consumer.mjs",
-    "test:coverage": "vitest run --coverage",
-    "test:update-visuals": "GLYPHKILN_UPDATE_VISUALS=1 vitest run tests/visual-regression.test.ts",
-    "examples:generate": "node scripts/generate-examples.mjs",
-    "examples:verify": "node scripts/generate-examples.mjs --verify",
-    "fixtures:update": "node scripts/generate-fixtures.mjs",
-    "fixtures:verify": "node scripts/generate-fixtures.mjs --verify",
-    "text-layout-data:update": "node scripts/generate-text-layout-data.mjs",
-    "text-layout-data:verify": "node scripts/generate-text-layout-data.mjs --verify",
-    "schema-conformance:update": "node scripts/generate-schema-conformance.mjs",
-    "licenses:update": "node scripts/license-inventory.mjs --write",
-    "licenses:verify": "node scripts/license-inventory.mjs",
-    "prepack": "npm run build"
-  },
-  "dependencies": {
-    "@resvg/resvg-js": "2.6.2",
-    "fontkit": "2.0.4",
-    "jpeg-js": "0.4.4",
-    "pngjs": "7.0.0",
-    "zod": "4.4.3"
+    "test": "npm run test --workspace @glyphkiln/core && npm run test --workspace @glyphkiln/app",
+    "test:coverage": "npm run build --workspace @glyphkiln/core && npm run test:coverage --workspace @glyphkiln/core && npm run test:coverage --workspace @glyphkiln/app",
+    "test:update-visuals": "npm run test:update-visuals --workspace @glyphkiln/core",
+    "examples:generate": "npm run build --workspace @glyphkiln/core && npm run examples:generate --workspace @glyphkiln/core",
+    "text-layout-data:verify": "npm run text-layout-data:verify --workspace @glyphkiln/core",
+    "text-layout-data:update": "npm run text-layout-data:update --workspace @glyphkiln/core",
+    "fixtures:verify": "npm run fixtures:verify --workspace @glyphkiln/core",
+    "fixtures:update": "npm run fixtures:update --workspace @glyphkiln/core",
+    "examples:verify": "npm run build --workspace @glyphkiln/core && npm run examples:verify --workspace @glyphkiln/core",
+    "licenses:verify": "npm run licenses:verify --workspace @glyphkiln/core",
+    "licenses:update": "npm run licenses:update --workspace @glyphkiln/core",
+    "test:package-consumer": "npm run test:package-consumer --workspace @glyphkiln/core",
+    "pack:core": "npm pack --workspace @glyphkiln/core",
+    "pack:core:dry-run": "npm pack --workspace @glyphkiln/core --dry-run",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
     "@changesets/cli": "2.31.1",
     "@eslint/js": "10.0.1",
-    "@types/fontkit": "2.0.9",
-    "@types/node": "26.1.2",
-    "@types/pngjs": "6.0.5",
-    "@vitest/coverage-v8": "4.1.10",
-    "ajv": "8.20.0",
     "eslint": "10.8.0",
     "prettier": "3.9.6",
-    "typescript": "6.0.3",
-    "typescript-eslint": "8.65.0",
-    "vitest": "4.1.10"
+    "typescript-eslint": "8.65.0"
   },
-  "keywords": [
-    "deterministic",
-    "graphics",
-    "renderer",
-    "svg",
-    "png",
-    "social-media"
-  ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   }
 }

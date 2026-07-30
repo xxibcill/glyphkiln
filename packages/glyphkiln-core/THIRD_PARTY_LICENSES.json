@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "source": "package-lock.json",
+  "source": "package-lock.json#packages/glyphkiln-core",
   "reviewPolicy": "Every production dependency must declare an SPDX identifier in the reviewed allowlist.",
   "reviewedLicenseIdentifiers": [
     "0BSD",

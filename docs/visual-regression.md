@@ -1,6 +1,7 @@
 # Visual regression
 
-Reviewed PNG baselines live in `tests/visual/baselines`. Each baseline has:
+Reviewed PNG baselines live in
+`packages/glyphkiln-core/tests/visual/baselines`. Each baseline has:
 
 - `<name>.design.json`: complete versioned source
 - `<name>.png`: reviewed bytes

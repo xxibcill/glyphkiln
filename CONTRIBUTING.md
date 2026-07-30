@@ -5,7 +5,10 @@ licensed under Apache-2.0.
 
 ## Workflow
 
-1. Use Node.js 22.11 or newer and run `npm install`.
+1. Use npm 10.9.8 with Node.js 22.13 or newer in the Node 22 release line, or
+   Node.js 24 or newer, and run `npm ci` at the repository root. If npm must be
+   changed, install it from outside the checkout as described in the root
+   README.
 2. Create a focused branch.
 3. Add tests before or with the behavior change.
 4. Run `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, and
@@ -15,6 +18,10 @@ licensed under Apache-2.0.
 
 Commit messages use Conventional Commits, for example `feat: add a format`,
 `fix: reject unresolved logos`, or `docs: clarify font licensing`.
+
+The repository uses npm workspaces. Core lives in
+`packages/glyphkiln-core`; the application lives in `apps/glyphkiln-app`.
+Root verification commands cover both workspaces.
 
 ## Pixel-affecting changes
 

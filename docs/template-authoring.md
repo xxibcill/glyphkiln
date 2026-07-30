@@ -13,7 +13,8 @@ expressions. A definition declares:
 
 To add a template:
 
-1. Write a narrow explicit function in `src/templates`.
+1. Write a narrow explicit function in
+   `packages/glyphkiln-core/src/templates`.
 2. Use registry dimensions and brand safe-area bounds.
 3. Fit all text with the typography helpers and exact loaded family.
 4. Use only renderer-neutral scene primitives.

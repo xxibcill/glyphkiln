@@ -1,0 +1,100 @@
+{
+  "name": "@glyphkiln/core",
+  "version": "0.2.0",
+  "description": "Deterministic, vector-first rendering for professional social-media graphics.",
+  "license": "Apache-2.0",
+  "author": "Glyphkiln contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxibcill/glyphkiln-core.git",
+    "directory": "packages/glyphkiln-core"
+  },
+  "bugs": {
+    "url": "https://github.com/xxibcill/glyphkiln-core/issues"
+  },
+  "homepage": "https://github.com/xxibcill/glyphkiln-core/tree/main/packages/glyphkiln-core#readme",
+  "type": "module",
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "glyphkiln": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "assets/fonts",
+    "vendor/unicode/LICENSE.txt",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_LICENSES.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . && node scripts/security-check.mjs",
+    "test": "npm run build && vitest run && node scripts/test-isolation.mjs && node scripts/test-text-layout-determinism.mjs && node scripts/test-readme-example.mjs",
+    "test:isolation": "npm run build && node scripts/test-isolation.mjs",
+    "test:text-layout-determinism": "npm run build && node scripts/test-text-layout-determinism.mjs",
+    "test:readme": "npm run build && node scripts/test-readme-example.mjs",
+    "test:package-consumer": "node scripts/test-package-consumer.mjs",
+    "test:coverage": "vitest run --coverage",
+    "test:update-visuals": "GLYPHKILN_UPDATE_VISUALS=1 vitest run tests/visual-regression.test.ts",
+    "examples:generate": "node scripts/generate-examples.mjs",
+    "examples:verify": "node scripts/generate-examples.mjs --verify",
+    "fixtures:update": "node scripts/generate-fixtures.mjs",
+    "fixtures:verify": "node scripts/generate-fixtures.mjs --verify",
+    "text-layout-data:update": "node scripts/generate-text-layout-data.mjs",
+    "text-layout-data:verify": "node scripts/generate-text-layout-data.mjs --verify",
+    "schema-conformance:update": "node scripts/generate-schema-conformance.mjs",
+    "licenses:update": "node scripts/license-inventory.mjs --write",
+    "licenses:verify": "node scripts/license-inventory.mjs",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "fontkit": "2.0.4",
+    "jpeg-js": "0.4.4",
+    "pngjs": "7.0.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@changesets/cli": "2.31.1",
+    "@eslint/js": "10.0.1",
+    "@types/fontkit": "2.0.9",
+    "@types/node": "26.1.2",
+    "@types/pngjs": "6.0.5",
+    "@vitest/coverage-v8": "4.1.10",
+    "ajv": "8.20.0",
+    "eslint": "10.8.0",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0",
+    "vitest": "4.1.10"
+  },
+  "keywords": [
+    "deterministic",
+    "graphics",
+    "renderer",
+    "svg",
+    "png",
+    "social-media"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

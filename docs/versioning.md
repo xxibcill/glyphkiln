@@ -17,7 +17,8 @@ Old document/template combinations must fail explicitly when unsupported; never
 silently migrate during render. Migration belongs in an explicit pure utility
 that produces a new reviewed document.
 
-Public exports in `src/index.ts` are intentional. Internal file paths are not
+Public exports in `packages/glyphkiln-core/src/index.ts` are intentional.
+Internal file paths are not
 public API. The `./schema` subpath is public for applications that need the
 runtime schema and JSON Schema export.
 
