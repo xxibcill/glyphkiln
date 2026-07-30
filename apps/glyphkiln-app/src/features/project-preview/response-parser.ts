@@ -110,6 +110,11 @@ export async function verifyPreviewIntegrity(
           `The ${output.format.toUpperCase()} bytes do not match the output manifest.`,
         );
       }
+      if (!hasExpectedDimensions(output.format, bytes, firstManifest.dimensions)) {
+        return integrityFailure(
+          `The ${output.format.toUpperCase()} artifact dimensions do not match the trusted Core format.`,
+        );
+      }
       if (output.manifest.designDocumentHash !== documentHash) {
         return integrityFailure(
           `The ${output.format.toUpperCase()} manifest refers to a different design document.`,
@@ -518,6 +523,84 @@ function hasExpectedSignature(
   }
   const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
   return pngSignature.every((byte, index) => bytes[index] === byte);
+}
+
+function hasExpectedDimensions(
+  format: PreviewOutput["format"],
+  bytes: Uint8Array,
+  expected: RenderManifest["dimensions"],
+): boolean {
+  const dimensions =
+    format === "svg" ? readSvgDimensions(bytes) : readPngDimensions(bytes);
+  return dimensions?.width === expected.width && dimensions.height === expected.height;
+}
+
+function readPngDimensions(
+  bytes: Uint8Array,
+): RenderManifest["dimensions"] | undefined {
+  if (
+    bytes.byteLength < 24 ||
+    readUint32(bytes, 8) !== 13 ||
+    new TextDecoder().decode(bytes.subarray(12, 16)) !== "IHDR"
+  ) {
+    return undefined;
+  }
+  const width = readUint32(bytes, 16);
+  const height = readUint32(bytes, 20);
+  return width > 0 && height > 0 ? { width, height } : undefined;
+}
+
+function readUint32(bytes: Uint8Array, offset: number): number {
+  return new DataView(
+    bytes.buffer,
+    bytes.byteOffset + offset,
+    Uint32Array.BYTES_PER_ELEMENT,
+  ).getUint32(0);
+}
+
+function readSvgDimensions(
+  bytes: Uint8Array,
+): RenderManifest["dimensions"] | undefined {
+  const rootEnd = bytes.indexOf(0x3e);
+  if (rootEnd < 0 || rootEnd > 4_096) return undefined;
+  const root = new TextDecoder("utf-8", { fatal: true }).decode(
+    bytes.subarray(0, rootEnd + 1),
+  );
+  const width = readPositiveIntegerAttribute(root, "width");
+  const height = readPositiveIntegerAttribute(root, "height");
+  const viewBox = readSvgAttribute(root, "viewBox")?.trim().split(/\s+/).map(Number);
+  if (
+    width === undefined ||
+    height === undefined ||
+    viewBox?.length !== 4 ||
+    viewBox.some((value) => !Number.isFinite(value)) ||
+    viewBox[0] !== 0 ||
+    viewBox[1] !== 0 ||
+    viewBox[2] !== width ||
+    viewBox[3] !== height
+  ) {
+    return undefined;
+  }
+  return { width, height };
+}
+
+function readPositiveIntegerAttribute(
+  root: string,
+  name: "width" | "height",
+): number | undefined {
+  const value = readSvgAttribute(root, name);
+  if (value === undefined || !/^[1-9][0-9]*$/.test(value)) return undefined;
+  const number = Number(value);
+  return Number.isSafeInteger(number) ? number : undefined;
+}
+
+function readSvgAttribute(
+  root: string,
+  name: "width" | "height" | "viewBox",
+): string | undefined {
+  const pattern = new RegExp(`\\s${name}\\s*=\\s*(["'])([^"']*)\\1`, "g");
+  const matches = [...root.matchAll(pattern)];
+  return matches.length === 1 ? matches[0]?.[2] : undefined;
 }
 
 function sharedManifestFields(manifest: RenderManifest): Record<string, unknown> {
