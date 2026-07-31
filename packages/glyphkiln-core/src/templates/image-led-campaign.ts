@@ -99,6 +99,7 @@ export const imageLedCampaignTemplate: TemplateDefinition = {
           preferredFontSize: 22 * unit,
           minimumFontSize: 14,
           maximumLines: 1,
+          fallbackFamily: context.document.brand.typography.bodyFamily,
           fallbackWeight: 700,
           fallbackLineHeight: 1,
         },
@@ -122,6 +123,7 @@ export const imageLedCampaignTemplate: TemplateDefinition = {
         preferredFontSize: landscape ? 72 * unit : 82 * unit,
         minimumFontSize: 30,
         maximumLines: 4,
+        fallbackFamily: context.document.brand.typography.headlineFamily,
         fallbackWeight: 800,
         fallbackLineHeight: 0.98,
       },
@@ -150,6 +152,7 @@ export const imageLedCampaignTemplate: TemplateDefinition = {
           preferredFontSize: 27 * unit,
           minimumFontSize: 17,
           maximumLines: 3,
+          fallbackFamily: context.document.brand.typography.bodyFamily,
           fallbackWeight: 400,
           fallbackLineHeight: 1.24,
         },
@@ -173,6 +176,7 @@ export const imageLedCampaignTemplate: TemplateDefinition = {
           preferredFontSize: 20 * unit,
           minimumFontSize: 14,
           maximumLines: 1,
+          fallbackFamily: context.document.brand.typography.bodyFamily,
           fallbackWeight: 700,
           fallbackLineHeight: 1,
         },
@@ -212,6 +216,7 @@ function addRoleText(
     preferredFontSize: number;
     minimumFontSize: number;
     maximumLines: number;
+    fallbackFamily: string;
     fallbackWeight: number;
     fallbackLineHeight: number;
   },
@@ -220,9 +225,10 @@ function addRoleText(
     preferredFontSize: fallback.preferredFontSize,
     minimumFontSize: fallback.minimumFontSize,
     maximumLines: fallback.maximumLines,
+    family: role?.family ?? fallback.fallbackFamily,
     weight: role?.weight ?? fallback.fallbackWeight,
     lineHeight: role?.lineHeight ?? fallback.fallbackLineHeight,
-    ...(role === undefined ? {} : { family: role.family, tracking: role.tracking }),
+    ...(role === undefined ? {} : { tracking: role.tracking }),
     checkContrast: false,
   });
 }

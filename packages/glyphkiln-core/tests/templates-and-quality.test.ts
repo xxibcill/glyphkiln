@@ -259,6 +259,40 @@ describe("template registry", () => {
     expect(result.outputs[0]!.manifest.includedGenerativeAssetUsed).toBe(true);
   });
 
+  it("falls back to semantic headline and body families when roles are omitted", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const assets = await loadExampleAssets(document);
+    const development = createDevelopmentFont();
+    const faces = [
+      { family: "Campaign Display", weight: 800 },
+      { family: "Campaign Text", weight: 400 },
+      { family: "Campaign Text", weight: 700 },
+    ] as const;
+
+    document.brand.typography.headlineFamily = "Campaign Display";
+    document.brand.typography.bodyFamily = "Campaign Text";
+    if ("roles" in document.brand.typography) {
+      delete document.brand.typography.roles;
+    }
+    document.fonts = faces.map((face) => ({
+      ...face,
+      style: "normal",
+      sha256: development.sha256,
+    }));
+
+    const result = await renderGraphic(document, {
+      formats: ["svg"],
+      assets,
+      fonts: faces.map((face) => ({ ...development, ...face })),
+    });
+
+    for (const face of faces) {
+      expect(result.outputs[0]!.manifest.fonts).toContainEqual(
+        expect.objectContaining(face),
+      );
+    }
+  });
+
   it("blocks low composited contrast and unsupported image-led formats", async () => {
     const document = cloneDocument(await loadExample("image-led-campaign"));
     const assets = await loadExampleAssets(document);
