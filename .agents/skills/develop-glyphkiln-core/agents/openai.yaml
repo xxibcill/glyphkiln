@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Glyphkiln Core"
+  short_description: "Make deterministic Core and renderer changes"
+  default_prompt: "Use $develop-glyphkiln-core to implement this Glyphkiln Core change safely."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify a Glyphkiln Change"
+  short_description: "Run focused and full Glyphkiln quality gates"
+  default_prompt: "Use $verify-glyphkiln-change to validate the current Glyphkiln changes before handoff."

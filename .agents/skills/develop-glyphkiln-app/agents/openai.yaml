@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Glyphkiln App"
+  short_description: "Build secure Glyphkiln App features safely"
+  default_prompt: "Use $develop-glyphkiln-app to implement this Glyphkiln App change safely."
