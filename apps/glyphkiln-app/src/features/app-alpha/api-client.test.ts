@@ -149,6 +149,97 @@ describe("App Alpha API client", () => {
     );
     expect(init?.body).not.toContain("session");
   });
+
+  it("requests and inspects a durable revision export through the typed client", async () => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "revision.export.request") {
+        return Promise.resolve(
+          jsonResponse(
+            {
+              ok: true,
+              status: 201,
+              value: {
+                kind: "render-job-queued",
+                jobId: "job-1",
+                workspaceId: "workspace-1",
+                state: "queued",
+                created: true,
+              },
+            },
+            201,
+          ),
+        );
+      }
+      expect(input).toBe("/api/app/queries");
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: {
+              kind: "render-job",
+              jobId: "job-1",
+              workspaceId: "workspace-1",
+              designId: "design-1",
+              revisionId: "revision-1",
+              state: "completed",
+              attemptCount: 1,
+              maxAttempts: 3,
+              createdAt: "2026-07-31T01:00:00.000Z",
+              updatedAt: "2026-07-31T01:00:01.000Z",
+              finishedAt: "2026-07-31T01:00:01.000Z",
+              outputs: [
+                {
+                  format: "svg",
+                  mimeType: "image/svg+xml",
+                  artifactSha256: "a".repeat(64),
+                  artifactByteSize: 100,
+                  manifestSha256: "b".repeat(64),
+                  manifestByteSize: 200,
+                  fingerprint: "render-fingerprint",
+                },
+              ],
+            },
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.requestRevisionExport({
+        workspaceId: "workspace-1",
+        designId: "design-1",
+        revisionId: "revision-1",
+        idempotencyKey: "export-request-1",
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { jobId: "job-1", state: "queued" },
+    });
+    await expect(api.renderJob("workspace-1", "job-1")).resolves.toMatchObject({
+      ok: true,
+      value: {
+        state: "completed",
+        outputs: [{ format: "svg", artifactByteSize: 100 }],
+      },
+    });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      type: "revision.export.request",
+      workspaceId: "workspace-1",
+      designId: "design-1",
+      revisionId: "revision-1",
+      idempotencyKey: "export-request-1",
+    });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      type: "render.job",
+      workspaceId: "workspace-1",
+      jobId: "job-1",
+    });
+  });
 });
 
 function jsonResponse(value: unknown, status: number): Response {
@@ -156,4 +247,11 @@ function jsonResponse(value: unknown, status: number): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+function requestBody(body: BodyInit | null | undefined): string {
+  if (typeof body !== "string") {
+    throw new Error("Expected a JSON request body.");
+  }
+  return body;
 }

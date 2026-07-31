@@ -2,7 +2,6 @@ import { Buffer } from "node:buffer";
 
 import { RENDER_RESOURCE_LIMITS } from "@glyphkiln/core";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 import type {
   AppResult,
@@ -14,9 +13,11 @@ import { readBoundedBinaryRequest } from "@/server/http/binary-request";
 import { readCookie, verifySameOriginRequest } from "@/server/http/json-request";
 import {
   ResourceIngestionError,
+  ResourceUploadMetadataSchema,
   type AdmittedResourceIngestion,
   type ResourceAdmission,
   type ResourceIngestionService,
+  type ResourceUploadMetadata,
 } from "@/server/resources";
 import { getAppResourceIngestion, getAppWorkflow } from "@/server/runtime";
 
@@ -37,59 +38,6 @@ const RESPONSE_HEADERS = {
   "Referrer-Policy": "no-referrer",
   "X-Content-Type-Options": "nosniff",
 };
-
-const identifier = z.string().regex(/^[A-Za-z0-9](?:[A-Za-z0-9._:-]{0,127})$/u);
-const inertText = (maximum: number) =>
-  z
-    .string()
-    .min(1)
-    .max(maximum)
-    .refine((value) => value === value.trim())
-    .refine((value) => value.isWellFormed())
-    .refine((value) => !containsControlCharacter(value));
-const optionalText = (maximum: number) => inertText(maximum).optional();
-const origin = z
-  .object({
-    kind: z.enum(["user-upload", "licensed-library", "generated", "unknown"]),
-    sourceName: optionalText(200),
-    sourceReference: optionalText(500),
-    generativeImageModel: optionalText(200),
-  })
-  .strict();
-const license = z
-  .object({
-    status: z.enum(["owned", "licensed", "public-domain", "unknown"]),
-    identifier: optionalText(128),
-    name: optionalText(200),
-    reference: optionalText(500),
-    notes: optionalText(2_000),
-  })
-  .strict();
-const commonMetadata = {
-  workspaceId: identifier,
-  originalFilename: inertText(255)
-    .refine((value) => !/[\\/]/u.test(value))
-    .optional(),
-  origin,
-  license,
-};
-const metadataSchema = z.discriminatedUnion("kind", [
-  z
-    .object({
-      ...commonMetadata,
-      kind: z.literal("raster-asset"),
-    })
-    .strict(),
-  z
-    .object({
-      ...commonMetadata,
-      kind: z.literal("font"),
-      family: inertText(120),
-      weight: z.number().int().min(100).max(900).multipleOf(100),
-      style: z.enum(["normal", "italic"]),
-    })
-    .strict(),
-]);
 
 type ResourceRouteDependencies = {
   authorize(
@@ -193,11 +141,9 @@ export function createResourceRoute(
 
 export const POST = createResourceRoute();
 
-type ResourceMetadata = z.infer<typeof metadataSchema>;
-
 function parseMetadata(
   input: string | null,
-): { ok: true; value: ResourceMetadata } | { ok: false; response: NextResponse } {
+): { ok: true; value: ResourceUploadMetadata } | { ok: false; response: NextResponse } {
   if (
     input === null ||
     input.length < 1 ||
@@ -212,7 +158,9 @@ function parseMetadata(
       return { ok: false, response: invalidMetadata() };
     }
     const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    const parsed = metadataSchema.safeParse(JSON.parse(decoded) as unknown);
+    const parsed = ResourceUploadMetadataSchema.safeParse(
+      JSON.parse(decoded) as unknown,
+    );
     return parsed.success
       ? { ok: true, value: parsed.data }
       : { ok: false, response: invalidMetadata() };
@@ -223,7 +171,7 @@ function parseMetadata(
 
 async function ingest(
   service: AdmittedResourceIngestion,
-  metadata: ResourceMetadata,
+  metadata: ResourceUploadMetadata,
   actorUserId: string,
   mediaType: string,
   bytes: Uint8Array,
@@ -365,17 +313,4 @@ function jsonFailure(
     { ok: false, status, error: { code, title, detail } },
     { status, headers: { ...RESPONSE_HEADERS, ...additionalHeaders } },
   );
-}
-
-function containsControlCharacter(value: string): boolean {
-  for (const character of value) {
-    const codePoint = character.codePointAt(0);
-    if (
-      codePoint !== undefined &&
-      (codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f))
-    ) {
-      return true;
-    }
-  }
-  return false;
 }

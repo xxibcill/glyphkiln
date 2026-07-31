@@ -8,8 +8,10 @@ import {
 import type { SqlDatabase } from "../persistence/database";
 import type { ClaimedRenderJob } from "../render-queue";
 import {
+  REVISION_RESOURCE_REFERENCE_COLUMNS,
+  mapRevisionResourceReference,
   resourceReferencesMatchDocument,
-  type RevisionResourceReference,
+  type RevisionResourceReferenceRow,
 } from "../resources/revision-resource-provenance";
 import { hasCapability, type WorkspaceRole } from "../security/workspace-policy";
 
@@ -19,12 +21,6 @@ type RevisionRow = {
   brand_snapshot: unknown;
   brand_hash: string;
   role: WorkspaceRole;
-};
-
-type ResourceReferenceRow = {
-  resource_id: string;
-  resource_kind: "raster-asset" | "font";
-  ordinal: number | string;
 };
 
 export class RenderRevisionError extends Error {
@@ -114,20 +110,26 @@ export async function loadAuthorizedRenderRevision(
   ) {
     throw corruptedRevision();
   }
-  const resourceRows = await database.query<ResourceReferenceRow>(
-    `SELECT resource_id, resource_kind, ordinal
-       FROM design_revision_resources
-      WHERE workspace_id = $1
-        AND design_id = $2
-        AND revision_id = $3
-      ORDER BY resource_kind, ordinal`,
+  const resourceRows = await database.query<RevisionResourceReferenceRow>(
+    `SELECT ${REVISION_RESOURCE_REFERENCE_COLUMNS}
+       FROM design_revision_resources AS reference
+       JOIN resource_versions AS resource
+         ON resource.workspace_id = reference.workspace_id
+        AND resource.id = reference.resource_id
+        AND resource.kind = reference.resource_kind
+      WHERE reference.workspace_id = $1
+        AND reference.design_id = $2
+        AND reference.revision_id = $3
+      ORDER BY reference.resource_kind, reference.ordinal`,
     [claim.workspaceId, claim.designId, claim.revisionId],
   );
-  const references: RevisionResourceReference[] = resourceRows.map((resourceRow) => ({
-    resourceId: resourceRow.resource_id,
-    resourceKind: resourceRow.resource_kind,
-    ordinal: Number(resourceRow.ordinal),
-  }));
+  const references = resourceRows.flatMap((resourceRow) => {
+    const reference = mapRevisionResourceReference(resourceRow);
+    return reference === undefined ? [] : [reference];
+  });
+  if (references.length !== resourceRows.length) {
+    throw corruptedRevision();
+  }
   if (!resourceReferencesMatchDocument(validation.data, references)) {
     throw corruptedRevision();
   }

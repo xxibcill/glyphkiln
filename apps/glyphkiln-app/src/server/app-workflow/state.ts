@@ -12,7 +12,13 @@ import type {
   SqlParameters,
   SqlTransaction,
 } from "@/server/persistence/database";
-import type { RevisionResourceReference } from "@/server/resources/revision-resource-provenance";
+import {
+  REVISION_RESOURCE_REFERENCE_COLUMNS,
+  mapRevisionResourceReference,
+  type RevisionResourcePin,
+  type RevisionResourceReference,
+  type RevisionResourceReferenceRow,
+} from "@/server/resources/revision-resource-provenance";
 import type { WorkspaceRole } from "@/server/security/workspace-policy";
 
 export type AuthenticatedSessionRecord = {
@@ -54,7 +60,7 @@ export type StoredDesignHead = {
   headRevisionNumber: number;
 };
 
-export type DesignRevisionResourceReference = RevisionResourceReference;
+export type DesignRevisionResourcePin = RevisionResourcePin;
 
 export type StoredDesignRevision = {
   designId: string;
@@ -65,7 +71,7 @@ export type StoredDesignRevision = {
   brandSnapshotId: string;
   canonicalHash: string;
   document: DesignDocument;
-  resourceReferences: DesignRevisionResourceReference[];
+  resourceReferences: RevisionResourceReference[];
   createdAt: Date;
   changeNote?: string;
 };
@@ -915,7 +921,7 @@ export class AppState {
     brandSnapshotId: string;
     document: DesignDocument;
     canonicalHash: string;
-    resourceReferences?: readonly DesignRevisionResourceReference[];
+    resourceReferences?: readonly DesignRevisionResourcePin[];
     changeNote?: string;
     createdBy: string;
     createdAt: Date;
@@ -1032,18 +1038,25 @@ export class AppState {
     );
     const row = rows.at(0);
     if (row === undefined) return undefined;
-    const resourceRows = await this.#query<{
-      resource_id: string;
-      resource_kind: "raster-asset" | "font";
-      ordinal: number | string;
-    }>(
-      `SELECT resource_id, resource_kind, ordinal
-         FROM design_revision_resources
-        WHERE workspace_id = $1
-          AND revision_id = $2
-        ORDER BY resource_kind, ordinal`,
+    const resourceRows = await this.#query<RevisionResourceReferenceRow>(
+      `SELECT ${REVISION_RESOURCE_REFERENCE_COLUMNS}
+         FROM design_revision_resources AS reference
+         JOIN resource_versions AS resource
+           ON resource.workspace_id = reference.workspace_id
+          AND resource.id = reference.resource_id
+          AND resource.kind = reference.resource_kind
+        WHERE reference.workspace_id = $1
+          AND reference.revision_id = $2
+        ORDER BY reference.resource_kind, reference.ordinal`,
       [input.workspaceId, row.revision_id],
     );
+    const resourceReferences = resourceRows.flatMap((resourceRow) => {
+      const reference = mapRevisionResourceReference(resourceRow);
+      return reference === undefined ? [] : [reference];
+    });
+    if (resourceReferences.length !== resourceRows.length) {
+      throw new Error("Stored revision resource metadata is invalid.");
+    }
     return {
       designId: row.design_id,
       designName: row.design_name,
@@ -1055,11 +1068,7 @@ export class AppState {
       brandSnapshotId: row.brand_snapshot_id,
       canonicalHash: row.canonical_hash,
       document: parseJson<DesignDocument>(row.design_document),
-      resourceReferences: resourceRows.map((resourceRow) => ({
-        resourceId: resourceRow.resource_id,
-        resourceKind: resourceRow.resource_kind,
-        ordinal: Number(resourceRow.ordinal),
-      })),
+      resourceReferences,
       createdAt: asDate(row.created_at),
       ...(row.change_note === null ? {} : { changeNote: row.change_note }),
     };

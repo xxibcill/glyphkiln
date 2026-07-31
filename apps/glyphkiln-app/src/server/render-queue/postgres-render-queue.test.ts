@@ -312,6 +312,41 @@ describe("PostgresRenderQueue", () => {
     });
   });
 
+  it("claims the oldest eligible workspace job even when its retry became available later", async () => {
+    const fixture = await seedRenderJobFixture(database, "oldest-retry");
+    await queue.enqueue({
+      ...enqueueInput(fixture, "job-oldest-retry", "request-oldest-retry", 2),
+      createdAt: new Date("2026-07-31T02:00:00.000Z"),
+    });
+    const firstAttempt = requireClaim(
+      await queue.claim({
+        workerId: "worker-oldest-retry-first",
+        now: new Date("2026-07-31T02:00:00.000Z"),
+      }),
+    );
+    await queue.retry(
+      firstAttempt,
+      { code: "RENDER_TIMEOUT", detail: "Isolated renderer timed out." },
+      new Date("2026-07-31T02:00:02.000Z"),
+      new Date("2026-07-31T02:00:00.100Z"),
+    );
+    await queue.enqueue({
+      ...enqueueInput(fixture, "job-newer-queued", "request-newer-queued"),
+      createdAt: new Date("2026-07-31T02:00:01.000Z"),
+      manifestCreationTimestamp: new Date("2026-07-31T02:00:01.000Z"),
+    });
+
+    await expect(
+      queue.claim({
+        workerId: "worker-oldest-retry-second",
+        now: new Date("2026-07-31T02:00:02.000Z"),
+      }),
+    ).resolves.toMatchObject({
+      attemptNumber: 2,
+      jobId: "job-oldest-retry",
+    });
+  });
+
   it("places a newly active workspace behind already waiting work", async () => {
     const established = await seedRenderJobFixture(database, "fair-established");
     await queue.enqueue(

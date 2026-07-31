@@ -11,6 +11,8 @@ import type {
   ValidationProblem,
 } from "@glyphkiln/core";
 
+import { compareCanonicalStrings } from "@/server/deterministic-order";
+
 import type { ManualDraft } from "./contracts";
 
 const DEVELOPMENT_FONT_WEIGHTS = [400, 500, 600, 700, 800] as const;
@@ -54,7 +56,7 @@ export function constructManualDocument(input: {
 }): DocumentConstruction {
   const template = TEMPLATE_REGISTRY[input.draft.templateId];
   const assets = [...(input.assets ?? [])].sort((left, right) =>
-    left.id.localeCompare(right.id),
+    compareCanonicalStrings(left.id, right.id),
   );
   const selectedFonts = [...(input.fonts ?? [])].sort(compareFonts);
   const selectedFontKeys = new Set(selectedFonts.map(fontKey));
@@ -147,7 +149,7 @@ function copyFontResourceVersion(
 }
 
 function compareFonts(left: FontDeclaration, right: FontDeclaration): number {
-  return fontKey(left).localeCompare(fontKey(right));
+  return compareCanonicalStrings(fontKey(left), fontKey(right));
 }
 
 function fontKey(font: FontDeclaration): string {

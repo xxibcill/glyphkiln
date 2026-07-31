@@ -59,7 +59,56 @@ describe("constructManualDocument", () => {
       problems: [{ path: "layers[0].text" }],
     });
   });
+
+  it("orders user-controlled Unicode font families without host locale collation", () => {
+    const resourceVersions = {
+      assets: [],
+      fonts: [fontVersion("font-z", "z"), fontVersion("font-a-umlaut", "ä")],
+    };
+    const result = constructManualDocument({
+      documentId: "design_unicode_fonts",
+      brand: brandSnapshot(),
+      draft: {
+        templateId: "quote-card",
+        format: "instagram-square",
+        seed: "manual-seed",
+        mode: "light",
+        layers: quoteLayers(),
+      },
+      fonts: resourceVersions.fonts.map((font) => ({
+        family: font.family,
+        weight: font.weight,
+        style: font.style,
+        sha256: font.sha256,
+      })),
+      resourceVersions,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected a valid manual document.");
+    expect(result.document.fonts.slice(-2).map((font) => font.family)).toEqual([
+      "z",
+      "ä",
+    ]);
+    expect(result.document.metadata).toMatchObject({
+      resourceVersions: {
+        fonts: [{ family: "z" }, { family: "ä" }],
+      },
+    });
+  });
 });
+
+function fontVersion(id: string, family: string) {
+  return {
+    id,
+    family,
+    weight: 400,
+    style: "normal" as const,
+    sha256: id === "font-z" ? "a".repeat(64) : "b".repeat(64),
+    origin: { kind: "licensed-library" as const },
+    license: { status: "licensed" as const, identifier: `${id}-license` },
+  };
+}
 
 function brandSnapshot(): BrandSnapshot {
   return {

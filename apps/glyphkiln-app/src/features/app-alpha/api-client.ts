@@ -199,6 +199,61 @@ const RenderReceiptSchema = z
   })
   .strict();
 
+const RenderJobStateSchema = z.enum([
+  "claimed",
+  "completed",
+  "exhausted",
+  "failed",
+  "queued",
+  "retry_wait",
+]);
+
+const RenderJobOutputSchema = z
+  .object({
+    format: z.enum(["svg", "png"]),
+    mimeType: z.enum(["image/svg+xml", "image/png"]),
+    artifactSha256: z.string().regex(/^[0-9a-f]{64}$/),
+    artifactByteSize: z.number().int().positive(),
+    manifestSha256: z.string().regex(/^[0-9a-f]{64}$/),
+    manifestByteSize: z.number().int().positive(),
+    fingerprint: z.string().min(1),
+  })
+  .strict();
+
+const RenderJobQueuedSchema = z
+  .object({
+    kind: z.literal("render-job-queued"),
+    jobId: z.string().min(1),
+    workspaceId: z.string().min(1),
+    state: RenderJobStateSchema,
+    created: z.boolean(),
+  })
+  .strict();
+
+const RenderJobSchema = z
+  .object({
+    kind: z.literal("render-job"),
+    jobId: z.string().min(1),
+    workspaceId: z.string().min(1),
+    designId: z.string().min(1),
+    revisionId: z.string().min(1),
+    state: RenderJobStateSchema,
+    attemptCount: z.number().int().nonnegative(),
+    maxAttempts: z.number().int().positive(),
+    createdAt: z.string().min(1),
+    updatedAt: z.string().min(1),
+    finishedAt: z.string().min(1).optional(),
+    lastError: z
+      .object({
+        code: z.string().min(1),
+        detail: z.string().min(1),
+      })
+      .strict()
+      .optional(),
+    outputs: z.array(RenderJobOutputSchema).max(2),
+  })
+  .strict();
+
 export type ApiFailure = {
   ok: false;
   status: number;
@@ -230,6 +285,9 @@ export type BrandSnapshotProjection = z.infer<typeof BrandSnapshotProjectionSche
 export type SavedDesign = z.infer<typeof DesignSavedSchema>;
 export type DesignRevision = z.infer<typeof DesignRevisionSchema>;
 export type CreatedInvitation = z.infer<typeof InvitationCreatedSchema>;
+export type QueuedRenderJob = z.infer<typeof RenderJobQueuedSchema>;
+export type RenderJob = z.infer<typeof RenderJobSchema>;
+export type RenderJobOutput = z.infer<typeof RenderJobOutputSchema>;
 
 export type AppAlphaApi = {
   currentSession: () => Promise<ApiResult<CurrentSession>>;
@@ -300,6 +358,13 @@ export type AppAlphaApi = {
     designId: string;
     revisionId: string;
   }) => Promise<ApiResult<PreviewSuccess>>;
+  requestRevisionExport: (input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+    idempotencyKey: string;
+  }) => Promise<ApiResult<QueuedRenderJob>>;
+  renderJob: (workspaceId: string, jobId: string) => Promise<ApiResult<RenderJob>>;
 };
 
 type FetchImplementation = (
@@ -485,6 +550,20 @@ export function createAppAlphaApi(
       return parseRenderedReceipt(
         await command({ type: "revision.render", ...input }),
         "revision-rendered",
+      );
+    },
+    async requestRevisionExport(input) {
+      return parseValue(
+        await command({ type: "revision.export.request", ...input }),
+        RenderJobQueuedSchema,
+        (value) => value,
+      );
+    },
+    async renderJob(workspaceId, jobId) {
+      return parseValue(
+        await query({ type: "render.job", workspaceId, jobId }),
+        RenderJobSchema,
+        (value) => value,
       );
     },
   };

@@ -192,7 +192,7 @@ export class PostgresRenderQueue implements RenderQueue {
                   AND lease_expires_at <= $1
                 )
               )
-            ORDER BY workspace_id, available_at, created_at, id
+            ORDER BY workspace_id, created_at, id, available_at
          )
          SELECT jobs.*
            FROM workspace_candidates AS candidate

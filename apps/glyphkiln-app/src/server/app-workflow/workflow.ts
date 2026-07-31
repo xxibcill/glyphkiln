@@ -10,6 +10,7 @@ import type {
 
 import type { PreviewResponse } from "@/features/project-preview/types";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
+import { compareCanonicalStrings } from "@/server/deterministic-order";
 import type { SqlDatabase } from "@/server/persistence/database";
 import {
   RenderQueueError,
@@ -30,7 +31,7 @@ import {
 import type { ResourceStore } from "@/server/resources";
 import {
   resourceReferencesMatchDocument,
-  type RevisionResourceReference,
+  type RevisionResourcePin,
 } from "@/server/resources/revision-resource-provenance";
 import {
   Argon2idPasswordHasher,
@@ -141,7 +142,7 @@ type AuthenticatedContext = {
 type ManualResourceDeclarations = {
   assets: AssetDeclaration[];
   fonts: FontDeclaration[];
-  resourceReferences: RevisionResourceReference[];
+  resourceReferences: RevisionResourcePin[];
   resourceVersions: ManualResourceVersions;
 };
 
@@ -1493,7 +1494,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         license: { ...resource.license },
       });
     }
-    assetVersions.sort((left, right) => left.id.localeCompare(right.id));
+    assetVersions.sort((left, right) => compareCanonicalStrings(left.id, right.id));
     fontVersions.sort(compareResourceFontVersions);
     return {
       assets,
@@ -1719,11 +1720,10 @@ function compareResourceFontVersions(
   left: ManualResourceVersions["fonts"][number],
   right: ManualResourceVersions["fonts"][number],
 ): number {
-  return [left.family, left.weight.toString(), left.style, left.id]
-    .join("\u0000")
-    .localeCompare(
-      [right.family, right.weight.toString(), right.style, right.id].join("\u0000"),
-    );
+  return compareCanonicalStrings(
+    [left.family, left.weight.toString(), left.style, left.id].join("\u0000"),
+    [right.family, right.weight.toString(), right.style, right.id].join("\u0000"),
+  );
 }
 
 function toRenderJobProjection(job: RenderJobView): QueryProjection {

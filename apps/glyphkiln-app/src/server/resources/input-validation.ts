@@ -62,6 +62,33 @@ const commonShape = {
   license: licenseSchema,
 } as const;
 
+const resourceUploadMetadataShape = {
+  workspaceId: identifierSchema,
+  originalFilename: originalFilenameSchema.optional(),
+  origin: originSchema,
+  license: licenseSchema,
+} as const;
+
+export const ResourceUploadMetadataSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      ...resourceUploadMetadataShape,
+      kind: z.literal("raster-asset"),
+    })
+    .strict(),
+  z
+    .object({
+      ...resourceUploadMetadataShape,
+      kind: z.literal("font"),
+      family: boundedInertString(120),
+      weight: z.number().int().min(100).max(900).multipleOf(100),
+      style: z.enum(["normal", "italic"]),
+    })
+    .strict(),
+]);
+
+export type ResourceUploadMetadata = z.infer<typeof ResourceUploadMetadataSchema>;
+
 const rasterInputSchema = z
   .object({
     ...commonShape,

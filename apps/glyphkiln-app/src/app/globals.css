@@ -2434,6 +2434,178 @@ textarea:focus-visible {
   font-size: 0.72rem;
 }
 
+.durable-export-station {
+  display: grid;
+  width: min(100%, 120rem);
+  gap: var(--space-5);
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3.2vw, 3rem);
+  border-bottom: 1px solid var(--ink-1);
+  background: var(--paper-2);
+}
+
+.durable-export-introduction > span {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.durable-export-introduction h3 {
+  max-width: 24ch;
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.durable-export-introduction p,
+.durable-export-failure p {
+  max-width: 58rem;
+  margin: var(--space-3) 0 0;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+
+.durable-export-control {
+  display: grid;
+  align-content: center;
+  gap: var(--space-3);
+}
+
+.durable-export-control > small {
+  color: var(--ink-3);
+  font-size: 0.7rem;
+}
+
+.durable-export-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding-block: var(--space-2);
+  border-block: 1px solid var(--rule);
+}
+
+.durable-export-status > i {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  background: var(--paper-0);
+}
+
+.durable-export-status[data-state="completed"] {
+  color: var(--sage);
+}
+
+.durable-export-status[data-state="completed"] > i {
+  background: var(--sage);
+}
+
+.durable-export-status[data-state="failed"],
+.durable-export-status[data-state="exhausted"] {
+  color: var(--error);
+}
+
+.durable-export-status[data-state="queued"],
+.durable-export-status[data-state="claimed"],
+.durable-export-status[data-state="retry_wait"],
+.durable-export-status[data-state="requesting"] {
+  color: var(--clay-dark);
+}
+
+.durable-export-status[data-state="queued"] > i,
+.durable-export-status[data-state="claimed"] > i,
+.durable-export-status[data-state="retry_wait"] > i,
+.durable-export-status[data-state="requesting"] > i {
+  background: var(--clay);
+}
+
+.durable-export-status > span {
+  display: grid;
+  min-width: 0;
+}
+
+.durable-export-status strong {
+  font-size: 0.78rem;
+}
+
+.durable-export-status small {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.durable-export-failure {
+  padding: var(--space-3);
+  border: 1px solid var(--error);
+  color: var(--error);
+  background: var(--error-paper);
+}
+
+.durable-output-list {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule-strong);
+  list-style: none;
+}
+
+.durable-output-list li {
+  display: grid;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.durable-output-list li > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.durable-output-list li > div:first-child > span {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.durable-output-list small {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.durable-output-list li > div:last-child {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.durable-output-list a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--ink-1);
+  color: var(--ink-1);
+  background: var(--paper-0);
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .app-workshop-grid {
   padding-top: clamp(2rem, 5vw, 4rem);
 }
@@ -2532,6 +2704,11 @@ textarea:focus-visible {
     align-items: center;
     gap: var(--space-5);
   }
+
+  .durable-output-list li {
+    grid-template-columns: minmax(12rem, 0.8fr) minmax(18rem, 1fr);
+    align-items: center;
+  }
 }
 
 @media (min-width: 64rem) {
@@ -2581,6 +2758,11 @@ textarea:focus-visible {
   .design-lifecycle {
     grid-template-columns: minmax(18rem, 0.9fr) minmax(20rem, 1fr) minmax(14rem, 0.62fr);
     align-items: end;
+  }
+
+  .durable-export-station {
+    grid-template-columns: minmax(22rem, 1.2fr) minmax(18rem, 0.8fr);
+    align-items: center;
   }
 }
 

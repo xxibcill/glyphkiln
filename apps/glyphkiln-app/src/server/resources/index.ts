@@ -28,6 +28,10 @@ export {
   type ResourceIngestionServiceOptions,
 } from "./ingestion-service";
 export {
+  ResourceUploadMetadataSchema,
+  type ResourceUploadMetadata,
+} from "./input-validation";
+export {
   RejectByDefaultMalwareScanner,
   rejectByDefaultMalwareScanner,
   type MalwareScanner,

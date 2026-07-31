@@ -84,6 +84,22 @@ describe("AppAlpha", () => {
     expect(container.textContent).toContain("SAVED · NOT RENDERED");
     expect(container.textContent).not.toContain("Deliberate downloads");
 
+    clickButton("Queue durable export");
+    await waitForText("Durable export complete");
+    expect(api.requestRevisionExport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: "workspace-1",
+        designId: "design-1",
+        revisionId: "revision-1",
+      }),
+    );
+    expect(api.renderJob).toHaveBeenCalledWith("workspace-1", "render-job-1");
+    expect(
+      container.querySelector<HTMLAnchorElement>(
+        'a[href="/api/app/exports/workspace-1/render-job-1/svg/artifact"]',
+      )?.textContent,
+    ).toBe("Download SVG");
+
     clickButton("Render saved revision");
     await waitForText("Exact revision 1 rendered");
 
@@ -141,6 +157,22 @@ describe("AppAlpha", () => {
     expect(container.textContent).not.toContain("one-time-token-for-editor-example");
   });
 
+  it("allows admins to issue admin invitations", async () => {
+    const api = createWorkflowApi({ role: "admin" });
+    act(() => {
+      root.render(<AppAlpha catalog={catalog} api={api} />);
+    });
+    await waitForText("Brand snapshot 1.0.0 loaded");
+
+    clickButton("Invitations");
+    await waitForText("Invite a collaborator");
+
+    expect(
+      container.querySelector<HTMLOptionElement>('#invite-role option[value="admin"]')
+        ?.textContent,
+    ).toBe("Admin");
+  });
+
   function clickButton(label: string): void {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -177,11 +209,15 @@ describe("AppAlpha", () => {
   }
 });
 
-function createWorkflowApi(): AppAlphaApi & {
+function createWorkflowApi(
+  options: { role?: "owner" | "admin" | "editor" | "viewer" } = {},
+): AppAlphaApi & {
   createDesign: ReturnType<typeof vi.fn<AppAlphaApi["createDesign"]>>;
   reviseDesign: ReturnType<typeof vi.fn<AppAlphaApi["reviseDesign"]>>;
   revision: ReturnType<typeof vi.fn<AppAlphaApi["revision"]>>;
   renderRevision: ReturnType<typeof vi.fn<AppAlphaApi["renderRevision"]>>;
+  requestRevisionExport: ReturnType<typeof vi.fn<AppAlphaApi["requestRevisionExport"]>>;
+  renderJob: ReturnType<typeof vi.fn<AppAlphaApi["renderJob"]>>;
   createInvitation: ReturnType<typeof vi.fn<AppAlphaApi["createInvitation"]>>;
 } {
   let storedRevision: DesignRevision | undefined;
@@ -265,6 +301,59 @@ function createWorkflowApi(): AppAlphaApi & {
       },
     }),
   );
+  const requestRevisionExport = vi.fn<AppAlphaApi["requestRevisionExport"]>(() =>
+    Promise.resolve({
+      ok: true,
+      value: {
+        kind: "render-job-queued",
+        jobId: "render-job-1",
+        workspaceId: "workspace-1",
+        state: "queued",
+        created: true,
+      },
+    }),
+  );
+  const renderJob = vi.fn<AppAlphaApi["renderJob"]>(() => {
+    if (storedRevision === undefined) {
+      return Promise.resolve(missingResource());
+    }
+    return Promise.resolve({
+      ok: true,
+      value: {
+        kind: "render-job",
+        jobId: "render-job-1",
+        workspaceId: "workspace-1",
+        designId: storedRevision.designId,
+        revisionId: storedRevision.revisionId,
+        state: "completed",
+        attemptCount: 1,
+        maxAttempts: 3,
+        createdAt: "2026-07-31T01:00:00.000Z",
+        updatedAt: "2026-07-31T01:00:01.000Z",
+        finishedAt: "2026-07-31T01:00:01.000Z",
+        outputs: [
+          {
+            format: "svg",
+            mimeType: "image/svg+xml",
+            artifactSha256: "a".repeat(64),
+            artifactByteSize: 100,
+            manifestSha256: "b".repeat(64),
+            manifestByteSize: 200,
+            fingerprint: "durable-svg-fingerprint",
+          },
+          {
+            format: "png",
+            mimeType: "image/png",
+            artifactSha256: "c".repeat(64),
+            artifactByteSize: 300,
+            manifestSha256: "d".repeat(64),
+            manifestByteSize: 200,
+            fingerprint: "durable-png-fingerprint",
+          },
+        ],
+      },
+    });
+  });
 
   return {
     currentSession: () =>
@@ -281,7 +370,7 @@ function createWorkflowApi(): AppAlphaApi & {
               id: "workspace-1",
               name: "Foundry Studio",
               slug: "foundry-studio",
-              role: "owner",
+              role: options.role ?? "owner",
             },
           ],
           expiresAt: "2026-08-30T01:00:00.000Z",
@@ -302,7 +391,7 @@ function createWorkflowApi(): AppAlphaApi & {
             id: "workspace-1",
             name: "Foundry Studio",
             slug: "foundry-studio",
-            role: "owner",
+            role: options.role ?? "owner",
           },
           brandKits: [
             {
@@ -349,6 +438,8 @@ function createWorkflowApi(): AppAlphaApi & {
     reviseDesign,
     revision,
     renderRevision,
+    requestRevisionExport,
+    renderJob,
   };
 }
 
