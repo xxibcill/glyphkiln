@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "kiln-ledger-edition-01",
+  "template": {
+    "id": "product-announcement",
+    "version": "1.1.1"
+  },
+  "format": "linkedin-landscape",
+  "seed": "kiln-ledger-edition-01",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-kiln-ledger-2026-07",
+    "version": "1.0.0",
+    "name": "Kiln Ledger",
+    "palette": {
+      "primary": "#29231F",
+      "secondary": "#526A60",
+      "accent": "#A83F22",
+      "neutrals": ["#F1E8DA", "#29231F"]
+    },
+    "themes": {
+      "light": {
+        "background": "#F1E8DA",
+        "surface": "#FFF9F0",
+        "text": "#29231F",
+        "mutedText": "#675B50"
+      },
+      "dark": {
+        "background": "#25211E",
+        "surface": "#352F2A",
+        "text": "#FFF8EC",
+        "mutedText": "#CFC3B4"
+      }
+    },
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter",
+      "monospaceFamily": "Inter"
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 8, 16],
+    "visualDensity": "balanced",
+    "preferredProceduralStyles": ["recursive-subdivision"],
+    "safeArea": {
+      "top": 0.07,
+      "right": 0.07,
+      "bottom": 0.07,
+      "left": 0.07
+    },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai"]
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "layers": [
+    {
+      "id": "background",
+      "type": "background"
+    },
+    {
+      "id": "kiln-tiles",
+      "type": "procedural-decoration",
+      "style": "recursive-subdivision",
+      "intensity": 0.52,
+      "density": 0.68,
+      "complexity": 0.64,
+      "contrast": 0.38,
+      "quietRegion": {
+        "x": 0.04,
+        "y": 0.11,
+        "width": 0.73,
+        "height": 0.64
+      }
+    },
+    {
+      "id": "eyebrow",
+      "type": "eyebrow",
+      "text": "WORKSHOP PROOF / EDITION 01"
+    },
+    {
+      "id": "headline",
+      "type": "headline",
+      "text": "Turn structured content into reproducible graphics"
+    },
+    {
+      "id": "subtitle",
+      "type": "subtitle",
+      "text": "A local, versioned workflow for teams who need the same pixels every time."
+    },
+    {
+      "id": "cta",
+      "type": "cta",
+      "text": "Inspect the proof ledger →"
+    }
+  ],
+  "metadata": {
+    "project": "kiln-ledger",
+    "purpose": "deterministic-example",
+    "reviewed": true
+  }
+}
