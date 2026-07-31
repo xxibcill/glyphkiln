@@ -38,6 +38,19 @@ layers, and use metadata only for non-pixel grouping and ordering. Applications
 may coordinate an ordered slide pack without introducing pages, expressions, or
 filesystem references into a design document.
 
+## Image-led campaign policy
+
+`image-led-campaign@1.0.0` is the first brand-fidelity family. It supports
+LinkedIn landscape, Instagram square, and Instagram portrait with one required
+full-bleed `image`, contained `logo`, and `headline`; `eyebrow`, `subtitle`, and
+`cta` are optional. The image must use cover fit and may provide only a
+normalized focal point plus `none`, `dark-scrim`, or `light-scrim`.
+
+Display, body, and label roles control exact family/weight and bounded tracking
+and line height. Text contrast is checked against fixed samples from the actual
+cropped and treated raster. The renderer returns crop, safe-area, text-bound,
+overflow, and contrast proof from the same scene used for SVG and PNG.
+
 ## TikTok carousel policy
 
 Author `tiktok-carousel-slide@1.0.3` targets organic photo posts, while the

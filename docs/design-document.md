@@ -1,7 +1,7 @@
 # Design-document specification
 
 `DesignDocument` is strict, JSON-compatible, and currently versioned at
-`1.3.0`. Schemas `1.0.0`, `1.1.0`, and `1.2.0` remain readable. The organic
+`1.4.0`. Schemas `1.0.0`, `1.1.0`, `1.2.0`, and `1.3.0` remain readable. The organic
 TikTok photo-carousel format requires `1.3.0`; preserved 9:16 carousel documents
 remain valid in `1.1.0` and newer. Unknown properties are rejected at
 every structural object. The Zod schema provides TypeScript
@@ -36,6 +36,12 @@ Matched phrases lose internal line-break opportunities without introducing
 markup or layout code. Earlier schema versions reject the field. See
 [Typography wrapping](typography-wrapping.md).
 
+Schema `1.4.0` adds optional `display`, `body`, and `label` typography roles.
+Each role has an exact family and weight plus bounded line height and tracking;
+the selected template decides which semantic layer consumes a role. It also
+adds normalized image `focalPoint` and the closed `none`, `dark-scrim`, and
+`light-scrim` treatment IDs. Earlier schemas reject these fields.
+
 ## Layer union
 
 | Type                                     | Role                                                   |
@@ -58,6 +64,7 @@ Templates explicitly declare which semantic layers they implement:
 | `quote-card`            | `background`, `procedural-decoration`, `headline`, `attribution`                                                  |
 | `article-cover`         | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                       |
 | `tiktok-carousel-slide` | `background`, `procedural-decoration`, `badge`, `eyebrow`, `headline`, `subtitle` or `statistic`, `cta`, `footer` |
+| `image-led-campaign`    | `background`, `image`, `logo`, `eyebrow`, `headline`, `subtitle`, `cta`                                           |
 
 A template accepts at most one visible layer of each type. Unsupported,
 duplicate, or mutually exclusive visible layers are error-level quality issues
@@ -65,7 +72,7 @@ and block rendering; they are never silently ignored. The larger schema union
 allows future versioned templates to adopt additional semantics without adding
 freeform code or layout instructions.
 
-Versions `1.0.0`, `1.1.0`, `1.2.0`, and `1.3.0` deliberately do not expose arbitrary
+All supported versions deliberately do not expose arbitrary
 coordinates, CSS, markup, expressions, or scripts. That constraint keeps composition quality
 predictable and prevents a document from becoming a programming language.
 

@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_a8eeeca50cb6d6bd56697e05",
-  "renderFingerprint": "a8eeeca50cb6d6bd56697e05b60e2b3e1314e95664dc0d86965948aee0b62f1c",
+  "renderId": "render_0aa909ef74084f1d5fc7d3bd",
+  "renderFingerprint": "0aa909ef74084f1d5fc7d3bd9db2b040e65f3ec6723c7519c1ee94ebbb2a2daf",
   "designDocumentId": "example-quote-card",
   "designDocumentHash": "a5a7111cdb00322d31938f5210d913d3920b7fe5c3e7c20c27931c33c2b65ddc",
   "seed": "quote-systems-07",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.0",

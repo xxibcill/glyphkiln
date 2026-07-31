@@ -9,6 +9,7 @@ import {
 import type {
   PreviewCatalog,
   PreviewFormState,
+  PreviewTemplateId,
 } from "@/features/project-preview/types";
 
 export function buildManualDraft(
@@ -113,6 +114,7 @@ export function formFromStoredDocument(
   catalog: PreviewCatalog,
   previousState?: PreviewFormState,
 ): PreviewFormState {
+  const templateId = requireEditablePreviewTemplate(document, catalog);
   const state = previousState ?? createInitialPreviewForm(catalog);
   const selectedProceduralLayer = document.layers.find(
     (layer) => layer.type === "procedural-decoration",
@@ -133,7 +135,7 @@ export function formFromStoredDocument(
     brand: { ...next.brand, mode: document.mode },
     composition: {
       ...next.composition,
-      templateId: document.template.id,
+      templateId,
       formatId: document.format,
       seed: document.seed,
       ...(procedural === undefined
@@ -183,6 +185,21 @@ export function formFromStoredDocument(
       },
     },
   };
+}
+
+function requireEditablePreviewTemplate(
+  document: DesignDocument,
+  catalog: PreviewCatalog,
+): PreviewTemplateId {
+  const template = catalog.templates.find(
+    (candidate) => candidate.id === document.template.id,
+  );
+  if (template === undefined) {
+    throw new Error(
+      `Template "${document.template.id}" cannot be edited by the local preview controls.`,
+    );
+  }
+  return template.id;
 }
 
 export function manualDraftKey(draft: ManualDraft): string {

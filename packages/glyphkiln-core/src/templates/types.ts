@@ -4,6 +4,7 @@ import type { FontRegistry } from "../fonts/index.js";
 import type { FormatId } from "../formats/index.js";
 import type { DesignDocument, DesignLayer, TemplateId } from "../schema/index.js";
 import type { Scene } from "../renderer/scene.js";
+import type { RenderEvidence } from "../renderer/evidence.js";
 
 export type TemplateRenderContext = {
   document: DesignDocument;
@@ -15,6 +16,7 @@ export type TemplateRenderResult = {
   scene: Scene;
   qualityIssues: QualityIssue[];
   proceduralAlgorithmVersions: Record<string, string>;
+  evidence: RenderEvidence;
 };
 
 export type TemplateDefinition = {
@@ -23,6 +25,10 @@ export type TemplateDefinition = {
   requiredLayers: readonly DesignLayer["type"][];
   supportedLayers: readonly DesignLayer["type"][];
   mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];
+  requiredAssetFits?: readonly {
+    layerType: "logo" | "image" | "product-screenshot";
+    fit: "contain" | "cover";
+  }[];
   supportedFormats: readonly FormatId[];
   constraints: {
     headlineMaximumLines: number;

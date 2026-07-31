@@ -11,12 +11,19 @@ import {
   RENDERER_NAME,
   RENDERER_VERSION,
   RENDER_CONFIGURATION,
-  TEMPLATE_IDS,
   TEMPLATE_REGISTRY,
 } from "@glyphkiln/core";
-import type { ProceduralStyleId, TemplateId } from "@glyphkiln/core";
+import type { ProceduralStyleId } from "@glyphkiln/core";
 
-import type { PreviewCatalog } from "@/features/project-preview";
+import type { PreviewCatalog, PreviewTemplateId } from "@/features/project-preview";
+
+export const PREVIEW_TEMPLATE_IDS = [
+  "product-announcement",
+  "statistic-card",
+  "quote-card",
+  "article-cover",
+  "tiktok-carousel-slide",
+] as const satisfies readonly PreviewTemplateId[];
 
 const TEMPLATE_LABELS = {
   "product-announcement": "Product announcement",
@@ -24,7 +31,7 @@ const TEMPLATE_LABELS = {
   "quote-card": "Quote card",
   "article-cover": "Article cover",
   "tiktok-carousel-slide": "TikTok carousel slide",
-} satisfies Record<TemplateId, string>;
+} satisfies Record<PreviewTemplateId, string>;
 
 const PROCEDURAL_STYLE_LABELS = {
   "flow-field": "Flow field",
@@ -49,7 +56,7 @@ export function createPreviewCatalog(): PreviewCatalog {
       id,
       ...FORMAT_REGISTRY[id],
     })),
-    templates: TEMPLATE_IDS.map((id) => {
+    templates: PREVIEW_TEMPLATE_IDS.map((id) => {
       const template = TEMPLATE_REGISTRY[id];
       return {
         id,

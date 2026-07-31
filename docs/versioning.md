@@ -41,3 +41,10 @@ the renderer or manifest contracts. Template `tiktok-carousel-slide@1.0.3`
 owns the new 3:4 organic-photo composition. Versions `1.0.1` and `1.0.2` retain
 their exact 9:16 `tiktok-carousel` pixels and remain available for saved ad
 documents.
+
+Design schema `1.4.0` adds bounded brand typography roles plus focal-point and
+closed treatment fields for image layers. `image-led-campaign@1.0.0` owns the
+first adaptive image-led composition. Renderer `0.4.0` owns scaled role
+tracking, focal clipping, and pinned focal/treatment/contrast configuration.
+Legacy SVG and PNG bytes remain exact; their renderer identity and fingerprints
+deliberately change. Manifest `1.2.0` remains unchanged.

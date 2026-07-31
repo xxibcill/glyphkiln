@@ -13,11 +13,10 @@ import {
   RENDERER_NAME,
   RENDERER_VERSION,
   RENDER_CONFIGURATION,
-  TEMPLATE_IDS,
   TEMPLATE_REGISTRY,
 } from "@glyphkiln/core";
 
-import { createPreviewCatalog } from "./catalog";
+import { PREVIEW_TEMPLATE_IDS, createPreviewCatalog } from "./catalog";
 
 describe("createPreviewCatalog", () => {
   it("exposes every Core format without changing its dimensions or label", () => {
@@ -31,11 +30,13 @@ describe("createPreviewCatalog", () => {
     );
   });
 
-  it("exposes every Core template with its exact version and constraints", () => {
+  it("exposes every resource-free preview template with exact Core constraints", () => {
     const catalog = createPreviewCatalog();
 
-    expect(catalog.templates.map((template) => template.id)).toEqual(TEMPLATE_IDS);
-    for (const templateId of TEMPLATE_IDS) {
+    expect(catalog.templates.map((template) => template.id)).toEqual(
+      PREVIEW_TEMPLATE_IDS,
+    );
+    for (const templateId of PREVIEW_TEMPLATE_IDS) {
       const template = catalog.templates.find(
         (candidate) => candidate.id === templateId,
       );
@@ -48,6 +49,18 @@ describe("createPreviewCatalog", () => {
         description: TEMPLATE_REGISTRY[templateId].constraints.layout,
       });
     }
+  });
+
+  it("does not expose Core templates that require selected asset bytes", () => {
+    const catalog = createPreviewCatalog();
+
+    expect(catalog.templates).not.toContainEqual(
+      expect.objectContaining({ id: "image-led-campaign" }),
+    );
+    expect(TEMPLATE_REGISTRY["image-led-campaign"].requiredAssetFits).toEqual([
+      { layerType: "image", fit: "cover" },
+      { layerType: "logo", fit: "contain" },
+    ]);
   });
 
   it("exposes every procedural style with its exact algorithm version", () => {

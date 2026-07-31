@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_971c6568aada0bfa01469226",
-  "renderFingerprint": "971c6568aada0bfa01469226ebc05890c44d81bd04fad00bf00d19a7cb351106",
+  "renderId": "render_000d4762970a47824dd43cda",
+  "renderFingerprint": "000d4762970a47824dd43cda495bf2771c754381bdfeafc686253381b92ca610",
   "designDocumentId": "example-article-cover",
   "designDocumentHash": "9c094284a680fe08c6eb0bf972e8dab4b52228e0ef8197d9add59de9ee647b17",
   "seed": "editorial-rendering-19",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.0",

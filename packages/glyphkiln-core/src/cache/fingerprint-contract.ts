@@ -3,6 +3,11 @@ import { RENDERER_NAME, RENDERER_VERSION } from "../domain/types.js";
 import type { DesignDocument } from "../schema/index.js";
 import { getFormatDimensions } from "../formats/index.js";
 import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
+import { FOCAL_CROP_POLICY_VERSION } from "../assets/focal-crop.js";
+import {
+  IMAGE_CONTRAST_POLICY_VERSION,
+  IMAGE_TREATMENT_POLICY_VERSION,
+} from "../assets/image-policy.js";
 import { canonicalJson } from "./canonical-json.js";
 
 export const RENDER_CONFIGURATION = Object.freeze({
@@ -12,6 +17,9 @@ export const RENDER_CONFIGURATION = Object.freeze({
   textRendering: "geometricPrecision",
   imageRendering: "optimizeQuality",
   typographyPolicy: TYPOGRAPHY_POLICY,
+  focalCropPolicy: FOCAL_CROP_POLICY_VERSION,
+  imageTreatmentPolicy: IMAGE_TREATMENT_POLICY_VERSION,
+  imageContrastPolicy: IMAGE_CONTRAST_POLICY_VERSION,
 });
 
 export type RenderFingerprintFont = {

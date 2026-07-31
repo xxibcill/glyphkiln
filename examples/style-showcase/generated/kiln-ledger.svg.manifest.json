@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_6005bd763b71e5332aea9ee3",
-  "renderFingerprint": "6005bd763b71e5332aea9ee336fd2b822918dbe3600e64fa453c599b5879394b",
+  "renderId": "render_f8e51d6b518f9685c524de1d",
+  "renderFingerprint": "f8e51d6b518f9685c524de1df49c178c04418ee5e7ff9d74172306e84179989b",
   "designDocumentId": "kiln-ledger-edition-01",
   "designDocumentHash": "66d3a8e234905444aa52128b9b02daa2002e44d64640767d9d1c92827372f52c",
   "seed": "kiln-ledger-edition-01",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.0",

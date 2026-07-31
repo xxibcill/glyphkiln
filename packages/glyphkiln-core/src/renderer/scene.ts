@@ -67,6 +67,7 @@ export type ImageElement = BaseElement & {
   href: string;
   fit: "contain" | "cover";
   clipRadius?: number;
+  clipBounds?: Bounds;
 };
 
 export type SceneElement =

@@ -33,6 +33,7 @@ Supported templates:
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
 - `tiktok-carousel-slide@1.0.3`
+- `image-led-campaign@1.0.0`
 
 Supported procedural styles:
 
@@ -99,17 +100,27 @@ Use `renderGraphicIsolated` for untrusted workloads. It runs the same API in a
 permission-limited child process with a fixed memory ceiling, serialized
 concurrency, and a 15-second maximum timeout.
 
-`createDesignDocument` supplies schema version `1.3.0` and a stable content ID
+`createDesignDocument` supplies schema version `1.4.0` and a stable content ID
 when omitted. `renderGraphic` validates again at the trust boundary. Existing
-schema `1.0.0`, `1.1.0`, and `1.2.0` documents remain supported. The organic
-TikTok photo-carousel format requires schema `1.3.0`, while preserved 9:16
-carousel documents remain renderable under their original schema. Assets and fonts are byte-oriented caller
-inputs; the renderer performs no network access.
+schema `1.0.0`, `1.1.0`, `1.2.0`, and `1.3.0` documents remain supported. The
+organic TikTok photo-carousel format requires schema `1.3.0`, while preserved
+9:16 carousel documents remain renderable under their original schema. Assets
+and fonts are byte-oriented caller inputs; the renderer performs no network
+access.
 
-Browser applications can import `canonicalJson` and
-`createRenderFingerprintPayload` from `@glyphkiln/core/browser`. This subpath
-contains no Node renderer or hashing dependency; callers hash its canonical
-payload with their platform's SHA-256 implementation.
+Schema `1.4.0` adds bounded display/body/label typography roles and normalized
+focal points with closed image treatments. `image-led-campaign@1.0.0` renders
+one exact image/logo campaign across landscape, square, and portrait and returns
+bounded safe-area, text, crop, overflow, and composited-contrast proof in
+`result.evidence`. Core embeds the exact supplied raster bytes and never runs a
+silent color normalizer.
+
+Browser applications can import `canonicalJson`,
+`createRenderFingerprintPayload`, and `calculateFocalCrop` from
+`@glyphkiln/core/browser`. This subpath contains no Node renderer or hashing
+dependency; callers hash its canonical payload with their platform's SHA-256
+implementation and can use the exact Core crop geometry for interaction
+overlays.
 
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
 `BIDI_LAYOUT_UNSUPPORTED`, and `VERTICAL_LAYOUT_UNSUPPORTED` diagnostics with

@@ -183,6 +183,19 @@ describe("manual App Alpha state", () => {
       ),
     ).toBe(true);
   });
+
+  it("rejects a stored resource-backed template until matching controls exist", () => {
+    const candidate = buildPreviewDocument(createInitialPreviewForm(catalog), catalog);
+    const document = structuredClone(candidate);
+    Object.assign(document.template, {
+      id: "image-led-campaign",
+      version: "1.0.0",
+    });
+
+    expect(() => formFromStoredDocument(document, catalog)).toThrow(
+      'Template "image-led-campaign" cannot be edited by the local preview controls.',
+    );
+  });
 });
 
 function createPublishedBrand(): BrandSnapshot {

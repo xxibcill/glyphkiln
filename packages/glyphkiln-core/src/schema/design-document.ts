@@ -64,42 +64,77 @@ export const PROCEDURAL_STYLE_IDS = [
   "recursive-subdivision",
 ] as const;
 
+const legacyTypographySchema = z
+  .object({
+    headlineFamily: z.string().min(1).max(120),
+    bodyFamily: z.string().min(1).max(120),
+    monospaceFamily: z.string().min(1).max(120).optional(),
+  })
+  .strict();
+
+const typographyRoleSchema = z
+  .object({
+    family: z.string().min(1).max(120),
+    weight: z.number().int().min(100).max(900).multipleOf(100),
+    lineHeight: z.number().min(0.85).max(1.8),
+    tracking: z.number().min(-0.05).max(0.2),
+  })
+  .strict();
+
+const currentTypographySchema = legacyTypographySchema
+  .extend({
+    roles: z
+      .object({
+        display: typographyRoleSchema.optional(),
+        body: typographyRoleSchema.optional(),
+        label: typographyRoleSchema.optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+const brandSnapshotFields = {
+  snapshotId: identifier,
+  version: semanticVersion,
+  name: z.string().min(1).max(120),
+  palette: z
+    .object({
+      primary: color,
+      secondary: color,
+      accent: color,
+      neutrals: z.array(color).min(2).max(12),
+    })
+    .strict(),
+  themes: z
+    .object({
+      light: themeSchema,
+      dark: themeSchema,
+    })
+    .strict(),
+  spacingScale: z.array(z.number().positive()).min(3).max(12),
+  borderRadii: z.array(z.number().min(0)).min(1).max(8),
+  visualDensity: z.enum(["quiet", "balanced", "dense"]),
+  preferredProceduralStyles: z
+    .array(z.enum(PROCEDURAL_STYLE_IDS))
+    .min(1)
+    .max(PROCEDURAL_STYLE_IDS.length),
+  safeArea: safeAreaSchema,
+  prohibitedColors: z.array(color).max(24).default([]),
+  prohibitedStyles: z.array(z.string().min(1).max(80)).max(24).default([]),
+};
+
+const LegacyBrandSnapshotSchema = z
+  .object({
+    ...brandSnapshotFields,
+    typography: legacyTypographySchema,
+  })
+  .strict();
+
 export const BrandSnapshotSchema = z
   .object({
-    snapshotId: identifier,
-    version: semanticVersion,
-    name: z.string().min(1).max(120),
-    palette: z
-      .object({
-        primary: color,
-        secondary: color,
-        accent: color,
-        neutrals: z.array(color).min(2).max(12),
-      })
-      .strict(),
-    themes: z
-      .object({
-        light: themeSchema,
-        dark: themeSchema,
-      })
-      .strict(),
-    typography: z
-      .object({
-        headlineFamily: z.string().min(1).max(120),
-        bodyFamily: z.string().min(1).max(120),
-        monospaceFamily: z.string().min(1).max(120).optional(),
-      })
-      .strict(),
-    spacingScale: z.array(z.number().positive()).min(3).max(12),
-    borderRadii: z.array(z.number().min(0)).min(1).max(8),
-    visualDensity: z.enum(["quiet", "balanced", "dense"]),
-    preferredProceduralStyles: z
-      .array(z.enum(PROCEDURAL_STYLE_IDS))
-      .min(1)
-      .max(PROCEDURAL_STYLE_IDS.length),
-    safeArea: safeAreaSchema,
-    prohibitedColors: z.array(color).max(24).default([]),
-    prohibitedStyles: z.array(z.string().min(1).max(80)).max(24).default([]),
+    ...brandSnapshotFields,
+    typography: currentTypographySchema,
   })
   .strict();
 
@@ -164,6 +199,27 @@ function assetLayerSchema<T extends string>(type: T) {
     })
     .strict();
 }
+
+export const IMAGE_TREATMENT_IDS = ["none", "dark-scrim", "light-scrim"] as const;
+
+export const FocalPointSchema = z
+  .object({
+    x: normalized,
+    y: normalized,
+  })
+  .strict();
+
+const currentImageLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("image"),
+    assetId: identifier,
+    alt: z.string().min(1).max(500),
+    fit: z.enum(["contain", "cover"]).default("contain"),
+    focalPoint: FocalPointSchema.optional(),
+    treatment: z.enum(IMAGE_TREATMENT_IDS).optional(),
+  })
+  .strict();
 
 const backgroundLayerSchema = z
   .object({
@@ -267,8 +323,27 @@ const LegacyLayerSchema = z.discriminatedUnion("type", [
   legacyTextLayerSchema("attribution"),
 ]);
 
-export const LayerSchema = z.discriminatedUnion("type", [
+const LayerV1_2_0Schema = z.discriminatedUnion("type", [
   ...sharedLayerSchemas,
+  textLayerSchema("headline"),
+  textLayerSchema("subtitle"),
+  textLayerSchema("eyebrow"),
+  textLayerSchema("cta"),
+  textLayerSchema("footer"),
+  textLayerSchema("attribution"),
+]);
+
+export const LayerSchema = z.discriminatedUnion("type", [
+  backgroundLayerSchema,
+  proceduralDecorationLayerSchema,
+  assetLayerSchema("logo"),
+  assetLayerSchema("product-screenshot"),
+  currentImageLayerSchema,
+  iconLayerSchema,
+  badgeLayerSchema,
+  shapeLayerSchema,
+  statisticLayerSchema,
+  chartLayerSchema,
   textLayerSchema("headline"),
   textLayerSchema("subtitle"),
   textLayerSchema("eyebrow"),
@@ -310,6 +385,15 @@ export const TEMPLATE_IDS = [
   "quote-card",
   "article-cover",
   "tiktok-carousel-slide",
+  "image-led-campaign",
+] as const;
+
+const DESIGN_DOCUMENT_1_1_0_TEMPLATE_IDS = [
+  "product-announcement",
+  "statistic-card",
+  "quote-card",
+  "article-cover",
+  "tiktok-carousel-slide",
 ] as const;
 
 const DESIGN_DOCUMENT_1_0_0_TEMPLATE_IDS = [
@@ -338,25 +422,18 @@ const DESIGN_DOCUMENT_1_1_0_FORMAT_IDS = [
   "youtube-thumbnail",
 ] as const;
 
-const designDocumentFields = {
-  seed: z.string().min(1).max(256),
-  mode: z.enum(["light", "dark"]).default("light"),
-  brand: BrandSnapshotSchema,
-  assets: z.array(AssetDeclarationSchema).max(100).default([]),
-  fonts: z.array(FontDeclarationSchema).min(1).max(32),
-  metadata: z.record(z.string(), z.json()).optional(),
-};
-
 function createVersionedDesignDocumentSchema<
   Version extends string,
   TemplateIds extends readonly [string, ...string[]],
   FormatIds extends readonly [string, ...string[]],
   Layers extends z.ZodType,
+  Brand extends z.ZodType,
 >(
   version: Version,
   templateIds: TemplateIds,
   formatIds: FormatIds,
   layerSchema: Layers,
+  brandSchema: Brand,
 ) {
   return z
     .object({
@@ -369,7 +446,12 @@ function createVersionedDesignDocumentSchema<
         })
         .strict(),
       format: z.enum(formatIds),
-      ...designDocumentFields,
+      seed: z.string().min(1).max(256),
+      mode: z.enum(["light", "dark"]).default("light"),
+      brand: brandSchema,
+      assets: z.array(AssetDeclarationSchema).max(100).default([]),
+      fonts: z.array(FontDeclarationSchema).min(1).max(32),
+      metadata: z.record(z.string(), z.json()).optional(),
       layers: z.array(layerSchema).min(1).max(100),
     })
     .strict();
@@ -380,27 +462,39 @@ const DesignDocumentV1_0_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_1_0_0_TEMPLATE_IDS,
   DESIGN_DOCUMENT_1_0_0_FORMAT_IDS,
   LegacyLayerSchema,
+  LegacyBrandSnapshotSchema,
 );
 
 const DesignDocumentV1_1_0Schema = createVersionedDesignDocumentSchema(
   "1.1.0",
-  TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_1_0_TEMPLATE_IDS,
   DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
   LegacyLayerSchema,
+  LegacyBrandSnapshotSchema,
 );
 
 const DesignDocumentV1_2_0Schema = createVersionedDesignDocumentSchema(
   "1.2.0",
-  TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_1_0_TEMPLATE_IDS,
   DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
-  LayerSchema,
+  LayerV1_2_0Schema,
+  LegacyBrandSnapshotSchema,
 );
 
 const DesignDocumentV1_3_0Schema = createVersionedDesignDocumentSchema(
+  "1.3.0",
+  DESIGN_DOCUMENT_1_1_0_TEMPLATE_IDS,
+  FORMAT_IDS,
+  LayerV1_2_0Schema,
+  LegacyBrandSnapshotSchema,
+);
+
+const DesignDocumentV1_4_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_VERSION,
   TEMPLATE_IDS,
   FORMAT_IDS,
   LayerSchema,
+  BrandSnapshotSchema,
 );
 
 export const DesignDocumentSchema = z
@@ -409,6 +503,7 @@ export const DesignDocumentSchema = z
     DesignDocumentV1_1_0Schema,
     DesignDocumentV1_2_0Schema,
     DesignDocumentV1_3_0Schema,
+    DesignDocumentV1_4_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
@@ -435,8 +530,13 @@ function checkUniqueIds(
 
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
 export type DesignLayer =
-  z.infer<typeof LegacyLayerSchema> | z.infer<typeof LayerSchema>;
+  | z.infer<typeof LegacyLayerSchema>
+  | z.infer<typeof LayerV1_2_0Schema>
+  | z.infer<typeof LayerSchema>;
 export type BrandSnapshot = DesignDocument["brand"];
+export type BrandTypographyRole = z.infer<typeof typographyRoleSchema>;
+export type FocalPoint = z.infer<typeof FocalPointSchema>;
+export type ImageTreatmentId = (typeof IMAGE_TREATMENT_IDS)[number];
 export type AssetDeclaration = DesignDocument["assets"][number];
 export type FontDeclaration = DesignDocument["fonts"][number];
 export type ProceduralStyleId = (typeof PROCEDURAL_STYLE_IDS)[number];
@@ -453,7 +553,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_3_0Schema>,
+  z.input<typeof DesignDocumentV1_4_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

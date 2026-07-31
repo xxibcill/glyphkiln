@@ -1,0 +1,115 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_d93056cd88c9387a58dade1d",
+  "renderFingerprint": "d93056cd88c9387a58dade1d4250bf097a558d9d46d48e693196e41ab94eadd6",
+  "designDocumentId": "baseline-image-led-campaign-portrait",
+  "designDocumentHash": "406672f328599a5cdbe207f0dfdaac0f716fe8fa804ac9a62a79d550e1d8331a",
+  "seed": "kilnform-light-01",
+  "template": { "id": "image-led-campaign", "version": "1.0.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.0",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "kilnform-lamp-campaign",
+      "sha256": "42930ab31255277669c7aea6da1c25b27ddc61891d29ca8298adcc4b65d13368",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform lamp campaign fixture",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    },
+    {
+      "id": "kilnform-mark",
+      "sha256": "ca259ffa0e770838a1032fcd8db7986fa312780071339508e59f75adf455b6bc",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform raster mark fixture",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "output": {
+    "format": "png",
+    "sha256": "05627acbb8861cc52b46d8153587084ab581f11447eb4676b1dd913a4857268b",
+    "byteSize": 2239226
+  },
+  "creationTimestamp": "2026-07-29T10:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "headline",
+      "details": {
+        "affectedLine": "form.",
+        "lineNumber": 2,
+        "phrase": "form.",
+        "previousLine": "Light, fired into",
+        "measuredLineWidths": [575.309, 212.682],
+        "previousLineWidth": 575.309,
+        "finalLineWidth": 212.682,
+        "finalLineToPreviousLineWidthRatio": 0.37,
+        "isolatedWord": true,
+        "disproportionatelyShort": true,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.0"
+      }
+    },
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "subtitle",
+      "details": {
+        "affectedLine": "point of view.",
+        "lineNumber": 2,
+        "phrase": "point of view.",
+        "previousLine": "Sculptural ceramic lighting shaped for rooms with a",
+        "measuredLineWidths": [655.528, 170.266],
+        "previousLineWidth": 655.528,
+        "finalLineWidth": 170.266,
+        "finalLineToPreviousLineWidthRatio": 0.26,
+        "isolatedWord": false,
+        "disproportionatelyShort": true,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.0"
+      }
+    }
+  ],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

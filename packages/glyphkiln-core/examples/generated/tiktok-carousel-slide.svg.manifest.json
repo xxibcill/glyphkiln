@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_a2b967cb95f7470bab8ee8ea",
-  "renderFingerprint": "a2b967cb95f7470bab8ee8eac8cc8193202e466e016cb771d314e85ce70a1298",
+  "renderId": "render_1e4a4260dc08cb14918dc638",
+  "renderFingerprint": "1e4a4260dc08cb14918dc6388412703986bbbd79ed76d81c9b049b97b4c7ad30",
   "designDocumentId": "example-tiktok-carousel-slide-01",
   "designDocumentHash": "8999412c16883f3417a61114b705e0cc21d0a68a1dc9f91e03606eaa1e6eb70e",
   "seed": "swipe-ledger-v1-slide-01",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.0",

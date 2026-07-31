@@ -11,12 +11,12 @@ See [ADR 0010](adr/0010-glyphkiln-monorepo.md).
 ```text
 untrusted JSON
   → iterative byte/depth/entry resource preflight
-  → strict DesignDocument 1.3.0 validation (plus supported legacy schemas)
+  → strict DesignDocument 1.4.0 validation (plus supported legacy schemas)
   → format + template registry lookup
   → required-layer, brand, and pinned Unicode text-layout quality checks
   → bounded caller-supplied asset/font verification
-  → explicit versioned template
-  → deterministic scene primitives
+  → explicit versioned template, focal crop, and closed image treatment
+  → deterministic scene primitives plus bounded crop/contrast/layout proof
   → shaped glyph outlines + generated safe SVG
   ├─→ SVG bytes
   └─→ Resvg with explicit font files → PNG bytes
@@ -54,9 +54,10 @@ changing the design document, template metadata, asset interface, or manifest.
 - `isolation`: serialized, permission-limited child-process rendering
 - `formats`: centralized immutable output dimensions
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
-- `browser`: browser-safe canonical JSON and fingerprint payloads for independent
-  response verification
-- `fonts`, `assets`, `typography`, `layout`: verified resources, pinned
+- `browser`: browser-safe canonical JSON, fingerprint payloads, and pure focal
+  crop geometry for independent response verification and App overlays
+- `fonts`, `assets`, `typography`, `layout`: verified resources, focal-cover and
+  composited-raster contrast policy, pinned
   Unicode 17 text-layout diagnostics, deterministic Thai segmentation and
   balanced wrapping, and geometry
 - `backgrounds`: deterministic versioned algorithms

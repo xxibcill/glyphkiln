@@ -14,4 +14,5 @@ export type {
   PreviewProblem,
   PreviewResponse,
   PreviewSuccess,
+  PreviewTemplateId,
 } from "./types";

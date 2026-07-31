@@ -12,6 +12,12 @@ separately reports whether a declared asset identifies a generative-image-model
 origin. Core does not erase, infer away, or rewrite uploaded origin metadata;
 unknown origin remains unknown.
 
+Focal points, treatments, and brand typography roles are pixel-affecting design
+data and therefore enter the canonical document hash and render fingerprint.
+The pinned focal, treatment, and contrast policies are part of renderer
+configuration. Layout proof is returned by `renderGraphic` but is not added to
+manifest `1.2.0`; no manifest field or meaning changes in this slice.
+
 The manifest is descriptive provenance, not a cryptographic signature or proof
 of authorship. Its output hash enables byte verification, and its render ID is
 derived from the fingerprint. The creation timestamp is intentionally excluded

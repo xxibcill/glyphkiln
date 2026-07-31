@@ -134,14 +134,15 @@ function renderImage(element: ImageElement): string {
     `width="${number(element.width)}" height="${number(element.height)}" ` +
     `href="${element.href}" preserveAspectRatio="${preserveAspectRatio}"` +
     `${optional("opacity", element.opacity)}/>`;
-  if (element.clipRadius === undefined) {
+  if (element.clipRadius === undefined && element.clipBounds === undefined) {
     return `<g id="${escapeAttribute(element.id)}">${image}</g>`;
   }
   const clipId = `clip-${element.id}`;
+  const clip = element.clipBounds ?? element;
   return (
     `<g id="${escapeAttribute(element.id)}"><clipPath id="${escapeAttribute(clipId)}">` +
-    `<rect x="${number(element.x)}" y="${number(element.y)}" width="${number(element.width)}" ` +
-    `height="${number(element.height)}" rx="${number(element.clipRadius)}"/></clipPath>` +
+    `<rect x="${number(clip.x)}" y="${number(clip.y)}" width="${number(clip.width)}" ` +
+    `height="${number(clip.height)}" rx="${number(element.clipRadius ?? 0)}"/></clipPath>` +
     `<g clip-path="url(#${escapeAttribute(clipId)})">${image}</g></g>`
   );
 }
