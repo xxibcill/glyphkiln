@@ -20,8 +20,9 @@ Commit messages use Conventional Commits, for example `feat: add a format`,
 `fix: reject unresolved logos`, or `docs: clarify font licensing`.
 
 The repository uses npm workspaces. Core lives in
-`packages/glyphkiln-core`; the application lives in `apps/glyphkiln-app`.
-Root verification commands cover both workspaces.
+`packages/glyphkiln-core`, the application lives in `apps/glyphkiln-app`, and
+the runnable consumer example lives in `examples/style-showcase`. Root
+verification commands cover every workspace with a relevant script.
 
 ## Pixel-affecting changes
 
