@@ -90,6 +90,25 @@ contracts.
 4. Add negative tests for traversal, link following, oversized data, malformed
    resources, and permission failures relevant to the change.
 
+## Package ready-to-use deliverables
+
+When a Core task produces user-facing render or export files:
+
+1. Create `Deliverables/` at the repository root when at least one final file
+   exists. Do not create empty format directories.
+2. Group each file by its lowercase extension without the leading dot, such as
+   `Deliverables/png/`, `Deliverables/svg/`, and `Deliverables/json/`. Use the
+   actual extension for any additional supported format.
+3. Give corresponding outputs the same stable, filesystem-safe basename. Derive
+   names only from operator-approved intent; never use timestamps, request IDs,
+   or unsanitized document fields.
+4. Copy only final, verified files. Exclude source files, tests, fixtures, visual
+   baselines, coverage, build output, temporary files, and review candidates.
+5. Preserve the verified bytes exactly. Do not re-encode or otherwise transform
+   an artifact while packaging it.
+6. Replace an existing same-name deliverable only when the requested change owns
+   it. Preserve unrelated files already present under `Deliverables/`.
+
 ## Test while developing
 
 Run the narrowest relevant workspace test first. Add regression coverage next
@@ -106,6 +125,7 @@ State:
 - the contract changed and the owning module;
 - deterministic-output impact;
 - versions and generated artifacts changed;
+- ready-to-use files placed under each `Deliverables/<format>/` path;
 - tests added or updated;
 - verification commands and results;
 - any intentionally deferred compatibility or visual review.
