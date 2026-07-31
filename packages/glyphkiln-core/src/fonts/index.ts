@@ -61,10 +61,14 @@ export class FontRegistry {
     weight: number,
     style: ResolvedFont["style"],
     fontSize: number,
+    letterSpacing = 0,
   ): number {
     const face = this.#getFace(family, weight, style);
     const run = face.layout(text);
-    return (run.advanceWidth / face.unitsPerEm) * fontSize;
+    return (
+      (run.advanceWidth / face.unitsPerEm) * fontSize +
+      Math.max(0, run.glyphs.length - 1) * letterSpacing
+    );
   }
 
   public missingCodePoints(

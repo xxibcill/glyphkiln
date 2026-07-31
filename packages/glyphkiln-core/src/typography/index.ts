@@ -651,14 +651,14 @@ function breakLongToken(
 }
 
 function measure(text: string, style: TextStyle, registry: TextMeasurer): number {
-  const base = registry.measure(
+  return registry.measure(
     text,
     style.family,
     style.weight,
     style.style,
     style.fontSize,
+    style.letterSpacing,
   );
-  return base + Math.max(0, text.length - 1) * (style.letterSpacing ?? 0);
 }
 
 function roundMetric(value: number): number {

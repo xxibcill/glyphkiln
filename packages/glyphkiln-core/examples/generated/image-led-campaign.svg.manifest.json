@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_70fb7b0f52ca074c9e54da3d",
-  "renderFingerprint": "70fb7b0f52ca074c9e54da3de7ffb2d59d9fb8d4528047b7fcdb847444a439c2",
+  "renderId": "render_d85a72afa999e9394dd50ba2",
+  "renderFingerprint": "d85a72afa999e9394dd50ba2c04d96783baa0de03b04523d558d6242e7c922ee",
   "designDocumentId": "example-image-led-campaign",
   "designDocumentHash": "a24462fee48b50f4ab898b46d4823501cf54ae0ef743727a63f1b13f55c428e8",
   "seed": "kilnform-light-01",
@@ -14,7 +14,7 @@
     "version": "0.4.0"
   },
   "typographyPolicy": {
-    "algorithmVersion": "2.0.0",
+    "algorithmVersion": "2.0.1",
     "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
     "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
     "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",

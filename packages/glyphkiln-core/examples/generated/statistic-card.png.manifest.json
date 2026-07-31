@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_b1ad321dfd3a4d63ed1b0e5f",
-  "renderFingerprint": "b1ad321dfd3a4d63ed1b0e5f660911822b7bfdf5773a7fecf93fe620120f98d8",
+  "renderId": "render_d6290c1d5f8d2f9441a2824d",
+  "renderFingerprint": "d6290c1d5f8d2f9441a2824db5cd201734f4f5c12ee1dee8e81516df1d5bb733",
   "designDocumentId": "example-statistic-card",
   "designDocumentHash": "a8873a0c0d40dfae848174585269ac3ababc3e97c03d831148bf682f889c82a6",
   "seed": "metrics-retention-42",
@@ -14,7 +14,7 @@
     "version": "0.4.0"
   },
   "typographyPolicy": {
-    "algorithmVersion": "2.0.0",
+    "algorithmVersion": "2.0.1",
     "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
     "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
     "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
@@ -86,7 +86,7 @@
         "segmentationPolicy": "whitespace",
         "segmentationPolicyVersion": "whitespace@1.0.0",
         "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
-        "typographyAlgorithmVersion": "2.0.0"
+        "typographyAlgorithmVersion": "2.0.1"
       }
     }
   ],

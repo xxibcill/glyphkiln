@@ -1,14 +1,14 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_1bbc48cc36cae30a5235832f",
-  "renderFingerprint": "1bbc48cc36cae30a5235832f91ae764073144d12d5542dd8e293908a8fa00703",
+  "renderId": "render_0f6845ae5c9cec03764ca8b8",
+  "renderFingerprint": "0f6845ae5c9cec03764ca8b81b7370480c9e1a1a8a650eecfd432a615da5fce3",
   "designDocumentId": "baseline-image-led-campaign-square",
   "designDocumentHash": "6526e6e4af025e738967ef11789b2ea539bf7a23cc8aa1a8a1aaeb113af031c7",
   "seed": "kilnform-light-01",
   "template": { "id": "image-led-campaign", "version": "1.0.0" },
   "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
   "typographyPolicy": {
-    "algorithmVersion": "2.0.0",
+    "algorithmVersion": "2.0.1",
     "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
     "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
     "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
@@ -85,7 +85,7 @@
         "segmentationPolicy": "whitespace",
         "segmentationPolicyVersion": "whitespace@1.0.0",
         "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
-        "typographyAlgorithmVersion": "2.0.0"
+        "typographyAlgorithmVersion": "2.0.1"
       }
     },
     {
@@ -107,7 +107,7 @@
         "segmentationPolicy": "whitespace",
         "segmentationPolicyVersion": "whitespace@1.0.0",
         "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
-        "typographyAlgorithmVersion": "2.0.0"
+        "typographyAlgorithmVersion": "2.0.1"
       }
     }
   ],

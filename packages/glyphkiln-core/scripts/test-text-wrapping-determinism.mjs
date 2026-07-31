@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 const probe = new URL("./print-text-wrapping.mjs", import.meta.url);
 const EXPECTED_WRAPPING_CORPUS_SHA256 =
-  "5c222696b47e76399a09f69f3dfb6df40062f03b3b75bf5619e6ba3ba3c57d79";
+  "d67facd3e2daf4bd1697cbf4f828b0737f4c06b46f0a0e0d62dbcc084ea1af88";
 const [first, second] = await Promise.all([runProbe(), runProbe()]);
 
 assert.equal(first.stderr, "");
