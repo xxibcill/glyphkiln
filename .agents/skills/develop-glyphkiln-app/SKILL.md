@@ -14,8 +14,7 @@ and queued work as untrusted.
 1. Read `AGENTS.md`, `SECURITY.md`, and the relevant source and tests.
 2. Read [references/app-map.md](references/app-map.md) for ownership boundaries,
    security ordering, source paths, tests, migrations, and operational docs.
-3. Inspect the working tree before editing. Preserve unrelated user changes.
-4. Trace the complete path for the requested behavior:
+3. Trace the complete path for the requested behavior:
 
    `UI or client -> Route Handler -> closed schema -> AppWorkflow -> database,
 resource, queue, storage, worker, or Core boundary`.
@@ -29,18 +28,19 @@ resource, queue, storage, worker, or Core boundary`.
   roles, trusted versions, hashes, storage keys, or resource bytes.
 - Consume only public `@glyphkiln/core` exports. Never import Core source or
   bypass Core validation.
-- Keep browser drafts manual and inert. The server resolves exact templates,
-  brands, admissions, hashes, licenses, and immutable versions.
+- Keep browser drafts manual and inert. Resolve exact templates, brands,
+  admissions, hashes, licenses, and immutable versions on the server.
 - Preserve workspace qualification in every owned lookup and relationship.
 - Keep revisions, snapshots, admissions, provenance pins, attempts, and
   artifacts immutable or append-only according to their existing contracts.
 
 ## Apply security-sensitive ordering
 
-For commands and queries:
+For authenticated, workspace-scoped commands and queries:
 
 1. Bound and validate inert input.
-2. Authenticate the server-side session and mutation proof.
+2. Authenticate the server-side session. Require same-origin, session-bound
+   mutation proof only for mutations.
 3. Resolve current, non-revoked workspace membership.
 4. Enforce the centralized capability policy.
 5. Resolve targets with `workspace_id` in the predicate.
@@ -49,6 +49,18 @@ For commands and queries:
 8. Commit state and provenance atomically.
 9. Queue only opaque stored identities.
 10. Return stable, sanitized results.
+
+Apply only the relevant steps to other entry points:
+
+- Authenticate queries with the session only; never require mutation proof for
+  a read.
+- Validate `bootstrap.register`, `invitation.register`, and `session.login`
+  through their bootstrap-token, invitation-token, password, and admission
+  controls before a session exists.
+- Require session and mutation proof, but not prior target-workspace membership,
+  for authenticated non-workspace mutations such as `session.logout`,
+  `workspace.create`, and `invitation.accept`. Enforce each command's own
+  authority and lifecycle rules.
 
 Return the same not-found shape for foreign-workspace and unauthorized object
 identifiers where non-disclosure policy applies. Never log documents, resource
@@ -110,12 +122,11 @@ bytes, tokens, database URLs, secrets, or private filenames.
 
 ## Test and hand off
 
-Run the narrowest relevant App test while iterating. Every changed trust seam
-needs both an allowed case and the closest denied or failure case.
+Run the narrowest relevant App test while iterating. Add both an allowed case
+and the closest denied or failure case for every changed trust seam.
 
 Before handoff, invoke `$verify-glyphkiln-change` and complete its full
-repository gate. Add a Changeset for user-visible behavior unless the repository
-policy clearly exempts the change.
+repository gate.
 
 Report the complete request-to-storage/worker path, trust-boundary impact,
 migration behavior, tests, and verification results.

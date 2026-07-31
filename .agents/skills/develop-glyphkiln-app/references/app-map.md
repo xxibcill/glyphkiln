@@ -4,7 +4,9 @@
 
 | Concern                                  | Primary path                                               |
 | ---------------------------------------- | ---------------------------------------------------------- |
-| App shell and security headers           | `apps/glyphkiln-app/src/app/`                              |
+| App shell                                | `apps/glyphkiln-app/src/app/`                              |
+| Site-wide security headers               | `apps/glyphkiln-app/next.config.ts`                        |
+| API response security headers            | `src/server/http/app-response.ts`, `src/app/api/`          |
 | Preview API                              | `src/app/api/preview/`, `src/lib/project-preview/`         |
 | Closed App API routes                    | `src/app/api/app/`                                         |
 | AppWorkflow contracts and schemas        | `src/server/app-workflow/contracts.ts`, `schemas.ts`       |
@@ -26,24 +28,16 @@
 Paths without an `apps/glyphkiln-app/` prefix above are relative to that
 workspace.
 
-## Trust rules
+## Trust-boundary sources
 
-- Browser envelopes provide request evidence, not identity or authority.
-- The workflow authenticates, resolves current membership, authorizes, and
-  performs workspace-qualified lookup in that order.
-- Foreign-workspace and unauthorized identifiers must not disclose existence.
-- The server owns brand/template/resource versions, hashes, storage keys, and
-  the complete Core document.
-- Every render path calls public Core validation and uses isolated rendering for
-  untrusted jobs.
-- Revisions and brand snapshots are immutable. Resource admissions remain
-  distinct from content-addressed blobs.
-- Queue rows carry opaque stored identities. Workers reload state and recheck
-  authorization and integrity.
-- Resource ingestion authorizes before body read, fails closed on scanner
-  health, fully validates bytes, and publishes immutably.
-- Non-loopback service exposure stays behind the explicit production,
-  HTTPS-origin, trusted-proxy, database, and secure-cookie startup gate.
+| Boundary                                      | Authoritative guidance                                          |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| Closed workflow ordering and non-disclosure   | `docs/adr/0011-app-alpha-workflow-and-trust-seams.md`           |
+| Durable queue, worker, and render storage     | `docs/adr/0012-postgres-render-queue-and-filesystem-storage.md` |
+| Membership, admission, provenance, and quotas | `docs/adr/0014-app-alpha-lifecycle-and-capacity-invariants.md`  |
+| Upload authorization and resource ingestion   | `docs/app-resource-ingestion.md`                                |
+| Non-loopback startup and proxy controls       | `docs/app-self-hosting-security.md`, `docs/self-hosting.md`     |
+| Core validation and isolated rendering        | `SECURITY.md`, `docs/architecture.md`                           |
 
 ## Test routing
 
@@ -66,14 +60,3 @@ Start with the colocated `*.test.ts` or `*.test.tsx`. Also include:
   test included by the App workspace suite.
 - Self-host configuration changes:
   `apps/glyphkiln-app/scripts/self-hosting-config.test.mjs`.
-
-## Essential docs
-
-- `docs/architecture.md` — App Alpha architecture
-- `docs/adr/0011-app-alpha-workflow-and-trust-seams.md`
-- `docs/adr/0012-postgres-render-queue-and-filesystem-storage.md`
-- `docs/adr/0014-app-alpha-lifecycle-and-capacity-invariants.md`
-- `docs/app-resource-ingestion.md`
-- `docs/app-self-hosting-security.md`
-- `docs/self-hosting.md`
-- `SECURITY.md`

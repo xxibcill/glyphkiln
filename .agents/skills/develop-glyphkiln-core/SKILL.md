@@ -14,8 +14,7 @@ contracts.
 1. Read `AGENTS.md`, `CONTRIBUTING.md`, and the relevant source and tests.
 2. Read [references/core-map.md](references/core-map.md) for the source, test,
    version, generated-artifact, and documentation map.
-3. Inspect the working tree before editing. Preserve unrelated user changes.
-4. Classify the requested change:
+3. Classify the requested change:
    - pixel or serialized-output behavior;
    - schema, validation, or quality policy;
    - public API, browser contract, manifest, or fingerprint;
@@ -98,8 +97,7 @@ to the owning behavior. For pixel changes, test both the semantic rule and the
 exact rendered artifact.
 
 Before handoff, invoke `$verify-glyphkiln-change` and complete its full
-repository gate. Add a Changeset for user-visible behavior unless the repository
-policy clearly exempts the change.
+repository gate.
 
 ## Report
 

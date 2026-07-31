@@ -18,6 +18,7 @@ These five gates are mandatory under `AGENTS.md`.
 
 | Changed area                                 | Additional verification                                                                                       |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Repository skills or agent harness config    | validate each skill; inspect interface metadata, Claude symlink modes and targets, and `CLAUDE.md` imports    |
 | Fixtures or fixture generators               | `npm run fixtures:verify`                                                                                     |
 | Generated examples or renderer behavior      | `npm run examples:verify`                                                                                     |
 | Unicode sources, tables, or text diagnostics | `npm run text-layout-data:verify`                                                                             |
@@ -30,6 +31,20 @@ These five gates are mandatory under `AGENTS.md`.
 | SQL migrations                               | migration tests plus affected PGlite and PostgreSQL adapter tests                                             |
 | Example consumer                             | `npm run verify --workspace @glyphkiln/example-style-showcase`                                                |
 | Release preparation                          | every item in `docs/release-process.md` on supported Node/npm versions                                        |
+
+## Repository skill and harness checks
+
+For each changed `.agents/skills/<name>` directory:
+
+1. Run the active `skill-creator` installation's `scripts/quick_validate.py`
+   against the skill directory.
+2. Confirm that `agents/openai.yaml` still matches the skill, quotes every
+   string, keeps `short_description` between 25 and 64 characters, and names
+   `$<name>` in `default_prompt`.
+3. For each `.claude/skills/<name>` entry, use `git ls-files -s` to require mode
+   `120000`, inspect the relative target with `readlink`, and require the target
+   to resolve.
+4. For `CLAUDE.md`, inspect every import and require its target to exist.
 
 ## Focused Vitest examples
 

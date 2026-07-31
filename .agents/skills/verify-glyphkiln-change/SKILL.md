@@ -1,6 +1,6 @@
 ---
 name: verify-glyphkiln-change
-description: Validate Glyphkiln changes before handoff, pull request, or release by inspecting the diff, selecting focused tests and generated-artifact checks, and running the required build, typecheck, lint, test, and coverage gates. Use when asked to test, verify, validate, audit, prepare, or finish changes anywhere in this repository, and after any pixel-affecting, schema, Core, App, migration, deployment, or dependency change.
+description: Validate Glyphkiln changes before handoff, pull request, or release by inspecting the diff, selecting focused tests and generated-artifact checks, and running the required build, typecheck, lint, test, and coverage gates. Use when asked to test, verify, validate, audit, prepare, or finish changes anywhere in this repository, and after repository skill, agent harness, pixel-affecting, schema, Core, App, migration, deployment, or dependency changes.
 ---
 
 # Verify Glyphkiln Change
@@ -14,9 +14,9 @@ regenerating artifacts merely to make checks pass.
 2. Read [references/verification-matrix.md](references/verification-matrix.md)
    and select every focused or generated-artifact check implicated by the diff.
 3. Note pre-existing uncommitted files and preserve them.
-4. Determine whether the change affects pixels, schemas, Unicode data,
-   fixtures, examples, package exports, licenses, migrations, standalone
-   packaging, deployment, or dependencies.
+4. Determine whether the change affects repository skills, agent harnesses,
+   pixels, schemas, Unicode data, fixtures, examples, package exports, licenses,
+   migrations, standalone packaging, deployment, or dependencies.
 
 ## Run focused checks
 
@@ -39,19 +39,10 @@ For a deliberate pixel change:
 
 ## Run the mandatory handoff gate
 
-From the repository root, run all of:
-
-```sh
-npm run build
-npm run typecheck
-npm run lint
-npm test
-npm run test:coverage
-```
-
-Do not substitute a focused test for these root checks. They coordinate all
-workspaces and include standalone, isolation, deterministic text-layout, and
-README-example coverage through their workspace scripts.
+Run every command under **Required for every handoff** in the verification
+matrix from the repository root. Do not substitute a focused test for these
+root checks. Use the root commands so workspace scripts include standalone,
+isolation, deterministic text-layout, and README-example coverage.
 
 Run the commands separately so a failure is attributed to one gate. Continue
 with independent checks when useful, but never report an overall pass while a
