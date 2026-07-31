@@ -4,6 +4,7 @@ import { articleCoverTemplate } from "./article-cover.js";
 import { productAnnouncementTemplate } from "./product-announcement.js";
 import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
+import { tiktokCarouselSlideTemplate } from "./tiktok-carousel-slide.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -12,6 +13,7 @@ export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>>
     "statistic-card": statisticCardTemplate,
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
+    "tiktok-carousel-slide": tiktokCarouselSlideTemplate,
   });
 
 export function getTemplate(document: DesignDocument): TemplateDefinition {

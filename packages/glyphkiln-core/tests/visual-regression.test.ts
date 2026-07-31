@@ -10,6 +10,7 @@ const baselines = [
   "statistic-card",
   "quote-card",
   "article-cover",
+  "tiktok-carousel-slide",
 ] as const;
 
 describe("reviewed visual baselines", () => {

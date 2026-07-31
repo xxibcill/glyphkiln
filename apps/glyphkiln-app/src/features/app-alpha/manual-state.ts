@@ -150,6 +150,18 @@ export function formFromStoredDocument(
         headline: textFor(document.layers, "headline"),
         attribution: textFor(document.layers, "attribution"),
       },
+      tiktokCarouselSlide: {
+        mode: statisticFor(document.layers) === undefined ? "narrative" : "metric",
+        slideNumber: badgeTextFor(document.layers, "slide-number"),
+        eyebrow: textFor(document.layers, "eyebrow"),
+        headline: textFor(document.layers, "headline"),
+        subtitle: textFor(document.layers, "subtitle"),
+        value: statisticFor(document.layers)?.value ?? "",
+        label: statisticFor(document.layers)?.label ?? "",
+        trend: statisticFor(document.layers)?.trend ?? "",
+        cta: textFor(document.layers, "cta"),
+        footer: textFor(document.layers, "footer"),
+      },
     },
   };
 }
@@ -188,9 +200,17 @@ function textFor(layers: DesignLayer[], id: string): string {
     ): candidate is Extract<
       DesignLayer,
       {
-        type: "headline" | "subtitle" | "eyebrow" | "cta" | "attribution";
+        type: "headline" | "subtitle" | "eyebrow" | "cta" | "footer" | "attribution";
       }
     > => candidate.id === id && "text" in candidate,
+  );
+  return layer?.text ?? "";
+}
+
+function badgeTextFor(layers: DesignLayer[], id: string): string {
+  const layer = layers.find(
+    (candidate): candidate is Extract<DesignLayer, { type: "badge" }> =>
+      candidate.id === id && candidate.type === "badge",
   );
   return layer?.text ?? "";
 }

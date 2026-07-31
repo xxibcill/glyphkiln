@@ -140,6 +140,18 @@ export type CopyFormState = {
     headline: string;
     attribution: string;
   };
+  tiktokCarouselSlide: {
+    mode: "narrative" | "metric";
+    slideNumber: string;
+    eyebrow: string;
+    headline: string;
+    subtitle: string;
+    value: string;
+    label: string;
+    trend: string;
+    cta: string;
+    footer: string;
+  };
 };
 
 export type PreviewFormState = {

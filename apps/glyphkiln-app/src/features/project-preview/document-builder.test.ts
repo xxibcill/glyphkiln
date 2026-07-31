@@ -49,6 +49,16 @@ const EXPECTED_LAYERS = {
     ["headline", "headline"],
     ["attribution", "attribution"],
   ],
+  "tiktok-carousel-slide": [
+    ["background", "background"],
+    ["procedure", "procedural-decoration"],
+    ["slide-number", "badge"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["subtitle", "subtitle"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+  ],
 } as const satisfies Record<TemplateId, readonly (readonly [string, string])[]>;
 
 const EXPECTED_STARTER_SVG_SHA256 = {
@@ -57,6 +67,8 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "statistic-card": "c5a384df3d54bcef1169f2f6f25894f0de86610d3be9e5c03a8a96011f2bf40d",
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
+  "tiktok-carousel-slide":
+    "658fb0996253f8f367a488cf9c25aa2d5ae8314b237cd154278f106f959ab9f0",
 } as const satisfies Record<TemplateId, string>;
 
 describe("buildPreviewDocument", () => {
@@ -148,6 +160,43 @@ describe("buildPreviewDocument", () => {
     article.copy.articleCover.attribution = " ";
     expectLayerIds(build(article)).toEqual(["background", "procedure", "headline"]);
     expectCoreValid(build(article));
+
+    const tiktok = createFormForTemplate("tiktok-carousel-slide");
+    tiktok.copy.tiktokCarouselSlide.slideNumber = "";
+    tiktok.copy.tiktokCarouselSlide.eyebrow = " ";
+    tiktok.copy.tiktokCarouselSlide.subtitle = "";
+    tiktok.copy.tiktokCarouselSlide.cta = "\t";
+    tiktok.copy.tiktokCarouselSlide.footer = "\n";
+    expectLayerIds(build(tiktok)).toEqual(["background", "procedure", "headline"]);
+    expectCoreValid(build(tiktok));
+  });
+
+  it("builds a mutually exclusive metric mode for TikTok carousel slides", () => {
+    const state = createFormForTemplate("tiktok-carousel-slide");
+    state.copy.tiktokCarouselSlide.mode = "metric";
+    const document = build(state);
+
+    expectLayerIds(document).toEqual([
+      "background",
+      "procedure",
+      "slide-number",
+      "eyebrow",
+      "headline",
+      "carousel-statistic",
+      "cta",
+      "footer",
+    ]);
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({
+        id: "carousel-statistic",
+        type: "statistic",
+        value: "100%",
+      }),
+    );
+    expect(document.layers).not.toContainEqual(
+      expect.objectContaining({ type: "subtitle" }),
+    );
+    expectCoreValid(document);
   });
 
   it.each([
@@ -191,6 +240,29 @@ describe("buildPreviewDocument", () => {
       templateId: "article-cover" as const,
       clear: (state: PreviewFormState) => {
         state.copy.articleCover.headline = "\n";
+      },
+    },
+    {
+      name: "TikTok carousel headline",
+      templateId: "tiktok-carousel-slide" as const,
+      clear: (state: PreviewFormState) => {
+        state.copy.tiktokCarouselSlide.headline = " ";
+      },
+    },
+    {
+      name: "TikTok carousel metric value",
+      templateId: "tiktok-carousel-slide" as const,
+      clear: (state: PreviewFormState) => {
+        state.copy.tiktokCarouselSlide.mode = "metric";
+        state.copy.tiktokCarouselSlide.value = "";
+      },
+    },
+    {
+      name: "TikTok carousel metric label",
+      templateId: "tiktok-carousel-slide" as const,
+      clear: (state: PreviewFormState) => {
+        state.copy.tiktokCarouselSlide.mode = "metric";
+        state.copy.tiktokCarouselSlide.label = "\t";
       },
     },
   ])("lets Core reject blank required copy: $name", ({ templateId, clear }) => {

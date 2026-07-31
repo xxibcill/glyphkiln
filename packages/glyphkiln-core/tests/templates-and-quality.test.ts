@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   GlyphkilnError,
+  TEMPLATE_IDS,
   TEMPLATE_REGISTRY,
   createDevelopmentFont,
   renderGraphic,
@@ -87,18 +88,20 @@ async function expectQualityIssue(
 }
 
 describe("template registry", () => {
-  it("contains four stable versioned templates", () => {
+  it("contains five stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
       "product-announcement",
       "statistic-card",
       "quote-card",
       "article-cover",
+      "tiktok-carousel-slide",
     ]);
     const expectedVersions = {
       "product-announcement": "1.1.1",
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
+      "tiktok-carousel-slide": "1.0.0",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -118,22 +121,19 @@ describe("template registry", () => {
     },
   );
 
-  it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
-    "renders the %s template deterministically",
-    async (name) => {
-      const document = await loadExample(name);
-      const first = await renderGraphic(document, {
-        formats: ["svg"],
-        creationTimestamp: "2026-01-01T00:00:00.000Z",
-      });
-      const second = await renderGraphic(document, {
-        formats: ["svg"],
-        creationTimestamp: "2026-01-01T00:00:00.000Z",
-      });
-      expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
-      expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
-    },
-  );
+  it.each(TEMPLATE_IDS)("renders the %s template deterministically", async (name) => {
+    const document = await loadExample(name);
+    const first = await renderGraphic(document, {
+      formats: ["svg"],
+      creationTimestamp: "2026-01-01T00:00:00.000Z",
+    });
+    const second = await renderGraphic(document, {
+      formats: ["svg"],
+      creationTimestamp: "2026-01-01T00:00:00.000Z",
+    });
+    expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
+    expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
+  });
 
   it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
     "renders the %s template in a landscape format",
@@ -145,6 +145,51 @@ describe("template registry", () => {
       ).resolves.toBeDefined();
     },
   );
+
+  it("accepts only the registered TikTok carousel format", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+
+    document.format = "instagram-story";
+    await expect(renderGraphic(document, { formats: ["svg"] })).rejects.toMatchObject({
+      code: "UNSUPPORTED_TEMPLATE_FORMAT",
+    });
+  });
+
+  it("renders narrative or metric TikTok slides but not both at once", async () => {
+    const narrative = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const metric = cloneDocument(narrative);
+    metric.layers = metric.layers.filter((layer) => layer.type !== "subtitle");
+    metric.layers.push({
+      id: "metric",
+      type: "statistic",
+      value: "100%",
+      label: "reproducible from one pinned seed, font, and renderer",
+      trend: "NO MODEL · NO NETWORK · NO DRIFT",
+      visible: true,
+    });
+
+    const narrativeResult = await renderGraphic(narrative, { formats: ["svg"] });
+    const metricResult = await renderGraphic(metric, { formats: ["svg"] });
+    expect(metricResult.outputs[0]?.bytes).not.toEqual(
+      narrativeResult.outputs[0]?.bytes,
+    );
+    expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
+      "8f70c6b18068c9bb114ba1635733172b4274bb559f1a213c2e7268c6273b80da",
+    );
+
+    metric.layers.push({
+      id: "conflicting-subtitle",
+      type: "subtitle",
+      text: "This conflicts with the metric mode.",
+      visible: true,
+    });
+    await expectQualityIssue(
+      metric,
+      "CONFLICTING_VISIBLE_LAYERS",
+      "conflicting-subtitle",
+    );
+  });
 
   it("allows a missing optional subtitle", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
@@ -307,7 +352,7 @@ describe("template registry", () => {
     });
   });
 
-  it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
+  it.each(TEMPLATE_IDS)(
     "rejects a visible layer that the %s template does not implement",
     async (name) => {
       const document = cloneDocument(await loadExample(name));

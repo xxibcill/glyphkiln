@@ -31,3 +31,9 @@ supported. Do not silently repoint an old version to new layout code.
 The four initial templates intentionally share small geometry/typography
 helpers but retain explicit composition functions. Introduce a broader
 abstraction only after repeated concrete behavior proves it useful.
+
+Carousel templates retain the one-document, one-canvas contract. Author each
+slide as a complete design document, keep visible slide numbering in semantic
+layers, and use metadata only for non-pixel grouping and ordering. Applications
+may coordinate an ordered slide pack without introducing pages, expressions, or
+filesystem references into a design document.
