@@ -43,7 +43,7 @@ test("verifies the reviewed committed graphic", async () => {
   assert.equal(result.qualityIssues.length, 0);
 });
 
-test("generates reproducible files and detects changed bytes", async () => {
+test("generates reproducible files and detects stale outputs", async () => {
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "glyphkiln-showcase-"));
   const paths = {
     designPath,
@@ -56,6 +56,14 @@ test("generates reproducible files and detects changed bytes", async () => {
     const pngPath = join(paths.generatedDirectory, "kiln-ledger.png");
     const manifest = JSON.parse(await readFile(`${pngPath}.manifest.json`, "utf8"));
     assert.equal(manifest.output.sha256, generated.outputs[1].manifest.output.sha256);
+
+    const stalePath = join(paths.generatedDirectory, "stale.txt");
+    await writeFile(stalePath, "unexpected", "utf8");
+    await assert.rejects(
+      runShowcase("verify", paths),
+      /Generated output set does not match/,
+    );
+    await rm(stalePath);
 
     await writeFile(pngPath, "changed", "utf8");
     await assert.rejects(

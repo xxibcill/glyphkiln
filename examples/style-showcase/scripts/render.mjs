@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -16,6 +16,7 @@ const defaultPaths = {
   generatedDirectory: join(projectDirectory, "generated"),
 };
 const creationTimestamp = "2026-07-31T00:00:00.000Z";
+const outputBasename = "kiln-ledger";
 
 if (isMainModule()) {
   await runShowcase(parseMode(process.argv.slice(2)));
@@ -42,6 +43,9 @@ export async function runShowcase(mode, paths = defaultPaths) {
   assertExpectedOutputs(result.outputs);
   assertNoQualityIssues(result.qualityIssues);
   await mkdir(paths.generatedDirectory, { recursive: true });
+  if (mode === "verify") {
+    await assertGeneratedOutputSet(paths.generatedDirectory, result.outputs);
+  }
 
   for (const output of result.outputs) {
     await persistOutput(output, mode, paths.generatedDirectory);
@@ -98,6 +102,29 @@ export function assertExpectedOutputs(outputs) {
   }
 }
 
+/**
+ * @param {string} generatedDirectory
+ * @param {readonly { format: string }[]} outputs
+ */
+async function assertGeneratedOutputSet(generatedDirectory, outputs) {
+  const expectedFiles = outputs
+    .flatMap((output) => [
+      `${outputBasename}.${output.format}`,
+      `${outputBasename}.${output.format}.manifest.json`,
+    ])
+    .sort();
+  const actualFiles = (await readdir(generatedDirectory)).sort();
+  const matches =
+    actualFiles.length === expectedFiles.length &&
+    actualFiles.every((file, index) => file === expectedFiles[index]);
+
+  if (!matches) {
+    throw new Error(
+      `Generated output set does not match. Expected: ${expectedFiles.join(", ")}. Received: ${actualFiles.join(", ")}.`,
+    );
+  }
+}
+
 /** @param {readonly import("@glyphkiln/core").QualityIssue[]} issues */
 function assertNoQualityIssues(issues) {
   if (issues.length > 0) {
@@ -113,7 +140,7 @@ function assertNoQualityIssues(issues) {
  * @param {string} generatedDirectory
  */
 async function persistOutput(output, mode, generatedDirectory) {
-  const outputPath = join(generatedDirectory, `kiln-ledger.${output.format}`);
+  const outputPath = join(generatedDirectory, `${outputBasename}.${output.format}`);
   const manifestPath = `${outputPath}.manifest.json`;
   const bytes = Buffer.from(output.bytes);
   const manifest = `${JSON.stringify(output.manifest, null, 2)}\n`;
