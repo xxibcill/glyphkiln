@@ -57,11 +57,40 @@ describe("EditorControls", () => {
     expect(narrativeMarkup).toContain('id="tiktok-headline"');
     expect(narrativeMarkup).toContain('id="tiktok-subtitle"');
     expect(narrativeMarkup).not.toContain('id="tiktok-statistic-value"');
+    expect(narrativeMarkup).toContain("Keep one message per slide.");
+    expect(narrativeMarkup).toContain("01 / 07");
+    expect(narrativeMarkup).toContain("3-slide pack");
+    expect(narrativeMarkup).toContain("7–9-slide sequence");
+    expect(narrativeMarkup).toContain(
+      "place the action CTA after the benefits or on the final slide.",
+    );
 
     const metricMarkup = renderTiktokControls("metric");
     expect(metricMarkup).toContain('id="tiktok-statistic-value"');
     expect(metricMarkup).toContain('id="tiktok-statistic-label"');
     expect(metricMarkup).not.toContain('id="tiktok-subtitle"');
+  });
+
+  it("replaces TikTok procedural controls with its typography-first policy", () => {
+    const tiktokMarkup = renderTiktokControls("narrative");
+
+    expect(tiktokMarkup).toContain("Typography-first carousel");
+    expect(tiktokMarkup).toContain(
+      "AI-assisted starters prioritize semantic typography and renderer-native structural rules.",
+    );
+    expect(tiktokMarkup).toContain(
+      "They do not add generated illustration or SVG assets.",
+    );
+    expect(tiktokMarkup).toContain(
+      "the TikTok template keeps conservative extra clearance at the right and bottom edges.",
+    );
+    expect(tiktokMarkup).not.toContain('id="procedural-style"');
+    expect(tiktokMarkup).not.toContain('id="intensity"');
+    expect(tiktokMarkup).not.toContain("Quiet-region geometry");
+
+    const productMarkup = renderControls(false);
+    expect(productMarkup).toContain('id="procedural-style"');
+    expect(productMarkup).toContain('id="intensity"');
   });
 
   it("associates synthetic metric quality issues with their editor fields", () => {

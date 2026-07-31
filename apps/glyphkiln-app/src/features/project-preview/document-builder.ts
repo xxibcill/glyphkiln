@@ -81,15 +81,15 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
       },
       tiktokCarouselSlide: {
         mode: "narrative",
-        slideNumber: "01 / 06",
+        slideNumber: "01 / 07",
         eyebrow: "GLYPHKILN / SWIPE LEDGER",
         headline: "Same brief. Different pixels?",
         subtitle: "That is not a creative problem. It is a rendering-contract problem.",
         value: "100%",
         label: "reproducible from one pinned seed, font, and renderer",
         trend: "NO MODEL · NO NETWORK · NO DRIFT",
-        cta: "SWIPE TO INSPECT →",
-        footer: "@glyphkiln · deterministic series",
+        cta: "SWIPE FOR THE PROOF →",
+        footer: "@glyphkiln · typography-first series",
       },
     },
     resources: {
@@ -180,7 +180,10 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       type: "background",
       visible: true,
     },
-    {
+  ];
+
+  if (state.composition.templateId !== "tiktok-carousel-slide") {
+    layers.push({
       id: "procedure",
       type: "procedural-decoration",
       visible: true,
@@ -190,8 +193,8 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       complexity: state.composition.complexity,
       contrast: state.composition.contrast,
       quietRegion: state.composition.quietRegion,
-    },
-  ];
+    });
+  }
 
   const templateId = state.composition.templateId;
   switch (templateId) {

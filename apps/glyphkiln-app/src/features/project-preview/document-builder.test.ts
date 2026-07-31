@@ -51,7 +51,6 @@ const EXPECTED_LAYERS = {
   ],
   "tiktok-carousel-slide": [
     ["background", "background"],
-    ["procedure", "procedural-decoration"],
     ["slide-number", "badge"],
     ["eyebrow", "eyebrow"],
     ["headline", "headline"],
@@ -68,7 +67,7 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
-    "e3f130df329dda5b2387145d1a77d737a1d7ccfa4b7f8e0aa55472b3a3e3d158",
+    "d812dc57aca53598b5967e0024bd5f89a5f39af938d52b4f8d838bbb21f32458",
 } as const satisfies Record<TemplateId, string>;
 
 describe("buildPreviewDocument", () => {
@@ -166,12 +165,7 @@ describe("buildPreviewDocument", () => {
     tiktok.copy.tiktokCarouselSlide.subtitle = "";
     tiktok.copy.tiktokCarouselSlide.cta = "\t";
     tiktok.copy.tiktokCarouselSlide.footer = "\n";
-    expectLayerIds(build(tiktok)).toEqual([
-      "background",
-      "procedure",
-      "slide-number",
-      "headline",
-    ]);
+    expectLayerIds(build(tiktok)).toEqual(["background", "slide-number", "headline"]);
     expectCoreValid(build(tiktok));
   });
 
@@ -182,7 +176,6 @@ describe("buildPreviewDocument", () => {
 
     expectLayerIds(document).toEqual([
       "background",
-      "procedure",
       "slide-number",
       "eyebrow",
       "headline",
@@ -201,6 +194,21 @@ describe("buildPreviewDocument", () => {
       expect.objectContaining({ type: "subtitle" }),
     );
     expectCoreValid(document);
+  });
+
+  it("starts the TikTok carousel as a seven-slide typography-first sequence", () => {
+    const state = createFormForTemplate("tiktok-carousel-slide");
+
+    expect(state.copy.tiktokCarouselSlide.slideNumber).toBe("01 / 07");
+    expect(state.copy.tiktokCarouselSlide.cta).toBe("SWIPE FOR THE PROOF →");
+    expect(state.copy.tiktokCarouselSlide.footer).toBe(
+      "@glyphkiln · typography-first series",
+    );
+
+    const document = build(state);
+    expect(document.layers).not.toContainEqual(
+      expect.objectContaining({ type: "procedural-decoration" }),
+    );
   });
 
   it.each([

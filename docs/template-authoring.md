@@ -37,3 +37,23 @@ slide as a complete design document, keep visible slide numbering in semantic
 layers, and use metadata only for non-pixel grouping and ordering. Applications
 may coordinate an ordered slide pack without introducing pages, expressions, or
 filesystem references into a design document.
+
+## TikTok carousel policy
+
+Author `tiktok-carousel-slide@1.0.2` packs according to the
+[TikTok Image Ads | Carousel Ads Playbook](https://ads.tiktok.com/business/library/Image_Ads_Carousel_Ads_Playbook.pdf):
+
+- use the 1080 × 1920 `tiktok-carousel` format for 9:16 output above the
+  playbook's 720p minimum, and keep all key text and marks inside the template
+  safe zone
+- create 3 or 7–9 complete slide documents, each with one concise, readable
+  message
+- structure the intended sequence as hook, benefits, then a final action that
+  matches the carousel's shared CTA
+- make every slide understandable on its own so Smart Order can surface any
+  slide first without breaking its meaning
+
+When an AI agent assists with a carousel, keep the design typography-first and
+use semantic text plus Core-owned layout and background primitives. Do not
+generate or upload SVG artwork for visual decoration. Core-owned safe SVG
+serialization remains an output format, not an author-supplied artwork path.

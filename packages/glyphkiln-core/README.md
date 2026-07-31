@@ -28,7 +28,7 @@ Supported templates:
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
-- `tiktok-carousel-slide@1.0.1`
+- `tiktok-carousel-slide@1.0.2`
 
 Supported procedural styles:
 
@@ -184,12 +184,21 @@ visible text with `QUALITY_VALIDATION_FAILED`.
 The X default is 16:9 at 1200 × 675: a practical current default that maps
 cleanly to common high-resolution preview surfaces. Applications can add new
 versioned registry entries without scattering dimensions through templates.
-The TikTok carousel format uses a high-resolution 9:16 canvas and the
-carousel-slide template keeps semantic copy in a conservative upper-left
-column so platform interface elements do not compete with the message. This
-follows [TikTok's current creative guidance](https://ads.tiktok.com/help/article/creative-best-practices)
-to use vertical 9:16 creative at 720p or higher and keep content inside the
-interface safe zone.
+The TikTok carousel format uses a high-resolution 1080 × 1920 (9:16) canvas.
+`tiktok-carousel-slide@1.0.2` keeps key content inside a conservative safe zone
+and supports packs of 3 or 7–9 slides: open with a hook, give each slide one
+concise message or benefit, and close with an action aligned to the carousel's
+shared CTA. Each slide must also make sense independently because Smart Order
+may present a different slide first. These rules follow the
+[TikTok Image Ads | Carousel Ads Playbook](https://ads.tiktok.com/business/library/Image_Ads_Carousel_Ads_Playbook.pdf),
+which recommends vertical 9:16 creative at 720p or higher, safe-zone placement,
+and concise, easy-to-read selling points.
+
+For AI-assisted authoring, prioritize typography: semantic copy, type
+hierarchy, color, and Core-owned layout or background primitives. Do not
+generate or upload SVG artwork as a visual asset. This restriction is distinct
+from Core's deterministic safe SVG output, which Core serializes from its
+validated renderer-neutral scene.
 
 ## Examples and baselines
 

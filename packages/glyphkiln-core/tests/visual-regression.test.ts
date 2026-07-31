@@ -25,6 +25,10 @@ describe("reviewed visual baselines", () => {
     });
     const output = result.outputs[0]!;
 
+    if (name === "tiktok-carousel-slide") {
+      expect(output.bytes.byteLength).toBeLessThanOrEqual(100_000);
+    }
+
     if (process.env["GLYPHKILN_UPDATE_VISUALS"] === "1") {
       await writeFile(pngPath, output.bytes);
       await writeFile(

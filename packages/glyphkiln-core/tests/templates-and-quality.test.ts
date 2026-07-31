@@ -101,7 +101,7 @@ describe("template registry", () => {
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.1",
+      "tiktok-carousel-slide": "1.0.2",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -156,6 +156,53 @@ describe("template registry", () => {
     });
   });
 
+  it("keeps the reviewed TikTok starter typography-first and free of visual assets", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const template = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
+
+    expect(template.constraints.layout).toContain("typography-first");
+    expect(template.constraints.layout).toContain(
+      "no generated illustration or SVG asset",
+    );
+    expect(document.assets).toEqual([]);
+    expect(document.layers).not.toContainEqual(
+      expect.objectContaining({ type: "procedural-decoration" }),
+    );
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(result.outputs[0]?.manifest.proceduralAlgorithmVersions).toEqual({});
+    expect(markup).toContain("carousel-type-field");
+    expect(markup).not.toContain("<image ");
+  });
+
+  it("keeps TikTok interface regions clear when the brand inset is permissive", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.brand.safeArea = {
+      top: 0.07,
+      right: 0.07,
+      bottom: 0.07,
+      left: 0.07,
+    };
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(markup).toContain('<rect id="slide-number-background" x="739.2" y="134.4"');
+    expect(markup).toContain('<rect id="cta-rule" x="125.6" y="1218.4"');
+  });
+
+  it("rejects TikTok copy that cannot fit inside the effective safe area", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.brand.safeArea = {
+      top: 0.4,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+
+    await expectQualityIssue(document, "TEXT_OUTSIDE_SAFE_AREA", "cta");
+  });
+
   it("renders narrative or metric TikTok slides but not both at once", async () => {
     const narrative = cloneDocument(await loadExample("tiktok-carousel-slide"));
     const metric = cloneDocument(narrative);
@@ -175,7 +222,7 @@ describe("template registry", () => {
       narrativeResult.outputs[0]?.bytes,
     );
     expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
-      "b0cfb72d796af5e3b20b96e990074fa5f414e95e70e3ad3c959fdf74594563c5",
+      "d20b97c4c5b657eee807063d41e604dba97175c3526ad254718945dd98466cc2",
     );
 
     metric.layers.push({

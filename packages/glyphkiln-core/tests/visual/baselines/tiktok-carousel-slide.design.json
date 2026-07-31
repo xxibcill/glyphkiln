@@ -3,7 +3,7 @@
   "id": "example-tiktok-carousel-slide-01",
   "template": {
     "id": "tiktok-carousel-slide",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "format": "tiktok-carousel",
   "seed": "swipe-ledger-v1-slide-01",
@@ -89,24 +89,9 @@
       "type": "background"
     },
     {
-      "id": "kiln-witness",
-      "type": "procedural-decoration",
-      "style": "recursive-subdivision",
-      "intensity": 0.42,
-      "density": 0.62,
-      "complexity": 0.58,
-      "contrast": 0.3,
-      "quietRegion": {
-        "x": 0.07,
-        "y": 0.105,
-        "width": 0.7,
-        "height": 0.48
-      }
-    },
-    {
       "id": "slide-number",
       "type": "badge",
-      "text": "01 / 06"
+      "text": "01 / 07"
     },
     {
       "id": "eyebrow",
@@ -126,18 +111,18 @@
     {
       "id": "cta",
       "type": "cta",
-      "text": "SWIPE TO INSPECT →"
+      "text": "SWIPE FOR THE PROOF →"
     },
     {
       "id": "footer",
       "type": "footer",
-      "text": "@glyphkiln · deterministic series"
+      "text": "@glyphkiln · typography-first series"
     }
   ],
   "metadata": {
     "campaignId": "swipe-ledger-v1",
     "slideIndex": 1,
-    "slideCount": 6,
+    "slideCount": 7,
     "reviewed": true
   }
 }
