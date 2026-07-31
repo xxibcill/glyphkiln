@@ -3,6 +3,7 @@ import { basename, resolve } from "node:path";
 import process from "node:process";
 
 import { renderGraphic } from "../dist/index.js";
+import { loadExampleAssets } from "./example-assets.mjs";
 
 const examples = [
   "product-announcement",
@@ -19,18 +20,7 @@ await mkdir(outputDirectory, { recursive: true });
 
 for (const name of examples) {
   const document = JSON.parse(await readFile(resolve(`examples/${name}.json`), "utf8"));
-  const assets = await Promise.all(
-    document.assets.map(async (asset) => ({
-      ...asset,
-      bytes: new Uint8Array(
-        await readFile(
-          resolve(
-            `examples/assets/${asset.id}.${asset.mimeType === "image/png" ? "png" : "jpg"}`,
-          ),
-        ),
-      ),
-    })),
-  );
+  const assets = await loadExampleAssets(document);
   const result = await renderGraphic(document, {
     formats: ["svg", "png"],
     creationTimestamp,
