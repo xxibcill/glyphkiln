@@ -1,13 +1,13 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_6355433099146e402f483eb8",
-  "renderFingerprint": "6355433099146e402f483eb85d13eaf3cbd4171116c6dc42b90dac3c4748be16",
+  "renderId": "render_a2b967cb95f7470bab8ee8ea",
+  "renderFingerprint": "a2b967cb95f7470bab8ee8eac8cc8193202e466e016cb771d314e85ce70a1298",
   "designDocumentId": "example-tiktok-carousel-slide-01",
-  "designDocumentHash": "88f82e177129d9a33da9ac6aeb556573cfbf13599b13b55cd0946dc7b39b1b36",
+  "designDocumentHash": "8999412c16883f3417a61114b705e0cc21d0a68a1dc9f91e03606eaa1e6eb70e",
   "seed": "swipe-ledger-v1-slide-01",
   "template": {
     "id": "tiktok-carousel-slide",
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "renderer": {
     "name": "glyphkiln-svg",
@@ -50,44 +50,17 @@
   ],
   "dimensions": {
     "width": 1080,
-    "height": 1920
+    "height": 1440
   },
   "output": {
     "format": "svg",
-    "sha256": "5c95f1c0a3aebc6e6c64c09807b49021a850916309ec2be453e22ea116fc13b3",
-    "byteSize": 105261
+    "sha256": "0a24615661422e8b395cfa19c87a9accc81ef3f106157fc2afa59697a9eeb7a1",
+    "byteSize": 104910
   },
   "creationTimestamp": "2026-07-29T00:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,
   "includedGenerativeAssetUsed": false,
   "renderingMethod": "deterministic-code-rendering/direct-svg",
-  "qualityIssues": [
-    {
-      "code": "ORPHAN_LINE",
-      "severity": "warning",
-      "message": "The final line is isolated or disproportionately short.",
-      "layerId": "headline",
-      "details": {
-        "affectedLine": "pixels?",
-        "lineNumber": 3,
-        "phrase": "pixels?",
-        "previousLine": "Different",
-        "measuredLineWidths": [
-          609.593,
-          472.459,
-          381.458
-        ],
-        "previousLineWidth": 472.459,
-        "finalLineWidth": 381.458,
-        "finalLineToPreviousLineWidthRatio": 0.807,
-        "isolatedWord": true,
-        "disproportionatelyShort": false,
-        "segmentationPolicy": "whitespace",
-        "segmentationPolicyVersion": "whitespace@1.0.0",
-        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
-        "typographyAlgorithmVersion": "2.0.0"
-      }
-    }
-  ],
+  "qualityIssues": [],
   "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
 }

@@ -35,3 +35,9 @@ Renderer `0.3.0` owns the pixel change, design schema `1.2.0` owns the optional
 `keepTogether` text-layer field, and manifest `1.2.0` records the full policy.
 The policy is also included in fingerprint renderer configuration. Legacy
 schemas remain readable and keep their original field surface.
+
+Design schema `1.3.0` adds the `tiktok-photo-carousel` format without changing
+the renderer or manifest contracts. Template `tiktok-carousel-slide@1.0.3`
+owns the new 3:4 organic-photo composition. Versions `1.0.1` and `1.0.2` retain
+their exact 9:16 `tiktok-carousel` pixels and remain available for saved ad
+documents.

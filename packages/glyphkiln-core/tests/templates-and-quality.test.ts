@@ -90,6 +90,8 @@ async function expectQualityIssue(
 async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
   const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
   document.template.version = "1.0.1";
+  document.format = "tiktok-carousel";
+  document.brand.safeArea = { top: 0.07, right: 0.16, bottom: 0.18, left: 0.07 };
   document.layers.splice(1, 0, {
     id: "kiln-witness",
     type: "procedural-decoration",
@@ -148,7 +150,7 @@ describe("template registry", () => {
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.2",
+      "tiktok-carousel-slide": "1.0.3",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -193,14 +195,36 @@ describe("template registry", () => {
     },
   );
 
-  it("accepts only the registered TikTok carousel format", async () => {
+  it("uses the organic photo format without repointing the legacy ad format", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
-    await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    expect(result.outputs[0]?.manifest.dimensions).toEqual({
+      width: 1080,
+      height: 1440,
+    });
 
-    document.format = "instagram-story";
+    document.format = "tiktok-carousel";
     await expect(renderGraphic(document, { formats: ["svg"] })).rejects.toMatchObject({
       code: "UNSUPPORTED_TEMPLATE_FORMAT",
     });
+
+    document.template.version = "1.0.2";
+    await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+  });
+
+  it("keeps saved TikTok 1.0.2 ad slides exactly renderable", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.template.version = "1.0.2";
+    document.format = "tiktok-carousel";
+    document.brand.safeArea = { top: 0.07, right: 0.16, bottom: 0.18, left: 0.07 };
+
+    const result = await renderGraphic(document, {
+      formats: ["png"],
+      creationTimestamp: "2026-07-29T10:00:00.000Z",
+    });
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "2cedc78003240b1b23553defd532190ad52742c16d1c4535a5a8e21c70eefb57",
+    );
   });
 
   it("keeps the reviewed TikTok starter typography-first and free of visual assets", async () => {
@@ -243,8 +267,8 @@ describe("template registry", () => {
 
     const result = await renderGraphic(document, { formats: ["svg"] });
     const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
-    expect(markup).toContain('<rect id="slide-number-background" x="739.2" y="134.4"');
-    expect(markup).toContain('<rect id="cta-rule" x="125.6" y="1218.4"');
+    expect(markup).toContain('<rect id="slide-number-background" x="774.8" y="100.8"');
+    expect(markup).toContain('<rect id="cta-rule" x="119.6" y="956.8"');
   });
 
   it.each([0.15, 0.16, 0.18, 0.2])(
@@ -272,7 +296,7 @@ describe("template registry", () => {
     document.brand.safeArea = {
       top: 0.4,
       right: 0,
-      bottom: 0,
+      bottom: 0.4,
       left: 0,
     };
 
@@ -298,7 +322,7 @@ describe("template registry", () => {
       narrativeResult.outputs[0]?.bytes,
     );
     expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
-      "d20b97c4c5b657eee807063d41e604dba97175c3526ad254718945dd98466cc2",
+      "d8b10716091efab468ceef6e5a57d04849d9b003f0444d0ace1dc076ddc667f8",
     );
 
     metric.layers.push({
@@ -348,7 +372,7 @@ describe("template registry", () => {
     if (headline?.type !== "headline") {
       throw new Error("The carousel example must include a headline.");
     }
-    headline.text = "A deliberately oversized carousel headline ".repeat(3);
+    headline.text = "A deliberately oversized carousel headline ".repeat(8);
     headline.maxLines = 20;
 
     try {

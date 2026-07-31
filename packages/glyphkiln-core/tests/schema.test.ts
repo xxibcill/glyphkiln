@@ -56,8 +56,13 @@ describe("design document schema", () => {
   });
 
   it("keeps legacy schemas readable while versioning new rendering controls", async () => {
-    expect(DESIGN_DOCUMENT_VERSION).toBe("1.2.0");
-    expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual(["1.0.0", "1.1.0", "1.2.0"]);
+    expect(DESIGN_DOCUMENT_VERSION).toBe("1.3.0");
+    expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual([
+      "1.0.0",
+      "1.1.0",
+      "1.2.0",
+      "1.3.0",
+    ]);
 
     const legacy = await loadExample("product-announcement");
     expect(legacy.schemaVersion).toBe("1.0.0");
@@ -66,6 +71,8 @@ describe("design document schema", () => {
     const carousel = {
       ...(await loadExample("tiktok-carousel-slide")),
       schemaVersion: "1.1.0",
+      template: { id: "tiktok-carousel-slide", version: "1.0.2" },
+      format: "tiktok-carousel",
     };
     expect(validateDesignDocument(carousel).success).toBe(true);
     expect(
@@ -73,7 +80,7 @@ describe("design document schema", () => {
     ).toBe(false);
   });
 
-  it("validates bounded keep-together phrases only in schema 1.2.0", async () => {
+  it("validates bounded keep-together phrases in schema 1.2.0 and newer", async () => {
     const source = await loadExample("product-announcement");
     const current = {
       ...source,
@@ -83,6 +90,9 @@ describe("design document schema", () => {
       ),
     };
     expect(validateDesignDocument(current).success).toBe(true);
+    expect(validateDesignDocument({ ...current, schemaVersion: "1.2.0" }).success).toBe(
+      true,
+    );
     expect(validateDesignDocument({ ...current, schemaVersion: "1.1.0" }).success).toBe(
       false,
     );

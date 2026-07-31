@@ -135,7 +135,7 @@ function renderTiktokControls(
   const catalog = createPreviewCatalog();
   const state = createInitialPreviewForm(catalog);
   state.composition.templateId = "tiktok-carousel-slide";
-  state.composition.formatId = "tiktok-carousel";
+  state.composition.formatId = "tiktok-photo-carousel";
   state.copy.tiktokCarouselSlide.mode = mode;
 
   return renderToStaticMarkup(

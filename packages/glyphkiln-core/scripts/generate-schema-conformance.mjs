@@ -39,7 +39,7 @@ const cases = [
   {
     name: "current-valid",
     document: mutateCarousel((document) => {
-      document.schemaVersion = "1.2.0";
+      document.schemaVersion = "1.3.0";
       const headline = document.layers.find((layer) => layer.type === "headline");
       headline.keepTogether = ["Different pixels?"];
     }),
@@ -49,7 +49,7 @@ const cases = [
   {
     name: "current-mislabeled-as-legacy",
     document: mutateCarousel((document) => {
-      document.schemaVersion = "1.1.0";
+      document.schemaVersion = "1.2.0";
       const headline = document.layers.find((layer) => layer.type === "headline");
       headline.keepTogether = ["Different pixels?"];
     }),

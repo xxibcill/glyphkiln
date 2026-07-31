@@ -1,8 +1,8 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "id": "schema-conformance-current-mislabeled-as-legacy",
-  "template": { "id": "tiktok-carousel-slide", "version": "1.0.2" },
-  "format": "tiktok-carousel",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.3" },
+  "format": "tiktok-photo-carousel",
   "seed": "swipe-ledger-v1-slide-01",
   "mode": "light",
   "brand": {
@@ -38,7 +38,7 @@
     "borderRadii": [0, 8, 16],
     "visualDensity": "balanced",
     "preferredProceduralStyles": ["recursive-subdivision"],
-    "safeArea": { "top": 0.07, "right": 0.16, "bottom": 0.18, "left": 0.07 },
+    "safeArea": { "top": 0.06, "right": 0.14, "bottom": 0.08, "left": 0.06 },
     "prohibitedColors": [],
     "prohibitedStyles": []
   },

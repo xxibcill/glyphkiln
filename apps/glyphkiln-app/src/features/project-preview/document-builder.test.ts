@@ -67,7 +67,7 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
-    "d812dc57aca53598b5967e0024bd5f89a5f39af938d52b4f8d838bbb21f32458",
+    "ee04f360f7442c70845e7fe29e7a28a5dd0f39c57ed18442ee44f800cd75a84d",
 } as const satisfies Record<TemplateId, string>;
 
 describe("buildPreviewDocument", () => {
@@ -199,6 +199,7 @@ describe("buildPreviewDocument", () => {
   it("starts the TikTok carousel as a seven-slide typography-first sequence", () => {
     const state = createFormForTemplate("tiktok-carousel-slide");
 
+    expect(state.composition.formatId).toBe("tiktok-photo-carousel");
     expect(state.copy.tiktokCarouselSlide.slideNumber).toBe("01 / 07");
     expect(state.copy.tiktokCarouselSlide.cta).toBe("SWIPE FOR THE PROOF →");
     expect(state.copy.tiktokCarouselSlide.footer).toBe(

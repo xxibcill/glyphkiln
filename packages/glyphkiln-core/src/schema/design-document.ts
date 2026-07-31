@@ -328,6 +328,16 @@ const DESIGN_DOCUMENT_1_0_0_FORMAT_IDS = [
   "youtube-thumbnail",
 ] as const;
 
+const DESIGN_DOCUMENT_1_1_0_FORMAT_IDS = [
+  "linkedin-landscape",
+  "instagram-square",
+  "instagram-portrait",
+  "instagram-story",
+  "tiktok-carousel",
+  "x-landscape",
+  "youtube-thumbnail",
+] as const;
+
 const designDocumentFields = {
   seed: z.string().min(1).max(256),
   mode: z.enum(["light", "dark"]).default("light"),
@@ -375,11 +385,18 @@ const DesignDocumentV1_0_0Schema = createVersionedDesignDocumentSchema(
 const DesignDocumentV1_1_0Schema = createVersionedDesignDocumentSchema(
   "1.1.0",
   TEMPLATE_IDS,
-  FORMAT_IDS,
+  DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
   LegacyLayerSchema,
 );
 
 const DesignDocumentV1_2_0Schema = createVersionedDesignDocumentSchema(
+  "1.2.0",
+  TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
+  LayerSchema,
+);
+
+const DesignDocumentV1_3_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_VERSION,
   TEMPLATE_IDS,
   FORMAT_IDS,
@@ -391,6 +408,7 @@ export const DesignDocumentSchema = z
     DesignDocumentV1_0_0Schema,
     DesignDocumentV1_1_0Schema,
     DesignDocumentV1_2_0Schema,
+    DesignDocumentV1_3_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);

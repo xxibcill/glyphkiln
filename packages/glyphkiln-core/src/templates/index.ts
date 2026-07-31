@@ -6,6 +6,7 @@ import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
 import { tiktokCarouselSlideTemplate } from "./tiktok-carousel-slide.js";
 import { tiktokCarouselSlideV1_0_1Template } from "./tiktok-carousel-slide-v1-0-1.js";
+import { tiktokCarouselSlideV1_0_3Template } from "./tiktok-carousel-slide-v1-0-3.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -14,7 +15,7 @@ export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>>
     "statistic-card": statisticCardTemplate,
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
-    "tiktok-carousel-slide": tiktokCarouselSlideTemplate,
+    "tiktok-carousel-slide": tiktokCarouselSlideV1_0_3Template,
   });
 
 const TEMPLATE_VERSION_REGISTRY: Readonly<
@@ -27,6 +28,7 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
   "tiktok-carousel-slide": Object.freeze([
     tiktokCarouselSlideV1_0_1Template,
     tiktokCarouselSlideTemplate,
+    tiktokCarouselSlideV1_0_3Template,
   ]),
 });
 

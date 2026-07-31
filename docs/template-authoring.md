@@ -40,12 +40,16 @@ filesystem references into a design document.
 
 ## TikTok carousel policy
 
-Author `tiktok-carousel-slide@1.0.2` packs according to the
+Author `tiktok-carousel-slide@1.0.3` targets organic photo posts, while the
+preserved `1.0.2` version packs 9:16 ad creative according to the
 [TikTok Image Ads | Carousel Ads Playbook](https://ads.tiktok.com/business/library/Image_Ads_Carousel_Ads_Playbook.pdf):
 
-- use the 1080 × 1920 `tiktok-carousel` format for 9:16 output above the
-  playbook's 720p minimum, and keep all key text and marks inside the template
-  safe zone
+- use the 1080 × 1440 `tiktok-photo-carousel` format for organic photo posts so
+  the composition matches TikTok's shorter in-feed photo viewport without an
+  oversized empty lower region
+- use preserved `tiktok-carousel-slide@1.0.2` documents with the 1080 × 1920
+  `tiktok-carousel` format when authoring 9:16 Carousel Ads above the playbook's
+  720p minimum
 - create 3 or 7–9 complete slide documents, each with one concise, readable
   message
 - structure the intended sequence as hook, benefits, then a final action that

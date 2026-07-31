@@ -3,8 +3,8 @@
 1. Read at most the public byte limit or pass an unknown value to the SDK.
 2. Iteratively reject cyclic, accessor-backed, non-JSON, oversized, overly
    deep, or over-populated input.
-3. Validate with the strict current `DesignDocument 1.2.0` schema or a supported
-   `1.0.0`/`1.1.0` predecessor.
+3. Validate with the strict current `DesignDocument 1.3.0` schema or a supported
+   `1.0.0`/`1.1.0`/`1.2.0` predecessor.
 4. Resolve the format and exact template version. Aggregate required,
    unsupported, duplicate, or mutually exclusive layers; brand restrictions;
    and pinned Unicode text-layout diagnostics. Any error blocks before asset or
