@@ -116,9 +116,9 @@ describe("design document schema", () => {
 
   it("creates a stable ID and applies schema defaults", async () => {
     const source = await loadExample("product-announcement");
-    const input = Object.fromEntries(
-      Object.entries(source).filter(([key]) => key !== "id" && key !== "schemaVersion"),
-    ) as CreateDesignDocumentInput;
+    const { id: _id, schemaVersion: _schemaVersion, ...input } = source;
+    expect(_id).toBe("example-product-announcement");
+    expect(_schemaVersion).toBe("1.0.0");
     const first = createDesignDocument(input);
     const second = createDesignDocument(input);
     expect(first.id).toBe(second.id);
@@ -126,6 +126,23 @@ describe("design document schema", () => {
     expect(first.layers.every((layer) => typeof layer.visible === "boolean")).toBe(
       true,
     );
+  });
+
+  it("creates current 3:4 carousel documents through the public helper type", async () => {
+    const source = await loadExample("tiktok-carousel-slide");
+    const { id: _id, schemaVersion: _schemaVersion, ...input } = source;
+    expect(_id).toBe("example-tiktok-carousel-slide-01");
+    expect(_schemaVersion).toBe(DESIGN_DOCUMENT_VERSION);
+    const typedInput = input satisfies CreateDesignDocumentInput;
+
+    const document = createDesignDocument(typedInput);
+
+    expect(document.schemaVersion).toBe(DESIGN_DOCUMENT_VERSION);
+    expect(document.format).toBe("tiktok-photo-carousel");
+    expect(document.template).toEqual({
+      id: "tiktok-carousel-slide",
+      version: "1.0.3",
+    });
   });
 
   it("exports strict draft 2020-12 input JSON Schema", async () => {
