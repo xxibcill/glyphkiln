@@ -1,8 +1,9 @@
 import { decode as decodeJpeg } from "jpeg-js";
 import { PNG } from "pngjs";
 
-import type { Bounds, ResolvedAsset } from "../domain/types.js";
+import { GlyphkilnError, type Bounds, type ResolvedAsset } from "../domain/types.js";
 import { contrastRatio } from "../layout/index.js";
+import { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "../resources/index.js";
 import type { ImageTreatmentId } from "../schema/index.js";
 import type { ContrastEvidence } from "../renderer/evidence.js";
 import type { FocalCropGeometry } from "./focal-crop.js";
@@ -88,15 +89,26 @@ export function inspectImageTextContrast(input: {
 }
 
 export function decodeRasterForContrast(asset: ResolvedAsset): ContrastRaster {
-  if (asset.mimeType === "image/png") {
-    const decoded = PNG.sync.read(Buffer.from(asset.bytes), { checkCRC: true });
+  try {
+    if (asset.mimeType === "image/png") {
+      const decoded = PNG.sync.read(Buffer.from(asset.bytes), { checkCRC: true });
+      return { width: decoded.width, height: decoded.height, data: decoded.data };
+    }
+    const decoded = decodeJpeg(asset.bytes, {
+      useTArray: true,
+      formatAsRGBA: true,
+      maxResolutionInMP: Math.ceil(RENDER_RESOURCE_LIMITS.maxAssetPixels / 1_000_000),
+      maxMemoryUsageInMB:
+        RENDER_WORKER_PROFILE.nodeResourceLimits.maxOldGenerationSizeMb,
+    });
     return { width: decoded.width, height: decoded.height, data: decoded.data };
+  } catch {
+    throw new GlyphkilnError(
+      `Asset "${asset.id}" could not be decoded for contrast inspection.`,
+      "ASSET_CONTRAST_DECODE_FAILED",
+      { assetId: asset.id, mimeType: asset.mimeType },
+    );
   }
-  const decoded = decodeJpeg(asset.bytes, {
-    useTArray: true,
-    formatAsRGBA: true,
-  });
-  return { width: decoded.width, height: decoded.height, data: decoded.data };
 }
 
 function parseHex(value: string): { red: number; green: number; blue: number } {

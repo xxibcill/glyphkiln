@@ -144,6 +144,33 @@ describe("composited raster contrast evidence", () => {
       255, 255, 255, 255,
     ]);
   });
+
+  it("bounds JPEG contrast decoding with a stable renderer error", () => {
+    const bytes = Uint8Array.from([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x13, 0x88, 0x20, 0x00, 0x03, 0x01,
+      0x11, 0x00, 0x02, 0x11, 0x00, 0x03, 0x11, 0x00, 0xff, 0xd9,
+    ]);
+
+    expect(() =>
+      decodeRasterForContrast({
+        id: "oversized-jpeg",
+        mimeType: "image/jpeg",
+        sha256: sha256(bytes),
+        width: 8_192,
+        height: 5_000,
+        origin: { kind: "unknown" },
+        bytes,
+      }),
+    ).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "ASSET_CONTRAST_DECODE_FAILED",
+        details: {
+          assetId: "oversized-jpeg",
+          mimeType: "image/jpeg",
+        },
+      }),
+    );
+  });
 });
 
 function rgbaAsset(data: number[]): ResolvedAsset {
