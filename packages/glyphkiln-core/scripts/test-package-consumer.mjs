@@ -127,6 +127,7 @@ await assert.rejects(
     `import {
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
+  createDesignDocument,
   type DesignTextLayoutDiagnostic,
   type DesignTextLayoutInspection,
   type TextLayoutAnalysis,
@@ -140,6 +141,46 @@ import {
   createRenderFingerprintPayload,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+
+const carousel = createDesignDocument({
+  template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+  format: "tiktok-photo-carousel",
+  seed: "strict-packed-consumer",
+  brand: {
+    snapshotId: "consumer-brand",
+    version: "1.0.0",
+    name: "Consumer Brand",
+    palette: {
+      primary: "#29231F",
+      secondary: "#526A60",
+      accent: "#A83F22",
+      neutrals: ["#F1E8DA", "#29231F"],
+    },
+    themes: {
+      light: {
+        background: "#F1E8DA",
+        surface: "#FFF9F0",
+        text: "#29231F",
+        mutedText: "#675B50",
+      },
+      dark: {
+        background: "#25211E",
+        surface: "#352F2A",
+        text: "#FFF8EC",
+        mutedText: "#CFC3B4",
+      },
+    },
+    typography: { headlineFamily: "Inter", bodyFamily: "Inter" },
+    spacingScale: [4, 8, 16],
+    borderRadii: [0, 8],
+    visualDensity: "balanced",
+    preferredProceduralStyles: ["recursive-subdivision"],
+    safeArea: { top: 0.06, right: 0.14, bottom: 0.08, left: 0.06 },
+  },
+  fonts: [{ family: "Inter", weight: 400, style: "normal" }],
+  layers: [{ id: "background", type: "background" }],
+});
+void carousel;
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {

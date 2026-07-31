@@ -453,7 +453,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_2_0Schema>,
+  z.input<typeof DesignDocumentV1_3_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

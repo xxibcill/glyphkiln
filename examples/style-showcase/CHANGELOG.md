@@ -1,6 +1,6 @@
-# @glyphkiln/app
+# @glyphkiln/example-style-showcase
 
-## 0.0.2
+## 0.0.1
 
 ### Patch Changes
 
@@ -11,12 +11,3 @@
 - Updated dependencies
 - Updated dependencies [e266314]
   - @glyphkiln/core@0.4.0
-
-## 0.0.1
-
-### Patch Changes
-
-- Updated dependencies [eb39dec]
-- Updated dependencies [75f72ba]
-- Updated dependencies [c7f19b0]
-  - @glyphkiln/core@0.3.0
