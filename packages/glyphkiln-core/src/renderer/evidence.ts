@@ -1,6 +1,7 @@
 import type { Bounds } from "../domain/types.js";
 import type { FocalPoint, ImageTreatmentId } from "../schema/index.js";
 import type { FocalCropGeometry } from "../assets/focal-crop.js";
+import type { IMAGE_CONTRAST_POLICY_VERSION } from "../assets/image-policy.js";
 
 export const RENDER_EVIDENCE_VERSION = "1.0.0" as const;
 
@@ -32,7 +33,7 @@ export type ContrastSampleEvidence = {
 
 export type ContrastEvidence = {
   layerId: string;
-  policyVersion: string;
+  policyVersion: typeof IMAGE_CONTRAST_POLICY_VERSION;
   foreground: string;
   minimumRequired: number;
   minimumRatio: number;
