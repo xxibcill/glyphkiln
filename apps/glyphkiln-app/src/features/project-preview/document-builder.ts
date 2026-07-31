@@ -1,5 +1,6 @@
 import type { DesignDocument, DesignLayer } from "@glyphkiln/core";
 
+import { assertUnreachable } from "./assert-unreachable";
 import type { PreviewCatalog, PreviewCatalogTemplate, PreviewFormState } from "./types";
 
 const FONT_WEIGHTS = [400, 500, 600, 700, 800] as const;
@@ -103,7 +104,7 @@ export function buildPreviewDocument(
   const layers = buildLayers(state);
 
   return {
-    schemaVersion: catalog.schemaVersion as DesignDocument["schemaVersion"],
+    schemaVersion: catalog.schemaVersion,
     id: `preview-${state.composition.templateId}`,
     template: {
       id: state.composition.templateId,
@@ -188,7 +189,8 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
     },
   ];
 
-  switch (state.composition.templateId) {
+  const templateId = state.composition.templateId;
+  switch (templateId) {
     case "product-announcement": {
       const copy = state.copy.productAnnouncement;
       addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
@@ -226,14 +228,12 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
     case "tiktok-carousel-slide": {
       const copy = state.copy.tiktokCarouselSlide;
       const slideNumber = copy.slideNumber.trim();
-      if (slideNumber !== "") {
-        layers.push({
-          id: "slide-number",
-          type: "badge",
-          text: slideNumber,
-          visible: true,
-        });
-      }
+      layers.push({
+        id: "slide-number",
+        type: "badge",
+        text: slideNumber,
+        visible: true,
+      });
       addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
       addTextLayer(layers, "headline", "headline", copy.headline, true);
       if (copy.mode === "metric") {
@@ -252,6 +252,8 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       addTextLayer(layers, "footer", "footer", copy.footer);
       break;
     }
+    default:
+      return assertUnreachable(templateId, "preview template");
   }
 
   return layers;

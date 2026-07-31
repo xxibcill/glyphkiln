@@ -1,4 +1,5 @@
 import {
+  DESIGN_DOCUMENT_VERSION,
   DEVELOPMENT_FONT_SHA256,
   TEMPLATE_REGISTRY,
   validateDesignDocument,
@@ -69,7 +70,7 @@ export function constructManualDocument(input: {
   const resourceVersions =
     input.resourceVersions ?? fallbackResourceVersions(assets, selectedFonts);
   const candidate = {
-    schemaVersion: "1.0.0",
+    schemaVersion: DESIGN_DOCUMENT_VERSION,
     id: input.documentId,
     template: {
       id: template.id,

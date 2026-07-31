@@ -1,9 +1,9 @@
-import { DEVELOPMENT_FONT_SHA256 } from "@glyphkiln/core";
+import { DESIGN_DOCUMENT_VERSION, DEVELOPMENT_FONT_SHA256 } from "@glyphkiln/core";
 import type { DesignDocument } from "@glyphkiln/core";
 
 export function createPreviewDesign(): DesignDocument {
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: DESIGN_DOCUMENT_VERSION,
     id: "local-project-preview",
     template: {
       id: "product-announcement",

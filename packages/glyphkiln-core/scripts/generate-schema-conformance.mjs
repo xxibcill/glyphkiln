@@ -6,6 +6,9 @@ const outputDirectory = new URL("fixtures/schema-conformance/", root);
 const base = JSON.parse(
   await readFile(new URL("examples/product-announcement.json", root), "utf8"),
 );
+const carousel = JSON.parse(
+  await readFile(new URL("examples/tiktok-carousel-slide.json", root), "utf8"),
+);
 const cases = [
   {
     name: "valid",
@@ -31,6 +34,20 @@ const cases = [
       layer.quietRegion.width = 0.3;
     }),
     jsonSchemaValid: true,
+    runtimeValid: false,
+  },
+  {
+    name: "current-valid",
+    document: structuredClone(carousel),
+    jsonSchemaValid: true,
+    runtimeValid: true,
+  },
+  {
+    name: "current-mislabeled-as-legacy",
+    document: mutateCarousel((document) => {
+      document.schemaVersion = "1.0.0";
+    }),
+    jsonSchemaValid: false,
     runtimeValid: false,
   },
 ];
@@ -63,6 +80,12 @@ process.stdout.write(`Wrote ${cases.length} schema conformance documents.\n`);
 
 function mutate(callback) {
   const document = structuredClone(base);
+  callback(document);
+  return document;
+}
+
+function mutateCarousel(callback) {
+  const document = structuredClone(carousel);
   callback(document);
   return document;
 }

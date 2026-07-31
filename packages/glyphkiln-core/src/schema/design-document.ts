@@ -255,26 +255,70 @@ export const TEMPLATE_IDS = [
   "tiktok-carousel-slide",
 ] as const;
 
+const DESIGN_DOCUMENT_1_0_0_TEMPLATE_IDS = [
+  "product-announcement",
+  "statistic-card",
+  "quote-card",
+  "article-cover",
+] as const;
+
+const DESIGN_DOCUMENT_1_0_0_FORMAT_IDS = [
+  "linkedin-landscape",
+  "instagram-square",
+  "instagram-portrait",
+  "instagram-story",
+  "x-landscape",
+  "youtube-thumbnail",
+] as const;
+
+const designDocumentFields = {
+  seed: z.string().min(1).max(256),
+  mode: z.enum(["light", "dark"]).default("light"),
+  brand: BrandSnapshotSchema,
+  assets: z.array(AssetDeclarationSchema).max(100).default([]),
+  fonts: z.array(FontDeclarationSchema).min(1).max(32),
+  layers: z.array(LayerSchema).min(1).max(100),
+  metadata: z.record(z.string(), z.json()).optional(),
+};
+
+function createVersionedDesignDocumentSchema<
+  Version extends string,
+  TemplateIds extends readonly [string, ...string[]],
+  FormatIds extends readonly [string, ...string[]],
+>(version: Version, templateIds: TemplateIds, formatIds: FormatIds) {
+  return z
+    .object({
+      schemaVersion: z.literal(version),
+      id: identifier,
+      template: z
+        .object({
+          id: z.enum(templateIds),
+          version: semanticVersion,
+        })
+        .strict(),
+      format: z.enum(formatIds),
+      ...designDocumentFields,
+    })
+    .strict();
+}
+
+const DesignDocumentV1_0_0Schema = createVersionedDesignDocumentSchema(
+  "1.0.0",
+  DESIGN_DOCUMENT_1_0_0_TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_0_0_FORMAT_IDS,
+);
+
+const DesignDocumentV1_1_0Schema = createVersionedDesignDocumentSchema(
+  DESIGN_DOCUMENT_VERSION,
+  TEMPLATE_IDS,
+  FORMAT_IDS,
+);
+
 export const DesignDocumentSchema = z
-  .object({
-    schemaVersion: z.literal(DESIGN_DOCUMENT_VERSION),
-    id: identifier,
-    template: z
-      .object({
-        id: z.enum(TEMPLATE_IDS),
-        version: semanticVersion,
-      })
-      .strict(),
-    format: z.enum(FORMAT_IDS),
-    seed: z.string().min(1).max(256),
-    mode: z.enum(["light", "dark"]).default("light"),
-    brand: BrandSnapshotSchema,
-    assets: z.array(AssetDeclarationSchema).max(100).default([]),
-    fonts: z.array(FontDeclarationSchema).min(1).max(32),
-    layers: z.array(LayerSchema).min(1).max(100),
-    metadata: z.record(z.string(), z.json()).optional(),
-  })
-  .strict()
+  .discriminatedUnion("schemaVersion", [
+    DesignDocumentV1_0_0Schema,
+    DesignDocumentV1_1_0Schema,
+  ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
     checkUniqueIds(document.assets, "asset", context);
@@ -317,7 +361,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentSchema>,
+  z.input<typeof DesignDocumentV1_1_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   DESIGN_DOCUMENT_VERSION,
   DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
+  SUPPORTED_DESIGN_DOCUMENT_VERSIONS,
   TEMPLATE_IDS,
   createDesignDocument,
   getDesignDocumentJsonSchema,
@@ -54,6 +55,24 @@ describe("design document schema", () => {
     }
   });
 
+  it("keeps schema 1.0.0 readable while reserving the carousel contract for 1.1.0", async () => {
+    expect(DESIGN_DOCUMENT_VERSION).toBe("1.1.0");
+    expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual(["1.0.0", "1.1.0"]);
+
+    const legacy = await loadExample("product-announcement");
+    expect(legacy.schemaVersion).toBe("1.0.0");
+    expect(validateDesignDocument(legacy).success).toBe(true);
+
+    const carousel = {
+      ...(await loadExample("tiktok-carousel-slide")),
+      schemaVersion: "1.1.0",
+    };
+    expect(validateDesignDocument(carousel).success).toBe(true);
+    expect(
+      validateDesignDocument({ ...carousel, schemaVersion: "1.0.0" }).success,
+    ).toBe(false);
+  });
+
   it("rejects duplicate layer IDs", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     document.layers[1] = { ...document.layers[1]!, id: document.layers[0]!.id };
@@ -77,7 +96,6 @@ describe("design document schema", () => {
   it("exports strict draft 2020-12 input JSON Schema", async () => {
     const schema = getDesignDocumentJsonSchema() as Record<string, unknown>;
     expect(schema["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
-    expect(schema["additionalProperties"]).toBe(false);
     expect(DESIGN_DOCUMENT_RUNTIME_REFINEMENTS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ code: "UNIQUE_LAYER_IDS" }),
@@ -85,12 +103,26 @@ describe("design document schema", () => {
       ]),
     );
     const validateJsonSchema = new Ajv2020().compile(schema);
+    expect(
+      validateJsonSchema({
+        ...(await loadExample("product-announcement")),
+        unexpected: true,
+      }),
+    ).toBe(false);
     for (const name of TEMPLATE_IDS) {
+      const example = await loadExample(name);
+      const schemaVersion =
+        name === "tiktok-carousel-slide" ? DESIGN_DOCUMENT_VERSION : "1.0.0";
       expect(
-        validateJsonSchema(await loadExample(name)),
+        validateJsonSchema({ ...example, schemaVersion }),
         JSON.stringify(validateJsonSchema.errors),
       ).toBe(true);
     }
+    const mislabeledCarousel = {
+      ...(await loadExample("tiktok-carousel-slide")),
+      schemaVersion: "1.0.0",
+    };
+    expect(validateJsonSchema(mislabeledCarousel)).toBe(false);
   });
 
   it("publishes conformance fixtures for runtime-only refinements", async () => {

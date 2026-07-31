@@ -28,7 +28,7 @@ Supported templates:
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
-- `tiktok-carousel-slide@1.0.0`
+- `tiktok-carousel-slide@1.0.1`
 
 Supported procedural styles:
 
@@ -95,9 +95,11 @@ Use `renderGraphicIsolated` for untrusted workloads. It runs the same API in a
 permission-limited child process with a fixed memory ceiling, serialized
 concurrency, and a 15-second maximum timeout.
 
-`createDesignDocument` supplies schema version `1.0.0` and a stable content ID
-when omitted. `renderGraphic` validates again at the trust boundary. Assets and
-fonts are byte-oriented caller inputs; the renderer performs no network access.
+`createDesignDocument` supplies schema version `1.1.0` and a stable content ID
+when omitted. `renderGraphic` validates again at the trust boundary. Existing
+schema `1.0.0` documents remain supported, while the TikTok carousel template
+and format require schema `1.1.0`. Assets and fonts are byte-oriented caller
+inputs; the renderer performs no network access.
 
 Browser applications can import `canonicalJson` and
 `createRenderFingerprintPayload` from `@glyphkiln/core/browser`. This subpath

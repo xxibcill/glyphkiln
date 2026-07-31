@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { DESIGN_DOCUMENT_VERSION } from "@glyphkiln/core";
 import type { BrandSnapshot, DesignLayer } from "@glyphkiln/core";
 
 import { constructManualDocument } from "./document-factory";
@@ -21,6 +22,7 @@ describe("constructManualDocument", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("Expected a valid manual document.");
     expect(result.document).toMatchObject({
+      schemaVersion: DESIGN_DOCUMENT_VERSION,
       id: "design_trusted",
       template: { id: "quote-card", version: "1.1.0" },
       brand: { snapshotId: "brand_kit_trusted", version: "1.0.3" },

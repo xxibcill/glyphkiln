@@ -238,6 +238,11 @@ Before App Alpha is called releasable:
 - [x] Confirm no unresolved critical security finding and reconcile any final
       operational limitations.
 
+Every gate is mandatory: one failed or incomplete gate blocks release. A gate
+may be checked only when a dated, committed qualification record identifies the
+exact commit, supported dependency versions, executed procedure, and outcome.
+Records must not contain secrets or private resource data.
+
 The final automated pass completed on 2026-07-31: Core ran 190 tests, App ran
 363 tests, App coverage remained above the repository thresholds, the
 standalone artifact smoke passed, all deterministic fixture/example/data,

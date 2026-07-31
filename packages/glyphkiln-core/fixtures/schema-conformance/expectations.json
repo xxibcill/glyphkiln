@@ -1,5 +1,10 @@
 {
   "valid": { "jsonSchemaValid": true, "runtimeValid": true },
   "duplicate-layer-id": { "jsonSchemaValid": true, "runtimeValid": false },
-  "quiet-region-sum": { "jsonSchemaValid": true, "runtimeValid": false }
+  "quiet-region-sum": { "jsonSchemaValid": true, "runtimeValid": false },
+  "current-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "current-mislabeled-as-legacy": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  }
 }

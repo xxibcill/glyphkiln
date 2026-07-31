@@ -1,5 +1,17 @@
 import type { Dimensions } from "../domain/types.js";
 
+export const FORMAT_IDS = Object.freeze([
+  "linkedin-landscape",
+  "instagram-square",
+  "instagram-portrait",
+  "instagram-story",
+  "tiktok-carousel",
+  "x-landscape",
+  "youtube-thumbnail",
+] as const);
+
+export type FormatId = (typeof FORMAT_IDS)[number];
+
 export const FORMAT_REGISTRY = {
   "linkedin-landscape": {
     width: 1200,
@@ -36,11 +48,7 @@ export const FORMAT_REGISTRY = {
     height: 720,
     label: "YouTube thumbnail",
   },
-} as const;
-
-export type FormatId = keyof typeof FORMAT_REGISTRY;
-
-export const FORMAT_IDS = Object.freeze(Object.keys(FORMAT_REGISTRY) as FormatId[]);
+} as const satisfies Record<FormatId, { width: number; height: number; label: string }>;
 
 export function getFormatDimensions(format: FormatId): Dimensions {
   const entry = FORMAT_REGISTRY[format];
