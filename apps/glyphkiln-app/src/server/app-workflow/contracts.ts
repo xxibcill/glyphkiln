@@ -137,6 +137,11 @@ export type AppQuery =
       type: "render.job";
       workspaceId: string;
       jobId: string;
+    }
+  | {
+      type: "render.jobs.completed";
+      workspaceId: string;
+      revisionId: string;
     };
 
 export type CommandEnvelope = {
@@ -272,21 +277,27 @@ export type QueryProjection =
       createdAt: string;
       changeNote?: string;
     }
+  | RenderJobProjection
   | {
-      kind: "render-job";
-      jobId: string;
-      workspaceId: string;
-      designId: string;
-      revisionId: string;
-      state: RenderJobState;
-      attemptCount: number;
-      maxAttempts: number;
-      createdAt: string;
-      updatedAt: string;
-      finishedAt?: string;
-      lastError?: { code: string; detail: string };
-      outputs: RenderJobOutput[];
+      kind: "completed-render-jobs";
+      jobs: RenderJobProjection[];
     };
+
+export type RenderJobProjection = {
+  kind: "render-job";
+  jobId: string;
+  workspaceId: string;
+  designId: string;
+  revisionId: string;
+  state: RenderJobState;
+  attemptCount: number;
+  maxAttempts: number;
+  createdAt: string;
+  updatedAt: string;
+  finishedAt?: string;
+  lastError?: { code: string; detail: string };
+  outputs: RenderJobOutput[];
+};
 
 export type RenderJobState =
   "claimed" | "completed" | "exhausted" | "failed" | "queued" | "retry_wait";

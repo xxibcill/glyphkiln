@@ -504,6 +504,23 @@ describe("PostgresRenderQueue", () => {
       ],
     });
     await expect(
+      queue.listCompleted(fixture.workspaceId, fixture.revisionId),
+    ).resolves.toMatchObject([
+      {
+        jobId: "job-complete",
+        workspaceId: fixture.workspaceId,
+        revisionId: fixture.revisionId,
+        state: "completed",
+        outputs: [
+          { format: "png", artifactSha256: "b".repeat(64) },
+          { format: "svg", artifactSha256: "a".repeat(64) },
+        ],
+      },
+    ]);
+    await expect(
+      queue.listCompleted("workspace-foreign", fixture.revisionId),
+    ).resolves.toEqual([]);
+    await expect(
       queue.complete(claim, outputMetadata(), new Date("2026-07-31T02:00:00.600Z")),
     ).rejects.toEqual(
       expect.objectContaining<Partial<RenderQueueError>>({

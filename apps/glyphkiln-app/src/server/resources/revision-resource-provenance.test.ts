@@ -1,3 +1,4 @@
+import { DEVELOPMENT_FONT_SHA256 } from "@glyphkiln/core";
 import { describe, expect, it } from "vitest";
 
 import { createPreviewDesign } from "@/test/preview-design";
@@ -10,6 +11,12 @@ import {
 describe("revision resource provenance", () => {
   it("requires an exact app-owned font admission, including provenance", () => {
     const document = createPreviewDesign();
+    document.fonts.push({
+      family: "Kiln Sans",
+      weight: 700,
+      style: "normal",
+      sha256: "a".repeat(64),
+    });
     document.metadata = {
       resourceVersions: {
         assets: [],
@@ -44,8 +51,69 @@ describe("revision resource provenance", () => {
     ).toBe(false);
   });
 
+  it("rejects uploaded font declarations that are missing or differ from their pins", () => {
+    const document = createPreviewDesign();
+    document.metadata = {
+      resourceVersions: {
+        assets: [],
+        fonts: [fontVersion()],
+      },
+    };
+
+    expect(resourceReferencesMatchDocument(document, [fontReference()])).toBe(false);
+
+    document.fonts.push({
+      family: "Kiln Sans",
+      weight: 700,
+      style: "normal",
+      sha256: "b".repeat(64),
+    });
+    expect(resourceReferencesMatchDocument(document, [fontReference()])).toBe(false);
+  });
+
+  it("keeps a selected admission distinct from an identical development font", () => {
+    const document = createPreviewDesign();
+    const version = {
+      id: "font-selected-inter",
+      family: "Inter",
+      weight: 700,
+      style: "normal" as const,
+      sha256: DEVELOPMENT_FONT_SHA256,
+      origin: { kind: "user-upload" as const },
+      license: { status: "owned" as const },
+    };
+    document.metadata = {
+      resourceVersions: {
+        assets: [],
+        fonts: [version],
+      },
+    };
+
+    expect(
+      resourceReferencesMatchDocument(document, [
+        {
+          resourceId: version.id,
+          resourceKind: "font",
+          ordinal: 0,
+          contentHash: version.sha256,
+          family: version.family,
+          weight: version.weight,
+          style: version.style,
+          origin: version.origin,
+          license: version.license,
+        },
+      ]),
+    ).toBe(true);
+  });
+
   it("accepts a deterministic legacy font backfill but still verifies its identity", () => {
     const document = createPreviewDesign();
+    document.fonts.push({
+      family: "Kiln Sans",
+      weight: 700,
+      style: "normal",
+      sha256: "a".repeat(64),
+    });
     document.metadata = {
       resourceVersions: {
         assets: [],

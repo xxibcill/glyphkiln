@@ -22,6 +22,14 @@ export function buildManualDraft(
     seed: document.seed,
     mode: document.mode,
     layers: document.layers,
+    ...(state.resources.assetIds.length === 0 && state.resources.fontIds.length === 0
+      ? {}
+      : {
+          resources: {
+            assetIds: [...state.resources.assetIds],
+            fontIds: [...state.resources.fontIds],
+          },
+        }),
   };
 }
 
@@ -108,9 +116,14 @@ export function formFromStoredDocument(
   const state = previousState ?? createInitialPreviewForm(catalog);
   const procedural = document.layers.find(isProceduralLayer);
   const next = withBrandSnapshot(state, document.brand);
+  const resources = storedResourceSelection(document) ?? {
+    assetIds: [],
+    fontIds: [],
+  };
 
   return {
     ...next,
+    resources,
     brand: { ...next.brand, mode: document.mode },
     composition: {
       ...next.composition,
@@ -174,6 +187,7 @@ export function documentMatchesManualInput(
   document: DesignDocument,
   brand: BrandSnapshot,
   draft: ManualDraft,
+  developmentFontSha256: string,
 ): boolean {
   return (
     document.template.id === draft.templateId &&
@@ -182,9 +196,114 @@ export function documentMatchesManualInput(
     document.mode === draft.mode &&
     canonicalJson(document.brand) === canonicalJson(brand) &&
     canonicalJson(document.layers) === canonicalJson(draft.layers) &&
-    document.assets.length === 0 &&
+    documentMatchesResourceSelection(document, draft, developmentFontSha256) &&
     document.metadata?.source === "glyphkiln-app-manual"
   );
+}
+
+function documentMatchesResourceSelection(
+  document: DesignDocument,
+  draft: ManualDraft,
+  developmentFontSha256: string,
+): boolean {
+  const stored = storedResourceSelection(document);
+  if (stored === undefined) return false;
+  const submitted = draft.resources ?? { assetIds: [], fontIds: [] };
+  if (
+    canonicalJson(stored.assetIds) !== canonicalJson([...submitted.assetIds].sort()) ||
+    canonicalJson(stored.fontIds) !== canonicalJson([...submitted.fontIds].sort()) ||
+    canonicalJson(document.assets.map((asset) => asset.id).sort()) !==
+      canonicalJson([...submitted.assetIds].sort())
+  ) {
+    return false;
+  }
+
+  const versions = resourceVersionRecords(document);
+  if (versions === undefined) return false;
+  return (
+    versions.fonts.every((version) =>
+      document.fonts.some((font) => fontMatchesVersion(font, version)),
+    ) &&
+    document.fonts.every(
+      (font) =>
+        isDevelopmentFont(font, developmentFontSha256) ||
+        versions.fonts.some((version) => fontMatchesVersion(font, version)),
+    )
+  );
+}
+
+function fontMatchesVersion(
+  font: DesignDocument["fonts"][number],
+  version: ResourceVersionRecord,
+): boolean {
+  return (
+    font.family === version.family &&
+    font.weight === version.weight &&
+    font.style === version.style &&
+    font.sha256 === version.sha256
+  );
+}
+
+function isDevelopmentFont(
+  font: DesignDocument["fonts"][number],
+  developmentFontSha256: string,
+): boolean {
+  return (
+    font.family === "Inter" &&
+    font.style === "normal" &&
+    font.sha256 === developmentFontSha256
+  );
+}
+
+function storedResourceSelection(
+  document: DesignDocument,
+): PreviewFormState["resources"] | undefined {
+  const versions = resourceVersionRecords(document);
+  if (versions === undefined) return undefined;
+  return {
+    assetIds: versions.assets.map((version) => version.id).sort(),
+    fontIds: versions.fonts.map((version) => version.id).sort(),
+  };
+}
+
+type ResourceVersionRecord = Record<string, unknown> & {
+  id: string;
+  family?: string;
+  weight?: number;
+  style?: string;
+  sha256?: string;
+};
+
+function resourceVersionRecords(document: DesignDocument):
+  | {
+      assets: ResourceVersionRecord[];
+      fonts: ResourceVersionRecord[];
+    }
+  | undefined {
+  const resourceVersions = document.metadata?.resourceVersions;
+  if (resourceVersions === undefined) return { assets: [], fonts: [] };
+  if (!isRecord(resourceVersions)) return undefined;
+  const { assets, fonts } = resourceVersions;
+  if (!Array.isArray(assets) || !Array.isArray(fonts)) return undefined;
+  const assetRecords: ResourceVersionRecord[] = [];
+  for (const asset of assets) {
+    if (!hasResourceId(asset)) return undefined;
+    assetRecords.push(asset);
+  }
+  const fontRecords: ResourceVersionRecord[] = [];
+  for (const font of fonts) {
+    if (!hasResourceId(font)) return undefined;
+    fontRecords.push(font);
+  }
+  return { assets: assetRecords, fonts: fontRecords };
+}
+
+function hasResourceId(value: unknown): value is ResourceVersionRecord {
+  return isRecord(value) && typeof value.id === "string";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isProceduralLayer(

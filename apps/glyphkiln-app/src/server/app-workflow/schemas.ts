@@ -239,4 +239,11 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       jobId: identifier,
     })
     .strict(),
+  z
+    .object({
+      type: z.literal("render.jobs.completed"),
+      workspaceId: identifier,
+      revisionId: identifier,
+    })
+    .strict(),
 ]);

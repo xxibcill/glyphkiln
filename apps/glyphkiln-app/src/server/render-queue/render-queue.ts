@@ -103,6 +103,10 @@ export type RenderQueue = {
     finishedAt: Date,
   ): Promise<void>;
   inspect(workspaceId: string, jobId: string): Promise<RenderJobView | undefined>;
+  listCompleted(
+    workspaceId: string,
+    revisionId: string,
+  ): Promise<readonly RenderJobView[]>;
   ready(): Promise<void>;
 };
 

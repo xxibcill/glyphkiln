@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { BrandSnapshot } from "@glyphkiln/core";
+import type { BrandSnapshot, DesignDocument } from "@glyphkiln/core";
 
 import {
   buildPreviewDocument,
@@ -67,7 +67,83 @@ describe("manual App Alpha state", () => {
     expect(reopened.copy.productAnnouncement.headline).toBe(
       initial.copy.productAnnouncement.headline,
     );
-    expect(documentMatchesManualInput(document, brand, reopenedDraft)).toBe(true);
+    expect(
+      documentMatchesManualInput(
+        document,
+        brand,
+        reopenedDraft,
+        catalog.developmentFontSha256,
+      ),
+    ).toBe(true);
+  });
+
+  it("preserves exact resource selections when reopening a saved revision", () => {
+    const initial = createInitialPreviewForm(catalog);
+    const brand = createPublishedBrand();
+    const candidate = buildPreviewDocument(withBrandSnapshot(initial, brand), catalog);
+    const document: DesignDocument = {
+      ...candidate,
+      id: "design-with-resources",
+      assets: [
+        {
+          id: "asset-selected",
+          mimeType: "image/png",
+          sha256: "a".repeat(64),
+          width: 32,
+          height: 32,
+          origin: { kind: "user-upload" },
+        },
+      ],
+      fonts: [
+        ...candidate.fonts,
+        {
+          family: "Kiln Sans",
+          weight: 700,
+          style: "normal",
+          sha256: "b".repeat(64),
+        },
+      ],
+      metadata: {
+        source: "glyphkiln-app-manual",
+        resourceVersions: {
+          assets: [
+            {
+              id: "asset-selected",
+              sha256: "a".repeat(64),
+              origin: { kind: "user-upload" },
+              license: { status: "owned" },
+            },
+          ],
+          fonts: [
+            {
+              id: "font-selected",
+              family: "Kiln Sans",
+              weight: 700,
+              style: "normal",
+              sha256: "b".repeat(64),
+              origin: { kind: "licensed-library" },
+              license: { status: "licensed" },
+            },
+          ],
+        },
+      },
+    };
+
+    const reopened = formFromStoredDocument(document, catalog);
+    const reopenedDraft = buildManualDraft(reopened, catalog);
+
+    expect(reopenedDraft.resources).toEqual({
+      assetIds: ["asset-selected"],
+      fontIds: ["font-selected"],
+    });
+    expect(
+      documentMatchesManualInput(
+        document,
+        brand,
+        reopenedDraft,
+        catalog.developmentFontSha256,
+      ),
+    ).toBe(true);
   });
 
   it("reopens the visible sequence copy and metric mode of a carousel slide", () => {
@@ -98,7 +174,14 @@ describe("manual App Alpha state", () => {
       value: "100%",
       label: "reproducible from one pinned rendering contract",
     });
-    expect(documentMatchesManualInput(document, brand, reopenedDraft)).toBe(true);
+    expect(
+      documentMatchesManualInput(
+        document,
+        brand,
+        reopenedDraft,
+        catalog.developmentFontSha256,
+      ),
+    ).toBe(true);
   });
 });
 

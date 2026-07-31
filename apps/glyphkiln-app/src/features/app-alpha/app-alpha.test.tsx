@@ -134,6 +134,22 @@ describe("AppAlpha", () => {
     expect(container.textContent).toContain("SAVED REVISION");
   });
 
+  it("rehydrates a completed durable export for a reopened revision", async () => {
+    const api = createWorkflowApi({ hydrateCompletedExport: true });
+    act(() => {
+      root.render(<AppAlpha catalog={catalog} api={api} />);
+    });
+
+    await waitForText("Brand snapshot 1.0.0 loaded");
+    clickButton("Preview draft · does not save");
+    await waitForText("Draft preview verified");
+    clickButton("Save revision 1");
+
+    await waitForText("Durable export complete");
+    expect(api.completedRenderJobs).toHaveBeenCalledWith("workspace-1", "revision-1");
+    expect(api.requestRevisionExport).not.toHaveBeenCalled();
+  });
+
   it("keeps a newly issued invitation token visible only in ephemeral UI state", async () => {
     const api = createWorkflowApi();
     act(() => {
@@ -210,7 +226,10 @@ describe("AppAlpha", () => {
 });
 
 function createWorkflowApi(
-  options: { role?: "owner" | "admin" | "editor" | "viewer" } = {},
+  options: {
+    role?: "owner" | "admin" | "editor" | "viewer";
+    hydrateCompletedExport?: boolean;
+  } = {},
 ): AppAlphaApi & {
   createDesign: ReturnType<typeof vi.fn<AppAlphaApi["createDesign"]>>;
   reviseDesign: ReturnType<typeof vi.fn<AppAlphaApi["reviseDesign"]>>;
@@ -218,6 +237,7 @@ function createWorkflowApi(
   renderRevision: ReturnType<typeof vi.fn<AppAlphaApi["renderRevision"]>>;
   requestRevisionExport: ReturnType<typeof vi.fn<AppAlphaApi["requestRevisionExport"]>>;
   renderJob: ReturnType<typeof vi.fn<AppAlphaApi["renderJob"]>>;
+  completedRenderJobs: ReturnType<typeof vi.fn<AppAlphaApi["completedRenderJobs"]>>;
   createInvitation: ReturnType<typeof vi.fn<AppAlphaApi["createInvitation"]>>;
 } {
   let storedRevision: DesignRevision | undefined;
@@ -319,40 +339,15 @@ function createWorkflowApi(
     }
     return Promise.resolve({
       ok: true,
-      value: {
-        kind: "render-job",
-        jobId: "render-job-1",
-        workspaceId: "workspace-1",
-        designId: storedRevision.designId,
-        revisionId: storedRevision.revisionId,
-        state: "completed",
-        attemptCount: 1,
-        maxAttempts: 3,
-        createdAt: "2026-07-31T01:00:00.000Z",
-        updatedAt: "2026-07-31T01:00:01.000Z",
-        finishedAt: "2026-07-31T01:00:01.000Z",
-        outputs: [
-          {
-            format: "svg",
-            mimeType: "image/svg+xml",
-            artifactSha256: "a".repeat(64),
-            artifactByteSize: 100,
-            manifestSha256: "b".repeat(64),
-            manifestByteSize: 200,
-            fingerprint: "durable-svg-fingerprint",
-          },
-          {
-            format: "png",
-            mimeType: "image/png",
-            artifactSha256: "c".repeat(64),
-            artifactByteSize: 300,
-            manifestSha256: "d".repeat(64),
-            manifestByteSize: 200,
-            fingerprint: "durable-png-fingerprint",
-          },
-        ],
-      },
+      value: completedRenderJob(storedRevision),
     });
+  });
+  const completedRenderJobs = vi.fn<AppAlphaApi["completedRenderJobs"]>(() => {
+    const jobs =
+      options.hydrateCompletedExport === true && storedRevision !== undefined
+        ? [completedRenderJob(storedRevision)]
+        : [];
+    return Promise.resolve({ ok: true, value: jobs });
   });
 
   return {
@@ -440,6 +435,43 @@ function createWorkflowApi(
     renderRevision,
     requestRevisionExport,
     renderJob,
+    completedRenderJobs,
+  };
+}
+
+function completedRenderJob(revision: DesignRevision) {
+  return {
+    kind: "render-job" as const,
+    jobId: "render-job-1",
+    workspaceId: "workspace-1",
+    designId: revision.designId,
+    revisionId: revision.revisionId,
+    state: "completed" as const,
+    attemptCount: 1,
+    maxAttempts: 3,
+    createdAt: "2026-07-31T01:00:00.000Z",
+    updatedAt: "2026-07-31T01:00:01.000Z",
+    finishedAt: "2026-07-31T01:00:01.000Z",
+    outputs: [
+      {
+        format: "svg" as const,
+        mimeType: "image/svg+xml" as const,
+        artifactSha256: "a".repeat(64),
+        artifactByteSize: 100,
+        manifestSha256: "b".repeat(64),
+        manifestByteSize: 200,
+        fingerprint: "durable-svg-fingerprint",
+      },
+      {
+        format: "png" as const,
+        mimeType: "image/png" as const,
+        artifactSha256: "c".repeat(64),
+        artifactByteSize: 300,
+        manifestSha256: "d".repeat(64),
+        manifestByteSize: 200,
+        fingerprint: "durable-png-fingerprint",
+      },
+    ],
   };
 }
 

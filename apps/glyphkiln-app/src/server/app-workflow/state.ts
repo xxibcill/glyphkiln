@@ -717,19 +717,21 @@ export class AppState {
   }
 
   async acceptInvitation(
+    workspaceId: string,
     invitationId: string,
     userId: string,
     at: Date,
   ): Promise<void> {
     await this.#query(
       `UPDATE workspace_invitations
-          SET accepted_by = $2,
-              accepted_at = $3
-        WHERE id = $1
+          SET accepted_by = $3,
+              accepted_at = $4
+        WHERE workspace_id = $1
+          AND id = $2
           AND accepted_at IS NULL
           AND revoked_at IS NULL
       RETURNING id`,
-      [invitationId, userId, at],
+      [workspaceId, invitationId, userId, at],
     );
   }
 

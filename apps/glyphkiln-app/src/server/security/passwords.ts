@@ -16,6 +16,9 @@ export const ARGON2ID_PASSWORD_PROFILE = Object.freeze({
   saltLengthBytes: 16,
 });
 
+export const DUMMY_PASSWORD_HASH =
+  "$argon2id$v=19$m=19456,t=2,p=1$Z2x5cGhraWxuLWR1bW15IQ$CUmLQRl2EXoufKWEOkEKIMQ4iXDbaNBrdHxlykyRz98";
+
 export type PasswordPolicyRejection = "invalid_unicode" | "too_short" | "too_long";
 
 export type PasswordPolicyResult =

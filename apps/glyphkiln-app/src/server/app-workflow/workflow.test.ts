@@ -82,6 +82,22 @@ describe("AppWorkflow", () => {
     await database.close();
   });
 
+  it("does not start password hashing when the workflow is constructed", () => {
+    const passwordHasher = new CountingPasswordHasher();
+
+    createAppWorkflow({
+      database,
+      bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
+      passwordHasher,
+      secretFactory: secrets,
+      clock,
+      renderQueue,
+      resourceStore,
+    });
+
+    expect(passwordHasher.hashCalls).toBe(0);
+  });
+
   it("bootstraps exactly one owner and stores only hashed session secrets", async () => {
     const owner = await bootstrapOwner();
 
@@ -1735,6 +1751,81 @@ describe("AppWorkflow", () => {
     );
   });
 
+  it("lists completed durable exports for an exact revision", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Export Brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const design = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Exported Design",
+          brandSnapshotId: brand.snapshotId,
+          draft: quoteDraft("Completed export"),
+        },
+      }),
+      "design-saved",
+    );
+    const queued = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          idempotencyKey: "completed-export-request",
+        },
+      }),
+      "render-job-queued",
+    );
+    const claim = await renderQueue.claim({
+      workerId: "worker-a",
+      now: NOW,
+    });
+    if (claim === undefined)
+      throw new Error("Expected the queued export to be claimed.");
+    await renderQueue.complete(
+      claim,
+      completedRenderOutputs(),
+      new Date(NOW.getTime() + 1),
+    );
+
+    const completed = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "render.jobs.completed",
+          workspaceId,
+          revisionId: design.revisionId,
+        },
+      }),
+      "completed-render-jobs",
+    );
+
+    expect(completed.jobs).toMatchObject([
+      {
+        jobId: queued.jobId,
+        designId: design.designId,
+        revisionId: design.revisionId,
+        state: "completed",
+      },
+    ]);
+  });
+
   async function bootstrapOwner(): Promise<SessionGrant> {
     return expectSessionGrant(
       await workflow.execute({
@@ -2068,6 +2159,33 @@ function quoteLayers(text: string): DesignLayer[] {
       type: "attribution",
       visible: true,
       text: "Glyphkiln",
+    },
+  ];
+}
+
+function completedRenderOutputs() {
+  return [
+    {
+      format: "svg" as const,
+      mimeType: "image/svg+xml" as const,
+      artifactKey: "workspaces/a/render-output/sha256/aa/svg",
+      artifactSha256: "a".repeat(64),
+      artifactByteSize: 100,
+      manifestKey: "workspaces/a/render-manifest/sha256/bb/svg",
+      manifestSha256: "b".repeat(64),
+      manifestByteSize: 200,
+      fingerprint: "svg-fingerprint",
+    },
+    {
+      format: "png" as const,
+      mimeType: "image/png" as const,
+      artifactKey: "workspaces/a/render-output/sha256/cc/png",
+      artifactSha256: "c".repeat(64),
+      artifactByteSize: 300,
+      manifestKey: "workspaces/a/render-manifest/sha256/dd/png",
+      manifestSha256: "d".repeat(64),
+      manifestByteSize: 200,
+      fingerprint: "png-fingerprint",
     },
   ];
 }

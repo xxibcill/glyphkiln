@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ARGON2ID_PASSWORD_PROFILE,
   Argon2idPasswordHasher,
+  DUMMY_PASSWORD_HASH,
   PasswordPolicyError,
   validatePassword,
 } from "./passwords";
@@ -57,6 +58,9 @@ describe("Argon2idPasswordHasher", () => {
     await expect(hasher.verify("an incorrect password", passwordHash)).resolves.toBe(
       false,
     );
+    await expect(
+      hasher.verify("glyphkiln-dummy-credential", DUMMY_PASSWORD_HASH),
+    ).resolves.toBe(true);
   });
 
   it("uses a fresh salt for each password hash", async () => {

@@ -55,6 +55,10 @@ type OutputRow = {
   fingerprint: string;
 };
 
+type CompletedOutputRow = OutputRow & {
+  job_id: string;
+};
+
 type CountRow = {
   count: number | string;
 };
@@ -418,6 +422,47 @@ export class PostgresRenderQueue implements RenderQueue {
       [workspaceId, jobId],
     );
     return jobView(job, outputs);
+  }
+
+  async listCompleted(
+    workspaceId: string,
+    revisionId: string,
+  ): Promise<readonly RenderJobView[]> {
+    const jobs = await this.#database.query<JobRow>(
+      `SELECT *
+         FROM render_jobs
+        WHERE workspace_id = $1
+          AND revision_id = $2
+          AND state = 'completed'
+        ORDER BY finished_at DESC, created_at DESC, id DESC
+        LIMIT 20`,
+      [workspaceId, revisionId],
+    );
+    if (jobs.length === 0) return [];
+    const jobIds = jobs.map((job) => job.id);
+    const outputs = await this.#database.query<CompletedOutputRow>(
+      `SELECT job_id,
+              format,
+              mime_type,
+              artifact_key,
+              artifact_sha256,
+              artifact_byte_size,
+              manifest_key,
+              manifest_sha256,
+              manifest_byte_size,
+              fingerprint
+         FROM render_outputs
+        WHERE workspace_id = $1
+          AND job_id = ANY($2::text[])
+        ORDER BY job_id, format`,
+      [workspaceId, jobIds],
+    );
+    return jobs.map((job) =>
+      jobView(
+        job,
+        outputs.filter((output) => output.job_id === job.id),
+      ),
+    );
   }
 
   async ready(): Promise<void> {

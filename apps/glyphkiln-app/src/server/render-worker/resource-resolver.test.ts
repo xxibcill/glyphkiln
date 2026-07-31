@@ -61,15 +61,84 @@ describe("render resource resolvers", () => {
     });
     expect(store.reads).toEqual([
       ["asset", "workspace-a", "asset-a"],
-      [
-        "font",
-        "workspace-a",
-        "Workspace Inter",
-        "700",
-        "normal",
-        DEVELOPMENT_FONT_SHA256,
-      ],
+      ["asset", "workspace-a", "font-a"],
     ]);
+  });
+
+  it("resolves the exact font admission selected by document provenance", async () => {
+    const store = new MemoryResourceStore();
+    const fontBytes = createDevelopmentFont().bytes;
+    store.add(fontResource("workspace-a", "font-earlier", fontBytes), fontBytes);
+    store.add(fontResource("workspace-a", "font-selected", fontBytes), fontBytes);
+    const document = documentWithResources({ customFont: true });
+    document.metadata = {
+      ...document.metadata,
+      resourceVersions: {
+        assets: [],
+        fonts: [
+          {
+            id: "font-selected",
+            family: "Workspace Inter",
+            weight: 700,
+            style: "normal",
+            sha256: DEVELOPMENT_FONT_SHA256,
+            origin: { kind: "user-upload" },
+            license: { status: "owned" },
+          },
+        ],
+      },
+    };
+
+    await new AdmittedRenderResourceResolver(store).resolve({
+      workspaceId: "workspace-a",
+      document: { ...document, assets: [] },
+    });
+
+    expect(store.reads).toContainEqual(["asset", "workspace-a", "font-selected"]);
+    expect(store.reads).not.toContainEqual([
+      "font",
+      "workspace-a",
+      "Workspace Inter",
+      "700",
+      "normal",
+      DEVELOPMENT_FONT_SHA256,
+    ]);
+  });
+
+  it("resolves a selected admission even when it matches the development font", async () => {
+    const store = new MemoryResourceStore();
+    const fontBytes = createDevelopmentFont().bytes;
+    store.add(
+      {
+        ...fontResource("workspace-a", "font-selected-inter", fontBytes),
+        family: "Inter",
+      },
+      fontBytes,
+    );
+    const document = createPreviewDesign();
+    document.metadata = {
+      resourceVersions: {
+        assets: [],
+        fonts: [
+          {
+            id: "font-selected-inter",
+            family: "Inter",
+            weight: 700,
+            style: "normal",
+            sha256: DEVELOPMENT_FONT_SHA256,
+            origin: { kind: "user-upload" },
+            license: { status: "owned" },
+          },
+        ],
+      },
+    };
+
+    await new AdmittedRenderResourceResolver(store).resolve({
+      workspaceId: "workspace-a",
+      document,
+    });
+
+    expect(store.reads).toContainEqual(["asset", "workspace-a", "font-selected-inter"]);
   });
 
   it("does not resolve a same-id resource from another workspace", async () => {

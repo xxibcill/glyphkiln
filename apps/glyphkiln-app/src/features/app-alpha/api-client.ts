@@ -254,6 +254,13 @@ const RenderJobSchema = z
   })
   .strict();
 
+const CompletedRenderJobsSchema = z
+  .object({
+    kind: z.literal("completed-render-jobs"),
+    jobs: z.array(RenderJobSchema).max(20),
+  })
+  .strict();
+
 export type ApiFailure = {
   ok: false;
   status: number;
@@ -365,6 +372,10 @@ export type AppAlphaApi = {
     idempotencyKey: string;
   }) => Promise<ApiResult<QueuedRenderJob>>;
   renderJob: (workspaceId: string, jobId: string) => Promise<ApiResult<RenderJob>>;
+  completedRenderJobs: (
+    workspaceId: string,
+    revisionId: string,
+  ) => Promise<ApiResult<RenderJob[]>>;
 };
 
 type FetchImplementation = (
@@ -564,6 +575,17 @@ export function createAppAlphaApi(
         await query({ type: "render.job", workspaceId, jobId }),
         RenderJobSchema,
         (value) => value,
+      );
+    },
+    async completedRenderJobs(workspaceId, revisionId) {
+      return parseValue(
+        await query({
+          type: "render.jobs.completed",
+          workspaceId,
+          revisionId,
+        }),
+        CompletedRenderJobsSchema,
+        (value) => value.jobs,
       );
     },
   };

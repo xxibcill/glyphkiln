@@ -158,4 +158,8 @@ export type PreviewFormState = {
   brand: BrandFormState;
   composition: CompositionFormState;
   copy: CopyFormState;
+  resources: {
+    assetIds: string[];
+    fontIds: string[];
+  };
 };

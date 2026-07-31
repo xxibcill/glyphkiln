@@ -240,6 +240,52 @@ describe("App Alpha API client", () => {
       jobId: "job-1",
     });
   });
+
+  it("lists completed exports for an exact saved revision", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      expect(JSON.parse(requestBody(init?.body))).toEqual({
+        type: "render.jobs.completed",
+        workspaceId: "workspace-1",
+        revisionId: "revision-1",
+      });
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: {
+              kind: "completed-render-jobs",
+              jobs: [
+                {
+                  kind: "render-job",
+                  jobId: "job-1",
+                  workspaceId: "workspace-1",
+                  designId: "design-1",
+                  revisionId: "revision-1",
+                  state: "completed",
+                  attemptCount: 1,
+                  maxAttempts: 3,
+                  createdAt: "2026-07-31T01:00:00.000Z",
+                  updatedAt: "2026-07-31T01:00:01.000Z",
+                  finishedAt: "2026-07-31T01:00:01.000Z",
+                  outputs: [],
+                },
+              ],
+            },
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.completedRenderJobs("workspace-1", "revision-1"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: [{ jobId: "job-1", state: "completed" }],
+    });
+  });
 });
 
 function jsonResponse(value: unknown, status: number): Response {

@@ -1,6 +1,5 @@
-import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
-import { link, open, unlink } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { dirname, isAbsolute, parse, resolve, sep } from "node:path";
 
 import { sha256 } from "@glyphkiln/core";
@@ -9,8 +8,8 @@ import {
   assertContainedDirectory,
   ensureContainedDirectory,
   isMissingStoragePathError,
-  syncDirectory,
 } from "../storage/safe-filesystem-path";
+import { publishImmutableFile } from "../storage/immutable-file-publication";
 import type { ImmutableBlobWriteResult, ResourceBlobStorage } from "./blob-storage";
 import { ResourceIngestionError } from "./errors";
 
@@ -83,57 +82,28 @@ export class FileSystemResourceBlobStorage implements ResourceBlobStorage {
     } catch (cause) {
       throw storageIntegrityError(cause);
     }
-    const temporary = `${target}.upload-${randomUUID()}`;
-    const temporaryHandle = await open(
-      temporary,
-      constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | NO_FOLLOW_FLAG,
-      0o640,
-    );
     try {
-      await temporaryHandle.writeFile(bytes);
-      await temporaryHandle.sync();
-    } finally {
-      await temporaryHandle.close();
-    }
-
-    let result: ImmutableBlobWriteResult;
-    try {
-      await link(temporary, target);
-      result = "stored";
+      return await publishImmutableFile({
+        target,
+        bytes,
+        fileMode: 0o640,
+        verifyExisting: async () => {
+          const existing = await this.readBounded(key, bytes.byteLength);
+          if (
+            existing?.byteLength !== bytes.byteLength ||
+            sha256(existing) !== contentHash
+          ) {
+            throw new ResourceIngestionError(
+              "An immutable resource object conflicts with admitted bytes.",
+              "RESOURCE_STORAGE_INTEGRITY_ERROR",
+            );
+          }
+        },
+      });
     } catch (cause) {
-      if (!isAlreadyExistsError(cause)) {
-        throw cause;
-      }
-      const existing = await this.readBounded(key, bytes.byteLength);
-      if (existing === null) {
-        throw new ResourceIngestionError(
-          "An immutable resource object conflicts with admitted bytes.",
-          "RESOURCE_STORAGE_INTEGRITY_ERROR",
-          undefined,
-          { cause },
-        );
-      }
-      if (
-        existing.byteLength !== bytes.byteLength ||
-        sha256(existing) !== contentHash
-      ) {
-        throw new ResourceIngestionError(
-          "An immutable resource object conflicts with admitted bytes.",
-          "RESOURCE_STORAGE_INTEGRITY_ERROR",
-          undefined,
-          { cause },
-        );
-      }
-      result = "already-present";
-    } finally {
-      await unlink(temporary).catch(() => undefined);
-    }
-    try {
-      await syncDirectory(directory);
-    } catch (cause) {
+      if (cause instanceof ResourceIngestionError) throw cause;
       throw storageIntegrityError(cause);
     }
-    return result;
   }
 
   public async readBounded(
@@ -185,10 +155,6 @@ export class FileSystemResourceBlobStorage implements ResourceBlobStorage {
     }
     return target;
   }
-}
-
-function isAlreadyExistsError(cause: unknown): boolean {
-  return cause instanceof Error && "code" in cause && cause.code === "EEXIST";
 }
 
 function isNotFoundError(cause: unknown): boolean {

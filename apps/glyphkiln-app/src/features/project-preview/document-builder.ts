@@ -91,6 +91,10 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
         footer: "@glyphkiln · deterministic series",
       },
     },
+    resources: {
+      assetIds: [],
+      fontIds: [],
+    },
   };
 }
 

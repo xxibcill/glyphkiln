@@ -1,4 +1,9 @@
-import { canonicalJson, type AssetOrigin, type DesignDocument } from "@glyphkiln/core";
+import {
+  DEVELOPMENT_FONT_SHA256,
+  canonicalJson,
+  type AssetOrigin,
+  type DesignDocument,
+} from "@glyphkiln/core";
 
 import type { ResourceLicense } from "./types";
 
@@ -131,6 +136,7 @@ export function resourceReferencesMatchDocument(
   if (metadata === undefined) {
     return (
       document.assets.length === 0 &&
+      document.fonts.every(isDevelopmentFont) &&
       assetReferences.length === 0 &&
       fontReferences.length === 0
     );
@@ -157,8 +163,42 @@ export function resourceReferencesMatchDocument(
   );
   if (!assetsMatch) return false;
 
-  return fontReferences.every((reference, index) =>
-    fontVersionMatchesReference(fontVersions[index], reference),
+  const pinnedFontsMatch = fontReferences.every(
+    (reference, index) =>
+      fontVersionMatchesReference(fontVersions[index], reference) &&
+      document.fonts.some((declaration) =>
+        fontDeclarationMatchesReference(declaration, reference),
+      ),
+  );
+  return (
+    pinnedFontsMatch &&
+    document.fonts.every(
+      (declaration) =>
+        isDevelopmentFont(declaration) ||
+        fontReferences.some((reference) =>
+          fontDeclarationMatchesReference(declaration, reference),
+        ),
+    )
+  );
+}
+
+function fontDeclarationMatchesReference(
+  declaration: DesignDocument["fonts"][number] | undefined,
+  reference: Extract<RevisionResourceReference, { resourceKind: "font" }>,
+): boolean {
+  return (
+    declaration?.family === reference.family &&
+    declaration.weight === reference.weight &&
+    declaration.style === reference.style &&
+    declaration.sha256 === reference.contentHash
+  );
+}
+
+function isDevelopmentFont(declaration: DesignDocument["fonts"][number]): boolean {
+  return (
+    declaration.family === "Inter" &&
+    declaration.style === "normal" &&
+    declaration.sha256 === DEVELOPMENT_FONT_SHA256
   );
 }
 

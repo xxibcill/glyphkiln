@@ -88,7 +88,7 @@ export class AdmittedRenderResourceResolver implements RenderResourceResolver {
     const fontMetadata = await preflightFonts(
       this.#store,
       input.workspaceId,
-      input.document.fonts,
+      input.document,
     );
 
     const assets: ResolvedAsset[] = [];
@@ -119,12 +119,7 @@ export class AdmittedRenderResourceResolver implements RenderResourceResolver {
       fonts.push(fontMetadata.developmentFont);
     }
     for (const { declaration, metadata } of fontMetadata.uploadedFonts) {
-      const stored = await this.#store.readFontVersion(input.workspaceId, {
-        family: declaration.family,
-        weight: declaration.weight,
-        style: declaration.style,
-        contentHash: declaration.sha256,
-      });
+      const stored = await this.#store.readById(input.workspaceId, metadata.id);
       if (stored === null) throw notAdmitted();
       if (
         !fontMetadataMatches(stored.resource, input.workspaceId, declaration) ||
@@ -219,7 +214,7 @@ async function preflightAssets(
 async function preflightFonts(
   store: ResourceStore,
   workspaceId: string,
-  declarations: DesignDocument["fonts"],
+  document: DesignDocument,
 ): Promise<PreflightedFonts> {
   let developmentFont: ResolvedFont | undefined;
   let totalBytes = 0;
@@ -229,8 +224,9 @@ async function preflightFonts(
   }[] = [];
   const resolvedFontKeys = new Set<string>();
 
-  for (const declaration of declarations) {
-    if (isDevelopmentFont(declaration)) {
+  for (const declaration of document.fonts) {
+    const selectedVersion = selectedFontVersion(document, declaration);
+    if (selectedVersion === undefined && isDevelopmentFont(declaration)) {
       if (developmentFont === undefined) {
         developmentFont = createDevelopmentFont();
         totalBytes = addResourceBytes(
@@ -252,14 +248,24 @@ async function preflightFonts(
     if (resolvedFontKeys.has(key)) continue;
     resolvedFontKeys.add(key);
 
-    const metadata = await store.findFontVersion(workspaceId, {
-      family: immutableDeclaration.family,
-      weight: immutableDeclaration.weight,
-      style: immutableDeclaration.style,
-      contentHash: immutableDeclaration.sha256,
-    });
+    const admissionId =
+      selectedVersion !== undefined && typeof selectedVersion.id === "string"
+        ? selectedVersion.id
+        : undefined;
+    const metadata =
+      admissionId === undefined
+        ? await store.findFontVersion(workspaceId, {
+            family: immutableDeclaration.family,
+            weight: immutableDeclaration.weight,
+            style: immutableDeclaration.style,
+            contentHash: immutableDeclaration.sha256,
+          })
+        : await store.findById(workspaceId, admissionId);
     if (metadata === null) throw notAdmitted();
-    if (!fontMetadataMatches(metadata, workspaceId, immutableDeclaration)) {
+    if (
+      !fontMetadataMatches(metadata, workspaceId, immutableDeclaration) ||
+      (admissionId !== undefined && metadata.id !== admissionId)
+    ) {
       throw declarationMismatch();
     }
     totalBytes = addResourceBytes(
@@ -272,6 +278,29 @@ async function preflightFonts(
   }
 
   return { developmentFont, uploadedFonts };
+}
+
+function selectedFontVersion(
+  document: DesignDocument,
+  declaration: FontDeclaration,
+): Record<string, unknown> | undefined {
+  const resourceVersions = document.metadata?.resourceVersions;
+  if (!isRecord(resourceVersions)) return undefined;
+  const versions = resourceVersions.fonts;
+  if (!Array.isArray(versions)) return undefined;
+  const selected = versions.find(
+    (version) =>
+      isRecord(version) &&
+      version.family === declaration.family &&
+      version.weight === declaration.weight &&
+      version.style === declaration.style &&
+      version.sha256 === declaration.sha256,
+  );
+  return isRecord(selected) ? selected : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function assetMetadataMatches(

@@ -36,6 +36,7 @@ import {
 import {
   Argon2idPasswordHasher,
   CryptoSecretFactory,
+  DUMMY_PASSWORD_HASH,
   INVITATION_DURATION_MS,
   SESSION_DURATION_MS,
   canInviteRole,
@@ -72,6 +73,7 @@ import type {
   ManualDraft,
   QueryEnvelope,
   QueryProjection,
+  RenderJobProjection,
   RenderedArtifact,
   RequestEvidence,
   SessionGrant,
@@ -172,7 +174,6 @@ class AppWorkflowImplementation implements AppWorkflow {
   readonly #resourceStore: ResourceStore | undefined;
   readonly #resourceResolver: RenderResourceResolver;
   readonly #workspaceCreationLimits: WorkspaceCreationLimits;
-  readonly #dummyPasswordHash: Promise<string>;
 
   constructor(dependencies: AppWorkflowDependencies) {
     this.#state = new AppState(dependencies.database);
@@ -196,7 +197,6 @@ class AppWorkflowImplementation implements AppWorkflow {
     this.#workspaceCreationLimits = validateWorkspaceCreationLimits(
       dependencies.workspaceCreationLimits ?? DEFAULT_WORKSPACE_CREATION_LIMITS,
     );
-    this.#dummyPasswordHash = this.#passwordHasher.hash("glyphkiln-dummy-credential");
   }
 
   async execute(envelope: CommandEnvelope): Promise<AppResult<CommandReceipt>> {
@@ -368,6 +368,22 @@ class AppWorkflowImplementation implements AppWorkflow {
         if (job === undefined) throw resourceNotFound();
         return success(toRenderJobProjection(job));
       }
+      case "render.jobs.completed": {
+        await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "read_completed_exports",
+        );
+        if (this.#renderQueue === undefined) throw renderQueueUnavailable();
+        const jobs = await this.#renderQueue.listCompleted(
+          query.workspaceId,
+          query.revisionId,
+        );
+        return success({
+          kind: "completed-render-jobs",
+          jobs: jobs.map(toRenderJobProjection),
+        });
+      }
     }
   }
 
@@ -495,7 +511,12 @@ class AppWorkflowImplementation implements AppWorkflow {
           role: invitation.role,
           createdAt: now,
         });
-        await state.acceptInvitation(invitation.id, userId, now);
+        await state.acceptInvitation(
+          invitation.workspaceId,
+          invitation.id,
+          userId,
+          now,
+        );
         await state.insertSession(session.record);
         await this.#audit(state, {
           workspaceId: invitation.workspaceId,
@@ -532,7 +553,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       throw loginThrottled();
     }
     const credentials = await this.#state.findUserCredentials(email);
-    const passwordHash = credentials?.passwordHash ?? (await this.#dummyPasswordHash);
+    const passwordHash = credentials?.passwordHash ?? DUMMY_PASSWORD_HASH;
     const passwordMatches = await this.#passwordHasher.verify(
       command.password,
       passwordHash,
@@ -751,7 +772,12 @@ class AppWorkflowImplementation implements AppWorkflow {
           createdAt: now,
         });
       }
-      await state.acceptInvitation(invitation.id, context.session.user.id, now);
+      await state.acceptInvitation(
+        invitation.workspaceId,
+        invitation.id,
+        context.session.user.id,
+        now,
+      );
       await this.#audit(state, {
         workspaceId: invitation.workspaceId,
         actorUserId: context.session.user.id,
@@ -1726,7 +1752,7 @@ function compareResourceFontVersions(
   );
 }
 
-function toRenderJobProjection(job: RenderJobView): QueryProjection {
+function toRenderJobProjection(job: RenderJobView): RenderJobProjection {
   return {
     kind: "render-job",
     jobId: job.jobId,

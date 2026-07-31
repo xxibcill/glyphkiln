@@ -215,6 +215,23 @@ export class InMemoryRenderQueue implements RenderQueue {
     return Promise.resolve(cloneView(job));
   }
 
+  listCompleted(
+    workspaceId: string,
+    revisionId: string,
+  ): Promise<readonly RenderJobView[]> {
+    const jobs = [...this.#jobs.values()]
+      .filter(
+        (job) =>
+          job.workspaceId === workspaceId &&
+          job.revisionId === revisionId &&
+          job.state === "completed",
+      )
+      .sort(compareCompletedJobs)
+      .slice(0, 20)
+      .map(cloneView);
+    return Promise.resolve(jobs);
+  }
+
   async ready(): Promise<void> {
     return Promise.resolve();
   }
@@ -262,6 +279,16 @@ function cloneView(job: MemoryJob): RenderJobView {
     ...(job.lastError === undefined ? {} : { lastError: { ...job.lastError } }),
     outputs: job.outputs.map((output) => ({ ...output })),
   };
+}
+
+function compareCompletedJobs(left: MemoryJob, right: MemoryJob): number {
+  const finishedDifference =
+    (right.finishedAt?.getTime() ?? 0) - (left.finishedAt?.getTime() ?? 0);
+  if (finishedDifference !== 0) return finishedDifference;
+  const createdDifference = right.createdAt.getTime() - left.createdAt.getTime();
+  if (createdDifference !== 0) return createdDifference;
+  if (left.jobId === right.jobId) return 0;
+  return left.jobId < right.jobId ? 1 : -1;
 }
 
 function scoped(workspaceId: string, value: string): string {

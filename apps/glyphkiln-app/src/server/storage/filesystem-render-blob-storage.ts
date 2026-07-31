@@ -1,7 +1,6 @@
 import { constants } from "node:fs";
-import { access, link, lstat, open, stat, unlink } from "node:fs/promises";
+import { access, lstat, open, stat } from "node:fs/promises";
 import { isAbsolute, join, parse, relative, resolve, sep } from "node:path";
-import { randomBytes } from "node:crypto";
 
 import {
   assertRenderBlobAddress,
@@ -20,9 +19,9 @@ import {
   assertContainedDirectory,
   ensureContainedDirectory,
   isMissingStoragePathError,
-  syncDirectory,
   UnsafeStoragePathError,
 } from "./safe-filesystem-path";
+import { publishImmutableFile } from "./immutable-file-publication";
 
 export class FileSystemRenderBlobStorage implements RenderBlobStorage {
   readonly #root: string;
@@ -63,26 +62,13 @@ export class FileSystemRenderBlobStorage implements RenderBlobStorage {
     await this.ready();
     try {
       await ensureContainedDirectory(this.#root, directory, 0o700);
-      const temporary = join(
-        directory,
-        `.${prepared.sha256}.${randomBytes(12).toString("hex")}.tmp`,
-      );
-      const handle = await open(temporary, "wx", 0o600);
-      try {
-        await handle.writeFile(input.bytes);
-        await handle.sync();
-      } finally {
-        await handle.close();
-      }
-      try {
-        await link(temporary, target);
-      } catch (error) {
-        if (!isErrno(error, "EEXIST")) throw error;
-        await this.#verifyExisting(prepared, target);
-      } finally {
-        await unlink(temporary).catch(() => undefined);
-      }
-      await syncDirectory(directory);
+      await publishImmutableFile({
+        target,
+        bytes: input.bytes,
+        fileMode: 0o600,
+        verifyExisting: (existingTarget) =>
+          this.#verifyExisting(prepared, existingTarget),
+      });
       return prepared;
     } catch (error) {
       if (error instanceof RenderBlobStorageError) throw error;

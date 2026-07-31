@@ -311,6 +311,7 @@ describe("RenderWorker", () => {
           ),
         ),
       inspect: queue.inspect.bind(queue),
+      listCompleted: queue.listCompleted.bind(queue),
       ready: queue.ready.bind(queue),
     };
     const worker = new RenderWorker({

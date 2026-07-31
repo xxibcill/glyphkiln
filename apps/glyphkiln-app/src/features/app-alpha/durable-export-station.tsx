@@ -110,21 +110,39 @@ function useDurableExport(
 
   useEffect(() => {
     requestSequence.current += 1;
+    const sequence = requestSequence.current;
+    let active = true;
     setJobId(undefined);
     setJob(undefined);
     setFailure(undefined);
     setIsRequesting(false);
-  }, [revision.revisionId, workspaceId]);
+    void api.completedRenderJobs(workspaceId, revision.revisionId).then((result) => {
+      if (!active || sequence !== requestSequence.current) return;
+      if (!result.ok) {
+        setFailure(result);
+        return;
+      }
+      const completed = result.value.at(0);
+      if (
+        completed !== undefined &&
+        !jobMatchesRevision(completed, revision, workspaceId)
+      ) {
+        setFailure(integrityFailure());
+        return;
+      }
+      setJob(completed);
+    });
+    return () => {
+      active = false;
+    };
+  }, [api, revision, workspaceId]);
 
   const inspect = useCallback(
     async (candidateJobId: string, sequence: number): Promise<void> => {
       const result = await api.renderJob(workspaceId, candidateJobId);
       if (sequence !== requestSequence.current) return;
       if (result.ok) {
-        if (
-          result.value.revisionId !== revision.revisionId ||
-          result.value.designId !== revision.designId
-        ) {
+        if (!jobMatchesRevision(result.value, revision, workspaceId)) {
           setFailure(integrityFailure());
           return;
         }
@@ -183,6 +201,18 @@ function useDurableExport(
     ...(job === undefined ? {} : { job }),
     request,
   };
+}
+
+function jobMatchesRevision(
+  job: RenderJob,
+  revision: DesignRevision,
+  workspaceId: string,
+): boolean {
+  return (
+    job.workspaceId === workspaceId &&
+    job.revisionId === revision.revisionId &&
+    job.designId === revision.designId
+  );
 }
 
 function ExportStatus({

@@ -310,6 +310,7 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
         result.value.document,
         activeBrand.snapshot,
         submittedDraft,
+        catalog.developmentFontSha256,
       )
     ) {
       setResponse(integrityFailure("The preview does not match the submitted draft."));
