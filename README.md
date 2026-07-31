@@ -18,7 +18,25 @@ The repository-level Apache-2.0 license preserves the existing project license.
 Review the intended long-term application license before distributing
 `glyphkiln-app` separately.
 
-## Develop
+## Use the web application
+
+New users should follow the
+[Glyphkiln App local guide](apps/glyphkiln-app/README.md#run-the-app-locally).
+It covers PostgreSQL, migrations, the first-owner token, the render worker, and
+the first design export.
+
+Start by cloning the repository and installing its pinned dependencies:
+
+```bash
+git clone https://github.com/xxibcill/glyphkiln.git
+cd glyphkiln
+npm ci
+```
+
+The app guide continues from this point. Do not expose the development server
+to a network or skip its database and storage setup.
+
+## Develop the repository
 
 Use Node.js 22.13 or newer within the Node 22 release line, or Node.js 24 or
 newer, with npm 10.9.8. The repository's `.nvmrc` selects the tested Node 22
@@ -34,7 +52,9 @@ npm run dev
 ```
 
 `npm run dev` builds Core first, then starts the app at
-[`http://localhost:3000`](http://localhost:3000).
+[`http://localhost:3000`](http://localhost:3000). Complete the app guide's
+database, migration, environment, and storage steps first. Run the separate
+render worker when testing durable exports.
 
 Run the complete verification suite from the repository root:
 

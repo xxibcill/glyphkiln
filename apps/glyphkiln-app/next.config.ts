@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
   },
   output: "standalone",
   outputFileTracingRoot: repositoryRoot,
-  serverExternalPackages: ["@glyphkiln/core"],
+  serverExternalPackages: ["@glyphkiln/core", "@resvg/resvg-js"],
 };
 
 export default nextConfig;
