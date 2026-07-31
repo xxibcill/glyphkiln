@@ -1,9 +1,9 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_65c8c0531ed4ae3526a74e52",
-  "renderFingerprint": "65c8c0531ed4ae3526a74e528ce311dbac119c1b0b6af1bdf2250ba70b88d4d0",
+  "renderId": "render_70fb7b0f52ca074c9e54da3d",
+  "renderFingerprint": "70fb7b0f52ca074c9e54da3de7ffb2d59d9fb8d4528047b7fcdb847444a439c2",
   "designDocumentId": "example-image-led-campaign",
-  "designDocumentHash": "2260b6e8e6921242e0b8ab9d799089176218c9bce78e523c9de79cbb3a277594",
+  "designDocumentHash": "a24462fee48b50f4ab898b46d4823501cf54ae0ef743727a63f1b13f55c428e8",
   "seed": "kilnform-light-01",
   "template": {
     "id": "image-led-campaign",
@@ -33,10 +33,10 @@
     },
     {
       "id": "kilnform-mark",
-      "sha256": "ca259ffa0e770838a1032fcd8db7986fa312780071339508e59f75adf455b6bc",
+      "sha256": "4c582c95cbb7fdff2597bb6c57a11da219a7ce328f0e67447b4894c95ad575d9",
       "origin": {
         "kind": "generated",
-        "sourceName": "Kilnform raster mark fixture",
+        "sourceName": "Kilnform Kilnmaker Seal, deterministically redrawn from generated concept",
         "generativeImageModel": "OpenAI image generation"
       }
     }
@@ -67,8 +67,8 @@
   },
   "output": {
     "format": "svg",
-    "sha256": "abeecec5ca2945c4b1fd6372eca8635a8891a0012bb33dfb7862348f1e006e65",
-    "byteSize": 4578670
+    "sha256": "462d5f089becbddfbe22665e0c7b6ace4b15469f6ef3730d50cc546d969d8f51",
+    "byteSize": 4078466
   },
   "creationTimestamp": "2026-07-29T00:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,

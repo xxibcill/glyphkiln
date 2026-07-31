@@ -115,6 +115,12 @@ bounded safe-area, text, crop, overflow, and composited-contrast proof in
 `result.evidence`. Core embeds the exact supplied raster bytes and never runs a
 silent color normalizer.
 
+The reviewed Kilnform fixture uses the selected Kilnmaker Seal identity. Run
+`npm run identity:update --workspace @glyphkiln/core` to reproduce its outlined
+SVG lockups and transparent PNGs, including the exact raster asset admitted by
+the example document. The SVG identity files are design deliverables, not Core
+render inputs; Core continues to admit PNG and JPEG only.
+
 Browser applications can import `canonicalJson`,
 `createRenderFingerprintPayload`, and `calculateFocalCrop` from
 `@glyphkiln/core/browser`. This subpath contains no Node renderer or hashing

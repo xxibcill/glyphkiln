@@ -91,6 +91,9 @@ profile fixtures.
 ## Review gate
 
 Approve the crop behavior at edge focal points, the three treatment results,
-the conservative contrast threshold, the generated campaign/photo and mark,
-and the three supported format adaptations. Revisit this ADR before marking it
-accepted if review changes any pixel or policy meaning.
+the conservative contrast threshold, the generated campaign photo, and the
+three supported format adaptations. The Kilnmaker Seal direction was selected
+on 2026-07-31 and deterministically redrawn as flat vector geometry with an
+outlined wordmark; its selected pixels and one-color reproduction are reviewed.
+Revisit this ADR before marking it accepted if later review changes any pixel or
+policy meaning.

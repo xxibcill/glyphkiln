@@ -60,6 +60,8 @@
     "test:update-visuals": "GLYPHKILN_UPDATE_VISUALS=1 vitest run tests/visual-regression.test.ts",
     "examples:generate": "node scripts/generate-examples.mjs",
     "examples:verify": "node scripts/generate-examples.mjs --verify",
+    "identity:update": "npm run build && node scripts/generate-kilnform-identity.mjs",
+    "identity:verify": "npm run build && node scripts/generate-kilnform-identity.mjs --verify",
     "fixtures:update": "node scripts/generate-fixtures.mjs",
     "fixtures:verify": "node scripts/generate-fixtures.mjs --verify",
     "text-layout-data:update": "node scripts/generate-text-layout-data.mjs",

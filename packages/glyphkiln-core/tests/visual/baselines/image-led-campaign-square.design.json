@@ -86,12 +86,12 @@
     {
       "id": "kilnform-mark",
       "mimeType": "image/png",
-      "sha256": "ca259ffa0e770838a1032fcd8db7986fa312780071339508e59f75adf455b6bc",
-      "width": 1254,
-      "height": 1254,
+      "sha256": "4c582c95cbb7fdff2597bb6c57a11da219a7ce328f0e67447b4894c95ad575d9",
+      "width": 1024,
+      "height": 1024,
       "origin": {
         "kind": "generated",
-        "sourceName": "Kilnform raster mark fixture",
+        "sourceName": "Kilnform Kilnmaker Seal, deterministically redrawn from generated concept",
         "generativeImageModel": "OpenAI image generation"
       }
     }

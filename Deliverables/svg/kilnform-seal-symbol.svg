@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Kilnform Kilnmaker Seal</title>
+  <desc id="description">A circular maker seal with a kiln doorway and a cut-out K aperture.</desc>
+    <defs>
+      <mask id="kilnmaker-cutout-symbol" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+        <rect width="512" height="512" fill="#FFFFFF"/>
+        <path d="M 150 398 V 220 A 106 106 0 0 1 256 114 H 274 V 238 L 430 166 L 456 222 L 318 284 L 456 350 L 428 406 L 274 333 V 398 Z" fill="#000000"/>
+      </mask>
+    </defs>
+    <circle cx="256" cy="256" r="220" fill="#0D3B9C" mask="url(#kilnmaker-cutout-symbol)"/>
+</svg>

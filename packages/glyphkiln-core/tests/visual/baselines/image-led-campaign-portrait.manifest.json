@@ -1,9 +1,9 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_d93056cd88c9387a58dade1d",
-  "renderFingerprint": "d93056cd88c9387a58dade1d4250bf097a558d9d46d48e693196e41ab94eadd6",
+  "renderId": "render_023f08b5ba7d18efb946ec0c",
+  "renderFingerprint": "023f08b5ba7d18efb946ec0c5f0f7f3088a590e0645ebc92824dc97ef34fad58",
   "designDocumentId": "baseline-image-led-campaign-portrait",
-  "designDocumentHash": "406672f328599a5cdbe207f0dfdaac0f716fe8fa804ac9a62a79d550e1d8331a",
+  "designDocumentHash": "51afa5dca15eb565e0e03d93b42fabf470d9937369847fed96cfad5f82b9f01e",
   "seed": "kilnform-light-01",
   "template": { "id": "image-led-campaign", "version": "1.0.0" },
   "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
@@ -27,10 +27,10 @@
     },
     {
       "id": "kilnform-mark",
-      "sha256": "ca259ffa0e770838a1032fcd8db7986fa312780071339508e59f75adf455b6bc",
+      "sha256": "4c582c95cbb7fdff2597bb6c57a11da219a7ce328f0e67447b4894c95ad575d9",
       "origin": {
         "kind": "generated",
-        "sourceName": "Kilnform raster mark fixture",
+        "sourceName": "Kilnform Kilnmaker Seal, deterministically redrawn from generated concept",
         "generativeImageModel": "OpenAI image generation"
       }
     }
@@ -58,8 +58,8 @@
   "dimensions": { "width": 1080, "height": 1350 },
   "output": {
     "format": "png",
-    "sha256": "05627acbb8861cc52b46d8153587084ab581f11447eb4676b1dd913a4857268b",
-    "byteSize": 2239226
+    "sha256": "ea6f372d804ff9412452331941cc2467f030594dfef9b065f94c1abb5505d464",
+    "byteSize": 2237443
   },
   "creationTimestamp": "2026-07-29T10:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,
