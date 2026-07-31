@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Local project proof · Glyphkiln",
+  title: "Manual design workshop · Glyphkiln",
   description:
-    "Build a structured brand snapshot, validate it with Glyphkiln Core, and export reproducible SVG and PNG proofs.",
+    "Publish immutable brand snapshots, save structured design revisions, and export reproducible SVG, PNG, and provenance.",
 };
 
 export const viewport: Viewport = {

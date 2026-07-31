@@ -1,29 +1,60 @@
 # Roadmap
 
+## Core completed after `0.3.0`
+
+- A validated `1.0.0` CLI
+  [resource-bundle format](resource-bundles.md) for bounded offline raster
+  assets and fonts. Bundle paths are explicit operator intent, never design
+  data, and the adapter adds no network or dynamic-execution capability.
+
 ## Core next
 
-1. A validated CLI resource-bundle format for offline assets/fonts.
-2. Broader bidi/vertical-script shaping support with explicit document controls.
-3. Optional color-profile normalization and upload malware-scanner adapters.
-4. Additional chart primitives and template versions driven by real product
+1. Broader bidi/vertical-script shaping support with explicit document controls.
+2. Optional color-profile normalization. Malware scanning remains a host/App
+   responsibility, not a Core feature.
+3. Additional chart primitives and template versions driven by real product
    requirements.
-5. A browser-compatible SVG-only adapter that preserves the same contracts.
-6. Optional signed provenance/C2PA integration outside the pure renderer.
+4. A browser-compatible SVG-only adapter that preserves the same contracts.
+5. Optional signed provenance/C2PA integration outside the pure renderer.
 
-## Glyphkiln App integration
+## Glyphkiln App Alpha
 
-The recommended first App milestone is a read-only local project preview:
-brand-snapshot form → structured design document → inline validation issues →
-Core SVG preview → explicit PNG/SVG download with manifest. Keep prompt
-interpretation, persistence, authentication, and Cloud orchestration out until
-that trust boundary and resource-resolution path are proven.
+The manual App Alpha vertical slice is implemented in the existing Next.js
+workspace:
 
-The App should preserve immutable brand snapshots, content-address uploaded
-assets/fonts, pass bytes explicitly to Core, and display provenance without
-rewriting asset origins.
+- bootstrap/invited authentication, hashed sessions, CSRF, trusted-source
+  password-work admission, and owner/admin/editor/viewer authorization;
+- workspace invitations plus owner-only member listing, role changes, terminal
+  soft revocation, final-owner protection, and worker reauthorization;
+- immutable versioned brand snapshots and append-only design revisions;
+- no-LLM create → preview → save → reopen → revise → SVG/PNG/manifest flow;
+- authenticated PNG/JPEG/TTF/OTF admission with fail-closed ClamAV scanning,
+  immutable selectable provenance records, content-addressed filesystem blobs,
+  exact revision-resource pins, scan concurrency bounds, and durable workspace
+  quotas;
+- a durable PostgreSQL render queue with idempotency, leases, bounded retries,
+  per-workspace outstanding capacity, fair workspace scheduling, and an async
+  worker that reloads and reauthorizes exact stored state;
+- the supported PostgreSQL/shared-filesystem/ClamAV self-hosting topology and
+  operator documentation.
 
-**Initiated 2026-07-30:** the first local preview slice now covers structured
-brand and composition controls, Core-backed validation, isolated SVG/PNG
-rendering with explicit font bytes, manifest-derived provenance, and individual
-artifact/manifest downloads. Authentication, persistence, uploads, prompt
-interpretation, and cloud infrastructure remain intentionally deferred.
+The implementation does not make App Alpha released or production-verified.
+The remaining gate is integrated qualification: the full repository matrix,
+real-PostgreSQL migration/concurrency/isolation tests, a fresh Compose
+create-to-export run, live scanner readiness/update checks, reverse-proxy HTTPS,
+and a stopped-writer database-plus-filesystem backup/restore drill. Status and
+the exact gate are tracked in [the App Alpha plan](plans/app-alpha.md).
+
+## App work after Alpha qualification
+
+1. Operator administration and retention controls for completed jobs, artifacts,
+   resource admissions, and audit export.
+2. A multi-host object-storage adapter only when a supported deployment needs
+   it; Core will still receive explicit bytes and no remote URL.
+3. Broader composition systems driven by observed manual-workflow needs.
+4. Optional LLM brief interpretation only as an untrusted producer of candidate
+   structured data, never generated rendering code.
+
+Glyphkiln Cloud, billing, managed multi-tenancy, autoscaling orchestration, a
+freeform editor, uploaded active SVG, and render-time network fetching are not
+part of App Alpha.

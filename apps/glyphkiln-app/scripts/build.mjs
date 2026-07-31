@@ -10,6 +10,7 @@ const nextCli = require.resolve("next/dist/bin/next");
 
 try {
   await stageCorePackage();
+  await runNode(join(appRoot, "scripts/build-worker.mjs"));
   await runNode(nextCli, ["build"]);
   await runNode(join(appRoot, "scripts/package-standalone.mjs"));
 } finally {

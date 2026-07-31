@@ -16,6 +16,12 @@ not accept SVG assets in schema `1.0.0`, avoiding scripts, external references,
 entities, and sanitizer ambiguity. Images embedded into output SVG are
 base64-encoded PNG/JPEG data URIs.
 
+The CLI can turn files beneath one operator-selected local directory into those
+same explicit bytes through a validated
+[offline resource bundle](resource-bundles.md). Bundle asset metadata must
+exactly equal the design declaration, and Core still performs its complete
+raster validation after the bundle loader verifies the file hash.
+
 Glyphkiln App or an ingestion service remains responsible for malware scanning,
 color normalization, metadata stripping where appropriate, and license policy.
 For hostile bytes, call `renderGraphicIsolated`; full decoding then occurs

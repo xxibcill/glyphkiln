@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "coverage/**", "next-env.d.ts"],
+    ignores: [".next/**", ".worker/**", "coverage/**", "next-env.d.ts"],
   },
   {
     files: ["scripts/**/*.mjs"],

@@ -15,12 +15,27 @@ const CORE_DISTRIBUTION_FILES = [
   "assets/fonts/OFL.txt",
   "vendor/unicode/LICENSE.txt",
 ];
+const APP_BUILD_ONLY_PATHS = [
+  "CHANGELOG.md",
+  "Dockerfile",
+  "README.md",
+  "eslint.config.mjs",
+  "next.config.ts",
+  "scripts",
+  "tsconfig.json",
+  "tsconfig.tsbuildinfo",
+  "vitest.config.ts",
+];
 
 const { standaloneAppRoot, standaloneCoreRoot, standaloneRoot } =
   await readStandaloneLayout();
 await copyRequiredDirectory(
   join(appRoot, ".next/static"),
   join(standaloneAppRoot, ".next/static"),
+);
+await copyRequiredDirectory(
+  join(appRoot, ".worker"),
+  join(standaloneAppRoot, ".worker"),
 );
 await copyOptionalDirectory(join(appRoot, "public"), join(standaloneAppRoot, "public"));
 await copyRequiredFile(
@@ -31,6 +46,7 @@ await copyRequiredFile(
   join(appRoot, "scripts/runtime-hostname.mjs"),
   join(standaloneAppRoot, "runtime-hostname.mjs"),
 );
+await pruneTracedApplicationBuildInputs(standaloneAppRoot);
 await copyRequiredFile(
   join(repositoryRoot, "LICENSE"),
   join(standaloneRoot, "LICENSE"),
@@ -38,6 +54,23 @@ await copyRequiredFile(
 await packageCoreRuntime(standaloneCoreRoot);
 
 process.stdout.write("Packaged standalone application assets and Core runtime.\n");
+
+async function pruneTracedApplicationBuildInputs(standaloneAppRoot) {
+  const tracedSourceRoot = join(standaloneAppRoot, "src");
+  await rm(tracedSourceRoot, { recursive: true, force: true });
+  await copyRequiredDirectory(
+    join(appRoot, "src/server/persistence/migrations"),
+    join(tracedSourceRoot, "server/persistence/migrations"),
+  );
+  await Promise.all(
+    APP_BUILD_ONLY_PATHS.map((relativePath) =>
+      rm(join(standaloneAppRoot, relativePath), {
+        recursive: true,
+        force: true,
+      }),
+    ),
+  );
+}
 
 async function packageCoreRuntime(destinationRoot) {
   const runtimeFiles = new Set(await readTracedCoreRuntimeFiles());

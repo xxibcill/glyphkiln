@@ -1,63 +1,65 @@
 # Glyphkiln App
 
-Glyphkiln App is the self-hostable application workspace for Glyphkiln. Its
-first roadmap slice is a local, read-only project workshop:
+Glyphkiln App Alpha is the self-hostable, manual design workflow built on
+`@glyphkiln/core`. It supports authenticated workspaces, immutable brand
+snapshots, persisted design revisions, scanner-admitted raster and font
+resources, and asynchronous SVG/PNG/manifest exports.
 
-```text
-brand snapshot controls
-→ structured DesignDocument
-→ Core validation
-→ isolated deterministic SVG + PNG render
-→ output and manifest downloads
-```
+The application keeps rendering inputs as inert structured data. It does not
+execute user code, fetch remote resources while rendering, accept active SVG
+uploads, or interpret prompts with an LLM. A worker reloads an exact stored
+revision and workspace-owned resource versions, reauthorizes the requester,
+and invokes Core's permission-limited deterministic renderer.
 
-The interface exposes every current Core template, format, and procedural
-style. It keeps the active design document, validation results, output
-fingerprints, registered-font hash, asset origins, and manifest-backed
-provenance visible around the preview.
+## Local development
 
 From the monorepo root:
 
-```bash
+```sh
 npm run dev
 ```
 
-Development and the packaged launcher bind `127.0.0.1` by default because this
-milestone has no authentication or remote rate controls. A self-hosting
-operator must explicitly set `GLYPHKILN_HOSTNAME` (for example, `0.0.0.0`) only
-behind their own trusted access boundary. Non-loopback browser access must use
-HTTPS, normally through a trusted reverse proxy; Web Crypto is intentionally
-required before the browser will request or accept a proof. Plain HTTP remains
-supported only on the local machine through `localhost` or `127.0.0.1`.
+The development launcher binds to loopback by default. Create the first owner,
+workspace, and immutable brand snapshot in the browser, then use the manual
+controls to preview, save, reopen, revise, and request an export. First-run
+registration also requires the operator value from
+`GLYPHKILN_BOOTSTRAP_TOKEN`; use at least 32 random characters even on
+loopback.
 
-For a production build:
+The application APIs are same-origin, cookie-authenticated interfaces under
+`/api/app`. They enforce bounded bodies, CSRF protection for commands, and
+workspace authorization. The legacy caller-authored `/api/preview` endpoint is
+retired and returns `410 Gone`.
 
-```bash
+## Production build
+
+```sh
 npm run build
 npm start
 ```
 
-The local endpoint is `POST /api/preview`. It accepts only bounded
-`application/json` design documents, validates them with Core, admits one
-isolated render at a time, passes the registered Inter bytes explicitly, and
-returns `Cache-Control: no-store`. It does not accept rendering code or fetch
-remote resources. Before presenting a response as proof, the browser recomputes
-the design-document and output SHA-256 values and checks that SVG and PNG share
-the same manifest provenance.
+The build stages the Next.js standalone application and the separately
+executable render worker. The worker bundle includes the checked-in SQL
+migrations and loads the exact installed Core package at runtime:
 
-The production build stages the minimum runtime files needed by Next.js
-standalone output, including Core and its native Resvg dependency. Test the
-artifact on the same operating-system and CPU target it will run on:
+```sh
+npm run start:worker --workspace @glyphkiln/app
+```
 
-```bash
+Run migrations through the one-shot migration command before starting either
+runtime. App and worker processes verify that the schema is current; they do
+not apply DDL during normal startup.
+
+Test the packaged artifact on the operating-system and CPU target where it
+will run:
+
+```sh
 npm run test:standalone --workspace @glyphkiln/app
 ```
 
-To deploy only that output, preserve the complete
-`apps/glyphkiln-app/.next/standalone` directory and run
-`node apps/glyphkiln-app/start.mjs` from its root.
-
-This milestone deliberately has no authentication, persistence, uploads,
-network asset resolution, prompt interpretation, database, queue, or cloud
-orchestration. Those remain later trust boundaries in the
-[implementation plan](../../docs/full-implementation-plan.md).
+For the supported single-host container topology, environment reference,
+reverse-proxy/TLS requirements, health checks, scanner boundary, and
+backup/restore procedure, see
+[`docs/self-hosting.md`](../../docs/self-hosting.md). Non-loopback operation is
+intentionally closed unless the production HTTPS, proxy, secure-cookie, and
+database startup gate is satisfied.

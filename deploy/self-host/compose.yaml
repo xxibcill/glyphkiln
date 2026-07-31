@@ -1,0 +1,239 @@
+name: glyphkiln
+
+x-app-image: &app-image
+  image: glyphkiln-app:0.1.0-alpha
+  build:
+    context: ../..
+    dockerfile: apps/glyphkiln-app/Dockerfile
+
+x-migration-database-environment: &migration-database-environment
+  DATABASE_URL: postgresql://glyphkiln_migrator:${GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD:?set GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD}@postgres:5432/glyphkiln
+  GLYPHKILN_DATABASE_SSL: prefer
+
+x-runtime-database-environment: &runtime-database-environment
+  DATABASE_URL: postgresql://glyphkiln_runtime:${GLYPHKILN_POSTGRES_RUNTIME_PASSWORD:?set GLYPHKILN_POSTGRES_RUNTIME_PASSWORD}@postgres:5432/glyphkiln
+  GLYPHKILN_DATABASE_SSL: prefer
+
+x-worker-database-environment: &worker-database-environment
+  DATABASE_URL: postgresql://glyphkiln_worker:${GLYPHKILN_POSTGRES_WORKER_PASSWORD:?set GLYPHKILN_POSTGRES_WORKER_PASSWORD}@postgres:5432/glyphkiln
+  GLYPHKILN_DATABASE_SSL: prefer
+
+x-runtime-hardening: &runtime-hardening
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  init: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=128m
+
+services:
+  postgres:
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: glyphkiln
+      POSTGRES_USER: glyphkiln_migrator
+      POSTGRES_PASSWORD: ${GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD:?set GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD}
+      GLYPHKILN_POSTGRES_RUNTIME_PASSWORD: ${GLYPHKILN_POSTGRES_RUNTIME_PASSWORD:?set GLYPHKILN_POSTGRES_RUNTIME_PASSWORD}
+      GLYPHKILN_POSTGRES_WORKER_PASSWORD: ${GLYPHKILN_POSTGRES_WORKER_PASSWORD:?set GLYPHKILN_POSTGRES_WORKER_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-glyphkiln-roles.sh:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "--username",
+          "glyphkiln_migrator",
+          "--dbname",
+          "glyphkiln",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend
+
+  clamav:
+    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    restart: unless-stopped
+    init: true
+    environment:
+      CLAMAV_NO_FRESHCLAMD: "true"
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "clamdscan --ping=1 >/dev/null && find /var/lib/clamav -maxdepth 1 -type f \\( -name '*.cvd' -o -name '*.cld' \\) -mmin -2880 -print -quit | grep -q .",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 3g
+    cpus: 2
+    networks:
+      - app-scanner
+
+  clamav-updater:
+    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    restart: unless-stopped
+    init: true
+    environment:
+      CLAMAV_NO_CLAMD: "true"
+      FRESHCLAM_CHECKS: "24"
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 1g
+    networks:
+      - scanner-egress
+
+  migrate:
+    <<:
+      - *app-image
+      - *runtime-hardening
+    command: ["node", ".worker/worker.mjs", "--migrate-only"]
+    restart: "no"
+    environment:
+      <<: *migration-database-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  grant-runtime:
+    <<: *runtime-hardening
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    command:
+      - sh
+      - -ec
+      - |
+        psql \
+          --host=postgres \
+          --username=glyphkiln_migrator \
+          --dbname=glyphkiln \
+          --file=/opt/glyphkiln/postgres-runtime-grants.sql
+    restart: "no"
+    environment:
+      PGPASSWORD: ${GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD:?set GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD}
+    volumes:
+      - ./postgres-runtime-grants.sql:/opt/glyphkiln/postgres-runtime-grants.sql:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - backend
+
+  app:
+    <<:
+      - *app-image
+      - *runtime-hardening
+    restart: unless-stopped
+    hostname: app
+    environment:
+      <<: *runtime-database-environment
+      GLYPHKILN_HOSTNAME: app
+      GLYPHKILN_PUBLIC_ORIGIN: ${GLYPHKILN_PUBLIC_ORIGIN:?set an https GLYPHKILN_PUBLIC_ORIGIN}
+      GLYPHKILN_BOOTSTRAP_TOKEN: "${GLYPHKILN_BOOTSTRAP_TOKEN:-}"
+      GLYPHKILN_TRUST_PROXY: "true"
+      GLYPHKILN_SECURE_COOKIES: "true"
+      GLYPHKILN_DATABASE_MAX_CONNECTIONS: "10"
+      GLYPHKILN_STORAGE_ROOT: /var/lib/glyphkiln
+      GLYPHKILN_WORKSPACE_MAX_PER_USER: "${GLYPHKILN_WORKSPACE_MAX_PER_USER:-5}"
+      GLYPHKILN_WORKSPACE_MAX_PER_INSTALLATION: "${GLYPHKILN_WORKSPACE_MAX_PER_INSTALLATION:-100}"
+      GLYPHKILN_RENDER_MAX_OUTSTANDING_PER_INSTALLATION: "${GLYPHKILN_RENDER_MAX_OUTSTANDING_PER_INSTALLATION:-1000}"
+      GLYPHKILN_RENDER_MAX_OUTSTANDING_PER_WORKSPACE: "${GLYPHKILN_RENDER_MAX_OUTSTANDING_PER_WORKSPACE:-100}"
+      GLYPHKILN_RESOURCE_MAX_INSTALLATION_ADMISSIONS: "${GLYPHKILN_RESOURCE_MAX_INSTALLATION_ADMISSIONS:-100000}"
+      GLYPHKILN_RESOURCE_MAX_INSTALLATION_STORED_BYTES: "${GLYPHKILN_RESOURCE_MAX_INSTALLATION_STORED_BYTES:-10737418240}"
+      GLYPHKILN_RESOURCE_MAX_ADMISSIONS: "${GLYPHKILN_RESOURCE_MAX_ADMISSIONS:-10000}"
+      GLYPHKILN_RESOURCE_MAX_STORED_BYTES: "${GLYPHKILN_RESOURCE_MAX_STORED_BYTES:-1073741824}"
+      GLYPHKILN_RESOURCE_SCAN_GLOBAL_CONCURRENCY: "${GLYPHKILN_RESOURCE_SCAN_GLOBAL_CONCURRENCY:-1}"
+      GLYPHKILN_RESOURCE_SCAN_WORKSPACE_CONCURRENCY: "${GLYPHKILN_RESOURCE_SCAN_WORKSPACE_CONCURRENCY:-1}"
+      GLYPHKILN_CLAMAV_HOST: clamav
+      GLYPHKILN_CLAMAV_PORT: "3310"
+      GLYPHKILN_CLAMAV_VERSION: "1.4.3"
+      GLYPHKILN_CLAMAV_MAX_SIGNATURE_AGE_HOURS: "48"
+    volumes:
+      - glyphkiln-storage:/var/lib/glyphkiln
+    ports:
+      - "127.0.0.1:${GLYPHKILN_APP_PORT:-3000}:3000"
+    depends_on:
+      grant-runtime:
+        condition: service_completed_successfully
+      clamav:
+        condition: service_healthy
+      clamav-updater:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://app:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    pids_limit: 256
+    mem_limit: 768m
+    cpus: 1.5
+    networks:
+      - backend
+      - app-scanner
+
+  worker:
+    <<:
+      - *app-image
+      - *runtime-hardening
+    command: ["node", ".worker/worker.mjs"]
+    restart: unless-stopped
+    environment:
+      <<: *worker-database-environment
+      GLYPHKILN_STORAGE_ROOT: /var/lib/glyphkiln
+      GLYPHKILN_WORKER_DATABASE_CONNECTIONS: "2"
+      GLYPHKILN_WORKER_POLL_MS: "500"
+      GLYPHKILN_WORKER_LEASE_MS: "60000"
+    volumes:
+      - glyphkiln-storage:/var/lib/glyphkiln
+    depends_on:
+      grant-runtime:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", ".worker/worker.mjs", "--healthcheck"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+      start_period: 20s
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: 2
+    networks:
+      - backend
+
+volumes:
+  postgres-data:
+  glyphkiln-storage:
+  clamav-signatures:
+
+networks:
+  backend:
+    internal: true
+  app-scanner:
+    internal: true
+  scanner-egress:
+    internal: false

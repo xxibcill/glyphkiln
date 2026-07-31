@@ -22,6 +22,27 @@ profile:
 | Requested output formats         | 2               |
 | Manifest creation timestamp      | 128 bytes       |
 
+The optional CLI [resource-bundle](resource-bundles.md) adapter adds these
+filesystem-input limits before bytes reach the renderer:
+
+| Resource                        | Limit     |
+| ------------------------------- | --------- |
+| Bundle manifest                 | 256 KiB   |
+| Bundle manifest depth / entries | 8 / 2,048 |
+| Relative path bytes / segments  | 512 / 16  |
+| Relative path-segment bytes     | 128       |
+
+Bundle asset/font counts, per-file bytes, and aggregate bytes reuse the
+renderer limits above. Metadata sizes are checked before opening resource
+files, and every read retains a one-byte sentinel to detect concurrent growth.
+The App resolver applies the same count, aggregate-byte, and raster-pixel
+limits to immutable database metadata before opening any selected blob. This
+keeps an oversized resource selection from exhausting the web or worker
+process before Core's own byte-level preflight runs. Synchronous preview also
+uses a fail-fast slot around the complete resolve-to-render lifetime, so valid
+maximum-size bundles do not collect in memory behind Core's serialized render
+slot.
+
 Text-layout analysis retains at most 16 code-point matches per diagnostic and
 128 diagnostics per document inspection. Full counts and truncation flags are
 preserved. Rendering independently retains at most 128 visible blocking

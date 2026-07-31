@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import { Buffer } from "node:buffer";
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   access,
   cp,
@@ -18,137 +16,6 @@ import { isAbsolute, join, relative, sep } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { appRoot, readStandaloneLayout, stagedCoreRoot } from "./standalone-paths.mjs";
-
-const PRODUCT_ANNOUNCEMENT_DOCUMENT = {
-  schemaVersion: "1.0.0",
-  id: "example-product-announcement",
-  template: {
-    id: "product-announcement",
-    version: "1.1.1",
-  },
-  format: "linkedin-landscape",
-  seed: "launch-analytics-01",
-  mode: "dark",
-  brand: {
-    snapshotId: "brand-glyphkiln-2026-07",
-    version: "1.0.0",
-    name: "Glyphkiln",
-    palette: {
-      primary: "#6C5CE7",
-      secondary: "#00B894",
-      accent: "#FDCB6E",
-      neutrals: ["#0B1020", "#F7F8FC"],
-    },
-    themes: {
-      light: {
-        background: "#F7F8FC",
-        surface: "#FFFFFF",
-        text: "#0B1020",
-        mutedText: "#47506A",
-      },
-      dark: {
-        background: "#0B1020",
-        surface: "#171D32",
-        text: "#F7F8FC",
-        mutedText: "#B8C0D9",
-      },
-    },
-    typography: {
-      headlineFamily: "Inter",
-      bodyFamily: "Inter",
-      monospaceFamily: "Inter",
-    },
-    spacingScale: [4, 8, 12, 16, 24, 32, 48, 64],
-    borderRadii: [0, 16, 28],
-    visualDensity: "balanced",
-    preferredProceduralStyles: ["layered-waves", "flow-field"],
-    safeArea: {
-      top: 0.07,
-      right: 0.07,
-      bottom: 0.07,
-      left: 0.07,
-    },
-    prohibitedColors: [],
-    prohibitedStyles: ["photorealistic-ai"],
-  },
-  assets: [],
-  fonts: [
-    {
-      family: "Inter",
-      weight: 400,
-      style: "normal",
-      sha256: "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
-    },
-    {
-      family: "Inter",
-      weight: 700,
-      style: "normal",
-      sha256: "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
-    },
-    {
-      family: "Inter",
-      weight: 800,
-      style: "normal",
-      sha256: "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
-    },
-  ],
-  layers: [
-    {
-      id: "background",
-      type: "background",
-    },
-    {
-      id: "waves",
-      type: "procedural-decoration",
-      style: "layered-waves",
-      intensity: 0.58,
-      density: 0.62,
-      complexity: 0.48,
-      contrast: 0.55,
-      quietRegion: {
-        x: 0.04,
-        y: 0.12,
-        width: 0.7,
-        height: 0.62,
-      },
-    },
-    {
-      id: "eyebrow",
-      type: "eyebrow",
-      text: "NOW IN PUBLIC BETA",
-    },
-    {
-      id: "headline",
-      type: "headline",
-      text: "Ship on-brand graphics from deterministic code",
-    },
-    {
-      id: "subtitle",
-      type: "subtitle",
-      text: "One structured design document. Reproducible SVG, PNG, and provenance.",
-    },
-    {
-      id: "cta",
-      type: "cta",
-      text: "Explore Glyphkiln Core →",
-    },
-  ],
-  metadata: {
-    campaign: "public-beta",
-    reviewed: true,
-  },
-};
-
-const EXPECTED_OUTPUT_INTEGRITY = {
-  svg: {
-    byteSize: 106381,
-    sha256: "c0a2fcd75feeab8c3cc95da749d09dac95bfbc6fc9c734185a9f7b51900f9b08",
-  },
-  png: {
-    byteSize: 67486,
-    sha256: "49a5a41690ea772bd80d356f97cb851258ac2d25ccc3e43e4821ad321a8a0124",
-  },
-};
 
 const REQUIRED_CORE_DISTRIBUTION_FILES = [
   "LICENSE",
@@ -174,6 +41,8 @@ await assert.doesNotReject(
   access(staticAssetsPath),
   "The standalone build must include its static assets.",
 );
+await verifyWorkerBundle(layout.standaloneAppRoot);
+await verifyBuildInputsArePruned(layout.standaloneAppRoot);
 await verifyStartCommand(layout.relativeAppDir);
 
 const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-standalone-"));
@@ -187,6 +56,7 @@ try {
   const isolatedCoreRoot = join(isolatedAppRoot, "node_modules", "@glyphkiln", "core");
   await verifyDistributionFiles(isolatedStandaloneRoot, isolatedCoreRoot);
   await verifyContainedRuntime(isolatedStandaloneRoot, isolatedCoreRoot);
+  await verifyIsolatedWorkerRuntime(isolatedAppRoot);
   await verifyStandaloneRuntime(isolatedAppRoot);
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
@@ -208,6 +78,107 @@ async function verifyDistributionFiles(isolatedStandaloneRoot, isolatedCoreRoot)
 async function assertNonEmptyFile(path, message) {
   const bytes = await readFile(path);
   assert.ok(bytes.byteLength > 0, message);
+}
+
+async function verifyWorkerBundle(standaloneAppRoot) {
+  const packagedWorkerRoot = join(standaloneAppRoot, ".worker");
+  await assertNonEmptyFile(
+    join(packagedWorkerRoot, "worker.mjs"),
+    "The standalone build must include the executable render worker.",
+  );
+  const sourceMigrationRoot = join(
+    appRoot,
+    "src",
+    "server",
+    "persistence",
+    "migrations",
+  );
+  const sourceMigrations = (await readdir(sourceMigrationRoot))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  const packagedMigrations = (await readdir(join(packagedWorkerRoot, "migrations")))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  assert.deepEqual(
+    packagedMigrations,
+    sourceMigrations,
+    "The standalone worker must include every checked-in SQL migration.",
+  );
+  for (const migration of sourceMigrations) {
+    assert.deepEqual(
+      await readFile(join(packagedWorkerRoot, "migrations", migration)),
+      await readFile(join(sourceMigrationRoot, migration)),
+      `The packaged worker migration ${migration} must match its source.`,
+    );
+  }
+}
+
+async function verifyIsolatedWorkerRuntime(isolatedAppRoot) {
+  const environment = { ...process.env };
+  delete environment.DATABASE_URL;
+  delete environment.NODE_PATH;
+  const worker = spawn(
+    process.execPath,
+    [join(isolatedAppRoot, ".worker", "worker.mjs"), "--healthcheck"],
+    {
+      cwd: isolatedAppRoot,
+      env: environment,
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    },
+  );
+  const output = [];
+  worker.stdout.on("data", (chunk) => output.push(String(chunk)));
+  worker.stderr.on("data", (chunk) => output.push(String(chunk)));
+  const exitCode = await Promise.race([
+    new Promise((resolveExit, rejectExit) => {
+      worker.once("error", rejectExit);
+      worker.once("exit", resolveExit);
+    }),
+    delay(5_000).then(() => {
+      worker.kill("SIGKILL");
+      throw new Error(
+        "The isolated render worker did not validate its runtime in time.",
+      );
+    }),
+  ]);
+  const combinedOutput = output.join("");
+  assert.notEqual(
+    exitCode,
+    0,
+    "The isolated worker smoke test must stop at its intentionally absent database configuration.",
+  );
+  assert.match(
+    combinedOutput,
+    /DATABASE_URL is required for the render worker\./,
+    `The isolated worker must load its complete runtime before validating configuration.\n${combinedOutput}`,
+  );
+  assert.doesNotMatch(
+    combinedOutput,
+    /ERR_MODULE_NOT_FOUND|Cannot find package/,
+    `The isolated worker must not depend on workspace packages.\n${combinedOutput}`,
+  );
+}
+
+async function verifyBuildInputsArePruned(standaloneAppRoot) {
+  for (const relativePath of [
+    "Dockerfile",
+    "next.config.ts",
+    "scripts",
+    "src/app",
+    "src/features",
+    "src/server/app-workflow",
+    "src/server/render-worker",
+    "src/test",
+    "tsconfig.json",
+    "vitest.config.ts",
+  ]) {
+    await assert.rejects(
+      access(join(standaloneAppRoot, relativePath)),
+      (error) => error?.code === "ENOENT",
+      `The standalone runtime must exclude build-only path ${relativePath}.`,
+    );
+  }
 }
 
 async function verifyStartCommand(relativeAppDir) {
@@ -241,9 +212,9 @@ async function verifyRuntimeAttempt(isolatedAppRoot) {
     const assetPaths = extractStaticAssetPaths(await home.text());
     assert.ok(assetPaths.length > 0, "The home page must reference static assets.");
     await verifyStaticAssets(origin, assetPaths);
-    await verifyPreviewRoute(origin, server);
+    await verifyLegacyPreviewIsClosed(origin, server);
     process.stdout.write(
-      `Isolated standalone application served ${assetPaths.length} static assets and rendered SVG+PNG.\n`,
+      `Isolated standalone application served ${assetPaths.length} static assets and kept the legacy anonymous renderer closed.\n`,
     );
   } finally {
     await stopApplication(server);
@@ -334,84 +305,21 @@ function assertPathInside(root, target, message) {
   );
 }
 
-async function verifyPreviewRoute(originUrl, server) {
+async function verifyLegacyPreviewIsClosed(originUrl, server) {
   const previewResponse = await fetch(new URL("/api/preview", originUrl), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(PRODUCT_ANNOUNCEMENT_DOCUMENT),
-    signal: AbortSignal.timeout(30_000),
-  });
-  const preview = await previewResponse.json();
-  assert.equal(
-    previewResponse.status,
-    200,
-    `The isolated preview render must succeed: ${JSON.stringify(preview)}\n${server.output}`,
-  );
-  assert.equal(preview.ok, true);
-  assert.equal(preview.document?.id, PRODUCT_ANNOUNCEMENT_DOCUMENT.id);
-  assert.ok(Array.isArray(preview.outputs));
-  assert.equal(preview.outputs.length, 2);
-
-  const outputByFormat = new Map(
-    preview.outputs.map((output) => [output.format, output]),
-  );
-  assert.deepEqual([...outputByFormat.keys()].sort(), ["png", "svg"]);
-  verifyPreviewOutput(
-    outputByFormat.get("svg"),
-    "svg",
-    "image/svg+xml",
-    EXPECTED_OUTPUT_INTEGRITY.svg,
-  );
-  verifyPreviewOutput(
-    outputByFormat.get("png"),
-    "png",
-    "image/png",
-    EXPECTED_OUTPUT_INTEGRITY.png,
-  );
-
-  const invalidResponse = await fetch(new URL("/api/preview", originUrl), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: "{}",
     signal: AbortSignal.timeout(5_000),
   });
-  const invalid = await invalidResponse.json();
-  assert.equal(invalidResponse.status, 422);
-  assert.equal(invalid.ok, false);
-  assert.equal(invalid.code, "INVALID_DESIGN_DOCUMENT");
-  assert.ok(
-    Array.isArray(invalid.problems) && invalid.problems.length > 0,
-    "Invalid preview input must include Core validation problems.",
+  const preview = await previewResponse.json();
+  assert.equal(
+    previewResponse.status,
+    410,
+    `The isolated legacy preview route must remain closed: ${JSON.stringify(preview)}\n${server.output}`,
   );
-}
-
-function verifyPreviewOutput(output, format, mimeType, expectedIntegrity) {
-  assert.notEqual(output, undefined, `The ${format} output must be present.`);
-  assert.equal(output.format, format);
-  assert.equal(output.mimeType, mimeType);
-  assert.equal(typeof output.base64, "string");
-  const bytes = Buffer.from(output.base64, "base64");
-  assert.ok(bytes.byteLength > 0);
-  assert.equal(bytes.byteLength, expectedIntegrity.byteSize);
-  assert.equal(output.byteSize, bytes.byteLength);
-  assert.equal(output.manifest?.output?.format, format);
-  assert.equal(output.manifest?.output?.byteSize, bytes.byteLength);
-  assert.equal(output.manifest?.output?.sha256, expectedIntegrity.sha256);
-  assert.equal(output.manifest?.output?.sha256, sha256(bytes));
-  assert.equal(output.manifest?.renderFingerprint, output.fingerprint);
-  assert.equal(output.manifest?.designDocumentId, PRODUCT_ANNOUNCEMENT_DOCUMENT.id);
-  if (format === "svg") {
-    assert.match(bytes.subarray(0, 128).toString("utf8"), /^<svg\b/);
-    return;
-  }
-  assert.deepEqual(
-    bytes.subarray(0, 8),
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-  );
-}
-
-function sha256(bytes) {
-  return createHash("sha256").update(bytes).digest("hex");
+  assert.equal(preview.ok, false);
+  assert.equal(preview.code, "LEGACY_PREVIEW_DISABLED");
 }
 
 async function waitForApplication(server, originUrl) {

@@ -8,7 +8,11 @@ Glyphkiln will be developed as three related but independently deployable produc
    An Apache-2.0 open-source TypeScript package containing deterministic rendering, schemas, templates, procedural graphics, export logic, provenance, an SDK, and a CLI.
 
 2. **`glyphkiln-app`**
-   A self-hostable web application built on `glyphkiln-core`. It will provide brand management, asset ingestion, editing, saved designs, preview generation, user accounts, workspaces, and optional LLM-based brief interpretation.
+   A self-hostable web application built on `glyphkiln-core`. App Alpha provides
+   authentication, workspaces, immutable brand snapshots, safe resource
+   admission, constrained manual design controls, saved revisions, previews,
+   and synchronous/asynchronous export. Optional LLM-based brief interpretation
+   is a later milestone.
 
 3. **Glyphkiln Cloud**
    A managed commercial service built around the same application and rendering contracts. It will add hosted infrastructure, teams, billing, usage limits, managed storage, asynchronous rendering, enterprise security, collaboration, integrations, and support.
@@ -25,6 +29,13 @@ glyphkiln-core
 ```
 
 Do not begin cloud-specific work until the public Core API and design-document contract have stabilized.
+
+**Current execution status (2026-07-31):** signed Core `v0.3.0` and the bounded
+offline resource-bundle milestone are complete. App Alpha feature code is
+substantially complete in the existing Next.js workspace. Its remaining gate is
+integrated release qualification against real PostgreSQL and the documented
+Compose topology, including migration, scanner, TLS, and backup/restore drills.
+See [the App Alpha execution plan](plans/app-alpha.md).
 
 ---
 
@@ -209,7 +220,7 @@ Glyphkiln Cloud remains private and outside this repository.
 - Authentication
 - Users and workspaces
 - Brand-kit management
-- Asset upload and sanitization
+- Safe raster/font admission with independent host scanning
 - Font registration
 - Design creation and editing
 - Structured control editor
@@ -418,58 +429,65 @@ Use Next.js for:
 - Administration
 - Server-rendered public pages
 
-Do not run final rendering in the web process.
+The manual path may request a synchronous preview/export, but Core rendering
+still runs through the isolated child-process contract. Durable exports use the
+separate worker entry point.
 
 ### API
 
-**Recommended:** Fastify as a separate API service.
+**App Alpha selection:** Next.js Route Handlers in the existing application
+workspace.
 
-Fastify supports schema-driven request and response handling and an encapsulated plugin architecture, making it suitable for organizing domains such as brands, assets, designs, renders, and workspaces.
+Routes remain thin adapters over a deep `AppWorkflow` module with closed,
+application-owned runtime-validated command and query unions. Authentication,
+authorization ordering, workspace-qualified resolution, persistence
+transactions, and Core error mapping live behind that boundary. Extract a
+separate API workspace only when it becomes independently deployable or useful.
 
 Important security rule:
 
-Fastify route schemas must be application-owned static schemas. Never allow users or LLM output to supply executable validation schemas.
+Route schemas must be application-owned static schemas. Never allow users or
+LLM output to supply executable validation schemas.
 
 ### Database
 
-**Recommended:** PostgreSQL with Drizzle ORM.
+**App Alpha selection:** PostgreSQL with checked-in SQL migrations and a narrow
+query/transaction interface.
 
-Drizzle supports PostgreSQL through standard drivers and maintains generated SQL migrations with Drizzle Kit.
+The production adapter uses the PostgreSQL driver. Tests use PGlite as a
+PostgreSQL-compatible local substitute while running the same migration SQL.
+Real PostgreSQL migration, concurrency, and isolation runs remain release gates;
+PGlite success must not be represented as production-database verification.
 
 Use PostgreSQL from the beginning of `glyphkiln-app` rather than starting with SQLite and later rewriting tenancy, locking, JSON querying, and job state.
 
 ### Queue
 
-Local development:
+**App Alpha selection:** PostgreSQL durable queue, plus an in-memory adapter for
+focused workflow tests.
 
-- Inline or in-process queue adapter
-- Optional Redis profile through Docker Compose
+The PostgreSQL provider owns idempotent enqueue, per-workspace outstanding-job
+capacity, persisted fair workspace scheduling, atomic claims, leases, bounded
+attempts/retries, exhaustion, attempt history, and terminal output metadata.
+Queue rows contain opaque stored identities, never documents, bytes, paths,
+callbacks, modules, or URLs.
 
-Production and Cloud:
-
-- BullMQ with Redis
-
-BullMQ provides Redis-backed queues, workers, retries, and backoff behavior.
+Redis and BullMQ are not dependencies of the supported Alpha topology. A later
+Cloud or high-throughput deployment can add an adapter only when its operational
+need is demonstrated.
 
 ### Object storage
 
-Provider interface:
+Resource blobs and render blobs use separate narrow immutable-storage
+interfaces. App-generated workspace-partitioned content-addressed keys are the
+only keys accepted; callers cannot request deletion, arbitrary paths, remote
+URLs, or signed URLs through the render boundary.
 
-```ts
-interface ObjectStorage {
-  put(input: PutObjectInput): Promise<StoredObject>;
-  get(key: string): Promise<ReadableStream>;
-  head(key: string): Promise<ObjectMetadata | null>;
-  delete(key: string): Promise<void>;
-  createDownloadUrl(key: string, expiresIn: number): Promise<string>;
-}
-```
-
-Implementations:
-
-- Local filesystem for development
-- S3-compatible storage for production
-- Optional MinIO profile for self-hosting
+The supported Alpha adapter is a shared local POSIX filesystem, with in-memory
+test adapters. Reads are bounded and verify type, length, and SHA-256; writes
+publish immutable bytes atomically and reject symlink path components. A later
+multi-host deployment may add an S3-compatible adapter, but MinIO/S3 is not a
+hidden Alpha dependency.
 
 ---
 
@@ -624,48 +642,53 @@ interface RenderManifest {
 
 # 7. Application domain model
 
-Initial `glyphkiln-app` entities:
+App Alpha entities:
 
 - User
+- Session
 - Workspace
-- WorkspaceMember
-- Brand
-- BrandVersion
-- BrandAsset
-- FontAsset
-- Template
-- TemplateVersion
+- WorkspaceMembership
+- WorkspaceInvitation
+- BrandKit
+- BrandSnapshot
+- ResourceBlob
+- ResourceAdmission
+- ResourceIngestionEvent
 - Design
 - DesignRevision
-- Render
-- RenderVariant
-- Export
-- PromptInterpretation
-- ProvenanceRecord
-- ApiKey
-- WebhookEndpoint
-- UsageRecord
+- RenderJob
+- RenderAttempt
+- RenderOutput
 - AuditEvent
+
+Prompt interpretations, API keys, webhook endpoints, billing/usage records,
+managed entitlements, and Cloud tenant records are later product entities, not
+placeholder App Alpha tables.
 
 ## Important relationships
 
 ```text
 Workspace
 ├── Members
-├── Brands
-│   ├── Brand versions
-│   ├── Logos
-│   └── Fonts
+├── Invitations
+├── Brand kits
+│   └── Immutable brand snapshots
+├── Resource admissions
+│   ├── Immutable raster/font metadata
+│   ├── Ingestion events
+│   └── Content-addressed blobs
 ├── Designs
-│   ├── Revisions
-│   └── Prompt interpretations
-└── Renders
-    ├── Variants
-    ├── Exports
-    └── Provenance records
+│   └── Immutable revisions + exact resource-admission pins
+└── Render jobs
+    ├── Attempts
+    └── Immutable outputs + manifests
 ```
 
-Design revisions should be append-only after a render references them.
+Brand snapshots, design revisions, resource admissions, ingestion events, render
+attempts, and completed output metadata are append-only. A membership remains
+as a provenance record after terminal soft revocation. See
+[the domain language](../CONTEXT.md) and
+[ADR 0014](adr/0014-app-alpha-lifecycle-and-capacity-invariants.md).
 
 ---
 
@@ -674,11 +697,12 @@ Design revisions should be append-only after a render references them.
 ## Current Core state
 
 Milestones 0–6 and the original Core `0.1.0` backlog are historical and
-complete. A signed `v0.2.0` release passed independent verification. The work
-targeting package `0.3.0` adds deterministic Unicode 17.0.0 text-layout
+complete. Signed `v0.2.0` and `v0.3.0` releases passed independent
+verification. Package `0.3.0` added deterministic Unicode 17.0.0 text-layout
 diagnostics while preserving accepted output bytes, renderer `0.2.0`, schema
-`1.0.0`, manifest `1.1.0`, and all template and procedural versions. The next
-active Core item is the offline CLI resource-bundle milestone in
+`1.0.0`, manifest `1.1.0`, and all template and procedural versions. The
+validated offline CLI resource-bundle milestone was completed next without
+changing those render-version contracts. Current Core work is tracked in
 `docs/roadmap.md`.
 
 ## Milestone 0: Governance and repository foundation
@@ -1139,44 +1163,34 @@ Also required:
 
 # 9. `glyphkiln-app` implementation
 
-Begin only after the Core release candidate passes verification.
+Active implementation began from the signed Core `v0.3.0` state. The detailed,
+current status is maintained in
+[the App Alpha execution plan](plans/app-alpha.md).
 
 ## Milestone 7: Application foundation
 
-### Work
+Feature status: complete. Operational Compose verification: pending.
 
-- Initialize the app workspace in the Glyphkiln monorepo
-- Create Next.js web application
-- Create Fastify API
-- Create worker service
-- Create PostgreSQL database
-- Add migrations
-- Add storage provider interface
-- Add queue provider interface
-- Add authentication provider
-- Add workspace authorization
-- Add structured API error format
-- Add OpenAPI output
-- Import `@glyphkiln/core`
-- Pin supported Core version
+- The existing Next.js workspace contains the UI, thin API Route Handlers,
+  `AppWorkflow`, PostgreSQL adapters/migrations, and a separately compiled worker
+  entry point. No Fastify workspace was extracted.
+- Bootstrap and email/password invitation registration use Argon2id. Sessions
+  and invitations use CSPRNG tokens stored only as hashes.
+- Same-origin and session-bound CSRF checks protect mutations. Password work is
+  bounded by concurrent/global/trusted-source admission budgets.
+- Users can create workspaces and issue/accept expiring, single-use invitations.
+- A centralized owner/admin/editor/viewer capability matrix protects every
+  workspace command, query, binary upload, download, and worker reload.
+- Owner-only membership listing, role changes, and soft revocation preserve
+  provenance, protect the final active owner, and invalidate the target user's
+  sessions.
+- Closed command/query results provide structured errors without disclosing
+  foreign object existence.
+- Web and worker import only public `@glyphkiln/core` exports and require the
+  migration registry to be current.
 
-### Initial authentication
-
-Support:
-
-- Email login or OAuth
-- Session management
-- Workspace creation
-- Workspace invitation
-- Owner, admin, editor, and viewer roles
-
-### Exit criteria
-
-- User can register or log in
-- User can create a workspace
-- Workspace access checks are enforced
-- API and worker can call Core
-- Local Docker Compose environment starts successfully
+OAuth and OpenAPI output are not App Alpha requirements. Owner grant/transfer
+and membership reactivation are explicitly deferred.
 
 ---
 
@@ -1184,52 +1198,53 @@ Support:
 
 ### Brand features
 
-- Create brand
-- Edit brand
-- Version brand
-- Light and dark palettes
-- Typography selection
-- Spacing and radii
-- Safe areas
-- Preferred styles
-- Prohibited styles and colors
-- Logo variants
+- A brand kit is a named lineage.
+- Every publication appends a server-identified, Core-validated immutable
+  snapshot.
+- Light/dark palette, typography, spacing, safe-area, style, and logo metadata
+  are whatever the pinned Core `BrandSnapshot` schema admits.
+- Editing never mutates an existing snapshot; old revisions retain the exact
+  snapshot and canonical hash they used.
+- Saved revisions append workspace-qualified pins to the exact selected resource
+  admissions. App-owned document metadata binds their IDs, hashes, origins, and
+  licenses into the canonical document and manifest without changing pixels.
 
 ### Asset ingestion
 
 - Direct upload only
 - File-signature verification
 - MIME verification
-- Raster decode and re-encode
-- SVG sanitization
+- Full PNG/JPEG decode validation
+- Uploaded SVG rejected; no sanitizer boundary
 - Dimension limits
 - Pixel-count limits
 - File-size limits
-- SHA-256 addressing
-- Duplicate detection
-- Malware-scanning hook
-- Origin metadata
-- License notes
-- Workspace ownership
+- Workspace-partitioned SHA-256 blob addressing
+- Immutable selectable admission identity separate from blob identity
+- Same-workspace duplicate relationship without provenance overwrite
+- Append-only exact revision-resource pins with workspace/kind constraints
+- Fail-closed host malware-scanner interface and ClamAV `INSTREAM` adapter
+- Scanner-signature freshness validation
+- Immutable origin, license, actor, and scan metadata
+- Per-workspace scan concurrency, admission-count, and stored-byte limits
+- Workspace-qualified ownership and resolution
 
 ### Font ingestion
 
-Initial self-hosted implementation:
-
-- Administrator-controlled font registration
+- TTF and OTF/CFF individual faces only
+- Owner/admin/editor-controlled registration
 - License metadata
 - Immutable font versions
 - Font hashes
-- Preview
-- Deactivation without deleting referenced versions
+- Complete parser/metrics validation
+- Explicit byte resolution during render
 
-### Exit criteria
+Font collections, WOFF/WOFF2, remote font URLs, and deletion/deactivation of
+referenced versions remain outside Alpha.
 
-- Brand kit can be created
-- Assets can be uploaded safely
-- Asset hashes are recorded
-- Font versions remain reproducible
-- Old designs retain their brand snapshots
+Feature status: complete with focused upload, quota, storage-integrity,
+duplicate-provenance, and workspace-isolation tests. Live ClamAV and real
+PostgreSQL qualification remain pending.
 
 ---
 
@@ -1237,22 +1252,22 @@ Initial self-hosted implementation:
 
 ### Required UX
 
-1. Select or create brand
-2. Select graphic type
+1. Authenticate and select or create an authorized workspace
+2. Select or publish an immutable brand snapshot
 3. Select format
 4. Enter content
-5. Add optional screenshot or image
-6. Enter creative brief
-7. Generate or manually construct structured design
-8. Inspect key structured controls
-9. Generate seeded variations
-10. Compare previews
-11. Save design
-12. Export PNG, SVG, and manifest
+5. Select admitted raster/font resources when needed
+6. Manually construct a bounded structured draft
+7. Inspect Core validation and preview proof
+8. Save an immutable revision
+9. Reopen the exact revision
+10. Revise from the expected head
+11. Export PNG, SVG, and per-output manifests synchronously, or enqueue the
+    stored revision for the durable worker
 
 ### Manual mode
 
-Must work without an LLM key.
+Works with no LLM integration or key.
 
 Controls:
 
@@ -1277,7 +1292,8 @@ Controls:
 
 ### Optional LLM adapter
 
-Contract:
+Deferred until after Alpha qualification. If later implemented, retain this
+contract:
 
 ```ts
 interface BriefInterpreter {
@@ -1294,13 +1310,16 @@ Rules:
 - Store input, provider, model, response hash, validation result, and accepted normalized document
 - Manual mode remains first-class
 
-### Exit criteria
+### Current result
 
-- Complete browser flow works without an LLM
-- Invalid structured output cannot reach the renderer
-- Three or more seeded variants can be rendered
-- Designs and revisions can be reopened
-- Exported manifest verifies against exported files
+- The browser completes create → preview → save → reopen → revise →
+  SVG/PNG/manifest without an LLM.
+- Draft, saved revision, and rendered proof are visually distinct states.
+- Invalid structured output and foreign resources cannot reach the renderer.
+- Reopen returns stored normalized bytes instead of reconstructing from current
+  brand state.
+- Synchronous output/manifest relationships and the complete HTTP workflow have
+  focused automated coverage.
 
 ---
 
@@ -1308,16 +1327,15 @@ Rules:
 
 ### Self-hosting package
 
-Provide:
+Implemented topology:
 
-- Dockerfiles
+- Web and worker Dockerfiles
 - Docker Compose
-- PostgreSQL
-- Redis
-- MinIO or filesystem storage profile
-- API
-- Web
-- Worker
+- PostgreSQL queue and application state
+- Shared POSIX filesystem resource/render storage
+- ClamAV scanner with an independently updating signature service
+- Next.js API and web
+- Separate worker runtime
 - Migration command
 - Health checks
 - Backup guide
@@ -1326,27 +1344,42 @@ Provide:
 - Reverse-proxy example
 - TLS guidance
 
-### Administration
+Redis, BullMQ, MinIO, and S3 are not required by the supported Alpha topology.
+Web, worker, and migration paths use distinct database roles.
 
-- Workspace list
-- User management
+Compose configuration validation and a narrow local-PostgreSQL role/grant smoke
+have passed. The images and fresh-volume workflow have not been exercised
+because a Docker daemon was unavailable; that operational gate remains open.
+
+### Deferred administration
+
+- Cross-workspace installation administration
 - Storage use
-- Queue health
+- Queue dashboards
 - Failed render inspection
 - Font management
 - Template registry
 - Data export
 - Data deletion
 
-### Exit criteria for App 0.1.0
+The product workflow includes workspace creation, invitations, member listing,
+role changes, and revocation. The broader operator console and retention/deletion
+features above are post-Alpha work.
 
-- Fresh self-hosted installation succeeds
-- Complete create-to-export E2E test passes
-- Worker retry behavior is tested
-- Backup and restore are tested
-- Workspace isolation tests pass
-- Security audit has no unresolved critical findings
-- Documentation matches actual deployment
+### Remaining exit criteria for App Alpha
+
+- [ ] Fresh Compose installation succeeds with a ready scanner.
+- [ ] Complete queued create-to-export E2E passes against real PostgreSQL.
+- [x] Worker retry, exhaustion, lost-lease, and authorization behavior has
+      focused automated coverage.
+- [ ] Stopped-writer PostgreSQL-plus-filesystem backup and restore is exercised.
+- [ ] Real-PostgreSQL workspace isolation and queue/admission concurrency tests
+      pass.
+- [ ] Reverse-proxy HTTPS and non-loopback startup checks pass.
+- [ ] The integrated repository build/typecheck/lint/test/coverage/Core
+      verification matrix passes.
+- [ ] Security review has no unresolved critical finding and documentation
+      still matches the tested deployment.
 
 ---
 
@@ -1635,18 +1668,25 @@ Run in separate processes and compare:
 
 ## 11.2 Application
 
-- API unit tests
-- Repository integration tests
-- PostgreSQL migration tests
-- Storage-provider contract tests
-- Queue-provider contract tests
-- Workspace-isolation tests
-- Upload-security tests
-- Permission tests
-- Worker retry tests
-- Complete E2E create-to-export flow
-- Backup-and-restore test
-- Self-hosted installation smoke test
+- Closed command/query and HTTP adapter unit tests
+- PGlite-backed workflow and repository integration tests
+- Migration registry, forward/rollback, and append-only constraint tests
+- Real-PostgreSQL migration, concurrency, and isolation qualification
+- Resource/render storage integrity and symlink-boundary tests
+- PostgreSQL and in-memory queue behavior tests
+- Durable outstanding-capacity and fair workspace-scheduling tests
+- Workspace-isolation and indistinguishable foreign/missing tests
+- Authentication admission, CSRF, session, invitation, role, final-owner, and
+  soft-revocation tests
+- Upload signature/MIME/decode/limit/scanner/quota/duplicate-provenance tests
+- Worker retry, exhaustion, lease loss, requester revocation, disabled-user, and
+  archived-workspace tests
+- Complete no-LLM create/save/reopen/revise/export HTTP flow
+- Fresh Compose create-to-queued-export smoke test
+- Stopped-writer PostgreSQL-plus-filesystem backup-and-restore drill
+
+PGlite is useful for fast PostgreSQL-compatible tests but does not satisfy the
+real-PostgreSQL or container release gates by itself.
 
 ---
 
@@ -1696,13 +1736,22 @@ Application is responsible for:
 - Authorization
 - Workspace ownership
 - Upload validation
-- Asset sanitization
-- Rate limiting
+- Independent host malware scanning
+- Authentication and expensive-work admission control
+- Durable workspace resource and outstanding-job quotas
 - CSRF protection
 - Session security
 - File limits
 - Database isolation
-- Secure download URLs
+- Workspace-qualified authenticated downloads
+- Worker reauthorization
+- Immutable object-path and hash verification
+
+App Alpha accepts only PNG/JPEG rasters and individual TTF/OTF faces. It rejects
+uploaded SVG instead of claiming a sanitizer boundary. A clean Core decode is
+not a malware-scanner verdict. In-process authentication/scan concurrency limits
+must not be represented as globally distributed rate limiting when more than one
+web replica is deployed.
 
 ## Cloud security boundary
 
@@ -1820,16 +1869,26 @@ resvg
 
 ## Self-hosted application
 
-Docker Compose:
+Supported App Alpha Docker Compose topology:
 
 ```text
-web
-api
+reverse proxy (operator profile)
+  → Next.js web + API routes
+     ├─ PostgreSQL application state + durable queue
+     ├─ shared POSIX resource/render storage
+     └─ internal ClamAV scanner
 worker
-postgres
-redis
-object storage
+  ├─ PostgreSQL claims + authorization state
+  └─ shared POSIX resource/render storage
+
+one-shot migration service → PostgreSQL
+signature updater → ClamAV signature volume
 ```
+
+Migration, web, and worker use distinct database roles. Redis and a remote
+object store are not required. The topology is feature-complete but remains
+subject to the fresh-install, live-scanner, TLS, and backup/restore release
+qualification in the App Alpha plan.
 
 ## Cloud
 
@@ -1926,11 +1985,16 @@ Include:
 
 ## Application cache layers
 
+Potential later optimizations:
+
 1. In-process font cache
 2. In-process parsed-asset cache
-3. Redis render-state cache
-4. Object-storage pixel cache
+3. Content-addressed render-result cache
+4. Multi-host object-storage pixel cache
 5. CDN immutable export cache
+
+App Alpha does not depend on Redis or a CDN cache. Any cache remains
+workspace-qualified and must verify immutable hashes before use.
 
 ## Immutable output paths
 
@@ -1992,24 +2056,29 @@ Complete:
 
 Deliver:
 
-- Authentication
-- Workspaces
-- Brand kit
-- Asset upload
-- Manual design flow
-- Inline render
-- Saved design
-- Export
+- Authentication, invitations, roles, and membership revocation
+- Workspace isolation
+- Immutable brand snapshots
+- Safe raster/font admission
+- Manual no-LLM design flow
+- Append-only saved revisions
+- Synchronous isolated preview/export
+- Durable PostgreSQL queue and async worker
+- Shared-filesystem self-hosting topology
+- Deployment and backup/restore guidance
+
+Feature implementation is substantially complete. Integrated real-PostgreSQL,
+Compose, TLS, scanner-readiness, and restore qualification remains open.
 
 ## Phase E: App beta
 
 Add:
 
-- Worker queue
 - Optional LLM adapter
-- Revision history
-- Self-hosted deployment
-- Administration
+- Installation administration and retention controls
+- Richer revision/history navigation
+- A multi-host storage adapter when deployment evidence requires one
+- Broader constrained composition workflows
 - Security hardening
 
 ## Phase F: Cloud private beta
@@ -2224,6 +2293,12 @@ App must have:
 - Backup and restore
 - E2E export verification
 - No critical security findings
+
+Feature code now covers the first six items, including the durable worker path
+and a supported self-hosting topology. The gate remains closed until the
+integrated final matrix, real-PostgreSQL checks, fresh Compose E2E,
+reverse-proxy/scanner readiness, and backup/restore drill pass. Do not infer
+production verification from focused PGlite-backed tests.
 
 ## Cloud launch gate
 

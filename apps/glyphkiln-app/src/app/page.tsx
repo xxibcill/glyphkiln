@@ -1,6 +1,6 @@
-import { ProjectPreview } from "@/features/project-preview";
+import { AppAlpha } from "@/features/app-alpha";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 
 export default function Home() {
-  return <ProjectPreview catalog={createPreviewCatalog()} />;
+  return <AppAlpha catalog={createPreviewCatalog()} />;
 }

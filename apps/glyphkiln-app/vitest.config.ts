@@ -15,8 +15,12 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
       include: [
+        "src/app/api/app/**/route.ts",
+        "src/app/api/health/**/route.ts",
         "src/app/page.tsx",
         "src/app/api/preview/route.ts",
+        "src/features/app-alpha/auth-screen.tsx",
+        "src/features/app-alpha/manual-state.ts",
         "src/features/project-preview/document-builder.ts",
         "src/features/project-preview/preview-stage.tsx",
         "src/features/project-preview/project-preview.tsx",
@@ -24,6 +28,15 @@ export default defineConfig({
         "src/features/project-preview/response-parser.ts",
         "src/lib/project-preview/catalog.ts",
         "src/lib/project-preview/render-preview.ts",
+        "src/server/**/*.ts",
+      ],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/server/**/index.ts",
+        "src/server/app-workflow/contracts.ts",
+        "src/server/render-worker/worker-entry.ts",
+        "src/server/resources/test-support.ts",
+        "src/server/resources/types.ts",
       ],
       thresholds: {
         statements: 85,

@@ -247,6 +247,42 @@ describe("CLI", () => {
     expect(capture.stderr.join("\n")).toContain("requires a design file");
   });
 
+  it("accepts resource bundles only once and only for render", async () => {
+    const design = resolve("examples/product-announcement.json");
+    const validateCapture = captureIo();
+    expect(
+      await runCli(
+        ["validate", design, "--resource-bundle", "resources"],
+        validateCapture.io,
+      ),
+    ).toBe(1);
+    expect(validateCapture.stderr.join("\n")).toContain(
+      'Command "validate" does not accept option',
+    );
+
+    const renderCapture = captureIo();
+    expect(
+      await runCli(
+        [
+          "render",
+          design,
+          "--resource-bundle",
+          "first",
+          "--resource-bundle",
+          "second",
+          "--format",
+          "svg",
+          "--output",
+          "graphic.svg",
+        ],
+        renderCapture.io,
+      ),
+    ).toBe(1);
+    expect(renderCapture.stderr.join("\n")).toContain(
+      "--resource-bundle may be supplied only once",
+    );
+  });
+
   it("rejects an oversized design file before parsing it", async () => {
     const directory = await mkdtemp(join(tmpdir(), "glyphkiln-cli-limit-test-"));
     temporaryDirectories.push(directory);

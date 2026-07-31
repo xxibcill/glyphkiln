@@ -18,6 +18,9 @@ type EditorControlsProps = {
   isRendering: boolean;
   hasUnrenderedEdits: boolean;
   validationIsStale: boolean;
+  brandControls?: "editable" | "sealed";
+  submitLabel?: string;
+  isReadOnly?: boolean;
   onStateChange: (state: PreviewFormState) => void;
   onRender: () => void;
 };
@@ -75,6 +78,9 @@ export function EditorControls({
   isRendering,
   hasUnrenderedEdits,
   validationIsStale,
+  brandControls = "editable",
+  submitLabel = "Render deterministic proof",
+  isReadOnly = false,
   onStateChange,
   onRender,
 }: EditorControlsProps) {
@@ -148,7 +154,12 @@ export function EditorControls({
         <p>Every control becomes bounded data. Nothing here writes rendering code.</p>
       </div>
 
-      <form className="project-form" onSubmit={handleSubmit}>
+      <form
+        className="project-form"
+        onSubmit={handleSubmit}
+        inert={isReadOnly}
+        aria-disabled={isReadOnly}
+      >
         {failure === null ? null : (
           <FormFailureSummary failure={failure} summaryRef={failureSummaryRef} />
         )}
@@ -247,199 +258,220 @@ export function EditorControls({
             id="brand-title"
             note="Embedded immutably"
           />
-          <div className="field-stack">
-            <TextField
-              id="brand-name"
-              label="Brand name"
-              value={state.brand.name}
-              onChange={(name) => {
-                updateBrand({ name });
-              }}
-              required
-              maxLength={120}
-              autoComplete="organization"
-              error={problemMessage(failure, "brand.name")}
-            />
-            <div className="field-pair">
-              <TextField
-                id="snapshot-id"
-                label="Snapshot ID"
-                value={state.brand.snapshotId}
-                onChange={(snapshotId) => {
-                  updateBrand({ snapshotId });
-                }}
-                required
-                maxLength={128}
-                pattern={IDENTIFIER_PATTERN}
-                title="Use letters, numbers, periods, underscores, colons, or hyphens."
-                error={problemMessage(failure, "brand.snapshotId")}
-              />
-              <TextField
-                id="snapshot-version"
-                label="Version"
-                value={state.brand.version}
-                onChange={(version) => {
-                  updateBrand({ version });
-                }}
-                required
-                pattern={SEMANTIC_VERSION_PATTERN}
-                title="Use a semantic version such as 1.0.0."
-                error={problemMessage(failure, "brand.version")}
-              />
-            </div>
-
-            <fieldset className="color-fieldset">
-              <legend>Core palette</legend>
-              <div className="color-grid">
-                <ColorField
-                  id="primary"
-                  label="Primary"
-                  value={state.brand.primary}
-                  onChange={(primary) => {
-                    updateBrand({ primary });
-                  }}
-                />
-                <ColorField
-                  id="secondary"
-                  label="Secondary"
-                  value={state.brand.secondary}
-                  onChange={(secondary) => {
-                    updateBrand({ secondary });
-                  }}
-                />
-                <ColorField
-                  id="accent"
-                  label="Accent"
-                  value={state.brand.accent}
-                  onChange={(accent) => {
-                    updateBrand({ accent });
-                  }}
-                />
-              </div>
-            </fieldset>
-
-            <details className="advanced-disclosure">
-              <summary>Theme surfaces and constraints</summary>
-              <div className="disclosure-body">
-                <fieldset className="color-fieldset">
-                  <legend>Light theme</legend>
-                  <div className="color-grid color-grid-wide">
-                    <ColorField
-                      id="paper"
-                      label="Background"
-                      value={state.brand.paper}
-                      onChange={(paper) => {
-                        updateBrand({ paper });
-                      }}
-                    />
-                    <ColorField
-                      id="surface"
-                      label="Surface"
-                      value={state.brand.surface}
-                      onChange={(surface) => {
-                        updateBrand({ surface });
-                      }}
-                    />
-                    <ColorField
-                      id="ink"
-                      label="Text"
-                      value={state.brand.ink}
-                      onChange={(ink) => {
-                        updateBrand({ ink });
-                      }}
-                    />
-                    <ColorField
-                      id="muted-ink"
-                      label="Muted text"
-                      value={state.brand.mutedInk}
-                      onChange={(mutedInk) => {
-                        updateBrand({ mutedInk });
-                      }}
-                    />
-                  </div>
-                </fieldset>
-
-                <fieldset className="color-fieldset">
-                  <legend>Dark theme</legend>
-                  <div className="color-grid color-grid-wide">
-                    <ColorField
-                      id="dark-background"
-                      label="Background"
-                      value={state.brand.darkBackground}
-                      onChange={(darkBackground) => {
-                        updateBrand({ darkBackground });
-                      }}
-                    />
-                    <ColorField
-                      id="dark-surface"
-                      label="Surface"
-                      value={state.brand.darkSurface}
-                      onChange={(darkSurface) => {
-                        updateBrand({ darkSurface });
-                      }}
-                    />
-                    <ColorField
-                      id="dark-text"
-                      label="Text"
-                      value={state.brand.darkText}
-                      onChange={(darkText) => {
-                        updateBrand({ darkText });
-                      }}
-                    />
-                    <ColorField
-                      id="dark-muted-text"
-                      label="Muted text"
-                      value={state.brand.darkMutedText}
-                      onChange={(darkMutedText) => {
-                        updateBrand({ darkMutedText });
-                      }}
-                    />
-                  </div>
-                </fieldset>
-
-                <FieldShell id="visual-density" label="Visual density">
-                  <select
-                    id="visual-density"
-                    value={state.brand.visualDensity}
-                    onChange={(event) => {
-                      updateBrand({
-                        visualDensity: event.currentTarget
-                          .value as BrandFormState["visualDensity"],
-                      });
-                    }}
-                  >
-                    <option value="quiet">Quiet</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="dense">Dense</option>
-                  </select>
-                </FieldShell>
-                <RangeField
-                  id="safe-area"
-                  label="Safe-area inset"
-                  value={state.brand.safeArea}
-                  min={0}
-                  max={0.2}
-                  step={0.01}
-                  onChange={(safeArea) => {
-                    updateBrand({ safeArea });
-                  }}
-                  hint="Applied equally to all four canvas edges."
-                />
-              </div>
-            </details>
-
-            <div className="fixed-contract">
-              <span className="fixed-contract-mark" aria-hidden="true">
-                F
+          {brandControls === "sealed" ? (
+            <div className="sealed-brand-contract">
+              <span className="sealed-brand-mark" aria-hidden="true">
+                S
               </span>
               <div>
-                <strong>Inter Variable · registered</strong>
-                <span title={catalog.developmentFontSha256}>
-                  SHA-256 {shortHash(catalog.developmentFontSha256)}
+                <strong>{state.brand.name}</strong>
+                <span>
+                  Snapshot {state.brand.version} · identity assigned by the server
                 </span>
+                <code title={state.brand.snapshotId}>
+                  {shortHash(state.brand.snapshotId)}
+                </code>
+              </div>
+              <p>
+                These brand values are sealed. Publish another snapshot to change them
+                without rewriting existing designs.
+              </p>
+            </div>
+          ) : (
+            <div className="field-stack">
+              <TextField
+                id="brand-name"
+                label="Brand name"
+                value={state.brand.name}
+                onChange={(name) => {
+                  updateBrand({ name });
+                }}
+                required
+                maxLength={120}
+                autoComplete="organization"
+                error={problemMessage(failure, "brand.name")}
+              />
+              <div className="field-pair">
+                <TextField
+                  id="snapshot-id"
+                  label="Snapshot ID"
+                  value={state.brand.snapshotId}
+                  onChange={(snapshotId) => {
+                    updateBrand({ snapshotId });
+                  }}
+                  required
+                  maxLength={128}
+                  pattern={IDENTIFIER_PATTERN}
+                  title="Use letters, numbers, periods, underscores, colons, or hyphens."
+                  error={problemMessage(failure, "brand.snapshotId")}
+                />
+                <TextField
+                  id="snapshot-version"
+                  label="Version"
+                  value={state.brand.version}
+                  onChange={(version) => {
+                    updateBrand({ version });
+                  }}
+                  required
+                  pattern={SEMANTIC_VERSION_PATTERN}
+                  title="Use a semantic version such as 1.0.0."
+                  error={problemMessage(failure, "brand.version")}
+                />
+              </div>
+
+              <fieldset className="color-fieldset">
+                <legend>Core palette</legend>
+                <div className="color-grid">
+                  <ColorField
+                    id="primary"
+                    label="Primary"
+                    value={state.brand.primary}
+                    onChange={(primary) => {
+                      updateBrand({ primary });
+                    }}
+                  />
+                  <ColorField
+                    id="secondary"
+                    label="Secondary"
+                    value={state.brand.secondary}
+                    onChange={(secondary) => {
+                      updateBrand({ secondary });
+                    }}
+                  />
+                  <ColorField
+                    id="accent"
+                    label="Accent"
+                    value={state.brand.accent}
+                    onChange={(accent) => {
+                      updateBrand({ accent });
+                    }}
+                  />
+                </div>
+              </fieldset>
+
+              <details className="advanced-disclosure">
+                <summary>Theme surfaces and constraints</summary>
+                <div className="disclosure-body">
+                  <fieldset className="color-fieldset">
+                    <legend>Light theme</legend>
+                    <div className="color-grid color-grid-wide">
+                      <ColorField
+                        id="paper"
+                        label="Background"
+                        value={state.brand.paper}
+                        onChange={(paper) => {
+                          updateBrand({ paper });
+                        }}
+                      />
+                      <ColorField
+                        id="surface"
+                        label="Surface"
+                        value={state.brand.surface}
+                        onChange={(surface) => {
+                          updateBrand({ surface });
+                        }}
+                      />
+                      <ColorField
+                        id="ink"
+                        label="Text"
+                        value={state.brand.ink}
+                        onChange={(ink) => {
+                          updateBrand({ ink });
+                        }}
+                      />
+                      <ColorField
+                        id="muted-ink"
+                        label="Muted text"
+                        value={state.brand.mutedInk}
+                        onChange={(mutedInk) => {
+                          updateBrand({ mutedInk });
+                        }}
+                      />
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="color-fieldset">
+                    <legend>Dark theme</legend>
+                    <div className="color-grid color-grid-wide">
+                      <ColorField
+                        id="dark-background"
+                        label="Background"
+                        value={state.brand.darkBackground}
+                        onChange={(darkBackground) => {
+                          updateBrand({ darkBackground });
+                        }}
+                      />
+                      <ColorField
+                        id="dark-surface"
+                        label="Surface"
+                        value={state.brand.darkSurface}
+                        onChange={(darkSurface) => {
+                          updateBrand({ darkSurface });
+                        }}
+                      />
+                      <ColorField
+                        id="dark-text"
+                        label="Text"
+                        value={state.brand.darkText}
+                        onChange={(darkText) => {
+                          updateBrand({ darkText });
+                        }}
+                      />
+                      <ColorField
+                        id="dark-muted-text"
+                        label="Muted text"
+                        value={state.brand.darkMutedText}
+                        onChange={(darkMutedText) => {
+                          updateBrand({ darkMutedText });
+                        }}
+                      />
+                    </div>
+                  </fieldset>
+
+                  <FieldShell id="visual-density" label="Visual density">
+                    <select
+                      id="visual-density"
+                      value={state.brand.visualDensity}
+                      onChange={(event) => {
+                        updateBrand({
+                          visualDensity: event.currentTarget
+                            .value as BrandFormState["visualDensity"],
+                        });
+                      }}
+                    >
+                      <option value="quiet">Quiet</option>
+                      <option value="balanced">Balanced</option>
+                      <option value="dense">Dense</option>
+                    </select>
+                  </FieldShell>
+                  <RangeField
+                    id="safe-area"
+                    label="Safe-area inset"
+                    value={state.brand.safeArea}
+                    min={0}
+                    max={0.2}
+                    step={0.01}
+                    onChange={(safeArea) => {
+                      updateBrand({ safeArea });
+                    }}
+                    hint="Applied equally to all four canvas edges."
+                  />
+                </div>
+              </details>
+
+              <div className="fixed-contract">
+                <span className="fixed-contract-mark" aria-hidden="true">
+                  F
+                </span>
+                <div>
+                  <strong>Inter Variable · registered</strong>
+                  <span title={catalog.developmentFontSha256}>
+                    SHA-256 {shortHash(catalog.developmentFontSha256)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </section>
 
         <section className="form-section" aria-labelledby="procedure-title">
@@ -563,17 +595,23 @@ export function EditorControls({
             <span>
               {isRendering
                 ? "Firing SVG and PNG…"
-                : hasUnrenderedEdits
-                  ? "Controls changed. Fire again to update the proof."
-                  : validationIsStale
-                    ? "Controls changed. Inspect this version again."
-                    : response?.ok === true
-                      ? "Proof ready. Edits remain local until fired again."
-                      : "Preview does not save this document."}
+                : isReadOnly
+                  ? "This workspace role can inspect saved documents but cannot preview or save changes."
+                  : hasUnrenderedEdits
+                    ? "Controls changed. Fire again to update the proof."
+                    : validationIsStale
+                      ? "Controls changed. Inspect this version again."
+                      : response?.ok === true
+                        ? "Proof ready. Edits remain local until fired again."
+                        : "Preview does not save this document."}
             </span>
           </div>
-          <button className="primary-action" type="submit" disabled={isRendering}>
-            {isRendering ? "Firing proof…" : "Render deterministic proof"}
+          <button
+            className="primary-action"
+            type="submit"
+            disabled={isRendering || isReadOnly}
+          >
+            {isRendering ? "Firing proof…" : submitLabel}
           </button>
         </div>
       </form>

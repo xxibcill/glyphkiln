@@ -13,6 +13,7 @@ import {
   validateDesignDocument,
   type OutputFormat,
 } from "../index.js";
+import { loadResourceBundle } from "./resource-bundle.js";
 
 type CliIo = {
   stdout(message: string): void;
@@ -43,9 +44,11 @@ export async function runCli(
     }
     const input = await readJson(inputPath);
     if (command === "validate") {
+      assertNoCommandOptions(command, options);
       return validateCommand(input, io);
     }
     if (command === "inspect") {
+      assertNoCommandOptions(command, options);
       io.stdout(JSON.stringify(inspectDesignDocument(input), null, 2));
       return 0;
     }
@@ -65,8 +68,14 @@ async function renderCommand(
   io: CliIo,
 ): Promise<number> {
   const parsed = parseRenderArguments(arguments_);
+  const resources =
+    parsed.resourceBundlePath === undefined
+      ? { assets: [], fonts: [] }
+      : await loadResourceBundle(parsed.resourceBundlePath, input);
   const result = await renderGraphic(input, {
     formats: [parsed.format],
+    assets: resources.assets,
+    fonts: resources.fonts,
   });
   const output = result.outputs[0]!;
   if (
@@ -123,6 +132,7 @@ type RenderArguments = {
   force: boolean;
   manifestPath?: string;
   verifyFingerprint?: string;
+  resourceBundlePath?: string;
 };
 
 function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
@@ -132,6 +142,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
   let force = false;
   let manifestPath: string | undefined;
   let verifyFingerprint: string | undefined;
+  let resourceBundlePath: string | undefined;
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index];
     if (argument === "--format") {
@@ -151,6 +162,11 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
       }
     } else if (argument === "--verify") {
       verifyFingerprint = requireOptionValue(arguments_[++index], "--verify");
+    } else if (argument === "--resource-bundle") {
+      if (resourceBundlePath !== undefined) {
+        throw new CliUsageError("--resource-bundle may be supplied only once.");
+      }
+      resourceBundlePath = requireOptionValue(arguments_[++index], "--resource-bundle");
     } else if (argument === "--force") {
       force = true;
     } else {
@@ -170,7 +186,18 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
     force,
     ...(manifestPath === undefined ? {} : { manifestPath }),
     ...(verifyFingerprint === undefined ? {} : { verifyFingerprint }),
+    ...(resourceBundlePath === undefined ? {} : { resourceBundlePath }),
   };
+}
+
+function assertNoCommandOptions(
+  command: "validate" | "inspect",
+  options: readonly string[],
+): void {
+  if (options.length === 0) return;
+  throw new CliUsageError(
+    `Command "${command}" does not accept option "${options[0]}".`,
+  );
 }
 
 async function readJson(path: string): Promise<unknown> {
@@ -421,7 +448,8 @@ Usage:
   glyphkiln inspect <design.json>
   glyphkiln --version
   glyphkiln render <design.json> --format <svg|png> --output <path>
-      [--manifest [path]] [--verify <fingerprint>] [--force]`;
+      [--resource-bundle <directory>] [--manifest [path]]
+      [--verify <fingerprint>] [--force]`;
 }
 
 class CliUsageError extends Error {}
