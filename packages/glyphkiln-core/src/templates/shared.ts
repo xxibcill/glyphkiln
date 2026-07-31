@@ -357,6 +357,7 @@ export function findLayer<T extends DesignLayer["type"]>(
 }
 
 export function finishTemplate(canvas: TemplateCanvas): TemplateRenderResult {
+  canvas.evidence.safeArea = { ...canvas.safeArea };
   return {
     scene: canvas.scene,
     qualityIssues: canvas.qualityIssues,

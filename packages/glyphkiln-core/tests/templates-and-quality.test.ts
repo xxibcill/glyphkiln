@@ -340,6 +340,10 @@ describe("template registry", () => {
 
     const result = await renderGraphic(document, { formats: ["svg"] });
     const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(result.evidence.safeArea.x).toBeCloseTo(75.6);
+    expect(result.evidence.safeArea.y).toBeCloseTo(100.8);
+    expect(result.evidence.safeArea.width).toBeCloseTo(853.2);
+    expect(result.evidence.safeArea.height).toBeCloseTo(1_224);
     expect(markup).toContain('<rect id="slide-number-background" x="774.8" y="100.8"');
     expect(markup).toContain('<rect id="cta-rule" x="119.6" y="956.8"');
   });
