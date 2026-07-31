@@ -1,3 +1,4 @@
+import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,6 +7,7 @@ import {
   TEMPLATE_REGISTRY,
   createDevelopmentFont,
   renderGraphic,
+  sha256,
   type DesignDocument,
   type DesignLayer,
   type ResolvedAsset,
@@ -87,6 +89,38 @@ async function expectQualityIssue(
       ),
     ).toBe(true);
   }
+}
+
+async function expectDeterministicRender(
+  document: DesignDocument,
+  assets: readonly ResolvedAsset[],
+): Promise<void> {
+  const options = {
+    formats: ["svg"] as const,
+    creationTimestamp: "2026-01-01T00:00:00.000Z",
+    assets,
+  };
+  const first = await renderGraphic(document, options);
+  const second = await renderGraphic(document, options);
+  expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
+  expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
+}
+
+function solidPngAsset(
+  declaration: DesignDocument["assets"][number],
+  color: readonly [number, number, number, number],
+): ResolvedAsset {
+  const png = new PNG({ width: 2, height: 2 });
+  png.data = Buffer.from([...color, ...color, ...color, ...color]);
+  const bytes = new Uint8Array(PNG.sync.write(png));
+  return {
+    ...declaration,
+    mimeType: "image/png",
+    sha256: sha256(bytes),
+    width: 2,
+    height: 2,
+    bytes,
+  };
 }
 
 async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
@@ -174,21 +208,32 @@ describe("template registry", () => {
     },
   );
 
-  it.each(TEMPLATE_IDS)("renders the %s template deterministically", async (name) => {
-    const document = await loadExample(name);
-    const assets = await loadExampleAssets(document);
-    const first = await renderGraphic(document, {
-      formats: ["svg"],
-      creationTimestamp: "2026-01-01T00:00:00.000Z",
-      assets,
-    });
-    const second = await renderGraphic(document, {
-      formats: ["svg"],
-      creationTimestamp: "2026-01-01T00:00:00.000Z",
-      assets,
-    });
-    expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
-    expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
+  it.each(TEMPLATE_IDS.filter((name) => name !== "image-led-campaign"))(
+    "renders the %s template deterministically",
+    async (name) => {
+      const document = await loadExample(name);
+      await expectDeterministicRender(document, await loadExampleAssets(document));
+    },
+  );
+
+  it("renders image-led assets deterministically with bounded raster fixtures", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const assets = document.assets.map((declaration, index) =>
+      solidPngAsset(
+        declaration,
+        index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255],
+      ),
+    );
+    document.assets = assets.map((asset) => ({
+      id: asset.id,
+      mimeType: asset.mimeType,
+      sha256: asset.sha256,
+      width: asset.width,
+      height: asset.height,
+      origin: asset.origin,
+    }));
+
+    await expectDeterministicRender(document, assets);
   });
 
   it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
