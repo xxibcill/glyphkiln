@@ -28,3 +28,10 @@ Text-layout acceptance has the independent
 manifest `1.1.0`, template or procedural versions, or renderer `0.2.0`.
 Accepted documents retain identical output bytes and fingerprints; rejected
 documents produce no output or manifest.
+
+Typography algorithm `2.0.0` is the first explicit shared wrapping-policy
+version. It introduces pinned Thai segmentation and balanced Thai lines.
+Renderer `0.3.0` owns the pixel change, design schema `1.2.0` owns the optional
+`keepTogether` text-layer field, and manifest `1.2.0` records the full policy.
+The policy is also included in fingerprint renderer configuration. Legacy
+schemas remain readable and keep their original field surface.

@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import prettier from "prettier";
 import { describe, expect, it } from "vitest";
 
 import { renderGraphic, sha256, type DesignDocument } from "../src/index.js";
@@ -33,7 +34,7 @@ describe("reviewed visual baselines", () => {
       await writeFile(pngPath, output.bytes);
       await writeFile(
         manifestPath,
-        `${JSON.stringify(output.manifest, null, 2)}\n`,
+        await prettier.format(JSON.stringify(output.manifest), { parser: "json" }),
         "utf8",
       );
     }

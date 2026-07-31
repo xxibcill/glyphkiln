@@ -6,6 +6,11 @@
   decomposition. It does not implement bidi or vertical layout and does not
   prove every accepted string correct. Hyphenation dictionaries and explicit
   OpenType features are also absent.
+- Thai wrapping uses the pinned `budoux-th@0.7.0` model. It prevents the known
+  whitespace-token/grapheme fallback defect, but a finite model can choose an
+  undesirable boundary for specialized names, novel compounds, abbreviations,
+  or malformed copy. Schema `1.2.0` authors can protect literal phrases with
+  `keepTogether`. Other scripts without spaces do not yet have bundled models.
 - Inter normal variable is the only bundled development font. Additional font
   bytes work through the SDK and the validated local CLI resource-bundle
   adapter.

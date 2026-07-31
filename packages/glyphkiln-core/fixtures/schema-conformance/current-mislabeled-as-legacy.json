@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "id": "schema-conformance-current-mislabeled-as-legacy",
   "template": { "id": "tiktok-carousel-slide", "version": "1.0.2" },
   "format": "tiktok-carousel",
@@ -82,7 +82,8 @@
     {
       "id": "headline",
       "type": "headline",
-      "text": "Same brief. Different pixels?"
+      "text": "Same brief. Different pixels?",
+      "keepTogether": ["Different pixels?"]
     },
     {
       "id": "subtitle",

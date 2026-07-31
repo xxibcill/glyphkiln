@@ -1,9 +1,9 @@
 {
-  "manifestVersion": "1.1.0",
-  "renderId": "render_15479647bd28b4891b9adae2",
-  "renderFingerprint": "15479647bd28b4891b9adae2e971473422fce446187ffb81628acbe85d286b6c",
+  "manifestVersion": "1.2.0",
+  "renderId": "render_52bd1d90909a0c1556dd6151",
+  "renderFingerprint": "52bd1d90909a0c1556dd615109a2f64b75d751662b500c650f5275236deda4bc",
   "designDocumentId": "kiln-ledger-edition-01",
-  "designDocumentHash": "57dedbefd87824bd6d20d46234d1c5ad3b30c076e45362c42219794665d3b298",
+  "designDocumentHash": "66d3a8e234905444aa52128b9b02daa2002e44d64640767d9d1c92827372f52c",
   "seed": "kiln-ledger-edition-01",
   "template": {
     "id": "product-announcement",
@@ -11,7 +11,14 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.2.0"
+    "version": "0.3.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.0",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
   },
   "proceduralAlgorithmVersions": {
     "recursive-subdivision": "1.1.0"
@@ -43,8 +50,8 @@
   },
   "output": {
     "format": "png",
-    "sha256": "79f0ccda18c13057e2c1fa6939841613d2db58170ff2397b99d3988c0719d13a",
-    "byteSize": 51678
+    "sha256": "aa57ebdc2156a06aa97334e1dbf0275ab2f5f9aacabaa9f9040c763632a222f1",
+    "byteSize": 46574
   },
   "creationTimestamp": "2026-07-31T00:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,

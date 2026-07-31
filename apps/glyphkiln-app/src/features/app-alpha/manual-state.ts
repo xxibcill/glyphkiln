@@ -114,7 +114,13 @@ export function formFromStoredDocument(
   previousState?: PreviewFormState,
 ): PreviewFormState {
   const state = previousState ?? createInitialPreviewForm(catalog);
-  const procedural = document.layers.find(isProceduralLayer);
+  const selectedProceduralLayer = document.layers.find(
+    (layer) => layer.type === "procedural-decoration",
+  );
+  const procedural =
+    selectedProceduralLayer?.type === "procedural-decoration"
+      ? selectedProceduralLayer
+      : undefined;
   const next = withBrandSnapshot(state, document.brand);
   const resources = storedResourceSelection(document) ?? {
     assetIds: [],
@@ -304,12 +310,6 @@ function hasResourceId(value: unknown): value is ResourceVersionRecord {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isProceduralLayer(
-  layer: DesignLayer,
-): layer is Extract<DesignLayer, { type: "procedural-decoration" }> {
-  return layer.type === "procedural-decoration";
 }
 
 function textFor(layers: DesignLayer[], id: string): string {

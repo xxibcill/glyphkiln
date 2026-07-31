@@ -11,6 +11,7 @@ import {
   type RenderingMethod,
 } from "../domain/types.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
+import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
 
 export type ManifestAsset = {
   id: string;
@@ -34,6 +35,7 @@ export type RenderManifest = {
   seed: string;
   template: { id: string; version: string };
   renderer: { name: typeof RENDERER_NAME; version: typeof RENDERER_VERSION };
+  typographyPolicy: typeof TYPOGRAPHY_POLICY;
   proceduralAlgorithmVersions: Record<string, string>;
   assets: ManifestAsset[];
   fonts: ManifestFont[];
@@ -76,6 +78,7 @@ export function createRenderManifest(input: CreateManifestInput): RenderManifest
     seed: input.document.seed,
     template: { ...input.document.template },
     renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: { ...TYPOGRAPHY_POLICY },
     proceduralAlgorithmVersions: {
       ...input.proceduralAlgorithmVersions,
     },

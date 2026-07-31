@@ -163,14 +163,13 @@ function inspectTrustedManifest(
   const template = catalog.templates.find(
     (candidate) => candidate.id === response.document.template.id,
   );
-  const proceduralLayer = response.document.layers.find(
-    (
-      layer,
-    ): layer is Extract<
-      PreviewSuccess["document"]["layers"][number],
-      { type: "procedural-decoration" }
-    > => layer.type === "procedural-decoration" && layer.visible,
+  const selectedProceduralLayer = response.document.layers.find(
+    (layer) => layer.type === "procedural-decoration" && layer.visible,
   );
+  const proceduralLayer =
+    selectedProceduralLayer?.type === "procedural-decoration"
+      ? selectedProceduralLayer
+      : undefined;
   const proceduralStyle =
     proceduralLayer === undefined
       ? undefined
@@ -208,6 +207,8 @@ function inspectTrustedManifest(
     manifest.manifestVersion !== catalog.manifestVersion ||
     manifest.renderer.name !== catalog.renderer.name ||
     manifest.renderer.version !== catalog.renderer.version ||
+    canonicalJson(manifest.typographyPolicy) !==
+      canonicalJson(catalog.rendererConfiguration.typographyPolicy) ||
     manifest.productClaim !== catalog.productClaim ||
     manifest.dimensions.width !== format.width ||
     manifest.dimensions.height !== format.height ||
@@ -326,6 +327,7 @@ function isRenderManifest(input: unknown): input is RenderManifest {
     typeof input.seed === "string" &&
     isTemplateIdentity(input.template) &&
     isRendererIdentity(input.renderer) &&
+    isTypographyPolicy(input.typographyPolicy) &&
     isRecord(input.proceduralAlgorithmVersions) &&
     Object.values(input.proceduralAlgorithmVersions).every(
       (value) => typeof value === "string",
@@ -414,6 +416,17 @@ function isRendererIdentity(input: unknown): boolean {
     input.name.length > 0 &&
     typeof input.version === "string" &&
     input.version.length > 0
+  );
+}
+
+function isTypographyPolicy(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    typeof input.algorithmVersion === "string" &&
+    typeof input.thaiSegmentationPolicyVersion === "string" &&
+    typeof input.whitespaceSegmentationPolicyVersion === "string" &&
+    typeof input.graphemeSegmentationPolicyVersion === "string" &&
+    typeof input.lineBreakingPolicyVersion === "string"
   );
 }
 
@@ -611,6 +624,7 @@ function sharedManifestFields(manifest: RenderManifest): Record<string, unknown>
     seed: manifest.seed,
     template: manifest.template,
     renderer: manifest.renderer,
+    typographyPolicy: manifest.typographyPolicy,
     proceduralAlgorithmVersions: manifest.proceduralAlgorithmVersions,
     assets: manifest.assets,
     fonts: manifest.fonts,

@@ -225,6 +225,19 @@ describe("parsePreviewResponse", () => {
     ).resolves.toMatchObject({
       code: "PREVIEW_INTEGRITY_FAILED",
     });
+
+    const changedTypographyPolicy = structuredClone(response);
+    for (const output of changedTypographyPolicy.outputs) {
+      const manifest = output.manifest as {
+        typographyPolicy: { algorithmVersion: string };
+      };
+      manifest.typographyPolicy.algorithmVersion = "tampered";
+    }
+    await expect(
+      verifyPreviewIntegrity(changedTypographyPolicy, CATALOG, response.document),
+    ).resolves.toMatchObject({
+      code: "PREVIEW_INTEGRITY_FAILED",
+    });
   });
 
   it("requires secure-context Web Crypto before accepting proof artifacts", async () => {

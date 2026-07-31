@@ -5,6 +5,13 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  MANIFEST_VERSION,
+  PRODUCT_CLAIM,
+  RENDERER_NAME,
+  RENDERER_VERSION,
+  TYPOGRAPHY_POLICY,
+} from "@glyphkiln/core";
 import type { RenderManifest } from "@glyphkiln/core";
 
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
@@ -219,14 +226,15 @@ function createPreviewSuccess(document: PreviewSuccess["document"]): PreviewSucc
   const fingerprint = "a".repeat(64);
   const outputHash = "b".repeat(64);
   const baseManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
-    manifestVersion: "1.1.0",
+    manifestVersion: MANIFEST_VERSION,
     renderId: `render_${fingerprint.slice(0, 24)}`,
     renderFingerprint: fingerprint,
     designDocumentId: document.id,
     designDocumentHash: "c".repeat(64),
     seed: document.seed,
     template: { ...document.template },
-    renderer: { name: "glyphkiln-svg", version: "0.2.0" },
+    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: TYPOGRAPHY_POLICY,
     proceduralAlgorithmVersions: { "layered-waves": "1.1.0" },
     assets: [],
     fonts: [
@@ -242,8 +250,7 @@ function createPreviewSuccess(document: PreviewSuccess["document"]): PreviewSucc
     compositionGenerativeImageModelUsed: false,
     includedGenerativeAssetUsed: false,
     qualityIssues: [],
-    productClaim:
-      "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately.",
+    productClaim: PRODUCT_CLAIM,
   };
 
   return {

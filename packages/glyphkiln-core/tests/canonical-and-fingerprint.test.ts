@@ -5,6 +5,8 @@ import {
   createRenderFingerprintPayload,
 } from "../src/browser.js";
 import {
+  RENDER_CONFIGURATION,
+  TYPOGRAPHY_POLICY,
   canonicalJson,
   createRenderFingerprint,
   hashCanonical,
@@ -62,6 +64,7 @@ describe("render fingerprints", () => {
     expect(browserCanonicalJson(createRenderFingerprintPayload(input))).toBe(
       canonicalJson(createRenderFingerprintPayload(input)),
     );
+    expect(RENDER_CONFIGURATION.typographyPolicy).toEqual(TYPOGRAPHY_POLICY);
   });
 
   it("changes with the seed", async () => {

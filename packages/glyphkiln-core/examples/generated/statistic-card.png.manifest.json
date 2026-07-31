@@ -1,7 +1,7 @@
 {
-  "manifestVersion": "1.1.0",
-  "renderId": "render_06ba92fc58fcfe020ffc9cce",
-  "renderFingerprint": "06ba92fc58fcfe020ffc9cce9d38d501db008c1c16ff3124628b31b5404a4447",
+  "manifestVersion": "1.2.0",
+  "renderId": "render_822a1adda9b485c253c3a058",
+  "renderFingerprint": "822a1adda9b485c253c3a058e863467ddae5974cd34b7228b23c9845f0e35d87",
   "designDocumentId": "example-statistic-card",
   "designDocumentHash": "a8873a0c0d40dfae848174585269ac3ababc3e97c03d831148bf682f889c82a6",
   "seed": "metrics-retention-42",
@@ -11,7 +11,14 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.2.0"
+    "version": "0.3.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.0",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
   },
   "proceduralAlgorithmVersions": {
     "recursive-subdivision": "1.1.0"
@@ -56,6 +63,32 @@
   "compositionGenerativeImageModelUsed": false,
   "includedGenerativeAssetUsed": false,
   "renderingMethod": "deterministic-code-rendering/resvg",
-  "qualityIssues": [],
+  "qualityIssues": [
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "headline",
+      "details": {
+        "affectedLine": "quarter",
+        "lineNumber": 2,
+        "phrase": "quarter",
+        "previousLine": "Customer retention after one",
+        "measuredLineWidths": [
+          591.136,
+          152.017
+        ],
+        "previousLineWidth": 591.136,
+        "finalLineWidth": 152.017,
+        "finalLineToPreviousLineWidthRatio": 0.257,
+        "isolatedWord": true,
+        "disproportionatelyShort": true,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.0"
+      }
+    }
+  ],
   "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
 }

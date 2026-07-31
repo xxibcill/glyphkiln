@@ -25,9 +25,17 @@ Stable quality codes currently include `REQUIRED_LAYER_MISSING`,
 `UNSUPPORTED_VISIBLE_LAYER`, `DUPLICATE_VISIBLE_LAYER`,
 `CONFLICTING_VISIBLE_LAYERS`, `PROHIBITED_COLOR`, `PROHIBITED_STYLE`,
 `NON_PREFERRED_PROCEDURAL_STYLE`, `LOW_TEXT_CONTRAST`, `TEXT_OVERFLOW`,
-`MISSING_GLYPH`, `QUIET_REGION_MISALIGNED`, `BIDI_CONTROL_UNSUPPORTED`,
+`LINGUISTIC_WORD_BROKEN`, `ORPHAN_LINE`, `MISSING_GLYPH`,
+`QUIET_REGION_MISALIGNED`, `BIDI_CONTROL_UNSUPPORTED`,
 `BIDI_LAYOUT_UNSUPPORTED`, `VERTICAL_LAYOUT_UNSUPPORTED`, and reproduction
 mismatch codes. The three text-layout codes carry a document-rooted field path,
 numeric code-point evidence, scalar indexes, and an independent diagnostic
 policy version. Tests exercise every policy family; new codes require a
 regression test and documentation update.
+
+`LINGUISTIC_WORD_BROKEN` is an error: it means a segmented word remained wider
+than its box at minimum size and required an internal grapheme break. It blocks
+output. `ORPHAN_LINE` is a warning for a single-word final line or a final line
+under 45% of the preceding line width. Both include measured widths and the
+versioned segmentation/line-breaking policy. See
+[Typography wrapping](typography-wrapping.md).

@@ -82,22 +82,33 @@ export {
 export { AssetRegistry } from "./assets/index.js";
 export { contrastRatio, isInside, safeAreaBounds } from "./layout/index.js";
 export {
+  GRAPHEME_SEGMENTATION_POLICY_VERSION,
+  LINE_BREAKING_POLICY_VERSION,
+  THAI_SEGMENTATION_POLICY_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
+  TYPOGRAPHY_ALGORITHM_VERSION,
+  TYPOGRAPHY_POLICY,
+  WHITESPACE_SEGMENTATION_POLICY_VERSION,
   analyzeTextLayoutSupport,
   fitText,
+  segmentThaiText,
   wrapText,
 } from "./typography/index.js";
 export type {
+  BrokenWord,
   DesignTextLayoutDiagnostic,
   DesignTextLayoutInspection,
   FitTextOptions,
   FittedText,
+  OrphanLine,
   TextLayoutAnalysis,
   TextLayoutDiagnostic,
   TextLayoutDiagnosticCode,
   TextLayoutMatch,
   TextLayoutMatchProperty,
+  TextMeasurer,
   TextStyle,
+  WrapTextOptions,
   WrappedText,
 } from "./typography/index.js";
 

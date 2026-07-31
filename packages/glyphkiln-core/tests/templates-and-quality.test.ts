@@ -364,6 +364,31 @@ describe("template registry", () => {
     }
   });
 
+  it("blocks a Thai token that must be broken internally", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline?.type !== "headline") {
+      throw new Error("The product example must include a headline.");
+    }
+    headline.text = "ก".repeat(200);
+
+    try {
+      await renderGraphic(document);
+      expect.fail("Expected an internally broken Thai token to block rendering.");
+    } catch (error) {
+      const issue = findQualityIssue(error, "LINGUISTIC_WORD_BROKEN");
+      expect(error).toMatchObject({ code: "QUALITY_VALIDATION_FAILED" });
+      expect(issue).toMatchObject({
+        severity: "error",
+        layerId: "headline",
+      });
+      expect(issue["details"]).toMatchObject({
+        token: "ก".repeat(200),
+        segmentationPolicyVersion: "budoux-th@0.7.0",
+      });
+    }
+  });
+
   it("allows a missing optional subtitle", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     document.layers = document.layers.filter((layer) => layer.type !== "subtitle");

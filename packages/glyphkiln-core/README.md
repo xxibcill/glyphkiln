@@ -22,6 +22,10 @@ vertical-primary text that its LTR-horizontal layout cannot faithfully render.
 The policy is pinned as `unicode-17.0.0/ltr-horizontal-v1`; unsupported visible
 copy is rejected before asset or font resolution.
 
+Thai copy uses bundled `budoux-th@0.7.0` segmentation and balanced legal line
+breaks. Minimum-size internal word breaks are errors. Schema `1.2.0` adds a
+bounded `keepTogether` phrase list for author-controlled grouping.
+
 Supported templates:
 
 - `product-announcement@1.1.1`
@@ -95,10 +99,10 @@ Use `renderGraphicIsolated` for untrusted workloads. It runs the same API in a
 permission-limited child process with a fixed memory ceiling, serialized
 concurrency, and a 15-second maximum timeout.
 
-`createDesignDocument` supplies schema version `1.1.0` and a stable content ID
+`createDesignDocument` supplies schema version `1.2.0` and a stable content ID
 when omitted. `renderGraphic` validates again at the trust boundary. Existing
-schema `1.0.0` documents remain supported, while the TikTok carousel template
-and format require schema `1.1.0`. Assets and fonts are byte-oriented caller
+schema `1.0.0` and `1.1.0` documents remain supported, while the TikTok carousel
+template and format require at least schema `1.1.0`. Assets and fonts are byte-oriented caller
 inputs; the renderer performs no network access.
 
 Browser applications can import `canonicalJson` and
@@ -114,7 +118,9 @@ reported but does not block rendering.
 
 See [Design document](../../docs/design-document.md),
 [SDK and architecture](../../docs/architecture.md), and
-[Determinism contract](../../docs/determinism.md). Public input, asset, font, and
+[Determinism contract](../../docs/determinism.md). Thai segmentation, balancing,
+quality diagnostics, and `keepTogether` are documented in
+[Typography wrapping](../../docs/typography-wrapping.md). Public input, asset, font, and
 deployment bounds are documented in
 [Resource limits and worker profile](../../docs/resource-limits.md).
 

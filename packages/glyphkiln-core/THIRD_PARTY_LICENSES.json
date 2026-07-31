@@ -131,6 +131,12 @@
       "optional": false
     },
     {
+      "name": "grapheme-splitter",
+      "version": "1.0.4",
+      "license": "MIT",
+      "optional": false
+    },
+    {
       "name": "jpeg-js",
       "version": "0.4.4",
       "license": "BSD-3-Clause",

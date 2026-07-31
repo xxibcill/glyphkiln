@@ -2,6 +2,7 @@ import type { OutputFormat } from "../domain/types.js";
 import { RENDERER_NAME, RENDERER_VERSION } from "../domain/types.js";
 import type { DesignDocument } from "../schema/index.js";
 import { getFormatDimensions } from "../formats/index.js";
+import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
 import { canonicalJson } from "./canonical-json.js";
 
 export const RENDER_CONFIGURATION = Object.freeze({
@@ -10,6 +11,7 @@ export const RENDER_CONFIGURATION = Object.freeze({
   loadSystemFonts: false,
   textRendering: "geometricPrecision",
   imageRendering: "optimizeQuality",
+  typographyPolicy: TYPOGRAPHY_POLICY,
 });
 
 export type RenderFingerprintFont = {
