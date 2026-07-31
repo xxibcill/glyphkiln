@@ -87,6 +87,53 @@ async function expectQualityIssue(
   }
 }
 
+async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
+  const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+  document.template.version = "1.0.1";
+  document.layers.splice(1, 0, {
+    id: "kiln-witness",
+    type: "procedural-decoration",
+    visible: true,
+    style: "recursive-subdivision",
+    intensity: 0.42,
+    density: 0.62,
+    complexity: 0.58,
+    contrast: 0.3,
+    quietRegion: { x: 0.07, y: 0.105, width: 0.7, height: 0.48 },
+  });
+  for (const layer of document.layers) {
+    if (layer.type === "badge") layer.text = "01 / 06";
+    if (layer.type === "cta") layer.text = "SWIPE TO INSPECT →";
+    if (layer.type === "footer") {
+      layer.text = "@glyphkiln · deterministic series";
+    }
+  }
+  document.metadata = {
+    campaignId: "swipe-ledger-v1",
+    slideIndex: 1,
+    slideCount: 6,
+    reviewed: true,
+  };
+  return document;
+}
+
+function svgTextYBounds(
+  markup: string,
+  layerId: string,
+): { top: number; bottom: number } {
+  const group = new RegExp(`<g id="${layerId}"[\\s\\S]*?</g>`).exec(markup)?.[0];
+  if (group === undefined) throw new Error(`Missing SVG text group "${layerId}".`);
+
+  const coordinates = [...group.matchAll(/\sd="([^"]+)"/g)].flatMap((match) =>
+    [...match[1]!.matchAll(/-?(?:\d+\.?\d*|\.\d+)/g)].map((value) => Number(value[0])),
+  );
+  const yCoordinates = coordinates.filter((_, index) => index % 2 === 1);
+  if (yCoordinates.length === 0) {
+    throw new Error(`SVG text group "${layerId}" has no outline coordinates.`);
+  }
+  return { top: Math.min(...yCoordinates), bottom: Math.max(...yCoordinates) };
+}
+
 describe("template registry", () => {
   it("contains five stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
@@ -176,6 +223,15 @@ describe("template registry", () => {
     expect(markup).not.toContain("<image ");
   });
 
+  it("keeps saved TikTok 1.0.1 revisions exactly renderable", async () => {
+    const document = await loadLegacyTikTokCarouselDocument();
+    const result = await renderGraphic(document, { formats: ["svg"] });
+
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "19273db0fa957644ece47792d8d8b62b6839f59ccdb42b42e49a8f6fd52c4b3f",
+    );
+  });
+
   it("keeps TikTok interface regions clear when the brand inset is permissive", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
     document.brand.safeArea = {
@@ -190,6 +246,26 @@ describe("template registry", () => {
     expect(markup).toContain('<rect id="slide-number-background" x="739.2" y="134.4"');
     expect(markup).toContain('<rect id="cta-rule" x="125.6" y="1218.4"');
   });
+
+  it.each([0.15, 0.16, 0.18, 0.2])(
+    "keeps TikTok CTA and footer text apart at a %s App inset",
+    async (inset) => {
+      const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+      document.brand.safeArea = {
+        top: inset,
+        right: inset,
+        bottom: inset,
+        left: inset,
+      };
+
+      const result = await renderGraphic(document, { formats: ["svg"] });
+      const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+      const cta = svgTextYBounds(markup, "cta");
+      const footer = svgTextYBounds(markup, "footer");
+
+      expect(cta.bottom).toBeLessThan(footer.top);
+    },
+  );
 
   it("rejects TikTok copy that cannot fit inside the effective safe area", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
@@ -272,7 +348,7 @@ describe("template registry", () => {
     if (headline?.type !== "headline") {
       throw new Error("The carousel example must include a headline.");
     }
-    headline.text = "A deliberately oversized carousel headline ".repeat(30);
+    headline.text = "A deliberately oversized carousel headline ".repeat(3);
     headline.maxLines = 20;
 
     try {

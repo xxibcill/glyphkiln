@@ -10,27 +10,9 @@ import type { TemplateCanvas } from "./shared.js";
 import type { TemplateRenderContext } from "./types.js";
 import type { TemplateDefinition } from "./types.js";
 
-const TIKTOK_CAROUSEL_SAFE_AREA_MINIMUM = {
-  top: 0.07,
-  right: 0.16,
-  bottom: 0.18,
-  left: 0.07,
-} as const;
-
-const TIKTOK_CAROUSEL_VERTICAL_LAYOUT = {
-  fieldTopInset: 112,
-  preferredFieldHeight: 900,
-  minimumFieldHeight: 700,
-  fieldToCtaGap: 72,
-  ctaHeight: 86,
-  ctaToFooterGap: 48,
-  preferredFooterPosition: 0.88,
-  footerHeight: 42,
-} as const;
-
-export const tiktokCarouselSlideTemplate: TemplateDefinition = {
+export const tiktokCarouselSlideV1_0_1Template: TemplateDefinition = {
   id: "tiktok-carousel-slide",
-  version: "1.0.2",
+  version: "1.0.1",
   requiredLayers: ["badge", "headline"],
   supportedLayers: [
     "background",
@@ -48,17 +30,16 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
   constraints: {
     headlineMaximumLines: 4,
     safeAreaBehavior:
-      "Copy, numbering, and actions honor the configured safe area plus conservative template minimums for TikTok's top, right, caption, and bottom interface regions.",
+      "Narrative copy stays in a conservative left column above the interface-heavy lower edge.",
     layout:
-      "A typography-first 9:16 sequence slide with a numbered header, oversized hook, one supporting benefit or metric, and an optional late swipe or action cue; no generated illustration or SVG asset.",
+      "A vertical proof sheet with a numbered header, oversized hook, optional metric, and swipe cue.",
   },
   render(context) {
     const canvas = createTemplateCanvas(context);
     canvas.scene.title = "TikTok carousel slide";
     canvas.scene.description =
-      "A deterministic, typography-first vertical carousel slide with an editorial composition.";
+      "A deterministic vertical carousel slide with an editorial proof-sheet composition.";
 
-    canvas.safeArea = tiktokCarouselSafeArea(canvas);
     const safe = canvas.safeArea;
     const unit = canvas.scene.dimensions.height / 1920;
     const surfaceColor = context.document.brand.themes[context.document.mode].surface;
@@ -71,23 +52,19 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
     const footer = findLayer(context.document.layers, "footer");
 
     const copyX = safe.x + 50 * unit;
-    const copyWidth = Math.max(
-      180 * unit,
-      Math.min(safe.width - 96 * unit, 740 * unit),
-    );
-    const fieldX = safe.x + 18 * unit;
-    const verticalLayout = tiktokCarouselVerticalLayout(safe, unit);
-    const fieldY = verticalLayout.fieldY;
-    const fieldWidth = Math.max(220 * unit, safe.width - 36 * unit);
-    const fieldHeight = verticalLayout.fieldHeight;
+    const copyWidth = Math.min(safe.width * 0.77, 730 * unit);
+    const sheetX = safe.x + 18 * unit;
+    const sheetY = safe.y + 96 * unit;
+    const sheetWidth = Math.min(safe.width * 0.86, 800 * unit);
+    const sheetHeight = 930 * unit;
 
-    addTypographyFrame(canvas, {
-      safe,
+    addRegistrationFrame(canvas, {
       copyX,
-      fieldX,
-      fieldY,
-      fieldWidth,
-      fieldHeight,
+      copyWidth,
+      sheetX,
+      sheetY,
+      sheetWidth,
+      sheetHeight,
       surfaceColor,
       unit,
     });
@@ -99,13 +76,13 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
         eyebrow,
         {
           x: copyX,
-          y: safe.y + 18 * unit,
-          width: Math.max(80 * unit, copyWidth - 200 * unit),
-          height: 40 * unit,
+          y: safe.y + 16 * unit,
+          width: Math.max(80 * unit, copyWidth - 180 * unit),
+          height: 34 * unit,
         },
         {
-          preferredFontSize: 32 * unit,
-          minimumFontSize: 22,
+          preferredFontSize: 22 * unit,
+          minimumFontSize: 15,
           maximumLines: 1,
           weight: 700,
           family: context.document.brand.typography.bodyFamily,
@@ -116,7 +93,7 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
     }
 
     if (badge !== undefined) {
-      addSlideBadge(canvas, context, badge, safe, unit);
+      addSlideBadge(canvas, context, badge, unit);
     }
 
     const headlineElement = addText(
@@ -125,18 +102,18 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
       headline,
       {
         x: copyX,
-        y: fieldY + 68 * unit,
+        y: sheetY + 74 * unit,
         width: copyWidth,
         height: 520 * unit,
       },
       {
-        preferredFontSize: 108 * unit,
-        minimumFontSize: 52,
+        preferredFontSize: 96 * unit,
+        minimumFontSize: 46,
         maximumLines: 4,
         weight: 800,
         color: canvas.textColor,
         contrastBackgroundColor: surfaceColor,
-        lineHeight: 0.94,
+        lineHeight: 0.98,
       },
     );
     addQuietRegionIssue(canvas, context, headlineElement.bounds);
@@ -152,17 +129,17 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
           x: copyX,
           y: supportingY,
           width: copyWidth * 0.92,
-          height: 230 * unit,
+          height: 210 * unit,
         },
         {
-          preferredFontSize: 42 * unit,
-          minimumFontSize: 26,
+          preferredFontSize: 38 * unit,
+          minimumFontSize: 23,
           maximumLines: 4,
           weight: 500,
           family: context.document.brand.typography.bodyFamily,
           color: canvas.mutedTextColor,
           contrastBackgroundColor: surfaceColor,
-          lineHeight: 1.18,
+          lineHeight: 1.22,
         },
       );
     } else if (statistic !== undefined) {
@@ -170,7 +147,7 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
         x: copyX,
         y: supportingY,
         width: copyWidth,
-        height: fieldY + fieldHeight - supportingY - 54 * unit,
+        height: sheetY + sheetHeight - supportingY - 54 * unit,
         surfaceColor,
         unit,
       });
@@ -179,9 +156,9 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
     if (cta !== undefined) {
       addCallToAction(canvas, context, cta, {
         x: copyX,
-        y: verticalLayout.ctaY,
+        y: safe.y + safe.height * 0.77,
         width: copyWidth,
-        height: TIKTOK_CAROUSEL_VERTICAL_LAYOUT.ctaHeight * unit,
+        height: 76 * unit,
         unit,
       });
     }
@@ -193,13 +170,13 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
         footer,
         {
           x: copyX,
-          y: verticalLayout.footerY,
+          y: safe.y + safe.height * 0.88,
           width: copyWidth,
-          height: TIKTOK_CAROUSEL_VERTICAL_LAYOUT.footerHeight * unit,
+          height: 36 * unit,
         },
         {
-          preferredFontSize: 30 * unit,
-          minimumFontSize: 20,
+          preferredFontSize: 20 * unit,
+          minimumFontSize: 14,
           maximumLines: 1,
           weight: 600,
           family:
@@ -215,52 +192,29 @@ export const tiktokCarouselSlideTemplate: TemplateDefinition = {
   },
 };
 
-type TypographyFrame = {
-  safe: TemplateCanvas["safeArea"];
+type RegistrationFrame = {
   copyX: number;
-  fieldX: number;
-  fieldY: number;
-  fieldWidth: number;
-  fieldHeight: number;
+  copyWidth: number;
+  sheetX: number;
+  sheetY: number;
+  sheetWidth: number;
+  sheetHeight: number;
   surfaceColor: string;
   unit: number;
 };
 
-function tiktokCarouselVerticalLayout(
-  safe: TemplateCanvas["safeArea"],
-  unit: number,
-): { fieldY: number; fieldHeight: number; ctaY: number; footerY: number } {
-  const layout = TIKTOK_CAROUSEL_VERTICAL_LAYOUT;
-  const fieldY = safe.y + layout.fieldTopInset * unit;
-  const preferredFooterY = safe.y + safe.height * layout.preferredFooterPosition;
-  const reservedAfterField =
-    (layout.fieldToCtaGap + layout.ctaHeight + layout.ctaToFooterGap) * unit;
-  const availableFieldHeight = preferredFooterY - fieldY - reservedAfterField;
-  const fieldHeight = Math.max(
-    layout.minimumFieldHeight * unit,
-    Math.min(layout.preferredFieldHeight * unit, availableFieldHeight),
-  );
-  const ctaY = fieldY + fieldHeight + layout.fieldToCtaGap * unit;
-  const footerY = Math.max(
-    preferredFooterY,
-    ctaY + (layout.ctaHeight + layout.ctaToFooterGap) * unit,
-  );
-
-  return { fieldY, fieldHeight, ctaY, footerY };
-}
-
-function addTypographyFrame(canvas: TemplateCanvas, frame: TypographyFrame): void {
-  const { safe, copyX, fieldX, fieldY, fieldWidth, fieldHeight, surfaceColor, unit } =
-    frame;
+function addRegistrationFrame(canvas: TemplateCanvas, frame: RegistrationFrame): void {
+  const safe = canvas.safeArea;
+  const { copyX, sheetX, sheetY, sheetWidth, sheetHeight, surfaceColor, unit } = frame;
 
   canvas.scene.elements.push(
     {
-      id: "carousel-story-spine",
+      id: "carousel-registration-spine",
       type: "rect",
       x: safe.x,
       y: safe.y,
-      width: 8 * unit,
-      height: safe.height * 0.9,
+      width: 7 * unit,
+      height: safe.height * 0.91,
       fill: canvas.accentColor,
     },
     {
@@ -273,40 +227,33 @@ function addTypographyFrame(canvas: TemplateCanvas, frame: TypographyFrame): voi
       fill: canvas.textColor,
     },
     {
-      id: "carousel-type-field",
+      id: "carousel-sheet-register",
       type: "rect",
-      x: fieldX,
-      y: fieldY,
-      width: fieldWidth,
-      height: fieldHeight,
+      x: sheetX + 14 * unit,
+      y: sheetY + 14 * unit,
+      width: sheetWidth,
+      height: sheetHeight,
+      fill: canvas.accentColor,
+    },
+    {
+      id: "carousel-proof-sheet",
+      type: "rect",
+      x: sheetX,
+      y: sheetY,
+      width: sheetWidth,
+      height: sheetHeight,
       fill: surfaceColor,
+      stroke: canvas.textColor,
+      strokeWidth: 2 * unit,
     },
     {
-      id: "carousel-type-field-accent",
+      id: "carousel-sheet-index",
       type: "rect",
-      x: fieldX,
-      y: fieldY,
-      width: 16 * unit,
-      height: 120 * unit,
+      x: sheetX + sheetWidth - 34 * unit,
+      y: sheetY,
+      width: 34 * unit,
+      height: 34 * unit,
       fill: canvas.accentColor,
-    },
-    {
-      id: "carousel-field-index",
-      type: "rect",
-      x: fieldX + fieldWidth - 38 * unit,
-      y: fieldY,
-      width: 38 * unit,
-      height: 38 * unit,
-      fill: canvas.accentColor,
-    },
-    {
-      id: "carousel-field-rule",
-      type: "rect",
-      x: fieldX,
-      y: fieldY + fieldHeight,
-      width: fieldWidth,
-      height: 3 * unit,
-      fill: canvas.textColor,
     },
   );
 }
@@ -318,11 +265,11 @@ function addSlideBadge(
     TemplateRenderContext["document"]["layers"][number],
     { type: "badge" }
   >,
-  safe: TemplateCanvas["safeArea"],
   unit: number,
 ): void {
-  const width = 168 * unit;
-  const height = 58 * unit;
+  const safe = canvas.safeArea;
+  const width = 150 * unit;
+  const height = 52 * unit;
   const x = safe.x + safe.width - width;
   const y = safe.y;
   const fill = badge.color ?? canvas.accentColor;
@@ -347,13 +294,13 @@ function addSlideBadge(
     },
     {
       x: x + 18 * unit,
-      y: y + 16 * unit,
+      y: y + 15 * unit,
       width: width - 36 * unit,
-      height: 30 * unit,
+      height: 24 * unit,
     },
     {
-      preferredFontSize: 30 * unit,
-      minimumFontSize: 20,
+      preferredFontSize: 20 * unit,
+      minimumFontSize: 14,
       maximumLines: 1,
       weight: 700,
       family:
@@ -365,28 +312,6 @@ function addSlideBadge(
       align: "center",
     },
   );
-}
-
-function tiktokCarouselSafeArea(canvas: TemplateCanvas): TemplateCanvas["safeArea"] {
-  const requested = canvas.safeArea;
-  const { width, height } = canvas.scene.dimensions;
-  const x = Math.max(requested.x, width * TIKTOK_CAROUSEL_SAFE_AREA_MINIMUM.left);
-  const y = Math.max(requested.y, height * TIKTOK_CAROUSEL_SAFE_AREA_MINIMUM.top);
-  const right = Math.min(
-    requested.x + requested.width,
-    width * (1 - TIKTOK_CAROUSEL_SAFE_AREA_MINIMUM.right),
-  );
-  const bottom = Math.min(
-    requested.y + requested.height,
-    height * (1 - TIKTOK_CAROUSEL_SAFE_AREA_MINIMUM.bottom),
-  );
-
-  return {
-    x,
-    y,
-    width: Math.max(0, right - x),
-    height: Math.max(0, bottom - y),
-  };
 }
 
 function addStatistic(
@@ -421,8 +346,8 @@ function addStatistic(
       height: Math.min(box.height * 0.48, 210 * box.unit),
     },
     {
-      preferredFontSize: 184 * box.unit,
-      minimumFontSize: 72,
+      preferredFontSize: 176 * box.unit,
+      minimumFontSize: 62,
       maximumLines: 1,
       weight: 800,
       color: canvas.accentColor,
@@ -447,8 +372,8 @@ function addStatistic(
       height: 145 * box.unit,
     },
     {
-      preferredFontSize: 38 * box.unit,
-      minimumFontSize: 24,
+      preferredFontSize: 32 * box.unit,
+      minimumFontSize: 21,
       maximumLines: 3,
       weight: 500,
       family: context.document.brand.typography.bodyFamily,
@@ -475,8 +400,8 @@ function addStatistic(
         height: 28 * box.unit,
       },
       {
-        preferredFontSize: 28 * box.unit,
-        minimumFontSize: 19,
+        preferredFontSize: 19 * box.unit,
+        minimumFontSize: 13,
         maximumLines: 1,
         weight: 700,
         family:
@@ -502,46 +427,38 @@ function addCallToAction(
     unit: number;
   },
 ): void {
-  canvas.scene.elements.push(
-    {
-      id: `${cta.id}-rule`,
-      type: "rect",
-      x: box.x,
-      y: box.y,
-      width: box.width,
-      height: 3 * box.unit,
-      fill: canvas.textColor,
-    },
-    {
-      id: `${cta.id}-marker`,
-      type: "rect",
-      x: box.x,
-      y: box.y + 20 * box.unit,
-      width: 12 * box.unit,
-      height: 48 * box.unit,
-      fill: canvas.accentColor,
-    },
-  );
+  canvas.scene.elements.push({
+    id: `${cta.id}-background`,
+    type: "rect",
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+    fill: canvas.accentColor,
+  });
   addText(
     canvas,
     context,
     cta,
     {
-      x: box.x + 34 * box.unit,
-      y: box.y + 24 * box.unit,
-      width: box.width - 34 * box.unit,
-      height: 40 * box.unit,
+      x: box.x + 26 * box.unit,
+      y: box.y + 23 * box.unit,
+      width: box.width - 52 * box.unit,
+      height: 30 * box.unit,
     },
     {
-      preferredFontSize: 36 * box.unit,
-      minimumFontSize: 24,
+      preferredFontSize: 22 * box.unit,
+      minimumFontSize: 14,
       maximumLines: 1,
       weight: 700,
       family:
         context.document.brand.typography.monospaceFamily ??
         context.document.brand.typography.bodyFamily,
-      color: canvas.textColor,
-      contrastBackgroundColor: canvas.backgroundColor,
+      color: bestContrastingColor(canvas.accentColor, [
+        canvas.textColor,
+        canvas.backgroundColor,
+      ]),
+      contrastBackgroundColor: canvas.accentColor,
       lineHeight: 1,
     },
   );
