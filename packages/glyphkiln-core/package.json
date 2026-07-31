@@ -6,13 +6,13 @@
   "author": "Glyphkiln contributors",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xxibcill/glyphkiln-core.git",
+    "url": "git+https://github.com/xxibcill/glyphkiln.git",
     "directory": "packages/glyphkiln-core"
   },
   "bugs": {
-    "url": "https://github.com/xxibcill/glyphkiln-core/issues"
+    "url": "https://github.com/xxibcill/glyphkiln/issues"
   },
-  "homepage": "https://github.com/xxibcill/glyphkiln-core/tree/main/packages/glyphkiln-core#readme",
+  "homepage": "https://github.com/xxibcill/glyphkiln/tree/main/packages/glyphkiln-core#readme",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24.0.0"
@@ -35,7 +35,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "glyphkiln": "./dist/cli/index.js"
+    "glyphkiln": "dist/cli/index.js"
   },
   "files": [
     "dist",
