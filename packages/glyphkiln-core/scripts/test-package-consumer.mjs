@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -237,4 +238,70 @@ async function runCliConsumer() {
       typeof error.stderr === "string" &&
       error.stderr.includes("BIDI_LAYOUT_UNSUPPORTED"),
   );
+
+  const bundledDesign = JSON.parse(
+    await readFile(join(consumerDirectory, "design.json"), "utf8"),
+  );
+  const pixel = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4AWP4DwQACfsD/c8LaHIAAAAASUVORK5CYII=",
+    "base64",
+  );
+  const pixelHash = createHash("sha256").update(pixel).digest("hex");
+  bundledDesign.assets = [
+    {
+      id: "consumer-pixel",
+      mimeType: "image/png",
+      sha256: pixelHash,
+      width: 1,
+      height: 1,
+      origin: { kind: "user-upload" },
+    },
+  ];
+  const bundledDesignPath = join(consumerDirectory, "bundled-design.json");
+  await writeFile(bundledDesignPath, `${JSON.stringify(bundledDesign)}\n`);
+
+  const bundleRoot = join(consumerDirectory, "resource-bundle");
+  await mkdir(join(bundleRoot, "assets"), { recursive: true });
+  await mkdir(join(bundleRoot, "fonts"), { recursive: true });
+  await writeFile(join(bundleRoot, "assets/pixel.png"), pixel);
+  await cp(
+    join(root, "assets/fonts/Inter-Variable.ttf"),
+    join(bundleRoot, "fonts/inter.ttf"),
+  );
+  await writeFile(
+    join(bundleRoot, "glyphkiln-resource-bundle.json"),
+    `${JSON.stringify({
+      bundleVersion: "1.0.0",
+      assets: [
+        {
+          ...bundledDesign.assets[0],
+          file: "assets/pixel.png",
+        },
+      ],
+      fonts: [
+        {
+          ...bundledDesign.fonts[0],
+          file: "fonts/inter.ttf",
+        },
+      ],
+    })}\n`,
+  );
+  const bundledOutput = join(consumerDirectory, "bundled.svg");
+  const bundledManifest = join(consumerDirectory, "bundled.manifest.json");
+  await execFileAsync(process.execPath, [
+    cli,
+    "render",
+    bundledDesignPath,
+    "--resource-bundle",
+    bundleRoot,
+    "--format",
+    "svg",
+    "--output",
+    bundledOutput,
+    "--manifest",
+    bundledManifest,
+  ]);
+  assert.match(await readFile(bundledOutput, "utf8"), /^<svg /);
+  const provenance = JSON.parse(await readFile(bundledManifest, "utf8"));
+  assert.equal(provenance.assets[0].sha256, pixelHash);
 }

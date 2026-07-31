@@ -13,7 +13,7 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This package is a production-quality vertical slice (`0.2.0`).
+This package is a production-quality vertical slice (`0.3.0`).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 
@@ -137,6 +137,25 @@ node packages/glyphkiln-core/dist/cli/index.js render \
   --manifest
 ```
 
+Designs with local PNG/JPEG assets or additional font bytes can use one
+validated offline bundle:
+
+```bash
+node packages/glyphkiln-core/dist/cli/index.js render design.json \
+  --resource-bundle ./campaign-resources \
+  --format svg \
+  --output graphic.svg \
+  --manifest
+```
+
+The selected directory contains `glyphkiln-resource-bundle.json`. Its strict
+`1.0.0` manifest maps portable relative files to exact design asset/font
+declarations and SHA-256 hashes. Traversal, absolute paths, symlinks,
+non-regular files, oversized manifests/resources, and declaration mismatches
+fail closed. The adapter performs no network access and does not replace upload
+malware scanning. See
+[Offline CLI resource bundles](../../docs/resource-bundles.md).
+
 Run `npm link` once if you want the literal `glyphkiln` command while developing;
 normal consumers receive it from package installation. `--verify
 <fingerprint>` makes render verification fail when a result differs from an
@@ -180,6 +199,7 @@ npm run examples:verify
 - [Rendering lifecycle](../../docs/rendering-lifecycle.md)
 - [Design-document specification](../../docs/design-document.md)
 - [Resource limits and worker profile](../../docs/resource-limits.md)
+- [Offline CLI resource bundles](../../docs/resource-bundles.md)
 - [Fonts](../../docs/fonts.md) and [assets](../../docs/assets.md)
 - [Text-layout diagnostics](../../docs/text-layout-diagnostics.md)
 - [Provenance](../../docs/provenance.md)

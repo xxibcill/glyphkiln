@@ -27,7 +27,9 @@
 
 The render performs no network access. Temporary font files are created in an
 OS-owned random directory and removed in a `finally` block. Successful SDK calls
-return bytes; only the CLI decides where to write them.
+return bytes; only the CLI decides where to write them. Its optional offline
+resource-bundle adapter resolves a separately selected local root into explicit
+verified bytes before this lifecycle begins.
 
 `renderGraphicIsolated` runs this lifecycle in a serialized,
 permission-limited child process with V8 memory/stack limits and wall-clock

@@ -6,6 +6,8 @@ import {
 } from "@glyphkiln/core";
 import type {
   QualityIssue,
+  ResolvedAsset,
+  ResolvedFont,
   RenderGraphicResult,
   ValidationProblem,
 } from "@glyphkiln/core";
@@ -20,6 +22,11 @@ type PreviewDependencies = {
 type PreviewServiceResult = {
   status: number;
   body: PreviewResponse;
+};
+
+export type PreviewResources = {
+  assets?: readonly ResolvedAsset[];
+  fonts?: readonly ResolvedFont[];
 };
 
 const DEFAULT_DEPENDENCIES: PreviewDependencies = {
@@ -53,6 +60,7 @@ const CLIENT_RENDER_ERROR_CODES = new Set([
 export async function createProjectPreview(
   input: unknown,
   dependencies: PreviewDependencies = DEFAULT_DEPENDENCIES,
+  resources: PreviewResources = {},
 ): Promise<PreviewServiceResult> {
   const validation = validateDesignDocument(input);
   if (!validation.success) {
@@ -73,7 +81,8 @@ export async function createProjectPreview(
       validation.data,
       {
         formats: ["svg", "png"],
-        fonts: [DEVELOPMENT_FONT],
+        assets: resources.assets ?? [],
+        fonts: resources.fonts ?? [DEVELOPMENT_FONT],
         creationTimestamp: dependencies.now().toISOString(),
       },
       {},

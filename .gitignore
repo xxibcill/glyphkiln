@@ -2,6 +2,7 @@ node_modules/
 **/dist/
 **/coverage/
 **/.next/
+**/.worker/
 .DS_Store
 *.log
 *.tsbuildinfo

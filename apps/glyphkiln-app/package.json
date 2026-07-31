@@ -11,7 +11,9 @@
   "scripts": {
     "dev": "node scripts/start-development.mjs",
     "build": "node scripts/build.mjs",
+    "build:worker": "node scripts/build-worker.mjs",
     "start": "node .next/standalone/apps/glyphkiln-app/start.mjs",
+    "start:worker": "node .worker/worker.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run && npm run test:standalone",
@@ -20,17 +22,22 @@
   },
   "dependencies": {
     "@glyphkiln/core": "^0.3.0",
+    "@node-rs/argon2": "^2.0.2",
     "next": "16.2.12",
+    "postgres": "^3.4.9",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
     "@eslint/js": "10.0.1",
     "@next/eslint-plugin-next": "16.2.12",
     "@types/node": "26.1.2",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "4.1.10",
+    "esbuild": "0.28.1",
     "eslint": "10.8.0",
     "jsdom": "29.1.1",
     "typescript": "6.0.3",

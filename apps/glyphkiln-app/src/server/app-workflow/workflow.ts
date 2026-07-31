@@ -1,0 +1,1959 @@
+import { BrandSnapshotSchema } from "@glyphkiln/core/schema";
+import { canonicalJson, hashCanonical, validateDesignDocument } from "@glyphkiln/core";
+import type {
+  AssetDeclaration,
+  DesignDocument,
+  FontDeclaration,
+  QualityIssue,
+  ValidationProblem,
+} from "@glyphkiln/core";
+
+import type { PreviewResponse } from "@/features/project-preview/types";
+import { createProjectPreview } from "@/lib/project-preview/render-preview";
+import { compareCanonicalStrings } from "@/server/deterministic-order";
+import type { SqlDatabase } from "@/server/persistence/database";
+import {
+  RenderQueueError,
+  type RenderJobView,
+  type RenderQueue,
+} from "@/server/render-queue";
+import {
+  AdmittedRenderResourceResolver,
+  BuiltInRenderResourceResolver,
+  RenderResourceResolutionError,
+  type RenderResourceResolver,
+  type ResolvedRenderResources,
+} from "@/server/render-worker/resource-resolver";
+import {
+  InProcessRenderAdmissionController,
+  type RenderAdmissionController,
+} from "@/server/render-worker/render-admission";
+import type { ResourceStore } from "@/server/resources";
+import {
+  resourceReferencesMatchDocument,
+  type RevisionResourcePin,
+} from "@/server/resources/revision-resource-provenance";
+import {
+  Argon2idPasswordHasher,
+  CryptoSecretFactory,
+  INVITATION_DURATION_MS,
+  SESSION_DURATION_MS,
+  canInviteRole,
+  hashSecret,
+  hasCapability,
+  normalizeEmail,
+  systemClock,
+  validatePassword,
+  verifySecretHash,
+} from "@/server/security";
+import type {
+  Clock,
+  NormalizedEmail,
+  PasswordHasher,
+  SecretFactory,
+  WorkspaceAction,
+} from "@/server/security";
+
+import {
+  constructManualDocument,
+  type ManualResourceVersions,
+} from "./document-factory";
+import { AppCommandSchema, AppQuerySchema } from "./schemas";
+import { AppState } from "./state";
+import type {
+  AppCommand,
+  AppFailure,
+  AppFailureCode,
+  AppQuery,
+  AppResult,
+  AppWorkflow,
+  CommandEnvelope,
+  CommandReceipt,
+  ManualDraft,
+  QueryEnvelope,
+  QueryProjection,
+  RenderedArtifact,
+  RequestEvidence,
+  SessionGrant,
+  WorkspaceAuthorizationGrant,
+  WorkspaceAuthorizationRequest,
+  WorkspaceMembershipSummary,
+} from "./contracts";
+import type {
+  AuthenticatedSessionRecord,
+  InvitationRecord,
+  StoredBrandSnapshot,
+  StoredDesignRevision,
+} from "./state";
+
+type ManualRenderer = (
+  document: DesignDocument,
+  resources: ResolvedRenderResources,
+) => Promise<PreviewResponse>;
+
+const LOGIN_FAILURE_THRESHOLD = 5;
+const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_BLOCK_DURATION_MS = 15 * 60 * 1000;
+
+export type WorkspaceCreationLimits = {
+  readonly maximumWorkspacesPerInstallation: number;
+  readonly maximumWorkspacesPerUser: number;
+};
+
+export const DEFAULT_WORKSPACE_CREATION_LIMITS: WorkspaceCreationLimits = Object.freeze(
+  {
+    maximumWorkspacesPerInstallation: 100,
+    maximumWorkspacesPerUser: 5,
+  },
+);
+
+type NewSessionBundle = {
+  record: {
+    id: string;
+    userId: string;
+    tokenHash: string;
+    csrfTokenHash: string;
+    createdAt: Date;
+    expiresAt: Date;
+  };
+  token: string;
+  csrfToken: string;
+};
+
+export type AppWorkflowDependencies = {
+  database: SqlDatabase;
+  bootstrapTokenHash?: string;
+  passwordHasher?: PasswordHasher;
+  secretFactory?: SecretFactory;
+  clock?: Clock;
+  render?: ManualRenderer;
+  renderAdmission?: RenderAdmissionController;
+  renderQueue?: RenderQueue;
+  resourceStore?: ResourceStore;
+  resourceResolver?: RenderResourceResolver;
+  workspaceCreationLimits?: WorkspaceCreationLimits;
+};
+
+type AuthenticatedContext = {
+  session: AuthenticatedSessionRecord;
+  state: AppState;
+};
+
+type ManualResourceDeclarations = {
+  assets: AssetDeclaration[];
+  fonts: FontDeclaration[];
+  resourceReferences: RevisionResourcePin[];
+  resourceVersions: ManualResourceVersions;
+};
+
+class WorkflowFault extends Error {
+  readonly failure: AppFailure;
+
+  constructor(failure: AppFailure) {
+    super(failure.error.code);
+    this.name = "WorkflowFault";
+    this.failure = failure;
+  }
+}
+
+export function createAppWorkflow(dependencies: AppWorkflowDependencies): AppWorkflow {
+  return new AppWorkflowImplementation(dependencies);
+}
+
+class AppWorkflowImplementation implements AppWorkflow {
+  readonly #state: AppState;
+  readonly #bootstrapTokenHash: string | undefined;
+  readonly #passwordHasher: PasswordHasher;
+  readonly #secretFactory: SecretFactory;
+  readonly #clock: Clock;
+  readonly #render: ManualRenderer;
+  readonly #renderAdmission: RenderAdmissionController;
+  readonly #renderQueue: RenderQueue | undefined;
+  readonly #resourceStore: ResourceStore | undefined;
+  readonly #resourceResolver: RenderResourceResolver;
+  readonly #workspaceCreationLimits: WorkspaceCreationLimits;
+  readonly #dummyPasswordHash: Promise<string>;
+
+  constructor(dependencies: AppWorkflowDependencies) {
+    this.#state = new AppState(dependencies.database);
+    this.#bootstrapTokenHash = dependencies.bootstrapTokenHash;
+    this.#passwordHasher = dependencies.passwordHasher ?? new Argon2idPasswordHasher();
+    this.#secretFactory = dependencies.secretFactory ?? new CryptoSecretFactory();
+    this.#clock = dependencies.clock ?? systemClock;
+    this.#render =
+      dependencies.render ??
+      (async (document, resources) =>
+        (await createProjectPreview(document, undefined, resources)).body);
+    this.#renderAdmission =
+      dependencies.renderAdmission ?? new InProcessRenderAdmissionController();
+    this.#renderQueue = dependencies.renderQueue;
+    this.#resourceStore = dependencies.resourceStore;
+    this.#resourceResolver =
+      dependencies.resourceResolver ??
+      (dependencies.resourceStore === undefined
+        ? new BuiltInRenderResourceResolver()
+        : new AdmittedRenderResourceResolver(dependencies.resourceStore));
+    this.#workspaceCreationLimits = validateWorkspaceCreationLimits(
+      dependencies.workspaceCreationLimits ?? DEFAULT_WORKSPACE_CREATION_LIMITS,
+    );
+    this.#dummyPasswordHash = this.#passwordHasher.hash("glyphkiln-dummy-credential");
+  }
+
+  async execute(envelope: CommandEnvelope): Promise<AppResult<CommandReceipt>> {
+    const parsed = AppCommandSchema.safeParse(envelope.command);
+    if (!parsed.success) {
+      return invalidInput(parsed.error.issues.map(toValidationProblem));
+    }
+
+    try {
+      return await this.#executeCommand(parsed.data, envelope.evidence);
+    } catch (error) {
+      return mapUnexpectedFailure(error);
+    }
+  }
+
+  async read(envelope: QueryEnvelope): Promise<AppResult<QueryProjection>> {
+    const parsed = AppQuerySchema.safeParse(envelope.query);
+    if (!parsed.success) {
+      return invalidInput(parsed.error.issues.map(toValidationProblem));
+    }
+
+    try {
+      return await this.#readQuery(parsed.data, envelope.evidence);
+    } catch (error) {
+      return mapUnexpectedFailure(error);
+    }
+  }
+
+  async authorizeWorkspace(
+    input: WorkspaceAuthorizationRequest,
+  ): Promise<AppResult<WorkspaceAuthorizationGrant>> {
+    try {
+      const context = await this.#authenticate(
+        input.evidence,
+        input.requireMutationProof,
+      );
+      const workspace = await this.#authorizeWorkspace(
+        context,
+        input.workspaceId,
+        input.action,
+      );
+      return success({
+        kind: "workspace-authorized",
+        user: context.session.user,
+        workspace,
+      });
+    } catch (error) {
+      return mapUnexpectedFailure(error);
+    }
+  }
+
+  async #executeCommand(
+    command: AppCommand,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    switch (command.type) {
+      case "bootstrap.register":
+        return this.#bootstrapRegister(command);
+      case "invitation.register":
+        return this.#registerWithInvitation(command);
+      case "session.login":
+        return this.#login(command, evidence);
+      case "session.logout":
+        return this.#logout(evidence);
+      case "workspace.create":
+        return this.#createWorkspace(command, evidence);
+      case "invitation.create":
+        return this.#createInvitation(command, evidence);
+      case "invitation.accept":
+        return this.#acceptInvitation(command, evidence);
+      case "workspace.member.role.change":
+        return this.#changeWorkspaceMemberRole(command, evidence);
+      case "workspace.member.revoke":
+        return this.#revokeWorkspaceMember(command, evidence);
+      case "brand.publish":
+        return this.#publishBrandSnapshot(command, evidence);
+      case "design.preview":
+        return this.#previewDesign(command, evidence);
+      case "design.create":
+        return this.#createDesign(command, evidence);
+      case "design.revise":
+        return this.#reviseDesign(command, evidence);
+      case "revision.render":
+        return this.#renderRevision(command, evidence);
+      case "revision.export.request":
+        return this.#requestRevisionExport(command, evidence);
+    }
+  }
+
+  async #readQuery(
+    query: AppQuery,
+    evidence: Pick<RequestEvidence, "sessionToken">,
+  ): Promise<AppResult<QueryProjection>> {
+    const context = await this.#authenticate(evidence, false);
+
+    switch (query.type) {
+      case "session.current": {
+        const workspaces = await context.state.listMemberships(context.session.user.id);
+        return success({
+          kind: "current-session",
+          user: context.session.user,
+          workspaces,
+          expiresAt: context.session.expiresAt.toISOString(),
+        });
+      }
+      case "workspace.dashboard": {
+        const membership = await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "read_workspace",
+        );
+        const [brandKits, designs] = await Promise.all([
+          context.state.listBrandKits(query.workspaceId),
+          context.state.listDesigns(query.workspaceId),
+        ]);
+        return success({
+          kind: "workspace-dashboard",
+          workspace: membership,
+          brandKits,
+          designs,
+        });
+      }
+      case "workspace.members": {
+        await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "administer_workspace",
+        );
+        return success({
+          kind: "workspace-members",
+          workspaceId: query.workspaceId,
+          members: await context.state.listWorkspaceMembers(query.workspaceId),
+        });
+      }
+      case "brand.snapshot": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_brands");
+        const record = await context.state.findBrandSnapshot(
+          query.workspaceId,
+          query.brandSnapshotId,
+        );
+        if (record === undefined) throw resourceNotFound();
+        return success({
+          kind: "brand-snapshot",
+          brandKitId: record.brandKitId,
+          snapshotId: record.id,
+          version: record.version,
+          canonicalHash: record.canonicalHash,
+          snapshot: record.snapshot,
+        });
+      }
+      case "design.revision": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_revisions");
+        const revision = await this.#loadTrustedRevision(
+          context.state,
+          query.workspaceId,
+          query.designId,
+          query.revision === "head" ? undefined : query.revision.revisionId,
+        );
+        return success(toRevisionProjection(revision));
+      }
+      case "render.job": {
+        await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "read_completed_exports",
+        );
+        if (this.#renderQueue === undefined) throw renderQueueUnavailable();
+        const job = await this.#renderQueue.inspect(query.workspaceId, query.jobId);
+        if (job === undefined) throw resourceNotFound();
+        return success(toRenderJobProjection(job));
+      }
+    }
+  }
+
+  async #bootstrapRegister(
+    command: Extract<AppCommand, { type: "bootstrap.register" }>,
+  ): Promise<AppResult<CommandReceipt>> {
+    const installation = await this.#state.findInstallationState();
+    if (installation.bootstrapUserId !== undefined) {
+      throw registrationClosed();
+    }
+    if (!verifySecretHash(command.bootstrapToken, this.#bootstrapTokenHash ?? "")) {
+      throw registrationClosed();
+    }
+    const email = normalizeEmailOrFail(command.email);
+    requireValidPassword(command.password);
+    const passwordHash = await this.#passwordHasher.hash(command.password);
+    const now = this.#clock.now();
+    const userId = this.#secretFactory.createId();
+    const workspaceId = this.#secretFactory.createId();
+    const session = this.#newSession(userId, now);
+
+    const grant = await this.#state.transaction(async (state) => {
+      const installation = await state.lockInstallationState();
+      if (installation.bootstrapUserId !== undefined) {
+        throw registrationClosed();
+      }
+      if ((await state.findUserCredentials(email)) !== undefined) {
+        throw emailAlreadyRegistered();
+      }
+
+      try {
+        await state.insertUser({
+          id: userId,
+          email,
+          displayName: command.displayName,
+          passwordHash,
+          createdAt: now,
+        });
+        const workspace = createWorkspaceRecord(
+          workspaceId,
+          command.workspaceName,
+          userId,
+          now,
+        );
+        await state.insertWorkspace(workspace);
+        await state.insertMembership({
+          workspaceId,
+          userId,
+          role: "owner",
+          createdAt: now,
+        });
+        await state.insertSession(session.record);
+        await state.markInstallationBootstrapped(userId, now);
+        await this.#audit(state, {
+          workspaceId,
+          actorUserId: userId,
+          action: "installation.bootstrapped",
+          targetType: "workspace",
+          targetId: workspaceId,
+          createdAt: now,
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) throw emailAlreadyRegistered();
+        throw error;
+      }
+
+      return this.#sessionGrant(state, {
+        session,
+        user: { id: userId, email, displayName: command.displayName },
+      });
+    });
+
+    return success(grant, 201);
+  }
+
+  async #registerWithInvitation(
+    command: Extract<AppCommand, { type: "invitation.register" }>,
+  ): Promise<AppResult<CommandReceipt>> {
+    const email = normalizeEmailOrFail(command.email);
+    const now = this.#clock.now();
+    const invitationTokenHash = hashSecret(command.invitationToken);
+    const preflightInvitation = await this.#state.findInvitation(
+      invitationTokenHash,
+      now,
+    );
+    if (
+      preflightInvitation?.email !== email ||
+      !(await this.#invitationIssuerCanGrant(this.#state, preflightInvitation))
+    ) {
+      throw invalidInvitation();
+    }
+    if ((await this.#state.findUserCredentials(email)) !== undefined) {
+      throw emailAlreadyRegistered();
+    }
+    requireValidPassword(command.password);
+    const passwordHash = await this.#passwordHasher.hash(command.password);
+    const userId = this.#secretFactory.createId();
+    const session = this.#newSession(userId, now);
+
+    const grant = await this.#state.transaction(async (state) => {
+      const invitation = await this.#lockAuthorizedInvitation(
+        state,
+        invitationTokenHash,
+        preflightInvitation.workspaceId,
+        now,
+      );
+      if (invitation.email !== email) {
+        throw invalidInvitation();
+      }
+      if ((await state.findUserCredentials(email)) !== undefined) {
+        throw emailAlreadyRegistered();
+      }
+
+      try {
+        await state.insertUser({
+          id: userId,
+          email,
+          displayName: command.displayName,
+          passwordHash,
+          createdAt: now,
+        });
+        await state.insertMembership({
+          workspaceId: invitation.workspaceId,
+          userId,
+          role: invitation.role,
+          createdAt: now,
+        });
+        await state.acceptInvitation(invitation.id, userId, now);
+        await state.insertSession(session.record);
+        await this.#audit(state, {
+          workspaceId: invitation.workspaceId,
+          actorUserId: userId,
+          action: "invitation.accepted",
+          targetType: "invitation",
+          targetId: invitation.id,
+          createdAt: now,
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) throw emailAlreadyRegistered();
+        throw error;
+      }
+
+      return this.#sessionGrant(state, {
+        session,
+        user: { id: userId, email, displayName: command.displayName },
+      });
+    });
+
+    return success(grant, 201);
+  }
+
+  async #login(
+    command: Extract<AppCommand, { type: "session.login" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const email = normalizeEmailOrFail(command.email);
+    const credentialKeyHash = hashSecret(
+      `${evidence.authenticationPartition ?? "local"}\u0000${email}`,
+    );
+    const now = this.#clock.now();
+    if (await this.#state.isLoginBlocked(credentialKeyHash, now)) {
+      throw loginThrottled();
+    }
+    const credentials = await this.#state.findUserCredentials(email);
+    const passwordHash = credentials?.passwordHash ?? (await this.#dummyPasswordHash);
+    const passwordMatches = await this.#passwordHasher.verify(
+      command.password,
+      passwordHash,
+    );
+    if (!passwordMatches || credentials === undefined) {
+      const blocked = await this.#state.recordLoginFailure({
+        credentialKeyHash,
+        at: now,
+        windowExpiresAt: new Date(now.getTime() + LOGIN_FAILURE_WINDOW_MS),
+        blockedUntil: new Date(now.getTime() + LOGIN_BLOCK_DURATION_MS),
+        threshold: LOGIN_FAILURE_THRESHOLD,
+      });
+      if (blocked) throw loginThrottled();
+      throw fault(
+        401,
+        "INVALID_CREDENTIALS",
+        "Sign in failed",
+        "The email address or password did not match an active account.",
+      );
+    }
+
+    const session = this.#newSession(credentials.id, now);
+    const grant = await this.#state.transaction(async (state) => {
+      await state.clearLoginFailures(credentialKeyHash);
+      await state.insertSession(session.record);
+      await this.#audit(state, {
+        actorUserId: credentials.id,
+        action: "session.created",
+        targetType: "session",
+        targetId: session.record.id,
+        createdAt: now,
+      });
+      return this.#sessionGrant(state, {
+        session,
+        user: {
+          id: credentials.id,
+          email: credentials.email,
+          displayName: credentials.displayName,
+        },
+      });
+    });
+    return success(grant);
+  }
+
+  async #logout(evidence: RequestEvidence): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const now = this.#clock.now();
+    await context.state.transaction(async (state) => {
+      await state.revokeSession(context.session.sessionId, now);
+      await this.#audit(state, {
+        actorUserId: context.session.user.id,
+        action: "session.revoked",
+        targetType: "session",
+        targetId: context.session.sessionId,
+        createdAt: now,
+      });
+    });
+    return success({ kind: "session-revoked" });
+  }
+
+  async #createWorkspace(
+    command: Extract<AppCommand, { type: "workspace.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const workspaceId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const workspace = createWorkspaceRecord(
+      workspaceId,
+      command.name,
+      context.session.user.id,
+      now,
+    );
+
+    await context.state.transaction(async (state) => {
+      await state.lockInstallationState();
+      const usage = await state.readWorkspaceCreationUsage(context.session.user.id);
+      if (
+        usage.userWorkspaces >=
+          this.#workspaceCreationLimits.maximumWorkspacesPerUser ||
+        usage.installationWorkspaces >=
+          this.#workspaceCreationLimits.maximumWorkspacesPerInstallation
+      ) {
+        throw workspaceCapacityReached();
+      }
+      await state.insertWorkspace(workspace);
+      await state.insertMembership({
+        workspaceId,
+        userId: context.session.user.id,
+        role: "owner",
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId,
+        actorUserId: context.session.user.id,
+        action: "workspace.created",
+        targetType: "workspace",
+        targetId: workspaceId,
+        createdAt: now,
+      });
+    });
+    return success(
+      {
+        kind: "workspace-created",
+        workspace: {
+          id: workspace.id,
+          name: workspace.name,
+          slug: workspace.slug,
+          role: "owner",
+        },
+      },
+      201,
+    );
+  }
+
+  async #createInvitation(
+    command: Extract<AppCommand, { type: "invitation.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const membership = await this.#membershipOrNotFound(context, command.workspaceId);
+    if (!canInviteRole(membership.role, command.role)) {
+      throw roleForbidden();
+    }
+    const email = normalizeEmailOrFail(command.email);
+    const now = this.#clock.now();
+    const invitationToken = this.#secretFactory.createToken();
+    const invitationId = this.#secretFactory.createId();
+    const expiresAt = new Date(now.getTime() + INVITATION_DURATION_MS);
+
+    await context.state.transaction(async (state) => {
+      if (
+        !(await state.lockWorkspaceForMembershipAdministration(command.workspaceId))
+      ) {
+        throw resourceNotFound();
+      }
+      const currentMembership = await state.findMembership(
+        context.session.user.id,
+        command.workspaceId,
+      );
+      if (currentMembership === undefined) throw resourceNotFound();
+      if (!canInviteRole(currentMembership.role, command.role)) {
+        throw roleForbidden();
+      }
+      await state.revokeActiveInvitations(command.workspaceId, email, now);
+      await state.insertInvitation({
+        id: invitationId,
+        workspaceId: command.workspaceId,
+        email,
+        role: command.role,
+        tokenHash: hashSecret(invitationToken),
+        invitedBy: context.session.user.id,
+        createdAt: now,
+        expiresAt,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "invitation.created",
+        targetType: "invitation",
+        targetId: invitationId,
+        metadata: { role: command.role },
+        createdAt: now,
+      });
+    });
+
+    return success(
+      {
+        kind: "invitation-created",
+        invitationId,
+        invitationToken,
+        expiresAt: expiresAt.toISOString(),
+        email,
+        role: command.role,
+      },
+      201,
+    );
+  }
+
+  async #acceptInvitation(
+    command: Extract<AppCommand, { type: "invitation.accept" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const now = this.#clock.now();
+    const invitationTokenHash = hashSecret(command.invitationToken);
+    const preflightInvitation = await context.state.findInvitation(
+      invitationTokenHash,
+      now,
+    );
+    if (
+      preflightInvitation?.email !== context.session.user.email ||
+      !(await this.#invitationIssuerCanGrant(context.state, preflightInvitation))
+    ) {
+      throw invalidInvitation();
+    }
+    const workspace = await context.state.transaction(async (state) => {
+      const invitation = await this.#lockAuthorizedInvitation(
+        state,
+        invitationTokenHash,
+        preflightInvitation.workspaceId,
+        now,
+      );
+      if (invitation.email !== context.session.user.email) {
+        throw invalidInvitation();
+      }
+      const existing = await state.findMembership(
+        context.session.user.id,
+        invitation.workspaceId,
+      );
+      if (existing === undefined) {
+        await state.insertMembership({
+          workspaceId: invitation.workspaceId,
+          userId: context.session.user.id,
+          role: invitation.role,
+          createdAt: now,
+        });
+      }
+      await state.acceptInvitation(invitation.id, context.session.user.id, now);
+      await this.#audit(state, {
+        workspaceId: invitation.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "invitation.accepted",
+        targetType: "invitation",
+        targetId: invitation.id,
+        createdAt: now,
+      });
+      return (
+        existing ?? {
+          id: invitation.workspaceId,
+          name: invitation.workspaceName,
+          slug: invitation.workspaceSlug,
+          role: invitation.role,
+        }
+      );
+    });
+    return success({ kind: "invitation-accepted", workspace });
+  }
+
+  async #changeWorkspaceMemberRole(
+    command: Extract<AppCommand, { type: "workspace.member.role.change" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const now = this.#clock.now();
+    const member = await context.state.transaction(async (state) => {
+      await this.#authorizeMembershipAdministration(
+        state,
+        context.session.user.id,
+        command.workspaceId,
+      );
+      const target = await state.findWorkspaceMember(
+        command.workspaceId,
+        command.userId,
+      );
+      if (target === undefined) throw resourceNotFound();
+      if (
+        target.role === "owner" &&
+        (await state.countActiveWorkspaceOwners(command.workspaceId)) <= 1
+      ) {
+        throw finalWorkspaceOwner();
+      }
+      if (target.role === command.role) return target;
+      if (
+        !(await state.changeWorkspaceMemberRole({
+          workspaceId: command.workspaceId,
+          userId: command.userId,
+          role: command.role,
+        }))
+      ) {
+        throw resourceNotFound();
+      }
+      if (!canInviteRole(command.role, "viewer")) {
+        await state.revokeActiveInvitationsByInviter(
+          command.workspaceId,
+          command.userId,
+          now,
+        );
+      }
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "workspace_membership.role_changed",
+        targetType: "workspace_membership",
+        targetId: command.userId,
+        metadata: {
+          previousRole: target.role,
+          role: command.role,
+        },
+        createdAt: now,
+      });
+      return { ...target, role: command.role };
+    });
+    return success({
+      kind: "workspace-member-role-changed",
+      workspaceId: command.workspaceId,
+      member,
+    });
+  }
+
+  async #revokeWorkspaceMember(
+    command: Extract<AppCommand, { type: "workspace.member.revoke" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    const now = this.#clock.now();
+    const currentSessionRevoked = command.userId === context.session.user.id;
+    await context.state.transaction(async (state) => {
+      await this.#authorizeMembershipAdministration(
+        state,
+        context.session.user.id,
+        command.workspaceId,
+      );
+      const target = await state.findWorkspaceMember(
+        command.workspaceId,
+        command.userId,
+      );
+      if (target === undefined) throw resourceNotFound();
+      if (
+        target.role === "owner" &&
+        (await state.countActiveWorkspaceOwners(command.workspaceId)) <= 1
+      ) {
+        throw finalWorkspaceOwner();
+      }
+      if (
+        !(await state.revokeWorkspaceMember({
+          workspaceId: command.workspaceId,
+          userId: command.userId,
+          revokedBy: context.session.user.id,
+          revokedAt: now,
+        }))
+      ) {
+        throw resourceNotFound();
+      }
+      await state.revokeActiveInvitationsByInviter(
+        command.workspaceId,
+        command.userId,
+        now,
+      );
+      await state.revokeAllUserSessions(command.userId, now);
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "workspace_membership.revoked",
+        targetType: "workspace_membership",
+        targetId: command.userId,
+        metadata: {
+          previousRole: target.role,
+          sessionsRevokedInstallationWide: true,
+        },
+        createdAt: now,
+      });
+    });
+    return success({
+      kind: "workspace-member-revoked",
+      workspaceId: command.workspaceId,
+      userId: command.userId,
+      currentSessionRevoked,
+    });
+  }
+
+  async #publishBrandSnapshot(
+    command: Extract<AppCommand, { type: "brand.publish" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "publish_brand_snapshot",
+    );
+    const now = this.#clock.now();
+    const created = await context.state.transaction(async (state) => {
+      const brandKitId = command.brandKitId ?? this.#secretFactory.createId();
+      let brandName = command.name;
+      if (command.brandKitId === undefined) {
+        await state.insertBrandKit({
+          id: brandKitId,
+          workspaceId: command.workspaceId,
+          name: brandName,
+          createdBy: context.session.user.id,
+          createdAt: now,
+        });
+      } else {
+        const brandKit = await state.lockBrandKit(
+          command.workspaceId,
+          command.brandKitId,
+        );
+        if (brandKit === undefined) throw resourceNotFound();
+        brandName = brandKit.name;
+      }
+      const sequence = await state.nextBrandSnapshotSequence(
+        command.workspaceId,
+        brandKitId,
+      );
+      const version = brandVersion(sequence);
+      const snapshotValidation = BrandSnapshotSchema.safeParse({
+        ...command.snapshot,
+        snapshotId: brandKitId,
+        version,
+        name: brandName,
+      });
+      if (!snapshotValidation.success) {
+        throw fault(
+          422,
+          "INVALID_BRAND_SNAPSHOT",
+          "Brand snapshot needs attention",
+          "The brand settings do not satisfy the Core snapshot contract.",
+          { problems: snapshotValidation.error.issues.map(toValidationProblem) },
+        );
+      }
+      const snapshotId = this.#secretFactory.createId();
+      const canonicalHash = hashCanonical(snapshotValidation.data);
+      await state.insertBrandSnapshot({
+        id: snapshotId,
+        workspaceId: command.workspaceId,
+        brandKitId,
+        sequence,
+        version,
+        snapshot: snapshotValidation.data,
+        canonicalHash,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "brand_snapshot.published",
+        targetType: "brand_snapshot",
+        targetId: snapshotId,
+        metadata: { brandKitId, version, canonicalHash },
+        createdAt: now,
+      });
+      return {
+        brandKitId,
+        snapshotId,
+        version,
+        canonicalHash,
+        snapshot: snapshotValidation.data,
+      };
+    });
+
+    return success({ kind: "brand-snapshot-published", ...created }, 201);
+  }
+
+  async #previewDesign(
+    command: Extract<AppCommand, { type: "design.preview" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "preview_design");
+    const brand = await this.#brandSnapshotOrNotFound(
+      context.state,
+      command.workspaceId,
+      command.brandSnapshotId,
+    );
+    const previewId = `preview_${hashCanonical({
+      workspaceId: command.workspaceId,
+      brandSnapshotId: command.brandSnapshotId,
+      draft: command.draft,
+    }).slice(0, 24)}`;
+    const resources = await this.#resolveManualResourceDeclarations(
+      command.workspaceId,
+      command.draft,
+    );
+    const construction = constructManualDocument({
+      documentId: previewId,
+      brand: brand.snapshot,
+      draft: command.draft,
+      ...resources,
+    });
+    if (!construction.ok) throw invalidDocument(construction.problems);
+    const rendered = await this.#renderDocument(
+      command.workspaceId,
+      construction.document,
+    );
+    return success({
+      kind: "design-previewed",
+      document: rendered.document,
+      qualityIssues: rendered.qualityIssues,
+      outputs: rendered.outputs,
+    });
+  }
+
+  async #createDesign(
+    command: Extract<AppCommand, { type: "design.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "create_design");
+    const resources = await this.#resolveManualResourceDeclarations(
+      command.workspaceId,
+      command.draft,
+    );
+    const designId = this.#secretFactory.createId();
+    const revisionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+
+    const saved = await context.state.transaction(async (state) => {
+      const brand = await this.#brandSnapshotOrNotFound(
+        state,
+        command.workspaceId,
+        command.brandSnapshotId,
+      );
+      const construction = constructManualDocument({
+        documentId: designId,
+        brand: brand.snapshot,
+        draft: command.draft,
+        ...resources,
+      });
+      if (!construction.ok) throw invalidDocument(construction.problems);
+      const documentHash = hashCanonical(construction.document);
+      await state.insertDesign({
+        id: designId,
+        workspaceId: command.workspaceId,
+        name: command.name,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await state.insertDesignRevision({
+        id: revisionId,
+        workspaceId: command.workspaceId,
+        designId,
+        revisionNumber: 1,
+        brandSnapshotId: brand.id,
+        document: construction.document,
+        canonicalHash: documentHash,
+        resourceReferences: resources.resourceReferences,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      if (
+        !(await state.setDesignHead({
+          workspaceId: command.workspaceId,
+          designId,
+          headRevisionId: revisionId,
+          updatedAt: now,
+        }))
+      ) {
+        throw revisionConflict();
+      }
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "design.created",
+        targetType: "design",
+        targetId: designId,
+        metadata: { revisionId, documentHash },
+        createdAt: now,
+      });
+      return {
+        designId,
+        revisionId,
+        revisionNumber: 1,
+        documentHash,
+        document: construction.document,
+      };
+    });
+    return success({ kind: "design-saved", ...saved }, 201);
+  }
+
+  async #reviseDesign(
+    command: Extract<AppCommand, { type: "design.revise" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "revise_design");
+    const resources = await this.#resolveManualResourceDeclarations(
+      command.workspaceId,
+      command.draft,
+    );
+    const revisionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const saved = await context.state.transaction(async (state) => {
+      const design = await state.lockDesignHead(command.workspaceId, command.designId);
+      if (design === undefined) throw resourceNotFound();
+      if (design.headRevisionId !== command.baseRevisionId) {
+        throw revisionConflict();
+      }
+      const brand = await this.#brandSnapshotOrNotFound(
+        state,
+        command.workspaceId,
+        command.brandSnapshotId,
+      );
+      const construction = constructManualDocument({
+        documentId: command.designId,
+        brand: brand.snapshot,
+        draft: command.draft,
+        ...resources,
+      });
+      if (!construction.ok) throw invalidDocument(construction.problems);
+      const revisionNumber = design.headRevisionNumber + 1;
+      const documentHash = hashCanonical(construction.document);
+      await state.insertDesignRevision({
+        id: revisionId,
+        workspaceId: command.workspaceId,
+        designId: command.designId,
+        revisionNumber,
+        parentRevisionId: command.baseRevisionId,
+        brandSnapshotId: brand.id,
+        document: construction.document,
+        canonicalHash: documentHash,
+        resourceReferences: resources.resourceReferences,
+        ...(command.changeNote === undefined ? {} : { changeNote: command.changeNote }),
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      if (
+        !(await state.setDesignHead({
+          workspaceId: command.workspaceId,
+          designId: command.designId,
+          expectedHeadRevisionId: command.baseRevisionId,
+          headRevisionId: revisionId,
+          updatedAt: now,
+        }))
+      ) {
+        throw revisionConflict();
+      }
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "design.revised",
+        targetType: "design_revision",
+        targetId: revisionId,
+        metadata: {
+          designId: command.designId,
+          parentRevisionId: command.baseRevisionId,
+          revisionNumber,
+          documentHash,
+        },
+        createdAt: now,
+      });
+      return {
+        designId: command.designId,
+        revisionId,
+        revisionNumber,
+        documentHash,
+        document: construction.document,
+      };
+    });
+    return success({ kind: "design-saved", ...saved }, 201);
+  }
+
+  async #renderRevision(
+    command: Extract<AppCommand, { type: "revision.render" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "request_export");
+    const revision = await this.#loadTrustedRevision(
+      context.state,
+      command.workspaceId,
+      command.designId,
+      command.revisionId,
+    );
+    const rendered = await this.#renderDocument(command.workspaceId, revision.document);
+    return success({
+      kind: "revision-rendered",
+      designId: revision.designId,
+      revisionId: revision.revisionId,
+      document: rendered.document,
+      qualityIssues: rendered.qualityIssues,
+      outputs: rendered.outputs,
+    });
+  }
+
+  async #requestRevisionExport(
+    command: Extract<AppCommand, { type: "revision.export.request" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "request_export");
+    await this.#loadTrustedRevision(
+      context.state,
+      command.workspaceId,
+      command.designId,
+      command.revisionId,
+    );
+    if (this.#renderQueue === undefined) throw renderQueueUnavailable();
+    const now = this.#clock.now();
+    try {
+      const queued = await this.#renderQueue.enqueue({
+        jobId: this.#secretFactory.createId(),
+        workspaceId: command.workspaceId,
+        designId: command.designId,
+        revisionId: command.revisionId,
+        requestedBy: context.session.user.id,
+        idempotencyKey: command.idempotencyKey,
+        createdAt: now,
+        manifestCreationTimestamp: now,
+      });
+      return success(
+        {
+          kind: "render-job-queued",
+          jobId: queued.jobId,
+          workspaceId: queued.workspaceId,
+          state: queued.state,
+          created: queued.created,
+        },
+        queued.created ? 201 : 200,
+      );
+    } catch (error) {
+      if (!(error instanceof RenderQueueError)) throw error;
+      if (error.code === "IDEMPOTENCY_CONFLICT") {
+        throw fault(
+          409,
+          "RENDER_REQUEST_CONFLICT",
+          "Export request key is already in use",
+          "Use a new request key or retry the original revision export.",
+        );
+      }
+      if (error.code === "INVALID_QUEUE_INPUT") {
+        throw fault(
+          422,
+          "INVALID_INPUT",
+          "Export request needs attention",
+          "Review the export request and try again.",
+        );
+      }
+      if (
+        error.code === "WORKSPACE_JOB_CAPACITY_REACHED" ||
+        error.code === "INSTALLATION_JOB_CAPACITY_REACHED"
+      ) {
+        throw fault(
+          429,
+          "RENDER_CAPACITY_REACHED",
+          "Export queue is full",
+          "Wait for an outstanding export to finish before requesting another.",
+        );
+      }
+      throw renderQueueUnavailable();
+    }
+  }
+
+  async #lockAuthorizedInvitation(
+    state: AppState,
+    tokenHash: string,
+    expectedWorkspaceId: string,
+    now: Date,
+  ): Promise<InvitationRecord> {
+    if (!(await state.lockWorkspaceForMembershipAdministration(expectedWorkspaceId))) {
+      throw invalidInvitation();
+    }
+    const invitation = await state.lockInvitation(tokenHash, now);
+    if (
+      invitation?.workspaceId !== expectedWorkspaceId ||
+      !(await this.#invitationIssuerCanGrant(state, invitation))
+    ) {
+      throw invalidInvitation();
+    }
+    return invitation;
+  }
+
+  async #invitationIssuerCanGrant(
+    state: AppState,
+    invitation: InvitationRecord,
+  ): Promise<boolean> {
+    const inviter = await state.findMembership(
+      invitation.invitedBy,
+      invitation.workspaceId,
+    );
+    return inviter !== undefined && canInviteRole(inviter.role, invitation.role);
+  }
+
+  async #authorizeMembershipAdministration(
+    state: AppState,
+    actorUserId: string,
+    workspaceId: string,
+  ): Promise<void> {
+    if (!(await state.lockWorkspaceForMembershipAdministration(workspaceId))) {
+      throw resourceNotFound();
+    }
+    const membership = await state.findMembership(actorUserId, workspaceId);
+    if (membership === undefined) throw resourceNotFound();
+    if (!hasCapability(membership.role, "administer_workspace")) {
+      throw roleForbidden();
+    }
+  }
+
+  async #authenticate(
+    evidence: Pick<RequestEvidence, "sessionToken" | "csrfToken">,
+    requireMutationProof: boolean,
+  ): Promise<AuthenticatedContext> {
+    if (evidence.sessionToken === undefined) throw authenticationRequired();
+    const now = this.#clock.now();
+    const session = await this.#state.findSession(
+      hashSecret(evidence.sessionToken),
+      now,
+    );
+    if (session === undefined) throw authenticationRequired();
+    if (
+      requireMutationProof &&
+      (evidence.csrfToken === undefined ||
+        !verifySecretHash(evidence.csrfToken, session.csrfTokenHash))
+    ) {
+      throw fault(
+        403,
+        "CSRF_REJECTED",
+        "Mutation proof rejected",
+        "Refresh the session and try the action again from the Glyphkiln application.",
+      );
+    }
+    await this.#state.touchSession(session.sessionId, now);
+    return { session, state: this.#state };
+  }
+
+  async #membershipOrNotFound(
+    context: AuthenticatedContext,
+    workspaceId: string,
+  ): Promise<WorkspaceMembershipSummary> {
+    const membership = await context.state.findMembership(
+      context.session.user.id,
+      workspaceId,
+    );
+    if (membership === undefined) throw resourceNotFound();
+    return membership;
+  }
+
+  async #authorizeWorkspace(
+    context: AuthenticatedContext,
+    workspaceId: string,
+    action: WorkspaceAction,
+  ): Promise<WorkspaceMembershipSummary> {
+    const membership = await this.#membershipOrNotFound(context, workspaceId);
+    if (!hasCapability(membership.role, action)) throw roleForbidden();
+    return membership;
+  }
+
+  async #brandSnapshotOrNotFound(
+    state: AppState,
+    workspaceId: string,
+    snapshotId: string,
+  ): Promise<StoredBrandSnapshot> {
+    const brand = await state.findBrandSnapshot(workspaceId, snapshotId);
+    if (brand === undefined) throw resourceNotFound();
+    const validation = BrandSnapshotSchema.safeParse(brand.snapshot);
+    if (!validation.success || hashCanonical(validation.data) !== brand.canonicalHash) {
+      throw storeUnavailable();
+    }
+    return { ...brand, snapshot: validation.data };
+  }
+
+  async #loadTrustedRevision(
+    state: AppState,
+    workspaceId: string,
+    designId: string,
+    revisionId?: string,
+  ): Promise<StoredDesignRevision> {
+    const revision = await state.findDesignRevision({
+      workspaceId,
+      designId,
+      ...(revisionId === undefined ? {} : { revisionId }),
+    });
+    if (revision === undefined) throw resourceNotFound();
+    const validation = validateDesignDocument(revision.document);
+    if (
+      !validation.success ||
+      hashCanonical(validation.data) !== revision.canonicalHash
+    ) {
+      throw storeUnavailable();
+    }
+    const brand = await this.#brandSnapshotOrNotFound(
+      state,
+      workspaceId,
+      revision.brandSnapshotId,
+    );
+    if (canonicalJson(validation.data.brand) !== canonicalJson(brand.snapshot)) {
+      throw storeUnavailable();
+    }
+    if (
+      !resourceReferencesMatchDocument(validation.data, revision.resourceReferences)
+    ) {
+      throw storeUnavailable();
+    }
+    return { ...revision, document: validation.data };
+  }
+
+  async #resolveManualResourceDeclarations(
+    workspaceId: string,
+    draft: ManualDraft,
+  ): Promise<ManualResourceDeclarations> {
+    const selection = draft.resources;
+    if (
+      selection === undefined ||
+      (selection.assetIds.length === 0 && selection.fontIds.length === 0)
+    ) {
+      return {
+        assets: [],
+        fonts: [],
+        resourceReferences: [],
+        resourceVersions: { assets: [], fonts: [] },
+      };
+    }
+    if (this.#resourceStore === undefined) {
+      throw fault(
+        422,
+        "UNSUPPORTED_MANUAL_RESOURCE",
+        "Admitted resources are unavailable",
+        "Configure immutable resource storage before selecting uploaded assets or fonts.",
+      );
+    }
+    const assets: AssetDeclaration[] = [];
+    const assetVersions: ManualResourceVersions["assets"] = [];
+    for (const resourceId of selection.assetIds) {
+      const resource = await this.#resourceStore.findById(workspaceId, resourceId);
+      if (resource?.workspaceId !== workspaceId || resource.kind !== "raster-asset") {
+        throw resourceNotFound();
+      }
+      assets.push({
+        id: resource.id,
+        mimeType: resource.mediaType,
+        sha256: resource.contentHash,
+        width: resource.width,
+        height: resource.height,
+        origin: { ...resource.origin },
+      });
+      assetVersions.push({
+        id: resource.id,
+        sha256: resource.contentHash,
+        origin: { ...resource.origin },
+        license: { ...resource.license },
+      });
+    }
+    const fonts: FontDeclaration[] = [];
+    const fontVersions: ManualResourceVersions["fonts"] = [];
+    const fontFaces = new Set<string>();
+    for (const resourceId of selection.fontIds) {
+      const resource = await this.#resourceStore.findById(workspaceId, resourceId);
+      if (resource?.workspaceId !== workspaceId || resource.kind !== "font") {
+        throw resourceNotFound();
+      }
+      const face = [resource.family, resource.weight.toString(), resource.style].join(
+        "\u0000",
+      );
+      if (fontFaces.has(face)) {
+        throw invalidDocument([
+          {
+            path: "draft.resources.fontIds",
+            code: "DUPLICATE_FONT_FACE_SELECTION",
+            message:
+              "Select only one immutable version for each font family, weight, and style.",
+          },
+        ]);
+      }
+      fontFaces.add(face);
+      fonts.push({
+        family: resource.family,
+        weight: resource.weight,
+        style: resource.style,
+        sha256: resource.contentHash,
+      });
+      fontVersions.push({
+        id: resource.id,
+        family: resource.family,
+        weight: resource.weight,
+        style: resource.style,
+        sha256: resource.contentHash,
+        origin: { ...resource.origin },
+        license: { ...resource.license },
+      });
+    }
+    assetVersions.sort((left, right) => compareCanonicalStrings(left.id, right.id));
+    fontVersions.sort(compareResourceFontVersions);
+    return {
+      assets,
+      fonts,
+      resourceVersions: {
+        assets: assetVersions,
+        fonts: fontVersions,
+      },
+      resourceReferences: [
+        ...assetVersions.map((resource, ordinal) => ({
+          resourceId: resource.id,
+          resourceKind: "raster-asset" as const,
+          ordinal,
+        })),
+        ...fontVersions.map((resource, ordinal) => ({
+          resourceId: resource.id,
+          resourceKind: "font" as const,
+          ordinal,
+        })),
+      ],
+    };
+  }
+
+  async #renderDocument(
+    workspaceId: string,
+    document: DesignDocument,
+  ): Promise<{
+    document: DesignDocument;
+    qualityIssues: QualityIssue[];
+    outputs: RenderedArtifact[];
+  }> {
+    let admitted:
+      | { readonly accepted: true; readonly value: PreviewResponse }
+      | { readonly accepted: false };
+    try {
+      admitted = await this.#renderAdmission.run(workspaceId, async () => {
+        const resources = await this.#resourceResolver.resolve({
+          workspaceId,
+          document,
+        });
+        return this.#render(document, resources);
+      });
+    } catch (error) {
+      if (
+        error instanceof RenderResourceResolutionError &&
+        error.code === "RESOURCE_LIMIT_EXCEEDED"
+      ) {
+        throw fault(
+          413,
+          "RENDER_REJECTED",
+          "Render resources are too large",
+          "The selected assets or fonts exceed the bounded renderer resource profile.",
+        );
+      }
+      throw fault(
+        503,
+        "RENDER_UNAVAILABLE",
+        "Renderer unavailable",
+        "The isolated renderer did not complete the request.",
+      );
+    }
+    if (!admitted.accepted) {
+      throw fault(
+        429,
+        "RENDER_CAPACITY_REACHED",
+        "Renderer is busy",
+        "Wait for the current bounded preview to finish before starting another.",
+      );
+    }
+    const response = admitted.value;
+    if (!response.ok) {
+      const status =
+        response.status === 413
+          ? 413
+          : response.status === 504
+            ? 504
+            : response.status >= 500
+              ? 503
+              : response.status === 429
+                ? 429
+                : 422;
+      throw fault(
+        status,
+        response.status >= 500 ? "RENDER_UNAVAILABLE" : "RENDER_REJECTED",
+        response.title,
+        response.detail,
+        {
+          ...(response.problems === undefined ? {} : { problems: response.problems }),
+          ...(response.qualityIssues === undefined
+            ? {}
+            : { qualityIssues: response.qualityIssues }),
+        },
+      );
+    }
+    if (canonicalJson(response.document) !== canonicalJson(document)) {
+      throw storeUnavailable();
+    }
+    return {
+      document: response.document,
+      qualityIssues: response.qualityIssues,
+      outputs: response.outputs,
+    };
+  }
+
+  #newSession(userId: string, now: Date): NewSessionBundle {
+    const token = this.#secretFactory.createToken();
+    const csrfToken = this.#secretFactory.createToken();
+    return {
+      record: {
+        id: this.#secretFactory.createId(),
+        userId,
+        tokenHash: hashSecret(token),
+        csrfTokenHash: hashSecret(csrfToken),
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + SESSION_DURATION_MS),
+      },
+      token,
+      csrfToken,
+    };
+  }
+
+  async #sessionGrant(
+    state: AppState,
+    input: {
+      session: NewSessionBundle;
+      user: SessionGrant["user"];
+    },
+  ): Promise<SessionGrant> {
+    return {
+      kind: "session-granted",
+      sessionToken: input.session.token,
+      csrfToken: input.session.csrfToken,
+      expiresAt: input.session.record.expiresAt.toISOString(),
+      user: input.user,
+      workspaces: await state.listMemberships(input.user.id),
+    };
+  }
+
+  #audit(
+    state: AppState,
+    input: Omit<Parameters<AppState["appendAuditEvent"]>[0], "id">,
+  ): Promise<void> {
+    return state.appendAuditEvent({
+      id: this.#secretFactory.createId(),
+      ...input,
+    });
+  }
+}
+
+function createWorkspaceRecord(
+  id: string,
+  name: string,
+  createdBy: string,
+  createdAt: Date,
+) {
+  return {
+    id,
+    name,
+    slug: `${slugBase(name)}-${id.replaceAll("-", "").slice(0, 8)}`,
+    createdBy,
+    createdAt,
+  };
+}
+
+function slugBase(name: string): string {
+  const slug = name
+    .normalize("NFKD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/^-|-$/g, "")
+    .slice(0, 48);
+  return slug === "" ? "workspace" : slug;
+}
+
+function brandVersion(sequence: number): string {
+  return `1.0.${(sequence - 1).toString()}`;
+}
+
+function normalizeEmailOrFail(email: string): NormalizedEmail {
+  try {
+    return normalizeEmail(email);
+  } catch {
+    throw fault(
+      422,
+      "INVALID_INPUT",
+      "Email address needs attention",
+      "Enter a complete email address, such as name@example.com.",
+    );
+  }
+}
+
+function requireValidPassword(password: string): void {
+  const validation = validatePassword(password);
+  if (validation.valid) return;
+  throw fault(
+    422,
+    "INVALID_INPUT",
+    "Password needs attention",
+    "Use a password between 12 and 128 characters.",
+  );
+}
+
+function toRevisionProjection(revision: StoredDesignRevision): QueryProjection {
+  return {
+    kind: "design-revision",
+    designId: revision.designId,
+    designName: revision.designName,
+    revisionId: revision.revisionId,
+    revisionNumber: revision.revisionNumber,
+    ...(revision.parentRevisionId === undefined
+      ? {}
+      : { parentRevisionId: revision.parentRevisionId }),
+    brandSnapshotId: revision.brandSnapshotId,
+    documentHash: revision.canonicalHash,
+    document: revision.document,
+    createdAt: revision.createdAt.toISOString(),
+    ...(revision.changeNote === undefined ? {} : { changeNote: revision.changeNote }),
+  };
+}
+
+function compareResourceFontVersions(
+  left: ManualResourceVersions["fonts"][number],
+  right: ManualResourceVersions["fonts"][number],
+): number {
+  return compareCanonicalStrings(
+    [left.family, left.weight.toString(), left.style, left.id].join("\u0000"),
+    [right.family, right.weight.toString(), right.style, right.id].join("\u0000"),
+  );
+}
+
+function toRenderJobProjection(job: RenderJobView): QueryProjection {
+  return {
+    kind: "render-job",
+    jobId: job.jobId,
+    workspaceId: job.workspaceId,
+    designId: job.designId,
+    revisionId: job.revisionId,
+    state: job.state,
+    attemptCount: job.attemptCount,
+    maxAttempts: job.maxAttempts,
+    createdAt: job.createdAt.toISOString(),
+    updatedAt: job.updatedAt.toISOString(),
+    ...(job.finishedAt === undefined
+      ? {}
+      : { finishedAt: job.finishedAt.toISOString() }),
+    ...(job.lastError === undefined ? {} : { lastError: { ...job.lastError } }),
+    outputs: job.outputs.map((output) => ({
+      format: output.format,
+      mimeType: output.mimeType,
+      artifactSha256: output.artifactSha256,
+      artifactByteSize: output.artifactByteSize,
+      manifestSha256: output.manifestSha256,
+      manifestByteSize: output.manifestByteSize,
+      fingerprint: output.fingerprint,
+    })),
+  };
+}
+
+function success<T>(value: T, status: 200 | 201 = 200): AppResult<T> {
+  return { ok: true, status, value };
+}
+
+function invalidInput(problems: ValidationProblem[]): AppFailure {
+  return failure(
+    422,
+    "INVALID_INPUT",
+    "Request needs attention",
+    "Review the structured fields and try again.",
+    { problems },
+  );
+}
+
+function invalidDocument(problems: ValidationProblem[]): WorkflowFault {
+  return fault(
+    422,
+    "INVALID_DESIGN_DOCUMENT",
+    "Design document needs attention",
+    "Core rejected the constructed manual design document.",
+    { problems },
+  );
+}
+
+function invalidInvitation(): WorkflowFault {
+  return fault(
+    404,
+    "INVITATION_INVALID_OR_EXPIRED",
+    "Invitation unavailable",
+    "The invitation is invalid, expired, revoked, already used, or bound to another email address.",
+  );
+}
+
+function registrationClosed(): WorkflowFault {
+  return fault(
+    403,
+    "REGISTRATION_CLOSED",
+    "Registration is unavailable",
+    "Sign in with an existing account or join with a valid invitation.",
+  );
+}
+
+function authenticationRequired(): WorkflowFault {
+  return fault(
+    401,
+    "AUTH_REQUIRED",
+    "Sign in required",
+    "Sign in with an active Glyphkiln account to continue.",
+  );
+}
+
+function loginThrottled(): WorkflowFault {
+  return fault(
+    429,
+    "AUTH_THROTTLED",
+    "Sign in temporarily paused",
+    "Wait 15 minutes before trying this email address again.",
+  );
+}
+
+function roleForbidden(): WorkflowFault {
+  return fault(
+    403,
+    "ROLE_FORBIDDEN",
+    "Workspace role does not permit this action",
+    "Ask a workspace administrator for the required access.",
+  );
+}
+
+function finalWorkspaceOwner(): WorkflowFault {
+  return fault(
+    409,
+    "FINAL_WORKSPACE_OWNER",
+    "Workspace needs an active owner",
+    "Add another owner through a future ownership-transfer flow before demoting or revoking the final active owner.",
+  );
+}
+
+function workspaceCapacityReached(): WorkflowFault {
+  return fault(
+    409,
+    "WORKSPACE_CAPACITY_REACHED",
+    "Workspace capacity reached",
+    "This account or installation has reached its configured workspace limit.",
+  );
+}
+
+function resourceNotFound(): WorkflowFault {
+  return fault(
+    404,
+    "RESOURCE_NOT_FOUND",
+    "Resource unavailable",
+    "The resource does not exist in this workspace or is not available to this account.",
+  );
+}
+
+function revisionConflict(): WorkflowFault {
+  return fault(
+    409,
+    "REVISION_CONFLICT",
+    "A newer revision already exists",
+    "Reopen the latest revision, review the changes, and revise it again.",
+  );
+}
+
+function renderQueueUnavailable(): WorkflowFault {
+  return fault(
+    503,
+    "RENDER_UNAVAILABLE",
+    "Async exports are unavailable",
+    "The durable render queue is not ready. Try again after the service recovers.",
+  );
+}
+
+function emailAlreadyRegistered(): WorkflowFault {
+  return fault(
+    409,
+    "EMAIL_ALREADY_REGISTERED",
+    "Account already exists",
+    "Sign in with this email address instead.",
+  );
+}
+
+function storeUnavailable(): WorkflowFault {
+  return fault(
+    503,
+    "STORE_UNAVAILABLE",
+    "Stored state could not be trusted",
+    "Glyphkiln could not safely read the requested immutable record.",
+  );
+}
+
+function fault(
+  status: AppFailure["status"],
+  code: AppFailureCode,
+  title: string,
+  detail: string,
+  additions: Partial<AppFailure["error"]> = {},
+): WorkflowFault {
+  return new WorkflowFault(failure(status, code, title, detail, additions));
+}
+
+function failure(
+  status: AppFailure["status"],
+  code: AppFailureCode,
+  title: string,
+  detail: string,
+  additions: Partial<AppFailure["error"]> = {},
+): AppFailure {
+  return {
+    ok: false,
+    status,
+    error: { code, title, detail, ...additions },
+  };
+}
+
+function mapUnexpectedFailure(error: unknown): AppFailure {
+  if (error instanceof WorkflowFault) return error.failure;
+  return failure(
+    503,
+    "STORE_UNAVAILABLE",
+    "Application state unavailable",
+    "Glyphkiln could not complete the operation safely. Try again after the service recovers.",
+  );
+}
+
+function toValidationProblem(issue: {
+  path: PropertyKey[];
+  code: string;
+  message: string;
+}): ValidationProblem {
+  return {
+    path: issue.path.map(String).join("."),
+    code: issue.code,
+    message: issue.message,
+  };
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "23505"
+  );
+}
+
+function validateWorkspaceCreationLimits(
+  input: WorkspaceCreationLimits,
+): WorkspaceCreationLimits {
+  if (
+    !Number.isSafeInteger(input.maximumWorkspacesPerInstallation) ||
+    input.maximumWorkspacesPerInstallation < 1 ||
+    input.maximumWorkspacesPerInstallation > 100_000 ||
+    !Number.isSafeInteger(input.maximumWorkspacesPerUser) ||
+    input.maximumWorkspacesPerUser < 1 ||
+    input.maximumWorkspacesPerUser > 1_000 ||
+    input.maximumWorkspacesPerUser > input.maximumWorkspacesPerInstallation
+  ) {
+    throw new RangeError("Workspace creation limits are outside the supported range.");
+  }
+  return Object.freeze({ ...input });
+}

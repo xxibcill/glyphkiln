@@ -7,7 +7,8 @@
   prove every accepted string correct. Hyphenation dictionaries and explicit
   OpenType features are also absent.
 - Inter normal variable is the only bundled development font. Additional font
-  bytes work through the SDK but the CLI has no font/asset bundle option yet.
+  bytes work through the SDK and the validated local CLI resource-bundle
+  adapter.
 - Asset inputs are PNG/JPEG only. Core fully decodes bounded pixels but does not
   replace an upload malware scanner or normalize color profiles/metadata.
 - Template `1.1.x` is semantic and constrained; arbitrary freeform positions,
@@ -17,8 +18,9 @@
   per-pixel background sample.
 - C2PA signing, accessibility metadata beyond SVG title/description, and ICC
   color-profile control are future work.
-- The CLI does not yet accept a validated local asset/font bundle. Documents
-  requiring external resources should use the SDK.
+- CLI resource bundles resolve only local regular files beneath one explicit
+  root. They do not scan malware, establish license rights, normalize color
+  profiles, or fetch remote resources.
 - `renderGraphicIsolated` enforces a child-process timeout, V8 memory/stack
   limits, serialized concurrency, and Node filesystem/subprocess permissions.
   Kernel-level tenant, credential, and network policies remain optional host

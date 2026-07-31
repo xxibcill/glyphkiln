@@ -29,6 +29,11 @@ elements or external font references. The application/operator remains
 responsible for commercial-use and redistribution rights for caller-supplied
 font bytes. Core's Apache license does not grant rights to third-party fonts.
 
+CLI users can supply those bytes with a validated
+[offline resource bundle](resource-bundles.md). Every caller-supplied bundle
+font requires an exact family, weight, style, and SHA-256 declaration in the
+design. The built-in Inter normal variable face does not need a bundle entry.
+
 Font shaping and text-layout capability diagnostics are separate. Before font
 resolution, Core classifies known bidi-control, strong right-to-left, and
 vertical-primary input using generated Unicode 17.0.0 tables. This prevents a
