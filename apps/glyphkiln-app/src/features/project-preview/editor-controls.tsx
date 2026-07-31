@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ChangeEvent, ReactNode, RefObject, SyntheticEvent } from "react";
 
+import { assertUnreachable } from "./assert-unreachable";
 import type {
   BrandFormState,
   CompositionFormState,
@@ -628,7 +629,8 @@ function TemplateCopyFields({
   failure: PreviewFailure | null;
   updateCopy: (update: Partial<CopyFormState>) => void;
 }) {
-  switch (state.composition.templateId) {
+  const templateId = state.composition.templateId;
+  switch (templateId) {
     case "product-announcement": {
       const copy = state.copy.productAnnouncement;
       const update = (next: Partial<CopyFormState["productAnnouncement"]>): void => {
@@ -709,7 +711,12 @@ function TemplateCopyFields({
               }}
               required
               maxLength={80}
-              error={copyIssueMessage(failure, "statistic", "value", copy.value)}
+              error={copyIssueMessage(
+                failure,
+                structuredFieldLayerIds("statistic", "value"),
+                "value",
+                copy.value,
+              )}
             />
             <TextField
               id="statistic-trend"
@@ -719,7 +726,12 @@ function TemplateCopyFields({
                 update({ trend });
               }}
               maxLength={80}
-              error={copyIssueMessage(failure, "statistic", "trend", copy.trend)}
+              error={copyIssueMessage(
+                failure,
+                structuredFieldLayerIds("statistic", "trend"),
+                "trend",
+                copy.trend,
+              )}
             />
           </div>
           <TextAreaField
@@ -732,7 +744,12 @@ function TemplateCopyFields({
             required
             maxLength={240}
             rows={3}
-            error={copyIssueMessage(failure, "statistic", "label", copy.label)}
+            error={copyIssueMessage(
+              failure,
+              structuredFieldLayerIds("statistic", "label"),
+              "label",
+              copy.label,
+            )}
           />
         </div>
       );
@@ -847,6 +864,7 @@ function TemplateCopyFields({
               onChange={(slideNumber) => {
                 update({ slideNumber });
               }}
+              required
               maxLength={80}
               hint="Visible copy, for example 01 / 06."
               error={copyIssueMessage(
@@ -905,7 +923,7 @@ function TemplateCopyFields({
                   maxLength={80}
                   error={copyIssueMessage(
                     failure,
-                    "carousel-statistic",
+                    structuredFieldLayerIds("carousel-statistic", "value"),
                     "value",
                     copy.value,
                   )}
@@ -920,7 +938,7 @@ function TemplateCopyFields({
                   maxLength={80}
                   error={copyIssueMessage(
                     failure,
-                    "carousel-statistic",
+                    structuredFieldLayerIds("carousel-statistic", "trend"),
                     "trend",
                     copy.trend,
                   )}
@@ -938,7 +956,7 @@ function TemplateCopyFields({
                 rows={3}
                 error={copyIssueMessage(
                   failure,
-                  "carousel-statistic",
+                  structuredFieldLayerIds("carousel-statistic", "label"),
                   "label",
                   copy.label,
                 )}
@@ -968,6 +986,8 @@ function TemplateCopyFields({
         </div>
       );
     }
+    default:
+      return assertUnreachable(templateId, "preview template");
   }
 }
 
@@ -1211,17 +1231,25 @@ function problemMessage(
 
 function copyIssueMessage(
   failure: PreviewFailure | null,
-  layerId: string,
+  layerIds: string | readonly string[],
   fieldName: string,
   value: string,
 ): string | undefined {
+  const acceptedLayerIds = typeof layerIds === "string" ? [layerIds] : layerIds;
   const qualityIssue = failure?.qualityIssues?.find(
-    (issue) => issue.layerId === layerId,
+    (issue) => issue.layerId !== undefined && acceptedLayerIds.includes(issue.layerId),
   );
   if (qualityIssue !== undefined) return qualityIssue.message;
   if (value.trim() !== "") return undefined;
   return failure?.problems?.find((problem) => problem.path.endsWith(`.${fieldName}`))
     ?.message;
+}
+
+function structuredFieldLayerIds(
+  layerId: string,
+  fieldName: string,
+): readonly string[] {
+  return [layerId, `${layerId}-${fieldName}`];
 }
 
 function shortHash(hash: string): string {

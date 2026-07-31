@@ -1,4 +1,8 @@
-export const DESIGN_DOCUMENT_VERSION = "1.0.0" as const;
+export const DESIGN_DOCUMENT_VERSION = "1.1.0" as const;
+export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
+  "1.0.0",
+  DESIGN_DOCUMENT_VERSION,
+] as const);
 export const MANIFEST_VERSION = "1.1.0" as const;
 export const RENDERER_NAME = "glyphkiln-svg" as const;
 export const RENDERER_VERSION = "0.2.0" as const;

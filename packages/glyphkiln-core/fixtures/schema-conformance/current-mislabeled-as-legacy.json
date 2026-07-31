@@ -1,10 +1,7 @@
 {
-  "schemaVersion": "1.1.0",
-  "id": "example-tiktok-carousel-slide-01",
-  "template": {
-    "id": "tiktok-carousel-slide",
-    "version": "1.0.1"
-  },
+  "schemaVersion": "1.0.0",
+  "id": "schema-conformance-current-mislabeled-as-legacy",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.1" },
   "format": "tiktok-carousel",
   "seed": "swipe-ledger-v1-slide-01",
   "mode": "light",
@@ -41,12 +38,7 @@
     "borderRadii": [0, 8, 16],
     "visualDensity": "balanced",
     "preferredProceduralStyles": ["recursive-subdivision"],
-    "safeArea": {
-      "top": 0.07,
-      "right": 0.16,
-      "bottom": 0.18,
-      "left": 0.07
-    },
+    "safeArea": { "top": 0.07, "right": 0.16, "bottom": 0.18, "left": 0.07 },
     "prohibitedColors": [],
     "prohibitedStyles": []
   },
@@ -84,10 +76,7 @@
     }
   ],
   "layers": [
-    {
-      "id": "background",
-      "type": "background"
-    },
+    { "id": "background", "type": "background" },
     {
       "id": "kiln-witness",
       "type": "procedural-decoration",
@@ -96,23 +85,10 @@
       "density": 0.62,
       "complexity": 0.58,
       "contrast": 0.3,
-      "quietRegion": {
-        "x": 0.07,
-        "y": 0.105,
-        "width": 0.7,
-        "height": 0.48
-      }
+      "quietRegion": { "x": 0.07, "y": 0.105, "width": 0.7, "height": 0.48 }
     },
-    {
-      "id": "slide-number",
-      "type": "badge",
-      "text": "01 / 06"
-    },
-    {
-      "id": "eyebrow",
-      "type": "eyebrow",
-      "text": "GLYPHKILN / SWIPE LEDGER"
-    },
+    { "id": "slide-number", "type": "badge", "text": "01 / 06" },
+    { "id": "eyebrow", "type": "eyebrow", "text": "GLYPHKILN / SWIPE LEDGER" },
     {
       "id": "headline",
       "type": "headline",
@@ -123,11 +99,7 @@
       "type": "subtitle",
       "text": "That is not a creative problem. It is a rendering-contract problem."
     },
-    {
-      "id": "cta",
-      "type": "cta",
-      "text": "SWIPE TO INSPECT →"
-    },
+    { "id": "cta", "type": "cta", "text": "SWIPE TO INSPECT →" },
     {
       "id": "footer",
       "type": "footer",

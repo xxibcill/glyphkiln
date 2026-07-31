@@ -53,6 +53,7 @@ describe("EditorControls", () => {
     const narrativeMarkup = renderTiktokControls("narrative");
     expect(narrativeMarkup).toContain("TikTok carousel slide");
     expect(narrativeMarkup).toContain('id="tiktok-slide-number"');
+    expect(narrativeMarkup).toMatch(/id="tiktok-slide-number"[^>]*required=""/);
     expect(narrativeMarkup).toContain('id="tiktok-headline"');
     expect(narrativeMarkup).toContain('id="tiktok-subtitle"');
     expect(narrativeMarkup).not.toContain('id="tiktok-statistic-value"');
@@ -61,6 +62,24 @@ describe("EditorControls", () => {
     expect(metricMarkup).toContain('id="tiktok-statistic-value"');
     expect(metricMarkup).toContain('id="tiktok-statistic-label"');
     expect(metricMarkup).not.toContain('id="tiktok-subtitle"');
+  });
+
+  it("associates synthetic metric quality issues with their editor fields", () => {
+    const metricFailure: PreviewFailure = {
+      ...FAILURE,
+      qualityIssues: [
+        {
+          code: "TEXT_OVERFLOW",
+          severity: "error",
+          message: "The metric value is too long.",
+          layerId: "carousel-statistic-value",
+        },
+      ],
+    };
+
+    const markup = renderTiktokControls("metric", metricFailure);
+    expect(markup).toContain("The metric value is too long.");
+    expect(markup).toContain('aria-describedby="tiktok-statistic-value-error"');
   });
 });
 
@@ -80,7 +99,10 @@ function renderControls(validationIsStale: boolean): string {
   );
 }
 
-function renderTiktokControls(mode: "narrative" | "metric"): string {
+function renderTiktokControls(
+  mode: "narrative" | "metric",
+  response: PreviewFailure | null = null,
+): string {
   const catalog = createPreviewCatalog();
   const state = createInitialPreviewForm(catalog);
   state.composition.templateId = "tiktok-carousel-slide";
@@ -91,7 +113,7 @@ function renderTiktokControls(mode: "narrative" | "metric"): string {
     <EditorControls
       catalog={catalog}
       state={state}
-      response={null}
+      response={response}
       isRendering={false}
       hasUnrenderedEdits={false}
       validationIsStale={false}

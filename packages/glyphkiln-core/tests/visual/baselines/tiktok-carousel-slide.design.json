@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "id": "example-tiktok-carousel-slide-01",
   "template": {
     "id": "tiktok-carousel-slide",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "format": "tiktok-carousel",
   "seed": "swipe-ledger-v1-slide-01",

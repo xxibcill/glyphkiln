@@ -1,4 +1,5 @@
 import type {
+  DESIGN_DOCUMENT_VERSION,
   DesignDocument,
   FormatId,
   OutputFormat,
@@ -31,7 +32,7 @@ export type PreviewCatalogProceduralStyle = {
 };
 
 export type PreviewCatalog = {
-  schemaVersion: string;
+  schemaVersion: typeof DESIGN_DOCUMENT_VERSION;
   manifestVersion: string;
   coreVersion: string;
   renderer: {

@@ -12,8 +12,8 @@ import type { TemplateDefinition } from "./types.js";
 
 export const tiktokCarouselSlideTemplate: TemplateDefinition = {
   id: "tiktok-carousel-slide",
-  version: "1.0.0",
-  requiredLayers: ["headline"],
+  version: "1.0.1",
+  requiredLayers: ["badge", "headline"],
   supportedLayers: [
     "background",
     "procedural-decoration",
@@ -256,24 +256,6 @@ function addRegistrationFrame(canvas: TemplateCanvas, frame: RegistrationFrame):
       fill: canvas.accentColor,
     },
   );
-
-  const progressY = sheetY + sheetHeight + 70 * unit;
-  const progressWidths = [68, 30, 30] as const;
-  let progressX = copyX;
-  for (const [index, width] of progressWidths.entries()) {
-    canvas.scene.elements.push({
-      id: `carousel-progress-${index + 1}`,
-      type: "rect",
-      x: progressX,
-      y: progressY,
-      width: width * unit,
-      height: 8 * unit,
-      fill: index === 0 ? canvas.accentColor : surfaceColor,
-      stroke: canvas.textColor,
-      strokeWidth: index === 0 ? 0 : unit,
-    });
-    progressX += (width + 13) * unit;
-  }
 }
 
 function addSlideBadge(

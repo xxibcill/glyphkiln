@@ -6,6 +6,11 @@ explain and reproduce each output.
 
 ## Language
 
+**App Alpha**:
+A self-hostable evaluation release for operators who restrict access to trusted
+participants; it is not a supported public-internet service.
+_Avoid_: Production release, public beta
+
 **Brand kit**:
 A named lineage of brand decisions whose history is published as snapshots.
 _Avoid_: Mutable brand snapshot

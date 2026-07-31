@@ -68,7 +68,7 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
-    "658fb0996253f8f367a488cf9c25aa2d5ae8314b237cd154278f106f959ab9f0",
+    "e3f130df329dda5b2387145d1a77d737a1d7ccfa4b7f8e0aa55472b3a3e3d158",
 } as const satisfies Record<TemplateId, string>;
 
 describe("buildPreviewDocument", () => {
@@ -162,12 +162,16 @@ describe("buildPreviewDocument", () => {
     expectCoreValid(build(article));
 
     const tiktok = createFormForTemplate("tiktok-carousel-slide");
-    tiktok.copy.tiktokCarouselSlide.slideNumber = "";
     tiktok.copy.tiktokCarouselSlide.eyebrow = " ";
     tiktok.copy.tiktokCarouselSlide.subtitle = "";
     tiktok.copy.tiktokCarouselSlide.cta = "\t";
     tiktok.copy.tiktokCarouselSlide.footer = "\n";
-    expectLayerIds(build(tiktok)).toEqual(["background", "procedure", "headline"]);
+    expectLayerIds(build(tiktok)).toEqual([
+      "background",
+      "procedure",
+      "slide-number",
+      "headline",
+    ]);
     expectCoreValid(build(tiktok));
   });
 
@@ -247,6 +251,13 @@ describe("buildPreviewDocument", () => {
       templateId: "tiktok-carousel-slide" as const,
       clear: (state: PreviewFormState) => {
         state.copy.tiktokCarouselSlide.headline = " ";
+      },
+    },
+    {
+      name: "TikTok carousel slide number",
+      templateId: "tiktok-carousel-slide" as const,
+      clear: (state: PreviewFormState) => {
+        state.copy.tiktokCarouselSlide.slideNumber = " ";
       },
     },
     {

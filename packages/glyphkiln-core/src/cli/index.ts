@@ -115,7 +115,9 @@ async function renderCommand(
 function validateCommand(input: unknown, io: CliIo): number {
   const result = validateDesignDocument(input);
   if (result.success) {
-    io.stdout(`Valid Glyphkiln design document ${result.data.id} (schema 1.0.0).`);
+    io.stdout(
+      `Valid Glyphkiln design document ${result.data.id} (schema ${result.data.schemaVersion}).`,
+    );
     return 0;
   }
   io.stderr("Design document is invalid:");

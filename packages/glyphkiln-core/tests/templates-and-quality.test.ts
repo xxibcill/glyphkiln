@@ -101,7 +101,7 @@ describe("template registry", () => {
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.0",
+      "tiktok-carousel-slide": "1.0.1",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -175,7 +175,7 @@ describe("template registry", () => {
       narrativeResult.outputs[0]?.bytes,
     );
     expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
-      "8f70c6b18068c9bb114ba1635733172b4274bb559f1a213c2e7268c6273b80da",
+      "b0cfb72d796af5e3b20b96e990074fa5f414e95e70e3ad3c959fdf74594563c5",
     );
 
     metric.layers.push({
@@ -189,6 +189,56 @@ describe("template registry", () => {
       "CONFLICTING_VISIBLE_LAYERS",
       "conflicting-subtitle",
     );
+  });
+
+  it("requires visible slide numbering on every TikTok carousel slide", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.layers = document.layers.filter((layer) => layer.type !== "badge");
+
+    try {
+      await renderGraphic(document);
+      expect.fail("Expected the missing slide number to block rendering.");
+    } catch (error) {
+      const issue = findQualityIssue(error, "REQUIRED_LAYER_MISSING");
+      expect(error).toMatchObject({ code: "QUALITY_VALIDATION_FAILED" });
+      expect(issue["details"]).toMatchObject({ layerType: "badge" });
+    }
+  });
+
+  it("does not render progress chrome that can contradict the slide number", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const badge = document.layers.find((layer) => layer.type === "badge");
+    if (badge?.type !== "badge") {
+      throw new Error("The carousel example must include a slide-number badge.");
+    }
+    badge.text = "04 / 06";
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(markup).toContain("slide-number");
+    expect(markup).not.toContain("carousel-progress-");
+  });
+
+  it("enforces the declared TikTok headline line limit", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline?.type !== "headline") {
+      throw new Error("The carousel example must include a headline.");
+    }
+    headline.text = "A deliberately oversized carousel headline ".repeat(30);
+    headline.maxLines = 20;
+
+    try {
+      await renderGraphic(document);
+      expect.fail("Expected the oversized headline to block rendering.");
+    } catch (error) {
+      const issue = findQualityIssue(error, "TEXT_OVERFLOW");
+      expect(issue).toMatchObject({ layerId: "headline" });
+      expect(issue["details"]).toMatchObject({
+        maximumLines:
+          TEMPLATE_REGISTRY["tiktok-carousel-slide"].constraints.headlineMaximumLines,
+      });
+    }
   });
 
   it("allows a missing optional subtitle", async () => {
@@ -411,3 +461,22 @@ describe("template registry", () => {
     }
   });
 });
+
+function findQualityIssue(error: unknown, code: string): Record<string, unknown> {
+  expect(error).toBeInstanceOf(GlyphkilnError);
+  const issues =
+    error instanceof GlyphkilnError ? error.details?.["issues"] : undefined;
+  if (!Array.isArray(issues)) {
+    throw new Error("Expected structured quality issues.");
+  }
+  const issue: unknown = issues.find(
+    (candidate: unknown) =>
+      typeof candidate === "object" &&
+      candidate !== null &&
+      (candidate as Record<string, unknown>)["code"] === code,
+  );
+  if (typeof issue !== "object" || issue === null) {
+    throw new Error(`Expected quality issue "${code}".`);
+  }
+  return issue as Record<string, unknown>;
+}
