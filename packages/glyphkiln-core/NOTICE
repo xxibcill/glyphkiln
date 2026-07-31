@@ -10,5 +10,8 @@ Text-layout diagnostics include data derived from the Unicode Character
 Database 17.0.0, Copyright © 1991-2025 Unicode, Inc. Unicode data is distributed
 under the Unicode License v3 in vendor/unicode/LICENSE.txt.
 
+Thai text segmentation includes the BudouX 0.7.0 Thai model and a compatible
+scorer, Copyright 2021 Google LLC, distributed under Apache License 2.0.
+
 Production dependency names, pinned versions, and reviewed SPDX license
 identifiers are recorded in THIRD_PARTY_LICENSES.json.

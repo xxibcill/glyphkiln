@@ -99,12 +99,12 @@
     {
       "id": "headline",
       "type": "headline",
-      "text": "Turn structured content into reproducible graphics"
+      "text": "Turn structured content into reliable graphics"
     },
     {
       "id": "subtitle",
       "type": "subtitle",
-      "text": "A local, versioned workflow for teams who need the same pixels every time."
+      "text": "A local, versioned workflow for the same pixels on every render."
     },
     {
       "id": "cta",

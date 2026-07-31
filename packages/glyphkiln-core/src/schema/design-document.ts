@@ -108,18 +108,47 @@ const layerBase = {
   visible: z.boolean().default(true),
 };
 
+const keepTogetherPhrase = z
+  .string()
+  .min(1)
+  .max(200)
+  .refine((phrase) => phrase.trim() === phrase, {
+    message: "Keep-together phrases must not have leading or trailing whitespace.",
+  })
+  .refine((phrase) => !/[\r\n]/.test(phrase), {
+    message: "Keep-together phrases cannot cross an explicit line break.",
+  });
+
+const keepTogetherPhrases = z
+  .array(keepTogetherPhrase)
+  .max(20)
+  .refine((phrases) => new Set(phrases).size === phrases.length, {
+    message: "Keep-together phrases must be unique.",
+  });
+
+function textLayerFields<T extends string>(type: T) {
+  return {
+    ...layerBase,
+    type: z.literal(type),
+    text: z.string().min(1).max(2_000),
+    color: color.optional(),
+    fontFamily: z.string().min(1).max(120).optional(),
+    fontWeight: z.number().int().min(100).max(900).multipleOf(100).optional(),
+    fontSize: z.number().positive().max(512).optional(),
+    maxLines: z.number().int().positive().max(20).optional(),
+    align: z.enum(["left", "center", "right"]).optional(),
+  };
+}
+
+function legacyTextLayerSchema<T extends string>(type: T) {
+  return z.object(textLayerFields(type)).strict();
+}
+
 function textLayerSchema<T extends string>(type: T) {
   return z
     .object({
-      ...layerBase,
-      type: z.literal(type),
-      text: z.string().min(1).max(2_000),
-      color: color.optional(),
-      fontFamily: z.string().min(1).max(120).optional(),
-      fontWeight: z.number().int().min(100).max(900).multipleOf(100).optional(),
-      fontSize: z.number().positive().max(512).optional(),
-      maxLines: z.number().int().positive().max(20).optional(),
-      align: z.enum(["left", "center", "right"]).optional(),
+      ...textLayerFields(type),
+      keepTogether: keepTogetherPhrases.optional(),
     })
     .strict();
 }
@@ -136,86 +165,114 @@ function assetLayerSchema<T extends string>(type: T) {
     .strict();
 }
 
+const backgroundLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("background"),
+    color: color.optional(),
+  })
+  .strict();
+
+const proceduralDecorationLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("procedural-decoration"),
+    style: z.enum(PROCEDURAL_STYLE_IDS),
+    intensity: normalized,
+    density: normalized,
+    complexity: normalized,
+    contrast: normalized,
+    quietRegion: QuietRegionSchema,
+  })
+  .strict();
+
+const iconLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("icon"),
+    name: z.enum(["arrow-up-right", "check", "sparkles", "chart"]),
+    color: color.optional(),
+  })
+  .strict();
+
+const badgeLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("badge"),
+    text: z.string().min(1).max(80),
+    color: color.optional(),
+  })
+  .strict();
+
+const shapeLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("shape"),
+    shape: z.enum(["rectangle", "circle", "line"]),
+    color,
+    opacity: normalized.default(1),
+  })
+  .strict();
+
+const statisticLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("statistic"),
+    value: z.string().min(1).max(80),
+    label: z.string().min(1).max(240),
+    trend: z.string().min(1).max(80).optional(),
+  })
+  .strict();
+
+const chartLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("chart"),
+    chart: z.enum(["bar", "sparkline"]),
+    values: z
+      .array(
+        z
+          .object({
+            label: z.string().min(1).max(80),
+            value: z.number(),
+            color: color.optional(),
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(32),
+  })
+  .strict();
+
+const sharedLayerSchemas = [
+  backgroundLayerSchema,
+  proceduralDecorationLayerSchema,
+  assetLayerSchema("logo"),
+  assetLayerSchema("product-screenshot"),
+  assetLayerSchema("image"),
+  iconLayerSchema,
+  badgeLayerSchema,
+  shapeLayerSchema,
+  statisticLayerSchema,
+  chartLayerSchema,
+] as const;
+
+const LegacyLayerSchema = z.discriminatedUnion("type", [
+  ...sharedLayerSchemas,
+  legacyTextLayerSchema("headline"),
+  legacyTextLayerSchema("subtitle"),
+  legacyTextLayerSchema("eyebrow"),
+  legacyTextLayerSchema("cta"),
+  legacyTextLayerSchema("footer"),
+  legacyTextLayerSchema("attribution"),
+]);
+
 export const LayerSchema = z.discriminatedUnion("type", [
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("background"),
-      color: color.optional(),
-    })
-    .strict(),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("procedural-decoration"),
-      style: z.enum(PROCEDURAL_STYLE_IDS),
-      intensity: normalized,
-      density: normalized,
-      complexity: normalized,
-      contrast: normalized,
-      quietRegion: QuietRegionSchema,
-    })
-    .strict(),
+  ...sharedLayerSchemas,
   textLayerSchema("headline"),
   textLayerSchema("subtitle"),
   textLayerSchema("eyebrow"),
   textLayerSchema("cta"),
-  assetLayerSchema("logo"),
-  assetLayerSchema("product-screenshot"),
-  assetLayerSchema("image"),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("icon"),
-      name: z.enum(["arrow-up-right", "check", "sparkles", "chart"]),
-      color: color.optional(),
-    })
-    .strict(),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("badge"),
-      text: z.string().min(1).max(80),
-      color: color.optional(),
-    })
-    .strict(),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("shape"),
-      shape: z.enum(["rectangle", "circle", "line"]),
-      color: color,
-      opacity: normalized.default(1),
-    })
-    .strict(),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("statistic"),
-      value: z.string().min(1).max(80),
-      label: z.string().min(1).max(240),
-      trend: z.string().min(1).max(80).optional(),
-    })
-    .strict(),
-  z
-    .object({
-      ...layerBase,
-      type: z.literal("chart"),
-      chart: z.enum(["bar", "sparkline"]),
-      values: z
-        .array(
-          z
-            .object({
-              label: z.string().min(1).max(80),
-              value: z.number(),
-              color: color.optional(),
-            })
-            .strict(),
-        )
-        .min(2)
-        .max(32),
-    })
-    .strict(),
   textLayerSchema("footer"),
   textLayerSchema("attribution"),
 ]);
@@ -271,13 +328,22 @@ const DESIGN_DOCUMENT_1_0_0_FORMAT_IDS = [
   "youtube-thumbnail",
 ] as const;
 
+const DESIGN_DOCUMENT_1_1_0_FORMAT_IDS = [
+  "linkedin-landscape",
+  "instagram-square",
+  "instagram-portrait",
+  "instagram-story",
+  "tiktok-carousel",
+  "x-landscape",
+  "youtube-thumbnail",
+] as const;
+
 const designDocumentFields = {
   seed: z.string().min(1).max(256),
   mode: z.enum(["light", "dark"]).default("light"),
   brand: BrandSnapshotSchema,
   assets: z.array(AssetDeclarationSchema).max(100).default([]),
   fonts: z.array(FontDeclarationSchema).min(1).max(32),
-  layers: z.array(LayerSchema).min(1).max(100),
   metadata: z.record(z.string(), z.json()).optional(),
 };
 
@@ -285,7 +351,13 @@ function createVersionedDesignDocumentSchema<
   Version extends string,
   TemplateIds extends readonly [string, ...string[]],
   FormatIds extends readonly [string, ...string[]],
->(version: Version, templateIds: TemplateIds, formatIds: FormatIds) {
+  Layers extends z.ZodType,
+>(
+  version: Version,
+  templateIds: TemplateIds,
+  formatIds: FormatIds,
+  layerSchema: Layers,
+) {
   return z
     .object({
       schemaVersion: z.literal(version),
@@ -298,6 +370,7 @@ function createVersionedDesignDocumentSchema<
         .strict(),
       format: z.enum(formatIds),
       ...designDocumentFields,
+      layers: z.array(layerSchema).min(1).max(100),
     })
     .strict();
 }
@@ -306,18 +379,36 @@ const DesignDocumentV1_0_0Schema = createVersionedDesignDocumentSchema(
   "1.0.0",
   DESIGN_DOCUMENT_1_0_0_TEMPLATE_IDS,
   DESIGN_DOCUMENT_1_0_0_FORMAT_IDS,
+  LegacyLayerSchema,
 );
 
 const DesignDocumentV1_1_0Schema = createVersionedDesignDocumentSchema(
+  "1.1.0",
+  TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
+  LegacyLayerSchema,
+);
+
+const DesignDocumentV1_2_0Schema = createVersionedDesignDocumentSchema(
+  "1.2.0",
+  TEMPLATE_IDS,
+  DESIGN_DOCUMENT_1_1_0_FORMAT_IDS,
+  LayerSchema,
+);
+
+const DesignDocumentV1_3_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_VERSION,
   TEMPLATE_IDS,
   FORMAT_IDS,
+  LayerSchema,
 );
 
 export const DesignDocumentSchema = z
   .discriminatedUnion("schemaVersion", [
     DesignDocumentV1_0_0Schema,
     DesignDocumentV1_1_0Schema,
+    DesignDocumentV1_2_0Schema,
+    DesignDocumentV1_3_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
@@ -343,7 +434,8 @@ function checkUniqueIds(
 }
 
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
-export type DesignLayer = DesignDocument["layers"][number];
+export type DesignLayer =
+  z.infer<typeof LegacyLayerSchema> | z.infer<typeof LayerSchema>;
 export type BrandSnapshot = DesignDocument["brand"];
 export type AssetDeclaration = DesignDocument["assets"][number];
 export type FontDeclaration = DesignDocument["fonts"][number];
@@ -361,7 +453,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_1_0Schema>,
+  z.input<typeof DesignDocumentV1_2_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

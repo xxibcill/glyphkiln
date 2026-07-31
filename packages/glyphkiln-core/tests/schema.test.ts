@@ -55,9 +55,14 @@ describe("design document schema", () => {
     }
   });
 
-  it("keeps schema 1.0.0 readable while reserving the carousel contract for 1.1.0", async () => {
-    expect(DESIGN_DOCUMENT_VERSION).toBe("1.1.0");
-    expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual(["1.0.0", "1.1.0"]);
+  it("keeps legacy schemas readable while versioning new rendering controls", async () => {
+    expect(DESIGN_DOCUMENT_VERSION).toBe("1.3.0");
+    expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual([
+      "1.0.0",
+      "1.1.0",
+      "1.2.0",
+      "1.3.0",
+    ]);
 
     const legacy = await loadExample("product-announcement");
     expect(legacy.schemaVersion).toBe("1.0.0");
@@ -66,11 +71,41 @@ describe("design document schema", () => {
     const carousel = {
       ...(await loadExample("tiktok-carousel-slide")),
       schemaVersion: "1.1.0",
+      template: { id: "tiktok-carousel-slide", version: "1.0.2" },
+      format: "tiktok-carousel",
     };
     expect(validateDesignDocument(carousel).success).toBe(true);
     expect(
       validateDesignDocument({ ...carousel, schemaVersion: "1.0.0" }).success,
     ).toBe(false);
+  });
+
+  it("validates bounded keep-together phrases in schema 1.2.0 and newer", async () => {
+    const source = await loadExample("product-announcement");
+    const current = {
+      ...source,
+      schemaVersion: "1.2.0",
+      layers: source.layers.map((layer) =>
+        layer.type === "headline" ? { ...layer, keepTogether: ["ยังเดินต่อ"] } : layer,
+      ),
+    };
+    expect(validateDesignDocument(current).success).toBe(true);
+    expect(validateDesignDocument({ ...current, schemaVersion: "1.2.0" }).success).toBe(
+      true,
+    );
+    expect(validateDesignDocument({ ...current, schemaVersion: "1.1.0" }).success).toBe(
+      false,
+    );
+
+    const invalid = {
+      ...current,
+      layers: current.layers.map((layer) =>
+        layer.type === "headline"
+          ? { ...layer, keepTogether: [" duplicate", "duplicate\nphrase"] }
+          : layer,
+      ),
+    };
+    expect(validateDesignDocument(invalid).success).toBe(false);
   });
 
   it("rejects duplicate layer IDs", async () => {

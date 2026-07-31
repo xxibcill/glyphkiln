@@ -5,10 +5,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   FontRegistry,
+  LINE_BREAKING_POLICY_VERSION,
+  THAI_SEGMENTATION_POLICY_VERSION,
+  TYPOGRAPHY_ALGORITHM_VERSION,
   contrastRatio,
   fitText,
   isInside,
+  segmentThaiText,
   wrapText,
+  type TextMeasurer,
 } from "../src/index.js";
 
 const registry = new FontRegistry();
@@ -18,6 +23,17 @@ const baseStyle = {
   style: "normal" as const,
   fontSize: 30,
   lineHeight: 1.2,
+};
+
+const fixedWidthRegistry: TextMeasurer = {
+  measure: (text, _family, _weight, _style, fontSize) =>
+    Array.from(text).length * fontSize,
+};
+
+const fixedWidthStyle = {
+  ...baseStyle,
+  fontSize: 1,
+  lineHeight: 1,
 };
 
 describe("layout helpers", () => {
@@ -43,6 +59,86 @@ describe("layout helpers", () => {
 });
 
 describe("typography", () => {
+  it("uses pinned Thai segmentation independently from font rendering", () => {
+    expect(THAI_SEGMENTATION_POLICY_VERSION).toBe("budoux-th@0.7.0");
+    expect(LINE_BREAKING_POLICY_VERSION).toBe("balanced-lines@1.0.0");
+    expect(TYPOGRAPHY_ALGORITHM_VERSION).toBe("2.0.0");
+    expect(segmentThaiText("รายจ่ายบางก้อนยังเดินต่อ")).toEqual([
+      "รายจ่าย",
+      "บาง",
+      "ก้อน",
+      "ยัง",
+      "เดิน",
+      "ต่อ",
+    ]);
+  });
+
+  it("wraps the Thai reproduction only at linguistic boundaries", () => {
+    const wrapped = wrapText(
+      "วันที่บิลโรงพยาบาลปิด\nรายจ่ายบางก้อนยังเดินต่อ",
+      21,
+      fixedWidthStyle,
+      fixedWidthRegistry,
+    );
+
+    expect(wrapped.lines).toEqual([
+      "วันที่บิลโรงพยาบาลปิด",
+      "รายจ่ายบางก้อน",
+      "ยังเดินต่อ",
+    ]);
+    expect(wrapped.lines).not.toContain("เดิ");
+    expect(wrapped.lines).not.toContain("น");
+    expect(wrapped.brokeLongWord).toBe(false);
+  });
+
+  it("preserves explicit newlines while segmenting Thai paragraphs", () => {
+    const wrapped = wrapText(
+      "ประเทศไทยมีภาษาไทย\nรายจ่ายบางก้อน",
+      100,
+      fixedWidthStyle,
+      fixedWidthRegistry,
+    );
+    expect(wrapped.lines).toEqual(["ประเทศไทยมีภาษาไทย", "รายจ่ายบางก้อน"]);
+  });
+
+  it("keeps author-controlled Thai phrases together", () => {
+    const wrapped = wrapText(
+      "รายจ่ายบางก้อนยังเดินต่อ",
+      14,
+      fixedWidthStyle,
+      fixedWidthRegistry,
+      { keepTogether: ["ยังเดินต่อ"] },
+    );
+    expect(wrapped.lines).toEqual(["รายจ่ายบางก้อน", "ยังเดินต่อ"]);
+  });
+
+  it("shrinks Thai text when a smaller legal layout removes an orphan", () => {
+    const result = fitText({
+      text: "วันที่บิลโรงพยาบาลปิด",
+      registry: fixedWidthRegistry,
+      style: {
+        family: "Test",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1,
+      },
+      box: { x: 0, y: 0, width: 18, height: 10 },
+      preferredFontSize: 2,
+      minimumFontSize: 1,
+      maximumLines: 3,
+      layerId: "balanced-thai",
+    });
+    expect(result.fontSize).toBe(1);
+    expect(result.lines).toEqual(["วันที่บิล", "โรงพยาบาลปิด"]);
+    expect(result.orphanLines).toEqual([]);
+  });
+
+  it("preserves the existing greedy wrapping policy for English", () => {
+    expect(
+      wrapText("one two three four", 7, fixedWidthStyle, fixedWidthRegistry).lines,
+    ).toEqual(["one two", "three", "four"]);
+  });
+
   it("wraps words within a measured width", () => {
     const wrapped = wrapText(
       "Deterministic graphics stay reproducible",
@@ -138,6 +234,70 @@ describe("typography", () => {
         }),
       ]),
     );
+  });
+
+  it("only breaks a single oversized Thai word at minimum size and errors", () => {
+    const result = fitText({
+      text: "โรงพยาบาล",
+      registry: fixedWidthRegistry,
+      style: {
+        family: "Test",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1,
+      },
+      box: { x: 0, y: 0, width: 3, height: 20 },
+      preferredFontSize: 2,
+      minimumFontSize: 1,
+      maximumLines: 20,
+      layerId: "thai-word",
+    });
+    expect(result.fontSize).toBe(1);
+    const issue = result.issues.find(
+      (candidate) => candidate.code === "LINGUISTIC_WORD_BROKEN",
+    );
+    expect(issue).toMatchObject({
+      severity: "error",
+      layerId: "thai-word",
+    });
+    expect(issue?.details).toMatchObject({
+      token: "โรงพยาบาล",
+      segmentationPolicyVersion: THAI_SEGMENTATION_POLICY_VERSION,
+    });
+  });
+
+  it("does not silently split an oversized Thai word in fixed-size wrapping", () => {
+    const wrapped = wrapText("โรงพยาบาล", 3, fixedWidthStyle, fixedWidthRegistry);
+
+    expect(wrapped.lines).toEqual(["โรงพยาบาล"]);
+    expect(wrapped.width).toBeGreaterThan(3);
+    expect(wrapped.brokeLongWord).toBe(false);
+  });
+
+  it("reports an isolated final word as an orphan line", () => {
+    const result = fitText({
+      text: "one two three four",
+      registry: fixedWidthRegistry,
+      style: {
+        family: "Test",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1,
+      },
+      box: { x: 0, y: 0, width: 7, height: 3 },
+      preferredFontSize: 1,
+      minimumFontSize: 1,
+      maximumLines: 3,
+      layerId: "orphan",
+    });
+    const issue = result.issues.find((candidate) => candidate.code === "ORPHAN_LINE");
+    expect(issue).toMatchObject({ severity: "warning", layerId: "orphan" });
+    expect(issue?.details).toMatchObject({
+      affectedLine: "four",
+      phrase: "four",
+      finalLineToPreviousLineWidthRatio: 0.8,
+      lineBreakingPolicyVersion: LINE_BREAKING_POLICY_VERSION,
+    });
   });
 
   it("rejects unsupported fonts instead of substituting", () => {

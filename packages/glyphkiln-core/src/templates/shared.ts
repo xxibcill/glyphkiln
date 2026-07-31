@@ -143,6 +143,9 @@ export function addText(
       options.maximumLines,
     ),
     layerId: layer.id,
+    ...("keepTogether" in layer && layer.keepTogether !== undefined
+      ? { keepTogether: layer.keepTogether }
+      : {}),
   });
   const x =
     align === "center"

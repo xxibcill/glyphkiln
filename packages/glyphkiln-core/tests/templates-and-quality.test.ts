@@ -87,6 +87,55 @@ async function expectQualityIssue(
   }
 }
 
+async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
+  const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+  document.template.version = "1.0.1";
+  document.format = "tiktok-carousel";
+  document.brand.safeArea = { top: 0.07, right: 0.16, bottom: 0.18, left: 0.07 };
+  document.layers.splice(1, 0, {
+    id: "kiln-witness",
+    type: "procedural-decoration",
+    visible: true,
+    style: "recursive-subdivision",
+    intensity: 0.42,
+    density: 0.62,
+    complexity: 0.58,
+    contrast: 0.3,
+    quietRegion: { x: 0.07, y: 0.105, width: 0.7, height: 0.48 },
+  });
+  for (const layer of document.layers) {
+    if (layer.type === "badge") layer.text = "01 / 06";
+    if (layer.type === "cta") layer.text = "SWIPE TO INSPECT →";
+    if (layer.type === "footer") {
+      layer.text = "@glyphkiln · deterministic series";
+    }
+  }
+  document.metadata = {
+    campaignId: "swipe-ledger-v1",
+    slideIndex: 1,
+    slideCount: 6,
+    reviewed: true,
+  };
+  return document;
+}
+
+function svgTextYBounds(
+  markup: string,
+  layerId: string,
+): { top: number; bottom: number } {
+  const group = new RegExp(`<g id="${layerId}"[\\s\\S]*?</g>`).exec(markup)?.[0];
+  if (group === undefined) throw new Error(`Missing SVG text group "${layerId}".`);
+
+  const coordinates = [...group.matchAll(/\sd="([^"]+)"/g)].flatMap((match) =>
+    [...match[1]!.matchAll(/-?(?:\d+\.?\d*|\.\d+)/g)].map((value) => Number(value[0])),
+  );
+  const yCoordinates = coordinates.filter((_, index) => index % 2 === 1);
+  if (yCoordinates.length === 0) {
+    throw new Error(`SVG text group "${layerId}" has no outline coordinates.`);
+  }
+  return { top: Math.min(...yCoordinates), bottom: Math.max(...yCoordinates) };
+}
+
 describe("template registry", () => {
   it("contains five stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
@@ -101,7 +150,7 @@ describe("template registry", () => {
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.1",
+      "tiktok-carousel-slide": "1.0.3",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -146,14 +195,112 @@ describe("template registry", () => {
     },
   );
 
-  it("accepts only the registered TikTok carousel format", async () => {
+  it("uses the organic photo format without repointing the legacy ad format", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
-    await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    expect(result.outputs[0]?.manifest.dimensions).toEqual({
+      width: 1080,
+      height: 1440,
+    });
 
-    document.format = "instagram-story";
+    document.format = "tiktok-carousel";
     await expect(renderGraphic(document, { formats: ["svg"] })).rejects.toMatchObject({
       code: "UNSUPPORTED_TEMPLATE_FORMAT",
     });
+
+    document.template.version = "1.0.2";
+    await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+  });
+
+  it("keeps saved TikTok 1.0.2 ad slides exactly renderable", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.template.version = "1.0.2";
+    document.format = "tiktok-carousel";
+    document.brand.safeArea = { top: 0.07, right: 0.16, bottom: 0.18, left: 0.07 };
+
+    const result = await renderGraphic(document, {
+      formats: ["png"],
+      creationTimestamp: "2026-07-29T10:00:00.000Z",
+    });
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "2cedc78003240b1b23553defd532190ad52742c16d1c4535a5a8e21c70eefb57",
+    );
+  });
+
+  it("keeps the reviewed TikTok starter typography-first and free of visual assets", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const template = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
+
+    expect(template.constraints.layout).toContain("typography-first");
+    expect(template.constraints.layout).toContain(
+      "no generated illustration or SVG asset",
+    );
+    expect(document.assets).toEqual([]);
+    expect(document.layers).not.toContainEqual(
+      expect.objectContaining({ type: "procedural-decoration" }),
+    );
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(result.outputs[0]?.manifest.proceduralAlgorithmVersions).toEqual({});
+    expect(markup).toContain("carousel-type-field");
+    expect(markup).not.toContain("<image ");
+  });
+
+  it("keeps saved TikTok 1.0.1 revisions exactly renderable", async () => {
+    const document = await loadLegacyTikTokCarouselDocument();
+    const result = await renderGraphic(document, { formats: ["svg"] });
+
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "19273db0fa957644ece47792d8d8b62b6839f59ccdb42b42e49a8f6fd52c4b3f",
+    );
+  });
+
+  it("keeps TikTok interface regions clear when the brand inset is permissive", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.brand.safeArea = {
+      top: 0.07,
+      right: 0.07,
+      bottom: 0.07,
+      left: 0.07,
+    };
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(markup).toContain('<rect id="slide-number-background" x="774.8" y="100.8"');
+    expect(markup).toContain('<rect id="cta-rule" x="119.6" y="956.8"');
+  });
+
+  it.each([0.15, 0.16, 0.18, 0.2])(
+    "keeps TikTok CTA and footer text apart at a %s App inset",
+    async (inset) => {
+      const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+      document.brand.safeArea = {
+        top: inset,
+        right: inset,
+        bottom: inset,
+        left: inset,
+      };
+
+      const result = await renderGraphic(document, { formats: ["svg"] });
+      const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+      const cta = svgTextYBounds(markup, "cta");
+      const footer = svgTextYBounds(markup, "footer");
+
+      expect(cta.bottom).toBeLessThan(footer.top);
+    },
+  );
+
+  it("rejects TikTok copy that cannot fit inside the effective safe area", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.brand.safeArea = {
+      top: 0.4,
+      right: 0,
+      bottom: 0.4,
+      left: 0,
+    };
+
+    await expectQualityIssue(document, "TEXT_OUTSIDE_SAFE_AREA", "cta");
   });
 
   it("renders narrative or metric TikTok slides but not both at once", async () => {
@@ -175,7 +322,7 @@ describe("template registry", () => {
       narrativeResult.outputs[0]?.bytes,
     );
     expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
-      "b0cfb72d796af5e3b20b96e990074fa5f414e95e70e3ad3c959fdf74594563c5",
+      "d8b10716091efab468ceef6e5a57d04849d9b003f0444d0ace1dc076ddc667f8",
     );
 
     metric.layers.push({
@@ -225,7 +372,7 @@ describe("template registry", () => {
     if (headline?.type !== "headline") {
       throw new Error("The carousel example must include a headline.");
     }
-    headline.text = "A deliberately oversized carousel headline ".repeat(30);
+    headline.text = "A deliberately oversized carousel headline ".repeat(8);
     headline.maxLines = 20;
 
     try {
@@ -237,6 +384,31 @@ describe("template registry", () => {
       expect(issue["details"]).toMatchObject({
         maximumLines:
           TEMPLATE_REGISTRY["tiktok-carousel-slide"].constraints.headlineMaximumLines,
+      });
+    }
+  });
+
+  it("blocks a Thai token that must be broken internally", async () => {
+    const document = cloneDocument(await loadExample("product-announcement"));
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline?.type !== "headline") {
+      throw new Error("The product example must include a headline.");
+    }
+    headline.text = "ก".repeat(200);
+
+    try {
+      await renderGraphic(document);
+      expect.fail("Expected an internally broken Thai token to block rendering.");
+    } catch (error) {
+      const issue = findQualityIssue(error, "LINGUISTIC_WORD_BROKEN");
+      expect(error).toMatchObject({ code: "QUALITY_VALIDATION_FAILED" });
+      expect(issue).toMatchObject({
+        severity: "error",
+        layerId: "headline",
+      });
+      expect(issue["details"]).toMatchObject({
+        token: "ก".repeat(200),
+        segmentationPolicyVersion: "budoux-th@0.7.0",
       });
     }
   });

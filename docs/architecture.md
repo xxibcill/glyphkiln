@@ -11,7 +11,7 @@ See [ADR 0010](adr/0010-glyphkiln-monorepo.md).
 ```text
 untrusted JSON
   → iterative byte/depth/entry resource preflight
-  → strict DesignDocument 1.1.0 validation
+  → strict DesignDocument 1.3.0 validation (plus supported legacy schemas)
   → format + template registry lookup
   → required-layer, brand, and pinned Unicode text-layout quality checks
   → bounded caller-supplied asset/font verification
@@ -57,7 +57,8 @@ changing the design document, template metadata, asset interface, or manifest.
 - `browser`: browser-safe canonical JSON and fingerprint payloads for independent
   response verification
 - `fonts`, `assets`, `typography`, `layout`: verified resources, pinned
-  Unicode 17 text-layout diagnostics, and geometry
+  Unicode 17 text-layout diagnostics, deterministic Thai segmentation and
+  balanced wrapping, and geometry
 - `backgrounds`: deterministic versioned algorithms
 - `templates`: concrete composition policy
 - `renderer`: scene, SVG serialization, PNG rasterization, quality gating

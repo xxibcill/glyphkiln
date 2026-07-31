@@ -22,13 +22,17 @@ vertical-primary text that its LTR-horizontal layout cannot faithfully render.
 The policy is pinned as `unicode-17.0.0/ltr-horizontal-v1`; unsupported visible
 copy is rejected before asset or font resolution.
 
+Thai copy uses bundled `budoux-th@0.7.0` segmentation and balanced legal line
+breaks. Minimum-size internal word breaks are errors. Schema `1.2.0` adds a
+bounded `keepTogether` phrase list for author-controlled grouping.
+
 Supported templates:
 
 - `product-announcement@1.1.1`
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
-- `tiktok-carousel-slide@1.0.1`
+- `tiktok-carousel-slide@1.0.3`
 
 Supported procedural styles:
 
@@ -95,10 +99,11 @@ Use `renderGraphicIsolated` for untrusted workloads. It runs the same API in a
 permission-limited child process with a fixed memory ceiling, serialized
 concurrency, and a 15-second maximum timeout.
 
-`createDesignDocument` supplies schema version `1.1.0` and a stable content ID
+`createDesignDocument` supplies schema version `1.3.0` and a stable content ID
 when omitted. `renderGraphic` validates again at the trust boundary. Existing
-schema `1.0.0` documents remain supported, while the TikTok carousel template
-and format require schema `1.1.0`. Assets and fonts are byte-oriented caller
+schema `1.0.0`, `1.1.0`, and `1.2.0` documents remain supported. The organic
+TikTok photo-carousel format requires schema `1.3.0`, while preserved 9:16
+carousel documents remain renderable under their original schema. Assets and fonts are byte-oriented caller
 inputs; the renderer performs no network access.
 
 Browser applications can import `canonicalJson` and
@@ -114,7 +119,9 @@ reported but does not block rendering.
 
 See [Design document](../../docs/design-document.md),
 [SDK and architecture](../../docs/architecture.md), and
-[Determinism contract](../../docs/determinism.md). Public input, asset, font, and
+[Determinism contract](../../docs/determinism.md). Thai segmentation, balancing,
+quality diagnostics, and `keepTogether` are documented in
+[Typography wrapping](../../docs/typography-wrapping.md). Public input, asset, font, and
 deployment bounds are documented in
 [Resource limits and worker profile](../../docs/resource-limits.md).
 
@@ -171,25 +178,38 @@ visible text with `QUALITY_VALIDATION_FAILED`.
 
 ## Formats
 
-| ID                   |  Dimensions |
-| -------------------- | ----------: |
-| `linkedin-landscape` |  1200 × 627 |
-| `instagram-square`   | 1080 × 1080 |
-| `instagram-portrait` | 1080 × 1350 |
-| `instagram-story`    | 1080 × 1920 |
-| `tiktok-carousel`    | 1080 × 1920 |
-| `x-landscape`        |  1200 × 675 |
-| `youtube-thumbnail`  |  1280 × 720 |
+| ID                      |  Dimensions |
+| ----------------------- | ----------: |
+| `linkedin-landscape`    |  1200 × 627 |
+| `instagram-square`      | 1080 × 1080 |
+| `instagram-portrait`    | 1080 × 1350 |
+| `instagram-story`       | 1080 × 1920 |
+| `tiktok-photo-carousel` | 1080 × 1440 |
+| `tiktok-carousel`       | 1080 × 1920 |
+| `x-landscape`           |  1200 × 675 |
+| `youtube-thumbnail`     |  1280 × 720 |
 
 The X default is 16:9 at 1200 × 675: a practical current default that maps
 cleanly to common high-resolution preview surfaces. Applications can add new
 versioned registry entries without scattering dimensions through templates.
-The TikTok carousel format uses a high-resolution 9:16 canvas and the
-carousel-slide template keeps semantic copy in a conservative upper-left
-column so platform interface elements do not compete with the message. This
-follows [TikTok's current creative guidance](https://ads.tiktok.com/help/article/creative-best-practices)
-to use vertical 9:16 creative at 720p or higher and keep content inside the
-interface safe zone.
+The default organic TikTok photo carousel uses a high-resolution 1080 × 1440
+(3:4) canvas. `tiktok-carousel-slide@1.0.3` balances key content in that shorter
+in-feed viewport and avoids reserving the oversized caption region needed by a
+full-screen 9:16 canvas. Saved `1.0.2` documents remain exactly renderable with
+the 1080 × 1920 `tiktok-carousel` ad format. Both variants support packs of 3 or
+7–9 slides: open with a hook, give each slide one concise message or benefit,
+and close with an action aligned to the carousel's shared CTA. Each slide must
+also make sense independently because Smart Order may present a different slide
+first. The preserved ad variant follows the
+[TikTok Image Ads | Carousel Ads Playbook](https://ads.tiktok.com/business/library/Image_Ads_Carousel_Ads_Playbook.pdf),
+which recommends vertical 9:16 creative at 720p or higher, safe-zone placement,
+and concise, easy-to-read selling points.
+
+For AI-assisted authoring, prioritize typography: semantic copy, type
+hierarchy, color, and Core-owned layout or background primitives. Do not
+generate or upload SVG artwork as a visual asset. This restriction is distinct
+from Core's deterministic safe SVG output, which Core serializes from its
+validated renderer-neutral scene.
 
 ## Examples and baselines
 

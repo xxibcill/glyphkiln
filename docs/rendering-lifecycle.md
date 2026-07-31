@@ -3,8 +3,8 @@
 1. Read at most the public byte limit or pass an unknown value to the SDK.
 2. Iteratively reject cyclic, accessor-backed, non-JSON, oversized, overly
    deep, or over-populated input.
-3. Validate with the strict current `DesignDocument 1.1.0` schema or its
-   supported `1.0.0` predecessor.
+3. Validate with the strict current `DesignDocument 1.3.0` schema or a supported
+   `1.0.0`/`1.1.0`/`1.2.0` predecessor.
 4. Resolve the format and exact template version. Aggregate required,
    unsupported, duplicate, or mutually exclusive layers; brand restrictions;
    and pinned Unicode text-layout diagnostics. Any error blocks before asset or
@@ -16,8 +16,10 @@
    fallback is disabled.
 7. Execute the explicit versioned template with a seed and immutable brand
    snapshot.
-8. Measure, fit, coverage-check, shape, and outline text; create deterministic
-   procedural geometry; and emit a renderer-neutral scene.
+8. Segment Thai with the pinned offline model, wrap only at legal boundaries,
+   balance Thai lines, then measure, fit, coverage-check, shape, and outline
+   text; create deterministic procedural geometry; and emit a renderer-neutral
+   scene.
 9. Run layout, contrast, overflow, quiet-region, and glyph checks. Error issues
    block export; warnings are recorded.
 10. Serialize safe SVG containing glyph paths. For PNG, rasterize that SVG with

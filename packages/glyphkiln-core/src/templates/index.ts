@@ -5,6 +5,8 @@ import { productAnnouncementTemplate } from "./product-announcement.js";
 import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
 import { tiktokCarouselSlideTemplate } from "./tiktok-carousel-slide.js";
+import { tiktokCarouselSlideV1_0_1Template } from "./tiktok-carousel-slide-v1-0-1.js";
+import { tiktokCarouselSlideV1_0_3Template } from "./tiktok-carousel-slide-v1-0-3.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -13,16 +15,33 @@ export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>>
     "statistic-card": statisticCardTemplate,
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
-    "tiktok-carousel-slide": tiktokCarouselSlideTemplate,
+    "tiktok-carousel-slide": tiktokCarouselSlideV1_0_3Template,
   });
 
+const TEMPLATE_VERSION_REGISTRY: Readonly<
+  Record<TemplateId, readonly TemplateDefinition[]>
+> = Object.freeze({
+  "product-announcement": Object.freeze([productAnnouncementTemplate]),
+  "statistic-card": Object.freeze([statisticCardTemplate]),
+  "quote-card": Object.freeze([quoteCardTemplate]),
+  "article-cover": Object.freeze([articleCoverTemplate]),
+  "tiktok-carousel-slide": Object.freeze([
+    tiktokCarouselSlideV1_0_1Template,
+    tiktokCarouselSlideTemplate,
+    tiktokCarouselSlideV1_0_3Template,
+  ]),
+});
+
 export function getTemplate(document: DesignDocument): TemplateDefinition {
-  const template = TEMPLATE_REGISTRY[document.template.id];
-  if (document.template.version !== template.version) {
+  const template = TEMPLATE_VERSION_REGISTRY[document.template.id].find(
+    (candidate) => candidate.version === document.template.version,
+  );
+  if (template === undefined) {
+    const currentTemplate = TEMPLATE_REGISTRY[document.template.id];
     throw new GlyphkilnError(
       `Unsupported template version ${document.template.id}@${document.template.version}.`,
       "UNSUPPORTED_TEMPLATE_VERSION",
-      { supportedVersion: template.version },
+      { supportedVersion: currentTemplate.version },
     );
   }
   if (!template.supportedFormats.includes(document.format)) {

@@ -50,9 +50,10 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . && node scripts/security-check.mjs",
-    "test": "npm run build && vitest run && node scripts/test-isolation.mjs && node scripts/test-text-layout-determinism.mjs && node scripts/test-readme-example.mjs",
+    "test": "npm run build && vitest run && node scripts/test-isolation.mjs && node scripts/test-text-layout-determinism.mjs && node scripts/test-text-wrapping-determinism.mjs && node scripts/test-readme-example.mjs",
     "test:isolation": "npm run build && node scripts/test-isolation.mjs",
     "test:text-layout-determinism": "npm run build && node scripts/test-text-layout-determinism.mjs",
+    "test:text-wrapping-determinism": "npm run build && node scripts/test-text-wrapping-determinism.mjs",
     "test:readme": "npm run build && node scripts/test-readme-example.mjs",
     "test:package-consumer": "node scripts/test-package-consumer.mjs",
     "test:coverage": "vitest run --coverage",
@@ -71,6 +72,7 @@
   "dependencies": {
     "@resvg/resvg-js": "2.6.2",
     "fontkit": "2.0.4",
+    "grapheme-splitter": "1.0.4",
     "jpeg-js": "0.4.4",
     "pngjs": "7.0.0",
     "zod": "4.4.3"

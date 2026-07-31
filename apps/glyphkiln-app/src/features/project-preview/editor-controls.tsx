@@ -91,6 +91,7 @@ export function EditorControls({
   const supportedFormats = catalog.formats.filter((format) =>
     template?.supportedFormats.includes(format.id),
   );
+  const isTiktokCarousel = state.composition.templateId === "tiktok-carousel-slide";
   const failure = !validationIsStale && response?.ok === false ? response : null;
   const failureSummaryRef = useRef<HTMLDivElement>(null);
 
@@ -455,7 +456,11 @@ export function EditorControls({
                     onChange={(safeArea) => {
                       updateBrand({ safeArea });
                     }}
-                    hint="Applied equally to all four canvas edges."
+                    hint={
+                      isTiktokCarousel
+                        ? "Acts as the base inset; the TikTok template keeps conservative extra clearance at the right and bottom edges."
+                        : "Applied equally to all four canvas edges."
+                    }
                   />
                 </div>
               </details>
@@ -475,115 +480,139 @@ export function EditorControls({
           )}
         </section>
 
-        <section className="form-section" aria-labelledby="procedure-title">
-          <SectionHeading
-            number="04"
-            title="Procedure"
-            id="procedure-title"
-            note={
-              catalog.proceduralStyles.find(
-                (style) => style.id === state.composition.proceduralStyle,
-              )?.version
-            }
-          />
-          <div className="field-stack">
-            <FieldShell id="procedural-style" label="Procedural style">
-              <select
-                id="procedural-style"
-                value={state.composition.proceduralStyle}
-                onChange={(event) => {
-                  updateComposition({
-                    proceduralStyle: event.currentTarget
-                      .value as CompositionFormState["proceduralStyle"],
-                  });
-                }}
-              >
-                {catalog.proceduralStyles.map((style) => (
-                  <option key={style.id} value={style.id}>
-                    {style.label}
-                  </option>
-                ))}
-              </select>
-            </FieldShell>
-
-            <RangeField
-              id="intensity"
-              label="Intensity"
-              value={state.composition.intensity}
-              onChange={(intensity) => {
-                updateComposition({ intensity });
-              }}
+        {isTiktokCarousel ? (
+          <section className="form-section" aria-labelledby="typography-policy-title">
+            <SectionHeading
+              number="04"
+              title="Typography policy"
+              id="typography-policy-title"
+              note="Fixed"
             />
-            <RangeField
-              id="density"
-              label="Density"
-              value={state.composition.density}
-              onChange={(density) => {
-                updateComposition({ density });
-              }}
-            />
-            <RangeField
-              id="complexity"
-              label="Complexity"
-              value={state.composition.complexity}
-              onChange={(complexity) => {
-                updateComposition({ complexity });
-              }}
-            />
-            <RangeField
-              id="contrast"
-              label="Contrast"
-              value={state.composition.contrast}
-              onChange={(contrast) => {
-                updateComposition({ contrast });
-              }}
-            />
-
-            <details className="advanced-disclosure">
-              <summary>Quiet-region geometry</summary>
-              <div className="disclosure-body quiet-region-grid">
-                <RangeField
-                  id="quiet-x"
-                  label="Left"
-                  value={state.composition.quietRegion.x}
-                  max={0.8}
-                  onChange={(value) => {
-                    updateQuietRegion("x", value);
-                  }}
-                />
-                <RangeField
-                  id="quiet-y"
-                  label="Top"
-                  value={state.composition.quietRegion.y}
-                  max={0.8}
-                  onChange={(value) => {
-                    updateQuietRegion("y", value);
-                  }}
-                />
-                <RangeField
-                  id="quiet-width"
-                  label="Width"
-                  value={state.composition.quietRegion.width}
-                  min={0.1}
-                  max={1 - state.composition.quietRegion.x}
-                  onChange={(value) => {
-                    updateQuietRegion("width", value);
-                  }}
-                />
-                <RangeField
-                  id="quiet-height"
-                  label="Height"
-                  value={state.composition.quietRegion.height}
-                  min={0.1}
-                  max={1 - state.composition.quietRegion.y}
-                  onChange={(value) => {
-                    updateQuietRegion("height", value);
-                  }}
-                />
+            <div className="sealed-brand-contract">
+              <span className="sealed-brand-mark" aria-hidden="true">
+                T
+              </span>
+              <div>
+                <strong>Typography-first carousel</strong>
+                <span>One message per slide</span>
               </div>
-            </details>
-          </div>
-        </section>
+              <p>
+                AI-assisted starters prioritize semantic typography and renderer-native
+                structural rules. They do not add generated illustration or SVG assets.
+              </p>
+            </div>
+          </section>
+        ) : (
+          <section className="form-section" aria-labelledby="procedure-title">
+            <SectionHeading
+              number="04"
+              title="Procedure"
+              id="procedure-title"
+              note={
+                catalog.proceduralStyles.find(
+                  (style) => style.id === state.composition.proceduralStyle,
+                )?.version
+              }
+            />
+            <div className="field-stack">
+              <FieldShell id="procedural-style" label="Procedural style">
+                <select
+                  id="procedural-style"
+                  value={state.composition.proceduralStyle}
+                  onChange={(event) => {
+                    updateComposition({
+                      proceduralStyle: event.currentTarget
+                        .value as CompositionFormState["proceduralStyle"],
+                    });
+                  }}
+                >
+                  {catalog.proceduralStyles.map((style) => (
+                    <option key={style.id} value={style.id}>
+                      {style.label}
+                    </option>
+                  ))}
+                </select>
+              </FieldShell>
+
+              <RangeField
+                id="intensity"
+                label="Intensity"
+                value={state.composition.intensity}
+                onChange={(intensity) => {
+                  updateComposition({ intensity });
+                }}
+              />
+              <RangeField
+                id="density"
+                label="Density"
+                value={state.composition.density}
+                onChange={(density) => {
+                  updateComposition({ density });
+                }}
+              />
+              <RangeField
+                id="complexity"
+                label="Complexity"
+                value={state.composition.complexity}
+                onChange={(complexity) => {
+                  updateComposition({ complexity });
+                }}
+              />
+              <RangeField
+                id="contrast"
+                label="Contrast"
+                value={state.composition.contrast}
+                onChange={(contrast) => {
+                  updateComposition({ contrast });
+                }}
+              />
+
+              <details className="advanced-disclosure">
+                <summary>Quiet-region geometry</summary>
+                <div className="disclosure-body quiet-region-grid">
+                  <RangeField
+                    id="quiet-x"
+                    label="Left"
+                    value={state.composition.quietRegion.x}
+                    max={0.8}
+                    onChange={(value) => {
+                      updateQuietRegion("x", value);
+                    }}
+                  />
+                  <RangeField
+                    id="quiet-y"
+                    label="Top"
+                    value={state.composition.quietRegion.y}
+                    max={0.8}
+                    onChange={(value) => {
+                      updateQuietRegion("y", value);
+                    }}
+                  />
+                  <RangeField
+                    id="quiet-width"
+                    label="Width"
+                    value={state.composition.quietRegion.width}
+                    min={0.1}
+                    max={1 - state.composition.quietRegion.x}
+                    onChange={(value) => {
+                      updateQuietRegion("width", value);
+                    }}
+                  />
+                  <RangeField
+                    id="quiet-height"
+                    label="Height"
+                    value={state.composition.quietRegion.height}
+                    min={0.1}
+                    max={1 - state.composition.quietRegion.y}
+                    onChange={(value) => {
+                      updateQuietRegion("height", value);
+                    }}
+                  />
+                </div>
+              </details>
+            </div>
+          </section>
+        )}
 
         <div className="render-dock">
           <div className="render-state" aria-live="polite">
@@ -839,7 +868,7 @@ function TemplateCopyFields({
           <FieldShell
             id="tiktok-slide-mode"
             label="Slide mode"
-            hint="Use narrative for an argument or metric for one proof point."
+            hint="Keep one message per slide. Use narrative for an argument or metric for one proof point."
           >
             <select
               id="tiktok-slide-mode"
@@ -866,7 +895,7 @@ function TemplateCopyFields({
               }}
               required
               maxLength={80}
-              hint="Visible copy, for example 01 / 06."
+              hint="Visible copy, for example 01 / 07. Build a concise 3-slide pack or a fuller 7–9-slide sequence."
               error={copyIssueMessage(
                 failure,
                 "slide-number",
@@ -895,6 +924,7 @@ function TemplateCopyFields({
             required
             maxLength={2_000}
             rows={4}
+            hint="Lead with the single message this slide needs to land."
             error={copyIssueMessage(failure, "headline", "text", copy.headline)}
           />
           {copy.mode === "narrative" ? (
@@ -971,6 +1001,7 @@ function TemplateCopyFields({
               update({ cta });
             }}
             maxLength={2_000}
+            hint="Use a swipe cue while benefits continue; place the action CTA after the benefits or on the final slide."
             error={copyIssueMessage(failure, "cta", "text", copy.cta)}
           />
           <TextField

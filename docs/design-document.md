@@ -1,9 +1,10 @@
 # Design-document specification
 
 `DesignDocument` is strict, JSON-compatible, and currently versioned at
-`1.1.0`. Schema `1.0.0` remains readable for its original template and format
-IDs; the TikTok carousel template and format require `1.1.0`. Unknown properties
-are rejected at every structural object. The Zod schema provides TypeScript
+`1.3.0`. Schemas `1.0.0`, `1.1.0`, and `1.2.0` remain readable. The organic
+TikTok photo-carousel format requires `1.3.0`; preserved 9:16 carousel documents
+remain valid in `1.1.0` and newer. Unknown properties are rejected at
+every structural object. The Zod schema provides TypeScript
 inference, discriminated unions, actionable paths, and draft 2020-12 JSON Schema
 through `getDesignDocumentJsonSchema()`.
 
@@ -29,6 +30,11 @@ scales procedural density, monospace typography is used for compact CTA/trend
 copy, badge labels render inside their supporting shape, non-preferred
 procedural styles warn, and prohibited colors and template/procedural styles
 block rendering.
+
+Schema `1.2.0` text layers may declare a bounded `keepTogether` phrase list.
+Matched phrases lose internal line-break opportunities without introducing
+markup or layout code. Earlier schema versions reject the field. See
+[Typography wrapping](typography-wrapping.md).
 
 ## Layer union
 
@@ -59,8 +65,8 @@ and block rendering; they are never silently ignored. The larger schema union
 allows future versioned templates to adopt additional semantics without adding
 freeform code or layout instructions.
 
-Versions `1.0.0` and `1.1.0` deliberately do not expose arbitrary coordinates, CSS,
-markup, expressions, or scripts. That constraint keeps composition quality
+Versions `1.0.0`, `1.1.0`, `1.2.0`, and `1.3.0` deliberately do not expose arbitrary
+coordinates, CSS, markup, expressions, or scripts. That constraint keeps composition quality
 predictable and prevents a document from becoming a programming language.
 
 String lengths, collection sizes, normalized values, dimensions, colors,

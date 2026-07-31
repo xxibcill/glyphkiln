@@ -48,14 +48,13 @@ export function runDocumentQualityChecks(
       details: { source: colorUse.source, color: colorUse.color },
     });
   }
-  const procedural = document.layers.find(
-    (
-      layer,
-    ): layer is Extract<
-      (typeof document.layers)[number],
-      { type: "procedural-decoration" }
-    > => layer.type === "procedural-decoration" && layer.visible,
+  const selectedProceduralLayer = document.layers.find(
+    (layer) => layer.type === "procedural-decoration" && layer.visible,
   );
+  const procedural =
+    selectedProceduralLayer?.type === "procedural-decoration"
+      ? selectedProceduralLayer
+      : undefined;
   const prohibitedStyles = new Set(
     document.brand.prohibitedStyles.map((style) => style.toLocaleLowerCase("en-US")),
   );

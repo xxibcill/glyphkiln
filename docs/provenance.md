@@ -1,10 +1,10 @@
 # Provenance
 
-Every successful output has its own `RenderManifest 1.1.0`. It records the
+Every successful output has its own `RenderManifest 1.2.0`. It records the
 design ID/hash, canonical fingerprint, seed, exact template and renderer,
-procedural versions, asset hashes and origin, font hashes, dimensions, format,
-output hash/size, timestamp, rendering method, quality issues, and the accurate
-product claim.
+typography and procedural policy versions, asset hashes and origin, font hashes,
+dimensions, format, output hash/size, timestamp, rendering method, quality
+issues, and the accurate product claim.
 
 `compositionGenerativeImageModelUsed` is always `false`: Core's composition and
 render pipeline does not invoke a model. `includedGenerativeAssetUsed`

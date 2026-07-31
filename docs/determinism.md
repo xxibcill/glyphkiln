@@ -15,6 +15,8 @@ The render fingerprint includes:
 - resolved asset hashes
 - resolved font family/weight/style identities and hashes
 - relevant SVG and rasterizer configuration
+- typography algorithm, segmentation, line-breaking, and emergency grapheme
+  policy versions
 
 The document's request timestamp, manifest creation timestamp, document ID, and
 other non-rendering metadata do not affect pixels and are excluded. Output
@@ -47,6 +49,16 @@ Unicode regular-expression properties. Diagnostic codes, evidence, ordering,
 and truncation are byte-tested in fresh processes and across the Node 22/24 CI
 matrix. The policy version is independent of render fingerprints because
 blocked input produces no output and accepted input is pixel-identical.
+
+## Text wrapping
+
+Typography algorithm `2.0.0` uses the bundled `budoux-th@0.7.0` model for Thai
+boundaries and `balanced-lines@1.0.0` for Thai line selection. It does not use
+host ICU or `Intl.Segmenter`. Emergency minimum-size word splitting uses pinned
+`grapheme-splitter@1.0.4/unicode-10.0.0` and creates a blocking quality error.
+The complete typography policy is stored in `RENDER_CONFIGURATION`, so it is
+hashed into every fingerprint, and is repeated in manifest `1.2.0`. A separate
+fresh-process corpus test compares exact wrapping output and a fixed SHA-256.
 
 ## Environment
 

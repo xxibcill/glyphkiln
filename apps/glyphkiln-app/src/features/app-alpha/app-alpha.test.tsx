@@ -11,6 +11,7 @@ import {
   PRODUCT_CLAIM,
   RENDERER_NAME,
   RENDERER_VERSION,
+  TYPOGRAPHY_POLICY,
 } from "@glyphkiln/core";
 import type { BrandSnapshot, DesignDocument, RenderManifest } from "@glyphkiln/core";
 
@@ -495,6 +496,7 @@ function renderDocument(document: DesignDocument): PreviewSuccess {
     seed: document.seed,
     template: { ...document.template },
     renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: TYPOGRAPHY_POLICY,
     proceduralAlgorithmVersions: {
       "layered-waves":
         catalog.proceduralStyles.find((style) => style.id === "layered-waves")

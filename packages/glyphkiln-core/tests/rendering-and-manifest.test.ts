@@ -5,6 +5,7 @@ import {
   RENDER_RESOURCE_LIMITS,
   RENDERER_NAME,
   RENDERER_VERSION,
+  TYPOGRAPHY_POLICY,
   renderGraphic,
   sha256,
   verifyRenderReproduction,
@@ -86,6 +87,27 @@ describe("SVG and PNG rendering", () => {
 });
 
 describe("render manifests", () => {
+  it("retains text-quality warnings and their policy evidence", async () => {
+    const result = await renderGraphic(await loadExample("product-announcement"), {
+      formats: ["svg"],
+      creationTimestamp: "2026-07-29T10:00:00.000Z",
+    });
+    const orphan = result.qualityIssues.find((issue) => issue.code === "ORPHAN_LINE");
+    expect(orphan).toMatchObject({
+      severity: "warning",
+      layerId: "subtitle",
+    });
+    expect(orphan?.details).toMatchObject({
+      affectedLine: "provenance.",
+      segmentationPolicyVersion: "whitespace@1.0.0",
+    });
+    expect(Array.isArray(orphan?.details?.["measuredLineWidths"])).toBe(true);
+    expect(typeof orphan?.details?.["finalLineToPreviousLineWidthRatio"]).toBe(
+      "number",
+    );
+    expect(result.outputs[0]?.manifest.qualityIssues).toContainEqual(orphan);
+  });
+
   it("records the complete provenance contract", async () => {
     const timestamp = "2026-07-29T10:00:00.000Z";
     const result = await renderGraphic(await loadExample("article-cover"), {
@@ -94,11 +116,12 @@ describe("render manifests", () => {
     });
     const output = result.outputs[0]!;
     expect(output.manifest).toMatchObject({
-      manifestVersion: "1.1.0",
+      manifestVersion: "1.2.0",
       designDocumentId: "example-article-cover",
       seed: "editorial-rendering-19",
       template: { id: "article-cover", version: "1.1.0" },
       renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+      typographyPolicy: TYPOGRAPHY_POLICY,
       dimensions: { width: 1280, height: 720 },
       output: {
         format: "svg",

@@ -40,7 +40,7 @@ export type PreviewCatalog = {
     version: string;
   };
   productClaim: string;
-  rendererConfiguration: Readonly<Record<string, string | number | boolean>>;
+  rendererConfiguration: Readonly<Record<string, unknown>>;
   developmentFontSha256: string;
   formats: readonly PreviewCatalogFormat[];
   templates: readonly PreviewCatalogTemplate[];

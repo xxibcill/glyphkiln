@@ -1,21 +1,20 @@
 {
-  "manifestVersion": "1.1.0",
-  "renderId": "render_e77e7e3aff943d6ff8f3d82d",
-  "renderFingerprint": "e77e7e3aff943d6ff8f3d82dc6041607f6d9c04bc211566882a83caaa3d46513",
+  "manifestVersion": "1.2.0",
+  "renderId": "render_1cc5c5d3e8c5b6e8d43e46d5",
+  "renderFingerprint": "1cc5c5d3e8c5b6e8d43e46d5ba814b388b17008bca19ef5878765d00c86b51cd",
   "designDocumentId": "example-tiktok-carousel-slide-01",
-  "designDocumentHash": "2f215963df172fcd2ad3b5c97035cb050f8d3868b0f5070f641a8de401ca0403",
+  "designDocumentHash": "8999412c16883f3417a61114b705e0cc21d0a68a1dc9f91e03606eaa1e6eb70e",
   "seed": "swipe-ledger-v1-slide-01",
-  "template": {
-    "id": "tiktok-carousel-slide",
-    "version": "1.0.1"
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.3" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.3.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.0",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
   },
-  "renderer": {
-    "name": "glyphkiln-svg",
-    "version": "0.2.0"
-  },
-  "proceduralAlgorithmVersions": {
-    "recursive-subdivision": "1.1.0"
-  },
+  "proceduralAlgorithmVersions": {},
   "assets": [],
   "fonts": [
     {
@@ -43,14 +42,11 @@
       "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
     }
   ],
-  "dimensions": {
-    "width": 1080,
-    "height": 1920
-  },
+  "dimensions": { "width": 1080, "height": 1440 },
   "output": {
     "format": "png",
-    "sha256": "7708dd410c47438e2d5257b41ef54fd4e5ac6c295da05b50da1ded5bfa8adae9",
-    "byteSize": 73051
+    "sha256": "33e7b3168de572f4e06a5e16bedeaef551f2dfe301f66c9f856d5625eaa9cbcf",
+    "byteSize": 63907
   },
   "creationTimestamp": "2026-07-29T10:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,

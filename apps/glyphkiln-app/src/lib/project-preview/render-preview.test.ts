@@ -26,7 +26,16 @@ describe("createProjectPreview", () => {
     expect(result.body.ok).toBe(true);
     if (!result.body.ok) throw new Error("Expected a rendered preview.");
 
-    expect(result.body.qualityIssues).toEqual([]);
+    expect(result.body.qualityIssues).toHaveLength(1);
+    expect(result.body.qualityIssues[0]).toMatchObject({
+      code: "ORPHAN_LINE",
+      severity: "warning",
+      layerId: "subtitle",
+    });
+    expect(result.body.qualityIssues[0]?.details).toMatchObject({
+      affectedLine: "provenance.",
+      isolatedWord: true,
+    });
     expect(result.body.outputs.map((output) => output.format)).toEqual(["svg", "png"]);
 
     for (const output of result.body.outputs) {
@@ -35,6 +44,7 @@ describe("createProjectPreview", () => {
       expect(output.filename).toBe(`glyphkiln-local-project-preview.${output.format}`);
       expect(output.manifest.creationTimestamp).toBe(FIXED_NOW.toISOString());
       expect(output.manifest.output.format).toBe(output.format);
+      expect(output.manifest.qualityIssues).toEqual(result.body.qualityIssues);
       expect(
         verifyRenderReproduction({
           document: result.body.document,
