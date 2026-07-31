@@ -252,6 +252,7 @@ export const TEMPLATE_IDS = [
   "statistic-card",
   "quote-card",
   "article-cover",
+  "tiktok-carousel-slide",
 ] as const;
 
 export const DesignDocumentSchema = z

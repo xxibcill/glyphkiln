@@ -23,6 +23,7 @@ const TEMPLATE_LABELS = {
   "statistic-card": "Statistic card",
   "quote-card": "Quote card",
   "article-cover": "Article cover",
+  "tiktok-carousel-slide": "TikTok carousel slide",
 } satisfies Record<TemplateId, string>;
 
 const PROCEDURAL_STYLE_LABELS = {

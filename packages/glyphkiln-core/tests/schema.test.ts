@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   DESIGN_DOCUMENT_VERSION,
   DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
+  TEMPLATE_IDS,
   createDesignDocument,
   getDesignDocumentJsonSchema,
   validateDesignDocument,
@@ -14,13 +15,10 @@ import {
 import { cloneDocument, loadExample } from "./helpers.js";
 
 describe("design document schema", () => {
-  it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
-    "validates the %s example",
-    async (name) => {
-      const result = validateDesignDocument(await loadExample(name));
-      expect(result.success).toBe(true);
-    },
-  );
+  it.each(TEMPLATE_IDS)("validates the %s example", async (name) => {
+    const result = validateDesignDocument(await loadExample(name));
+    expect(result.success).toBe(true);
+  });
 
   it("rejects unknown top-level properties", async () => {
     const document = {
@@ -87,12 +85,7 @@ describe("design document schema", () => {
       ]),
     );
     const validateJsonSchema = new Ajv2020().compile(schema);
-    for (const name of [
-      "product-announcement",
-      "statistic-card",
-      "quote-card",
-      "article-cover",
-    ]) {
+    for (const name of TEMPLATE_IDS) {
       expect(
         validateJsonSchema(await loadExample(name)),
         JSON.stringify(validateJsonSchema.errors),

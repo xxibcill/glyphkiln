@@ -9,6 +9,7 @@ const examples = [
   "statistic-card",
   "quote-card",
   "article-cover",
+  "tiktok-carousel-slide",
 ];
 const outputDirectory = resolve("examples/generated");
 const verify = process.argv.includes("--verify");

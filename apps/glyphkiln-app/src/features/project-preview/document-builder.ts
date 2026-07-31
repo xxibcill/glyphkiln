@@ -78,6 +78,18 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
         headline: "A practical determinism contract for graphics",
         attribution: "Glyphkiln · Field notes",
       },
+      tiktokCarouselSlide: {
+        mode: "narrative",
+        slideNumber: "01 / 06",
+        eyebrow: "GLYPHKILN / SWIPE LEDGER",
+        headline: "Same brief. Different pixels?",
+        subtitle: "That is not a creative problem. It is a rendering-contract problem.",
+        value: "100%",
+        label: "reproducible from one pinned seed, font, and renderer",
+        trend: "NO MODEL · NO NETWORK · NO DRIFT",
+        cta: "SWIPE TO INSPECT →",
+        footer: "@glyphkiln · deterministic series",
+      },
     },
   };
 }
@@ -211,6 +223,35 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       addTextLayer(layers, "attribution", "attribution", copy.attribution);
       break;
     }
+    case "tiktok-carousel-slide": {
+      const copy = state.copy.tiktokCarouselSlide;
+      const slideNumber = copy.slideNumber.trim();
+      if (slideNumber !== "") {
+        layers.push({
+          id: "slide-number",
+          type: "badge",
+          text: slideNumber,
+          visible: true,
+        });
+      }
+      addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
+      addTextLayer(layers, "headline", "headline", copy.headline, true);
+      if (copy.mode === "metric") {
+        layers.push({
+          id: "carousel-statistic",
+          type: "statistic",
+          value: copy.value.trim(),
+          label: copy.label.trim(),
+          ...(copy.trend.trim() === "" ? {} : { trend: copy.trend.trim() }),
+          visible: true,
+        });
+      } else {
+        addTextLayer(layers, "subtitle", "subtitle", copy.subtitle);
+      }
+      addTextLayer(layers, "cta", "cta", copy.cta);
+      addTextLayer(layers, "footer", "footer", copy.footer);
+      break;
+    }
   }
 
   return layers;
@@ -219,7 +260,7 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
 function addTextLayer(
   layers: DesignLayer[],
   id: string,
-  type: "headline" | "subtitle" | "eyebrow" | "cta" | "attribution",
+  type: "headline" | "subtitle" | "eyebrow" | "cta" | "footer" | "attribution",
   value: string,
   required = false,
 ): void {

@@ -21,6 +21,11 @@ export const FORMAT_REGISTRY = {
     height: 1920,
     label: "Instagram story",
   },
+  "tiktok-carousel": {
+    width: 1080,
+    height: 1920,
+    label: "TikTok carousel (9:16)",
+  },
   "x-landscape": {
     width: 1200,
     height: 675,

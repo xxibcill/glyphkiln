@@ -48,6 +48,20 @@ describe("EditorControls", () => {
       '<span class="required-mark" aria-hidden="true">required</span>',
     );
   });
+
+  it("exposes narrative and metric controls for TikTok carousel slides", () => {
+    const narrativeMarkup = renderTiktokControls("narrative");
+    expect(narrativeMarkup).toContain("TikTok carousel slide");
+    expect(narrativeMarkup).toContain('id="tiktok-slide-number"');
+    expect(narrativeMarkup).toContain('id="tiktok-headline"');
+    expect(narrativeMarkup).toContain('id="tiktok-subtitle"');
+    expect(narrativeMarkup).not.toContain('id="tiktok-statistic-value"');
+
+    const metricMarkup = renderTiktokControls("metric");
+    expect(metricMarkup).toContain('id="tiktok-statistic-value"');
+    expect(metricMarkup).toContain('id="tiktok-statistic-label"');
+    expect(metricMarkup).not.toContain('id="tiktok-subtitle"');
+  });
 });
 
 function renderControls(validationIsStale: boolean): string {
@@ -60,6 +74,27 @@ function renderControls(validationIsStale: boolean): string {
       isRendering={false}
       hasUnrenderedEdits={false}
       validationIsStale={validationIsStale}
+      onStateChange={() => undefined}
+      onRender={() => undefined}
+    />,
+  );
+}
+
+function renderTiktokControls(mode: "narrative" | "metric"): string {
+  const catalog = createPreviewCatalog();
+  const state = createInitialPreviewForm(catalog);
+  state.composition.templateId = "tiktok-carousel-slide";
+  state.composition.formatId = "tiktok-carousel";
+  state.copy.tiktokCarouselSlide.mode = mode;
+
+  return renderToStaticMarkup(
+    <EditorControls
+      catalog={catalog}
+      state={state}
+      response={null}
+      isRendering={false}
+      hasUnrenderedEdits={false}
+      validationIsStale={false}
       onStateChange={() => undefined}
       onRender={() => undefined}
     />,

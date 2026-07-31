@@ -43,12 +43,13 @@ block rendering.
 
 Templates explicitly declare which semantic layers they implement:
 
-| Template               | Accepted visible layers                                                                                          |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `product-announcement` | `background`, `procedural-decoration`, `eyebrow` or `badge`, `headline`, `subtitle`, `cta`, `product-screenshot` |
-| `statistic-card`       | `background`, `procedural-decoration`, `headline`, `statistic`                                                   |
-| `quote-card`           | `background`, `procedural-decoration`, `headline`, `attribution`                                                 |
-| `article-cover`        | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                      |
+| Template                | Accepted visible layers                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `product-announcement`  | `background`, `procedural-decoration`, `eyebrow` or `badge`, `headline`, `subtitle`, `cta`, `product-screenshot`  |
+| `statistic-card`        | `background`, `procedural-decoration`, `headline`, `statistic`                                                    |
+| `quote-card`            | `background`, `procedural-decoration`, `headline`, `attribution`                                                  |
+| `article-cover`         | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                       |
+| `tiktok-carousel-slide` | `background`, `procedural-decoration`, `badge`, `eyebrow`, `headline`, `subtitle` or `statistic`, `cta`, `footer` |
 
 A template accepts at most one visible layer of each type. Unsupported,
 duplicate, or mutually exclusive visible layers are error-level quality issues

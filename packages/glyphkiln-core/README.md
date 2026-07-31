@@ -28,6 +28,7 @@ Supported templates:
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
+- `tiktok-carousel-slide@1.0.0`
 
 Supported procedural styles:
 
@@ -174,12 +175,19 @@ visible text with `QUALITY_VALIDATION_FAILED`.
 | `instagram-square`   | 1080 × 1080 |
 | `instagram-portrait` | 1080 × 1350 |
 | `instagram-story`    | 1080 × 1920 |
+| `tiktok-carousel`    | 1080 × 1920 |
 | `x-landscape`        |  1200 × 675 |
 | `youtube-thumbnail`  |  1280 × 720 |
 
 The X default is 16:9 at 1200 × 675: a practical current default that maps
 cleanly to common high-resolution preview surfaces. Applications can add new
 versioned registry entries without scattering dimensions through templates.
+The TikTok carousel format uses a high-resolution 9:16 canvas and the
+carousel-slide template keeps semantic copy in a conservative upper-left
+column so platform interface elements do not compete with the message. This
+follows [TikTok's current creative guidance](https://ads.tiktok.com/help/article/creative-best-practices)
+to use vertical 9:16 creative at 720p or higher and keep content inside the
+interface safe zone.
 
 ## Examples and baselines
 

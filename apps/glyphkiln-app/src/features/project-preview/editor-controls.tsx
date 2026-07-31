@@ -812,6 +812,162 @@ function TemplateCopyFields({
         </div>
       );
     }
+    case "tiktok-carousel-slide": {
+      const copy = state.copy.tiktokCarouselSlide;
+      const update = (next: Partial<CopyFormState["tiktokCarouselSlide"]>): void => {
+        updateCopy({ tiktokCarouselSlide: { ...copy, ...next } });
+      };
+      return (
+        <div className="field-stack">
+          <FieldShell
+            id="tiktok-slide-mode"
+            label="Slide mode"
+            hint="Use narrative for an argument or metric for one proof point."
+          >
+            <select
+              id="tiktok-slide-mode"
+              value={copy.mode}
+              aria-describedby="tiktok-slide-mode-hint"
+              onChange={(event) => {
+                update({
+                  mode: event.currentTarget
+                    .value as CopyFormState["tiktokCarouselSlide"]["mode"],
+                });
+              }}
+            >
+              <option value="narrative">Narrative slide</option>
+              <option value="metric">Metric slide</option>
+            </select>
+          </FieldShell>
+          <div className="field-pair">
+            <TextField
+              id="tiktok-slide-number"
+              label="Slide number"
+              value={copy.slideNumber}
+              onChange={(slideNumber) => {
+                update({ slideNumber });
+              }}
+              maxLength={80}
+              hint="Visible copy, for example 01 / 06."
+              error={copyIssueMessage(
+                failure,
+                "slide-number",
+                "text",
+                copy.slideNumber,
+              )}
+            />
+            <TextField
+              id="tiktok-eyebrow"
+              label="Series label"
+              value={copy.eyebrow}
+              onChange={(eyebrow) => {
+                update({ eyebrow });
+              }}
+              maxLength={2_000}
+              error={copyIssueMessage(failure, "eyebrow", "text", copy.eyebrow)}
+            />
+          </div>
+          <TextAreaField
+            id="tiktok-headline"
+            label="Hook"
+            value={copy.headline}
+            onChange={(headline) => {
+              update({ headline });
+            }}
+            required
+            maxLength={2_000}
+            rows={4}
+            error={copyIssueMessage(failure, "headline", "text", copy.headline)}
+          />
+          {copy.mode === "narrative" ? (
+            <TextAreaField
+              id="tiktok-subtitle"
+              label="Supporting copy"
+              value={copy.subtitle}
+              onChange={(subtitle) => {
+                update({ subtitle });
+              }}
+              maxLength={2_000}
+              rows={4}
+              error={copyIssueMessage(failure, "subtitle", "text", copy.subtitle)}
+            />
+          ) : (
+            <>
+              <div className="field-pair field-pair-statistic">
+                <TextField
+                  id="tiktok-statistic-value"
+                  label="Value"
+                  value={copy.value}
+                  onChange={(value) => {
+                    update({ value });
+                  }}
+                  required
+                  maxLength={80}
+                  error={copyIssueMessage(
+                    failure,
+                    "carousel-statistic",
+                    "value",
+                    copy.value,
+                  )}
+                />
+                <TextField
+                  id="tiktok-statistic-trend"
+                  label="Proof note"
+                  value={copy.trend}
+                  onChange={(trend) => {
+                    update({ trend });
+                  }}
+                  maxLength={80}
+                  error={copyIssueMessage(
+                    failure,
+                    "carousel-statistic",
+                    "trend",
+                    copy.trend,
+                  )}
+                />
+              </div>
+              <TextAreaField
+                id="tiktok-statistic-label"
+                label="Metric label"
+                value={copy.label}
+                onChange={(label) => {
+                  update({ label });
+                }}
+                required
+                maxLength={240}
+                rows={3}
+                error={copyIssueMessage(
+                  failure,
+                  "carousel-statistic",
+                  "label",
+                  copy.label,
+                )}
+              />
+            </>
+          )}
+          <TextField
+            id="tiktok-cta"
+            label="Swipe cue or action"
+            value={copy.cta}
+            onChange={(cta) => {
+              update({ cta });
+            }}
+            maxLength={2_000}
+            error={copyIssueMessage(failure, "cta", "text", copy.cta)}
+          />
+          <TextField
+            id="tiktok-footer"
+            label="Footer"
+            value={copy.footer}
+            onChange={(footer) => {
+              update({ footer });
+            }}
+            maxLength={2_000}
+            error={copyIssueMessage(failure, "footer", "text", copy.footer)}
+          />
+        </div>
+      );
+    }
   }
 }
 

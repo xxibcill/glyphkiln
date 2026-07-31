@@ -69,6 +69,37 @@ describe("manual App Alpha state", () => {
     );
     expect(documentMatchesManualInput(document, brand, reopenedDraft)).toBe(true);
   });
+
+  it("reopens the visible sequence copy and metric mode of a carousel slide", () => {
+    const initial = createInitialPreviewForm(catalog);
+    initial.composition.templateId = "tiktok-carousel-slide";
+    initial.composition.formatId = "tiktok-carousel";
+    initial.copy.tiktokCarouselSlide.mode = "metric";
+    initial.copy.tiktokCarouselSlide.slideNumber = "04 / 06";
+    initial.copy.tiktokCarouselSlide.value = "100%";
+    initial.copy.tiktokCarouselSlide.label =
+      "reproducible from one pinned rendering contract";
+
+    const brand = createPublishedBrand();
+    const branded = withBrandSnapshot(initial, brand);
+    const candidate = buildPreviewDocument(branded, catalog);
+    const document = {
+      ...candidate,
+      id: "carousel-slide-4",
+      metadata: { source: "glyphkiln-app-manual" },
+    };
+
+    const reopened = formFromStoredDocument(document, catalog);
+    const reopenedDraft = buildManualDraft(reopened, catalog);
+
+    expect(reopened.copy.tiktokCarouselSlide).toMatchObject({
+      mode: "metric",
+      slideNumber: "04 / 06",
+      value: "100%",
+      label: "reproducible from one pinned rendering contract",
+    });
+    expect(documentMatchesManualInput(document, brand, reopenedDraft)).toBe(true);
+  });
 });
 
 function createPublishedBrand(): BrandSnapshot {
