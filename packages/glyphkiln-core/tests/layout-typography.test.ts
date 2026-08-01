@@ -62,7 +62,7 @@ describe("typography", () => {
   it("uses pinned Thai segmentation independently from font rendering", () => {
     expect(THAI_SEGMENTATION_POLICY_VERSION).toBe("budoux-th@0.7.0");
     expect(LINE_BREAKING_POLICY_VERSION).toBe("balanced-lines@1.0.0");
-    expect(TYPOGRAPHY_ALGORITHM_VERSION).toBe("2.0.0");
+    expect(TYPOGRAPHY_ALGORITHM_VERSION).toBe("2.0.1");
     expect(segmentThaiText("รายจ่ายบางก้อนยังเดินต่อ")).toEqual([
       "รายจ่าย",
       "บาง",
@@ -148,6 +148,14 @@ describe("typography", () => {
     );
     expect(wrapped.lines.length).toBeGreaterThan(1);
     expect(wrapped.width).toBeLessThanOrEqual(260);
+  });
+
+  it("measures tracking between shaped glyphs instead of code units", () => {
+    const style = { ...baseStyle, letterSpacing: 12 };
+    const precomposed = wrapText("é", 1_000, style, registry);
+    const decomposed = wrapText("e\u0301", 1_000, style, registry);
+
+    expect(decomposed.width).toBeCloseTo(precomposed.width);
   });
 
   it("preserves explicit line breaks", () => {

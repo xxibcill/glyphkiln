@@ -19,8 +19,10 @@
 - Template `1.1.x` is semantic and constrained; arbitrary freeform positions,
   arbitrary charts, uploaded SVG, and custom icons are intentionally absent.
 - Exact PNG baselines are guaranteed only in the pinned renderer environment.
-- Quality contrast is calculated against the canvas color, not a composited
-  per-pixel background sample.
+- Existing solid-surface templates calculate contrast against their owned
+  surface color. `image-led-campaign@1.0.0` uses a conservative fixed 5 × 5
+  composed-raster sample grid; it is not color-profile normalization or a
+  perceptual image-quality metric.
 - C2PA signing, accessibility metadata beyond SVG title/description, and ICC
   color-profile control are future work.
 - CLI resource bundles resolve only local regular files beneath one explicit

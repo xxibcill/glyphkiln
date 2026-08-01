@@ -12,8 +12,37 @@ import {
   getDesignDocumentJsonSchema,
   validateDesignDocument,
   type CreateDesignDocumentInput,
+  type DesignDocument,
 } from "../src/index.js";
 import { cloneDocument, loadExample } from "./helpers.js";
+
+function currentDisplayRole(document: DesignDocument): {
+  weight: number;
+  lineHeight: number;
+  tracking: number;
+} {
+  const typography = document.brand.typography;
+  if (!("roles" in typography) || typography.roles?.display === undefined) {
+    throw new Error("Expected a current display typography role.");
+  }
+  return typography.roles.display;
+}
+
+function currentImageLayer(document: DesignDocument): {
+  fit?: "contain" | "cover";
+  focalPoint?: { x: number; y: number };
+  treatment?: "none" | "dark-scrim" | "light-scrim";
+} {
+  const image = document.layers.find((layer) => layer.type === "image");
+  if (image?.type !== "image" || !("focalPoint" in image)) {
+    throw new Error("Expected a current image layer.");
+  }
+  return image as {
+    fit?: "contain" | "cover";
+    focalPoint?: { x: number; y: number };
+    treatment?: "none" | "dark-scrim" | "light-scrim";
+  };
+}
 
 describe("design document schema", () => {
   it.each(TEMPLATE_IDS)("validates the %s example", async (name) => {
@@ -56,12 +85,13 @@ describe("design document schema", () => {
   });
 
   it("keeps legacy schemas readable while versioning new rendering controls", async () => {
-    expect(DESIGN_DOCUMENT_VERSION).toBe("1.3.0");
+    expect(DESIGN_DOCUMENT_VERSION).toBe("1.4.0");
     expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual([
       "1.0.0",
       "1.1.0",
       "1.2.0",
       "1.3.0",
+      "1.4.0",
     ]);
 
     const legacy = await loadExample("product-announcement");
@@ -78,6 +108,101 @@ describe("design document schema", () => {
     expect(
       validateDesignDocument({ ...carousel, schemaVersion: "1.0.0" }).success,
     ).toBe(false);
+  });
+
+  it("versions bounded brand roles and focal image controls in schema 1.4.0", async () => {
+    const document = await loadExample("image-led-campaign");
+    const validateJsonSchema = new Ajv2020().compile(getDesignDocumentJsonSchema());
+    const expectValidity = (candidate: unknown, expected: boolean) => {
+      expect(validateDesignDocument(candidate).success).toBe(expected);
+      expect(
+        validateJsonSchema(candidate),
+        JSON.stringify(validateJsonSchema.errors),
+      ).toBe(expected);
+    };
+
+    expectValidity(document, true);
+
+    const legacy = { ...document, schemaVersion: "1.3.0" };
+    expectValidity(legacy, false);
+
+    for (const [property, value] of [
+      ["weight", 100],
+      ["weight", 900],
+      ["lineHeight", 0.85],
+      ["lineHeight", 1.8],
+      ["tracking", -0.05],
+      ["tracking", 0.2],
+    ] as const) {
+      const boundary = structuredClone(document);
+      currentDisplayRole(boundary)[property] = value;
+      expectValidity(boundary, true);
+    }
+
+    for (const [property, value] of [
+      ["weight", 99],
+      ["weight", 901],
+      ["weight", 150],
+      ["lineHeight", 0.849],
+      ["lineHeight", 1.801],
+      ["tracking", -0.051],
+      ["tracking", 0.201],
+    ] as const) {
+      const outsideBoundary = structuredClone(document);
+      currentDisplayRole(outsideBoundary)[property] = value;
+      expectValidity(outsideBoundary, false);
+    }
+
+    for (const focalPoint of [
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+      { x: 0, y: 1 },
+      { x: 1, y: 0 },
+    ]) {
+      const boundary = structuredClone(document);
+      currentImageLayer(boundary).focalPoint = focalPoint;
+      expectValidity(boundary, true);
+    }
+
+    for (const focalPoint of [
+      { x: -0.001, y: 0.5 },
+      { x: 1.001, y: 0.5 },
+      { x: 0.5, y: -0.001 },
+      { x: 0.5, y: 1.001 },
+    ]) {
+      const outsideBoundary = structuredClone(document);
+      currentImageLayer(outsideBoundary).focalPoint = focalPoint;
+      expectValidity(outsideBoundary, false);
+    }
+
+    for (const treatment of ["none", "dark-scrim", "light-scrim"] as const) {
+      const allowed = structuredClone(document);
+      currentImageLayer(allowed).treatment = treatment;
+      expectValidity(allowed, true);
+    }
+    const invalidTreatment = structuredClone(document);
+    (currentImageLayer(invalidTreatment) as { treatment: string }).treatment =
+      "custom-filter";
+    expectValidity(invalidTreatment, false);
+
+    const omitted = structuredClone(document);
+    const omittedImage = currentImageLayer(omitted);
+    delete omittedImage.fit;
+    delete omittedImage.focalPoint;
+    delete omittedImage.treatment;
+    if ("roles" in omitted.brand.typography) {
+      delete omitted.brand.typography.roles;
+    }
+    expectValidity(omitted, true);
+    const parsed = validateDesignDocument(omitted);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      const parsedImage = parsed.data.layers.find((layer) => layer.type === "image");
+      expect(parsedImage).toMatchObject({ fit: "contain", visible: true });
+      expect(parsedImage).not.toHaveProperty("focalPoint");
+      expect(parsedImage).not.toHaveProperty("treatment");
+      expect(parsed.data.brand.typography).not.toHaveProperty("roles");
+    }
   });
 
   it("validates bounded keep-together phrases in schema 1.2.0 and newer", async () => {
@@ -132,7 +257,7 @@ describe("design document schema", () => {
     const source = await loadExample("tiktok-carousel-slide");
     const { id: _id, schemaVersion: _schemaVersion, ...input } = source;
     expect(_id).toBe("example-tiktok-carousel-slide-01");
-    expect(_schemaVersion).toBe(DESIGN_DOCUMENT_VERSION);
+    expect(_schemaVersion).toBe("1.3.0");
     const typedInput = input satisfies CreateDesignDocumentInput;
 
     const document = createDesignDocument(typedInput);
@@ -164,7 +289,11 @@ describe("design document schema", () => {
     for (const name of TEMPLATE_IDS) {
       const example = await loadExample(name);
       const schemaVersion =
-        name === "tiktok-carousel-slide" ? DESIGN_DOCUMENT_VERSION : "1.0.0";
+        name === "tiktok-carousel-slide"
+          ? "1.3.0"
+          : name === "image-led-campaign"
+            ? DESIGN_DOCUMENT_VERSION
+            : "1.0.0";
       expect(
         validateJsonSchema({ ...example, schemaVersion }),
         JSON.stringify(validateJsonSchema.errors),

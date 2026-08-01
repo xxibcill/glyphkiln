@@ -27,6 +27,8 @@ export {
   DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
   PROCEDURAL_STYLE_IDS,
   TEMPLATE_IDS,
+  FocalPointSchema,
+  IMAGE_TREATMENT_IDS,
   createDesignDocument,
   getDesignDocumentJsonSchema,
   validateDesignDocument,
@@ -34,10 +36,13 @@ export {
 export type {
   AssetDeclaration,
   BrandSnapshot,
+  BrandTypographyRole,
   CreateDesignDocumentInput,
   DesignDocument,
   DesignLayer,
   FontDeclaration,
+  FocalPoint,
+  ImageTreatmentId,
   ProceduralStyleId,
   TemplateId,
   ValidationProblem,
@@ -80,6 +85,13 @@ export {
   createDevelopmentFont,
 } from "./fonts/index.js";
 export { AssetRegistry } from "./assets/index.js";
+export { FOCAL_CROP_POLICY_VERSION, calculateFocalCrop } from "./assets/focal-crop.js";
+export type { FocalCropGeometry } from "./assets/focal-crop.js";
+export {
+  IMAGE_CONTRAST_POLICY_VERSION,
+  IMAGE_TREATMENTS,
+  IMAGE_TREATMENT_POLICY_VERSION,
+} from "./assets/image-policy.js";
 export { contrastRatio, isInside, safeAreaBounds } from "./layout/index.js";
 export {
   GRAPHEME_SEGMENTATION_POLICY_VERSION,
@@ -117,12 +129,18 @@ export type { TemplateDefinition } from "./templates/index.js";
 
 export { renderGraphic } from "./renderer/index.js";
 export type {
+  ContrastEvidence,
+  ContrastSampleEvidence,
+  ImageCropEvidence,
   RenderGraphicOptions,
   RenderGraphicResult,
+  RenderEvidence,
   RenderedOutput,
   Scene,
   SceneElement,
+  TextBoundsEvidence,
 } from "./renderer/index.js";
+export { RENDER_EVIDENCE_VERSION } from "./renderer/index.js";
 export { renderGraphicIsolated } from "./isolation/index.js";
 export type { IsolatedRenderOptions } from "./isolation/index.js";
 

@@ -15,6 +15,7 @@ The render fingerprint includes:
 - resolved asset hashes
 - resolved font family/weight/style identities and hashes
 - relevant SVG and rasterizer configuration
+- focal crop, image-treatment, and composited-contrast policy versions
 - typography algorithm, segmentation, line-breaking, and emergency grapheme
   policy versions
 

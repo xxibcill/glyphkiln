@@ -1,4 +1,5 @@
 import { assetDataUri } from "../assets/index.js";
+import { calculateFocalCrop } from "../assets/focal-crop.js";
 import { createProceduralBackground } from "../backgrounds/index.js";
 import type { Bounds, QualityIssue } from "../domain/types.js";
 import { getFormatDimensions } from "../formats/index.js";
@@ -17,6 +18,7 @@ import type {
   SceneElement,
   TextElement,
 } from "../renderer/scene.js";
+import { createRenderEvidence, type RenderEvidence } from "../renderer/evidence.js";
 import type { TemplateRenderContext, TemplateRenderResult } from "./types.js";
 
 export type TextLayer = Extract<
@@ -36,6 +38,7 @@ export type TemplateCanvas = {
   spacingUnit: number;
   qualityIssues: QualityIssue[];
   proceduralAlgorithmVersions: Record<string, string>;
+  evidence: RenderEvidence;
 };
 
 export function createTemplateCanvas(context: TemplateRenderContext): TemplateCanvas {
@@ -90,9 +93,10 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
     scene.elements.push(...result.elements);
     proceduralAlgorithmVersions[result.style] = result.version;
   }
+  const safeArea = safeAreaBounds(dimensions, document.brand);
   return {
     scene,
-    safeArea: safeAreaBounds(dimensions, document.brand),
+    safeArea,
     backgroundColor,
     textColor: theme.text,
     mutedTextColor: theme.mutedText,
@@ -100,6 +104,7 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
     spacingUnit: document.brand.spacingScale[0]!,
     qualityIssues: [],
     proceduralAlgorithmVersions,
+    evidence: createRenderEvidence(safeArea),
   };
 }
 
@@ -118,6 +123,8 @@ export function addText(
     align?: "left" | "center" | "right";
     family?: string;
     contrastBackgroundColor?: string;
+    tracking?: number;
+    checkContrast?: boolean;
   },
 ): TextElement {
   const family =
@@ -126,6 +133,7 @@ export function addText(
     context.document.brand.typography.headlineFamily;
   const weight = layer.fontWeight ?? options.weight;
   const align = layer.align ?? options.align ?? "left";
+  const lineHeight = options.lineHeight ?? 1.08;
   const fitted = fitText({
     text: layer.text,
     registry: context.fonts,
@@ -133,7 +141,7 @@ export function addText(
       family,
       weight,
       style: "normal",
-      lineHeight: options.lineHeight ?? 1.08,
+      lineHeight,
     },
     box,
     preferredFontSize: layer.fontSize ?? options.preferredFontSize,
@@ -143,6 +151,7 @@ export function addText(
       options.maximumLines,
     ),
     layerId: layer.id,
+    ...(options.tracking === undefined ? {} : { letterSpacingEm: options.tracking }),
     ...("keepTogether" in layer && layer.keepTogether !== undefined
       ? { keepTogether: layer.keepTogether }
       : {}),
@@ -188,14 +197,18 @@ export function addText(
     canvas.qualityIssues,
     safeAreaIssue(canvas.safeArea, actualBounds, layer.id),
   );
-  appendIssue(
-    canvas.qualityIssues,
-    contrastIssue(
-      fill,
-      options.contrastBackgroundColor ?? canvas.backgroundColor,
-      layer.id,
-    ),
-  );
+  if (options.checkContrast !== false) {
+    appendIssue(
+      canvas.qualityIssues,
+      contrastIssue(
+        fill,
+        options.contrastBackgroundColor ?? canvas.backgroundColor,
+        layer.id,
+      ),
+    );
+  }
+  const letterSpacing =
+    options.tracking === undefined ? undefined : options.tracking * fitted.fontSize;
   const element: TextElement = {
     id: layer.id,
     type: "text",
@@ -207,8 +220,9 @@ export function addText(
     fontWeight: weight,
     fontStyle: "normal",
     fontSize: fitted.fontSize,
-    lineHeight: options.lineHeight ?? 1.08,
+    lineHeight,
     align,
+    ...(letterSpacing === undefined ? {} : { letterSpacing }),
     bounds: actualBounds,
     outlines: context.fonts.outlineText({
       lines,
@@ -216,13 +230,21 @@ export function addText(
       weight,
       style: "normal",
       fontSize: fitted.fontSize,
-      lineHeight: options.lineHeight ?? 1.08,
+      lineHeight,
       x,
       y: box.y,
       align,
+      ...(letterSpacing === undefined ? {} : { letterSpacing }),
     }),
   };
   canvas.scene.elements.push(element);
+  canvas.evidence.text.push({
+    layerId: layer.id,
+    bounds: { ...actualBounds },
+    lineCount: lines.length,
+    maximumLines: options.maximumLines,
+    overflow: fitted.issues.some((issue) => issue.code === "TEXT_OVERFLOW"),
+  });
   return element;
 }
 
@@ -257,6 +279,47 @@ export function addAsset(
   }
   canvas.scene.elements.push(element);
   return element;
+}
+
+export function addFocalImage(
+  canvas: TemplateCanvas,
+  context: TemplateRenderContext,
+  layer: Extract<DesignLayer, { type: "image" }>,
+  box: Bounds,
+): { element: ImageElement; crop: ReturnType<typeof calculateFocalCrop> } {
+  const asset = context.assets.get(layer.assetId);
+  const focalPoint =
+    "focalPoint" in layer && layer.focalPoint !== undefined
+      ? layer.focalPoint
+      : { x: 0.5, y: 0.5 };
+  const treatment =
+    "treatment" in layer && layer.treatment !== undefined ? layer.treatment : "none";
+  const crop = calculateFocalCrop({
+    source: { width: asset.width, height: asset.height },
+    destination: box,
+    focalPoint,
+  });
+  const element: ImageElement = {
+    id: layer.id,
+    type: "image",
+    ...crop.renderedBounds,
+    href: assetDataUri(asset),
+    fit: "contain",
+    clipBounds: crop.destinationBounds,
+    clipRadius: 0,
+  };
+  canvas.scene.elements.push(element);
+  canvas.evidence.crops.push({
+    layerId: layer.id,
+    assetId: layer.assetId,
+    treatment,
+    focalPoint: { ...focalPoint },
+    policyVersion: crop.policyVersion,
+    destinationBounds: { ...crop.destinationBounds },
+    sourceBounds: { ...crop.sourceBounds },
+    renderedBounds: { ...crop.renderedBounds },
+  });
+  return { element, crop };
 }
 
 export function addQuietRegionIssue(
@@ -294,10 +357,12 @@ export function findLayer<T extends DesignLayer["type"]>(
 }
 
 export function finishTemplate(canvas: TemplateCanvas): TemplateRenderResult {
+  canvas.evidence.safeArea = { ...canvas.safeArea };
   return {
     scene: canvas.scene,
     qualityIssues: canvas.qualityIssues,
     proceduralAlgorithmVersions: canvas.proceduralAlgorithmVersions,
+    evidence: canvas.evidence,
   };
 }
 

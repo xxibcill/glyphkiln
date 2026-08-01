@@ -88,6 +88,7 @@ export type FitTextOptions = {
   maximumLines: number;
   layerId: string;
   keepTogether?: readonly string[];
+  letterSpacingEm?: number;
 };
 
 type ParagraphWrap = {
@@ -184,7 +185,7 @@ export function wrapText(
 export function fitText(options: FitTextOptions): FittedText {
   let bestOrphanCandidate: FitCandidate | undefined;
   for (const fontSize of fontSizesToTry(options)) {
-    const style = { ...options.style, fontSize };
+    const style = textStyleAtSize(options, fontSize);
     const wrapped = wrapText(options.text, options.box.width, style, options.registry, {
       ...(options.keepTogether === undefined
         ? {}
@@ -217,7 +218,7 @@ export function fitText(options: FitTextOptions): FittedText {
     );
   }
 
-  const style = { ...options.style, fontSize: options.minimumFontSize };
+  const style = textStyleAtSize(options, options.minimumFontSize);
   const wrapped = wrapText(options.text, options.box.width, style, options.registry, {
     ...(options.keepTogether === undefined
       ? {}
@@ -238,6 +239,16 @@ export function fitText(options: FitTextOptions): FittedText {
     },
   ];
   return toFittedText(options, wrapped, options.minimumFontSize, issues);
+}
+
+function textStyleAtSize(options: FitTextOptions, fontSize: number): TextStyle {
+  return {
+    ...options.style,
+    fontSize,
+    ...(options.letterSpacingEm === undefined
+      ? {}
+      : { letterSpacing: options.letterSpacingEm * fontSize }),
+  };
 }
 
 function wrapParagraph(
@@ -640,14 +651,14 @@ function breakLongToken(
 }
 
 function measure(text: string, style: TextStyle, registry: TextMeasurer): number {
-  const base = registry.measure(
+  return registry.measure(
     text,
     style.family,
     style.weight,
     style.style,
     style.fontSize,
+    style.letterSpacing,
   );
-  return base + Math.max(0, text.length - 1) * (style.letterSpacing ?? 0);
 }
 
 function roundMetric(value: number): number {

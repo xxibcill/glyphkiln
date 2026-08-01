@@ -34,6 +34,7 @@ jobs:
       - run: npm test
       - run: npm run text-layout-data:verify
       - run: npm run fixtures:verify
+      - run: npm run identity:verify
       - run: npm run licenses:verify
       - run: npm audit --audit-level=low
       - run: npm run pack:core:dry-run

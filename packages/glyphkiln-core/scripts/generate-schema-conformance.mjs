@@ -6,8 +6,8 @@ const outputDirectory = new URL("fixtures/schema-conformance/", root);
 const base = JSON.parse(
   await readFile(new URL("examples/product-announcement.json", root), "utf8"),
 );
-const carousel = JSON.parse(
-  await readFile(new URL("examples/tiktok-carousel-slide.json", root), "utf8"),
+const imageLed = JSON.parse(
+  await readFile(new URL("examples/image-led-campaign.json", root), "utf8"),
 );
 const cases = [
   {
@@ -38,20 +38,14 @@ const cases = [
   },
   {
     name: "current-valid",
-    document: mutateCarousel((document) => {
-      document.schemaVersion = "1.3.0";
-      const headline = document.layers.find((layer) => layer.type === "headline");
-      headline.keepTogether = ["Different pixels?"];
-    }),
+    document: mutateImageLed(() => {}),
     jsonSchemaValid: true,
     runtimeValid: true,
   },
   {
     name: "current-mislabeled-as-legacy",
-    document: mutateCarousel((document) => {
-      document.schemaVersion = "1.2.0";
-      const headline = document.layers.find((layer) => layer.type === "headline");
-      headline.keepTogether = ["Different pixels?"];
+    document: mutateImageLed((document) => {
+      document.schemaVersion = "1.3.0";
     }),
     jsonSchemaValid: false,
     runtimeValid: false,
@@ -90,8 +84,8 @@ function mutate(callback) {
   return document;
 }
 
-function mutateCarousel(callback) {
-  const document = structuredClone(carousel);
+function mutateImageLed(callback) {
+  const document = structuredClone(imageLed);
   callback(document);
   return document;
 }

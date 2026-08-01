@@ -17,6 +17,10 @@ export type DesignInspection = {
     requiredLayers: readonly string[];
     supportedLayers: readonly string[];
     mutuallyExclusiveLayers: readonly (readonly string[])[];
+    requiredAssetFits: readonly {
+      layerType: "logo" | "image" | "product-screenshot";
+      fit: "contain" | "cover";
+    }[];
     constraints: {
       headlineMaximumLines: number;
       safeAreaBehavior: string;
@@ -56,6 +60,7 @@ function inspectValidatedDocument(document: DesignDocument): DesignInspection {
       requiredLayers: template.requiredLayers,
       supportedLayers: template.supportedLayers,
       mutuallyExclusiveLayers: template.mutuallyExclusiveLayers ?? [],
+      requiredAssetFits: template.requiredAssetFits ?? [],
       constraints: template.constraints,
     },
     format: document.format,

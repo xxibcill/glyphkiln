@@ -3,8 +3,8 @@
 1. Read at most the public byte limit or pass an unknown value to the SDK.
 2. Iteratively reject cyclic, accessor-backed, non-JSON, oversized, overly
    deep, or over-populated input.
-3. Validate with the strict current `DesignDocument 1.3.0` schema or a supported
-   `1.0.0`/`1.1.0`/`1.2.0` predecessor.
+3. Validate with the strict current `DesignDocument 1.4.0` schema or a supported
+   `1.0.0`/`1.1.0`/`1.2.0`/`1.3.0` predecessor.
 4. Resolve the format and exact template version. Aggregate required,
    unsupported, duplicate, or mutually exclusive layers; brand restrictions;
    and pinned Unicode text-layout diagnostics. Any error blocks before asset or
@@ -20,13 +20,16 @@
    balance Thai lines, then measure, fit, coverage-check, shape, and outline
    text; create deterministic procedural geometry; and emit a renderer-neutral
    scene.
-9. Run layout, contrast, overflow, quiet-region, and glyph checks. Error issues
+9. For an image-led template, calculate the pinned focal cover, apply only its
+   closed treatment, and sample composed raster color beneath text on a fixed
+   grid. Run layout, contrast, overflow, quiet-region, and glyph checks. Error issues
    block export; warnings are recorded.
 10. Serialize safe SVG containing glyph paths. For PNG, rasterize that SVG with
     pinned Resvg and temporary files containing only already-verified font
     bytes.
 11. Validate the output signature, hash the bytes, compute the canonical
-    fingerprint, and return a manifest.
+    fingerprint, and return a manifest plus bounded safe-area, text-bound,
+    crop, overflow, and contrast evidence.
 
 The render performs no network access. Temporary font files are created in an
 OS-owned random directory and removed in a `finally` block. Successful SDK calls

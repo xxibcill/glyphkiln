@@ -3,6 +3,7 @@ import { basename, resolve } from "node:path";
 import process from "node:process";
 
 import { renderGraphic } from "../dist/index.js";
+import { loadExampleAssets } from "./example-assets.mjs";
 
 const examples = [
   "product-announcement",
@@ -10,6 +11,7 @@ const examples = [
   "quote-card",
   "article-cover",
   "tiktok-carousel-slide",
+  "image-led-campaign",
 ];
 const outputDirectory = resolve("examples/generated");
 const verify = process.argv.includes("--verify");
@@ -18,9 +20,11 @@ await mkdir(outputDirectory, { recursive: true });
 
 for (const name of examples) {
   const document = JSON.parse(await readFile(resolve(`examples/${name}.json`), "utf8"));
+  const assets = await loadExampleAssets(document);
   const result = await renderGraphic(document, {
     formats: ["svg", "png"],
     creationTimestamp,
+    assets,
   });
   for (const output of result.outputs) {
     const outputPath = resolve(outputDirectory, `${name}.${output.format}`);

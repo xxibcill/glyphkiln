@@ -1,6 +1,7 @@
 import { GlyphkilnError, type QualityIssue } from "../domain/types.js";
 import type { DesignDocument, TemplateId } from "../schema/index.js";
 import { articleCoverTemplate } from "./article-cover.js";
+import { imageLedCampaignTemplate } from "./image-led-campaign.js";
 import { productAnnouncementTemplate } from "./product-announcement.js";
 import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
@@ -16,6 +17,7 @@ export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>>
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
     "tiktok-carousel-slide": tiktokCarouselSlideV1_0_3Template,
+    "image-led-campaign": imageLedCampaignTemplate,
   });
 
 const TEMPLATE_VERSION_REGISTRY: Readonly<
@@ -30,6 +32,7 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     tiktokCarouselSlideTemplate,
     tiktokCarouselSlideV1_0_3Template,
   ]),
+  "image-led-campaign": Object.freeze([imageLedCampaignTemplate]),
 });
 
 export function getTemplate(document: DesignDocument): TemplateDefinition {
@@ -108,6 +111,26 @@ export function checkTemplateRequirements(
         },
       });
     }
+  }
+  for (const requirement of template.requiredAssetFits ?? []) {
+    const layer = visibleLayers.find(
+      (candidate) => candidate.type === requirement.layerType,
+    );
+    if (layer === undefined || !("fit" in layer) || layer.fit === requirement.fit) {
+      continue;
+    }
+    issues.push({
+      code: "ASSET_FIT_REQUIRED",
+      severity: "error",
+      message: `Template "${template.id}" requires "${requirement.layerType}" layers to use ${requirement.fit} fitting.`,
+      layerId: layer.id,
+      details: {
+        templateId: template.id,
+        layerType: requirement.layerType,
+        expected: requirement.fit,
+        actual: layer.fit,
+      },
+    });
   }
   return issues;
 }

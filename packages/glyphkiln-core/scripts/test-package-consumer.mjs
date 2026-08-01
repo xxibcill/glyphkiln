@@ -135,8 +135,11 @@ await assert.rejects(
   type TextLayoutDiagnosticCode,
   type TextLayoutMatch,
   type TextLayoutMatchProperty,
+  type RenderEvidence,
 } from "@glyphkiln/core";
 import {
+  FOCAL_CROP_POLICY_VERSION,
+  calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
   type RenderFingerprintInput,
@@ -170,7 +173,18 @@ const carousel = createDesignDocument({
         mutedText: "#CFC3B4",
       },
     },
-    typography: { headlineFamily: "Inter", bodyFamily: "Inter" },
+    typography: {
+      headlineFamily: "Inter",
+      bodyFamily: "Inter",
+      roles: {
+        display: {
+          family: "Inter",
+          weight: 700,
+          lineHeight: 0.95,
+          tracking: -0.02,
+        },
+      },
+    },
     spacingScale: [4, 8, 16],
     borderRadii: [0, 8],
     visualDensity: "balanced",
@@ -181,6 +195,15 @@ const carousel = createDesignDocument({
   layers: [{ id: "background", type: "background" }],
 });
 void carousel;
+
+const crop = calculateFocalCrop({
+  source: { width: 1600, height: 900 },
+  destination: { x: 0, y: 0, width: 1080, height: 1080 },
+  focalPoint: { x: 0.75, y: 0.5 },
+});
+if (crop.policyVersion !== FOCAL_CROP_POLICY_VERSION) throw new Error("crop");
+const evidence = {} as RenderEvidence;
+void evidence;
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {

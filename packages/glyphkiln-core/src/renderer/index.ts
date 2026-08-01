@@ -29,6 +29,7 @@ import {
   type TextLayoutQualitySummary,
 } from "./quality.js";
 import type { Scene } from "./scene.js";
+import type { RenderEvidence } from "./evidence.js";
 import { renderSceneToSvg } from "./svg.js";
 
 export type RenderGraphicOptions = {
@@ -50,6 +51,7 @@ export type RenderGraphicResult = {
   document: DesignDocument;
   outputs: RenderedOutput[];
   qualityIssues: QualityIssue[];
+  evidence: RenderEvidence;
 };
 
 export function assertRenderGraphicOptionsResources(
@@ -143,7 +145,7 @@ export async function renderGraphic(
       manifest,
     });
   }
-  return { document, outputs, qualityIssues };
+  return { document, outputs, qualityIssues, evidence: templateResult.evidence };
 }
 
 function collectManifestAssets(document: DesignDocument): ManifestAsset[] {
@@ -279,3 +281,11 @@ function validateCreationTimestamp(timestamp: unknown): string {
 
 export { assertSafeGeneratedSvg, renderSceneToSvg } from "./svg.js";
 export type { Scene, SceneElement } from "./scene.js";
+export { RENDER_EVIDENCE_VERSION, createRenderEvidence } from "./evidence.js";
+export type {
+  ContrastEvidence,
+  ContrastSampleEvidence,
+  ImageCropEvidence,
+  RenderEvidence,
+  TextBoundsEvidence,
+} from "./evidence.js";

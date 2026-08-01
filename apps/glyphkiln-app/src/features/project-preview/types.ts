@@ -16,8 +16,15 @@ export type PreviewCatalogFormat = {
   height: number;
 };
 
+/**
+ * Templates the browser-only local preview can construct without admitted
+ * workspace resources. Resource-backed templates remain available through the
+ * App workflow once the App has selected exact asset versions.
+ */
+export type PreviewTemplateId = Exclude<TemplateId, "image-led-campaign">;
+
 export type PreviewCatalogTemplate = {
-  id: TemplateId;
+  id: PreviewTemplateId;
   label: string;
   version: string;
   supportedFormats: readonly FormatId[];
@@ -103,7 +110,7 @@ export type BrandFormState = {
 };
 
 export type CompositionFormState = {
-  templateId: TemplateId;
+  templateId: PreviewTemplateId;
   formatId: FormatId;
   proceduralStyle: ProceduralStyleId;
   seed: string;

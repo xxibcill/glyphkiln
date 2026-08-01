@@ -2,24 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEVELOPMENT_FONT_SHA256,
-  TEMPLATE_IDS,
   TEMPLATE_REGISTRY,
   createDevelopmentFont,
   hashCanonical,
   renderGraphic,
   validateDesignDocument,
 } from "@glyphkiln/core";
-import type {
-  DesignDocument,
-  FormatId,
-  TemplateId,
-  ValidationResult,
-} from "@glyphkiln/core";
+import type { DesignDocument, FormatId, ValidationResult } from "@glyphkiln/core";
 
-import { createPreviewCatalog } from "@/lib/project-preview/catalog";
+import {
+  PREVIEW_TEMPLATE_IDS,
+  createPreviewCatalog,
+} from "@/lib/project-preview/catalog";
 
 import { buildPreviewDocument, createInitialPreviewForm } from "./document-builder";
-import type { PreviewFormState } from "./types";
+import type { PreviewFormState, PreviewTemplateId } from "./types";
 
 const EXPECTED_LAYERS = {
   "product-announcement": [
@@ -58,7 +55,7 @@ const EXPECTED_LAYERS = {
     ["cta", "cta"],
     ["footer", "footer"],
   ],
-} as const satisfies Record<TemplateId, readonly (readonly [string, string])[]>;
+} as const satisfies Record<PreviewTemplateId, readonly (readonly [string, string])[]>;
 
 const EXPECTED_STARTER_SVG_SHA256 = {
   "product-announcement":
@@ -68,13 +65,13 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
     "ee04f360f7442c70845e7fe29e7a28a5dd0f39c57ed18442ee44f800cd75a84d",
-} as const satisfies Record<TemplateId, string>;
+} as const satisfies Record<PreviewTemplateId, string>;
 
 describe("buildPreviewDocument", () => {
   it("builds a Core-valid document for every catalog template", () => {
     const catalog = createPreviewCatalog();
 
-    for (const templateId of TEMPLATE_IDS) {
+    for (const templateId of PREVIEW_TEMPLATE_IDS) {
       const state = createFormForTemplate(templateId);
       const catalogTemplate = catalog.templates.find(
         (template) => template.id === templateId,
@@ -98,7 +95,7 @@ describe("buildPreviewDocument", () => {
   });
 
   it("builds the required template-specific layer set", () => {
-    for (const templateId of TEMPLATE_IDS) {
+    for (const templateId of PREVIEW_TEMPLATE_IDS) {
       const document = buildPreviewDocument(
         createFormForTemplate(templateId),
         createPreviewCatalog(),
@@ -117,7 +114,7 @@ describe("buildPreviewDocument", () => {
   });
 
   it("renders a clean starter proof for every catalog template", async () => {
-    for (const templateId of TEMPLATE_IDS) {
+    for (const templateId of PREVIEW_TEMPLATE_IDS) {
       const result = await renderGraphic(build(createFormForTemplate(templateId)), {
         formats: ["svg"],
         fonts: [createDevelopmentFont()],
@@ -387,7 +384,7 @@ describe("buildPreviewDocument", () => {
   });
 });
 
-function createFormForTemplate(templateId: TemplateId): PreviewFormState {
+function createFormForTemplate(templateId: PreviewTemplateId): PreviewFormState {
   const catalog = createPreviewCatalog();
   const template = catalog.templates.find((candidate) => candidate.id === templateId);
   if (template === undefined) {

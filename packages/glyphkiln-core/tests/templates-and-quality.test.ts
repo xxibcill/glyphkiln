@@ -1,3 +1,4 @@
+import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,10 +7,12 @@ import {
   TEMPLATE_REGISTRY,
   createDevelopmentFont,
   renderGraphic,
+  sha256,
   type DesignDocument,
   type DesignLayer,
+  type ResolvedAsset,
 } from "../src/index.js";
-import { cloneDocument, loadExample } from "./helpers.js";
+import { cloneDocument, loadExample, loadExampleAssets } from "./helpers.js";
 
 const unsupportedLayerCases = [
   {
@@ -64,9 +67,10 @@ async function expectQualityIssue(
   document: DesignDocument,
   code: string,
   layerId: string,
+  assets?: readonly ResolvedAsset[],
 ): Promise<void> {
   try {
-    await renderGraphic(document);
+    await renderGraphic(document, assets === undefined ? {} : { assets });
     expect.fail("Expected render to fail.");
   } catch (error) {
     expect(error).toBeInstanceOf(GlyphkilnError);
@@ -85,6 +89,38 @@ async function expectQualityIssue(
       ),
     ).toBe(true);
   }
+}
+
+async function expectDeterministicRender(
+  document: DesignDocument,
+  assets: readonly ResolvedAsset[],
+): Promise<void> {
+  const options = {
+    formats: ["svg"] as const,
+    creationTimestamp: "2026-01-01T00:00:00.000Z",
+    assets,
+  };
+  const first = await renderGraphic(document, options);
+  const second = await renderGraphic(document, options);
+  expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
+  expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
+}
+
+function solidPngAsset(
+  declaration: DesignDocument["assets"][number],
+  color: readonly [number, number, number, number],
+): ResolvedAsset {
+  const png = new PNG({ width: 2, height: 2 });
+  png.data = Buffer.from([...color, ...color, ...color, ...color]);
+  const bytes = new Uint8Array(PNG.sync.write(png));
+  return {
+    ...declaration,
+    mimeType: "image/png",
+    sha256: sha256(bytes),
+    width: 2,
+    height: 2,
+    bytes,
+  };
 }
 
 async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
@@ -137,13 +173,14 @@ function svgTextYBounds(
 }
 
 describe("template registry", () => {
-  it("contains five stable versioned templates", () => {
+  it("contains six stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
       "product-announcement",
       "statistic-card",
       "quote-card",
       "article-cover",
       "tiktok-carousel-slide",
+      "image-led-campaign",
     ]);
     const expectedVersions = {
       "product-announcement": "1.1.1",
@@ -151,6 +188,7 @@ describe("template registry", () => {
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
       "tiktok-carousel-slide": "1.0.3",
+      "image-led-campaign": "1.0.0",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -170,18 +208,32 @@ describe("template registry", () => {
     },
   );
 
-  it.each(TEMPLATE_IDS)("renders the %s template deterministically", async (name) => {
-    const document = await loadExample(name);
-    const first = await renderGraphic(document, {
-      formats: ["svg"],
-      creationTimestamp: "2026-01-01T00:00:00.000Z",
-    });
-    const second = await renderGraphic(document, {
-      formats: ["svg"],
-      creationTimestamp: "2026-01-01T00:00:00.000Z",
-    });
-    expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
-    expect(first.outputs[0]?.fingerprint).toBe(second.outputs[0]?.fingerprint);
+  it.each(TEMPLATE_IDS.filter((name) => name !== "image-led-campaign"))(
+    "renders the %s template deterministically",
+    async (name) => {
+      const document = await loadExample(name);
+      await expectDeterministicRender(document, await loadExampleAssets(document));
+    },
+  );
+
+  it("renders image-led assets deterministically with bounded raster fixtures", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const assets = document.assets.map((declaration, index) =>
+      solidPngAsset(
+        declaration,
+        index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255],
+      ),
+    );
+    document.assets = assets.map((asset) => ({
+      id: asset.id,
+      mimeType: asset.mimeType,
+      sha256: asset.sha256,
+      width: asset.width,
+      height: asset.height,
+      origin: asset.origin,
+    }));
+
+    await expectDeterministicRender(document, assets);
   });
 
   it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
@@ -210,6 +262,106 @@ describe("template registry", () => {
 
     document.template.version = "1.0.2";
     await expect(renderGraphic(document, { formats: ["svg"] })).resolves.toBeDefined();
+  });
+
+  it("renders focal image, logo, role typography, and bounded proof as one campaign", async () => {
+    const document = await loadExample("image-led-campaign");
+    const assets = await loadExampleAssets(document);
+    const result = await renderGraphic(document, {
+      formats: ["svg"],
+      assets,
+      creationTimestamp: "2026-07-31T00:00:00.000Z",
+    });
+    const markup = new TextDecoder().decode(result.outputs[0]!.bytes);
+
+    expect(markup).toContain('<g id="campaign-image"><clipPath');
+    expect(markup).toContain('id="campaign-image-treatment"');
+    expect(markup).toContain('id="brand-mark"');
+    expect(result.evidence).toMatchObject({
+      version: "1.0.0",
+      crops: [
+        expect.objectContaining({
+          layerId: "campaign-image",
+          assetId: "kilnform-lamp-campaign",
+          treatment: "dark-scrim",
+          policyVersion: "focal-cover-v1",
+        }),
+      ],
+    });
+    expect(result.evidence.text.map((entry) => entry.layerId)).toEqual([
+      "eyebrow",
+      "headline",
+      "subtitle",
+      "cta",
+    ]);
+    expect(result.evidence.contrast).toHaveLength(4);
+    expect(
+      result.evidence.contrast.every(
+        (entry) =>
+          entry.samples.length === 25 && entry.minimumRatio >= entry.minimumRequired,
+      ),
+    ).toBe(true);
+    expect(result.outputs[0]!.manifest.includedGenerativeAssetUsed).toBe(true);
+  });
+
+  it("falls back to semantic headline and body families when roles are omitted", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const assets = await loadExampleAssets(document);
+    const development = createDevelopmentFont();
+    const faces = [
+      { family: "Campaign Display", weight: 800 },
+      { family: "Campaign Text", weight: 400 },
+      { family: "Campaign Text", weight: 700 },
+    ] as const;
+
+    document.brand.typography.headlineFamily = "Campaign Display";
+    document.brand.typography.bodyFamily = "Campaign Text";
+    if ("roles" in document.brand.typography) {
+      delete document.brand.typography.roles;
+    }
+    document.fonts = faces.map((face) => ({
+      ...face,
+      style: "normal",
+      sha256: development.sha256,
+    }));
+
+    const result = await renderGraphic(document, {
+      formats: ["svg"],
+      assets,
+      fonts: faces.map((face) => ({ ...development, ...face })),
+    });
+
+    for (const face of faces) {
+      expect(result.outputs[0]!.manifest.fonts).toContainEqual(
+        expect.objectContaining(face),
+      );
+    }
+  });
+
+  it("blocks low composited contrast and unsupported image-led formats", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const assets = await loadExampleAssets(document);
+    const image = document.layers.find((layer) => layer.type === "image");
+    if (image?.type !== "image" || !("treatment" in image)) {
+      throw new Error("Expected a current image treatment.");
+    }
+    image.treatment = "light-scrim";
+    await expectQualityIssue(document, "LOW_TEXT_CONTRAST", "headline", assets);
+
+    image.treatment = "dark-scrim";
+    document.format = "instagram-story";
+    await expect(renderGraphic(document, { assets })).rejects.toMatchObject({
+      code: "UNSUPPORTED_TEMPLATE_FORMAT",
+    });
+  });
+
+  it("rejects image-led fit policy before resolving asset bytes", async () => {
+    const document = cloneDocument(await loadExample("image-led-campaign"));
+    const image = document.layers.find((layer) => layer.type === "image");
+    if (image?.type !== "image") throw new Error("Expected an image layer.");
+    image.fit = "contain";
+
+    await expectQualityIssue(document, "ASSET_FIT_REQUIRED", "campaign-image");
   });
 
   it("keeps saved TikTok 1.0.2 ad slides exactly renderable", async () => {
@@ -267,6 +419,10 @@ describe("template registry", () => {
 
     const result = await renderGraphic(document, { formats: ["svg"] });
     const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    expect(result.evidence.safeArea.x).toBeCloseTo(75.6);
+    expect(result.evidence.safeArea.y).toBeCloseTo(100.8);
+    expect(result.evidence.safeArea.width).toBeCloseTo(853.2);
+    expect(result.evidence.safeArea.height).toBeCloseTo(1_224);
     expect(markup).toContain('<rect id="slide-number-background" x="774.8" y="100.8"');
     expect(markup).toContain('<rect id="cta-rule" x="119.6" y="956.8"');
   });
