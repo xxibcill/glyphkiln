@@ -1,4 +1,8 @@
 import type { DesignDocument, QualityIssue, RenderManifest } from "@glyphkiln/core";
+import {
+  mapQualityIssuesToAuthoringIssues,
+  type CandidateDocumentIssue,
+} from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -18,7 +22,16 @@ type ProofLedgerProps = {
 
 type LedgerIssue =
   | { kind: "schema"; problem: PreviewProblem }
-  | { kind: "quality"; issue: QualityIssue };
+  | {
+      kind: "quality";
+      issue?: QualityIssue;
+      authoring: CandidateDocumentIssue;
+    };
+
+type LedgerIssueCollection = {
+  issues: LedgerIssue[];
+  qualityIssuesTruncated: boolean;
+};
 
 export function ProofLedger({
   catalog,
@@ -28,7 +41,8 @@ export function ProofLedger({
   hasUnrenderedEdits,
   validationIsStale,
 }: ProofLedgerProps) {
-  const issues = collectIssues(response);
+  const issueCollection = collectIssues(response);
+  const { issues } = issueCollection;
   const provenanceDocument = proof?.document ?? document;
   const manifest = proof?.outputs.find((output) => output.format === "svg")?.manifest;
 
@@ -44,7 +58,11 @@ export function ProofLedger({
         <div className="ledger-section-heading">
           <h3 id="issues-title">Validation</h3>
           <span>
-            {validationIsStale ? "STALE" : issues.length.toString().padStart(2, "0")}
+            {validationIsStale
+              ? "STALE"
+              : `${issues.length.toString().padStart(2, "0")}${
+                  issueCollection.qualityIssuesTruncated ? "+" : ""
+                }`}
           </span>
         </div>
         <div aria-live="polite">
@@ -81,18 +99,26 @@ export function ProofLedger({
               </div>
             </div>
           ) : (
-            <ol className="issue-list">
-              {issues.map((item, index) => (
-                <IssueItem
-                  key={
-                    item.kind === "schema"
-                      ? `schema-${item.problem.path}-${item.problem.code}-${index.toString()}`
-                      : `quality-${item.issue.layerId ?? "document"}-${item.issue.code}-${index.toString()}`
-                  }
-                  item={item}
-                />
-              ))}
-            </ol>
+            <>
+              <ol className="issue-list">
+                {issues.map((item, index) => (
+                  <IssueItem
+                    key={
+                      item.kind === "schema"
+                        ? `schema-${item.problem.path}-${item.problem.code}-${index.toString()}`
+                        : `quality-${item.issue?.layerId ?? item.authoring.layerId ?? "document"}-${item.issue?.code ?? item.authoring.code}-${index.toString()}`
+                    }
+                    item={item}
+                  />
+                ))}
+              </ol>
+              {issueCollection.qualityIssuesTruncated ? (
+                <p className="provenance-note">
+                  Additional quality issues were omitted by the bounded authoring
+                  contract. Review the complete render evidence before approval.
+                </p>
+              ) : null}
+            </>
           )}
         </div>
       </section>
@@ -246,13 +272,21 @@ function IssueItem({ item }: { item: LedgerIssue }) {
     );
   }
   return (
-    <li data-severity={item.issue.severity}>
+    <li
+      data-severity={item.authoring.severity}
+      data-authoring-action={item.authoring.action}
+    >
       <div className="issue-meta">
-        <span>{item.issue.severity === "error" ? "Error" : "Warning"}</span>
-        <code>{item.issue.code}</code>
+        <span>{item.authoring.severity === "error" ? "Error" : "Warning"}</span>
+        <code>{item.issue?.code ?? item.authoring.code}</code>
       </div>
-      <strong>{item.issue.layerId ?? "Document quality"}</strong>
-      <p>{item.issue.message}</p>
+      <strong>
+        {item.issue?.layerId ?? item.authoring.layerId ?? "Document quality"}
+      </strong>
+      {item.issue === undefined ? null : <p>{item.issue.message}</p>}
+      <p>
+        <b>Next action:</b> {item.authoring.message}
+      </p>
     </li>
   );
 }
@@ -313,21 +347,35 @@ function formatFonts(
     .join(", ");
 }
 
-function collectIssues(response: PreviewResponse | null): LedgerIssue[] {
-  if (response === null) return [];
-  if (response.ok) {
-    return response.qualityIssues.map((issue) => ({ kind: "quality", issue }));
+function collectIssues(response: PreviewResponse | null): LedgerIssueCollection {
+  if (response === null) {
+    return { issues: [], qualityIssuesTruncated: false };
   }
-  return [
-    ...(response.problems ?? []).map((problem): LedgerIssue => ({
-      kind: "schema",
-      problem,
-    })),
-    ...(response.qualityIssues ?? []).map((issue): LedgerIssue => ({
+  const qualityIssues = response.ok
+    ? response.qualityIssues
+    : (response.qualityIssues ?? []);
+  const mappedQualityIssues = mapQualityIssuesToAuthoringIssues(qualityIssues);
+  const schemaIssues = response.ok
+    ? []
+    : (response.problems ?? []).map((problem): LedgerIssue => ({
+        kind: "schema",
+        problem,
+      }));
+  const qualityLedgerIssues: LedgerIssue[] = [];
+  for (let index = 0; index < mappedQualityIssues.issues.length; index += 1) {
+    const issue = qualityIssues.at(index);
+    const authoring = mappedQualityIssues.issues.at(index);
+    if (authoring === undefined) continue;
+    qualityLedgerIssues.push({
       kind: "quality",
-      issue,
-    })),
-  ];
+      authoring,
+      ...(issue === undefined ? {} : { issue }),
+    });
+  }
+  return {
+    issues: [...schemaIssues, ...qualityLedgerIssues],
+    qualityIssuesTruncated: mappedQualityIssues.truncated,
+  };
 }
 
 function shortHash(hash: string): string {

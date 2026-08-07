@@ -117,6 +117,7 @@ export type AuthoringIssueAction =
   | "improve-contrast"
   | "move-content-inside-safe-area"
   | "resolve-text-overflow"
+  | "review-copy-rhythm"
   | "replace-unsupported-text"
   | "supply-font-coverage"
   | "choose-brand-compliant-value"
@@ -140,6 +141,7 @@ export const AUTHORING_ISSUE_CODES = Object.freeze([
   "CONTRAST_INSUFFICIENT",
   "SAFE_AREA_RISK",
   "TEXT_OVERFLOW",
+  "COPY_RHYTHM_REVIEW",
   "TEXT_LAYOUT_UNSUPPORTED",
   "MISSING_GLYPH",
   "BRAND_POLICY_CONFLICT",
@@ -624,6 +626,12 @@ export const AUTHORING_ISSUE_REGISTRY = deepFreeze({
     "copy",
     "resolve-text-overflow",
     "Shorten the copy or choose a compatible template without silently deleting text.",
+  ),
+  COPY_RHYTHM_REVIEW: issue(
+    "COPY_RHYTHM_REVIEW",
+    "copy",
+    "review-copy-rhythm",
+    "Review the final line and revise the copy rhythm if the orphan is distracting.",
   ),
   TEXT_LAYOUT_UNSUPPORTED: issue(
     "TEXT_LAYOUT_UNSUPPORTED",

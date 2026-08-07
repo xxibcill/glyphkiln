@@ -25,6 +25,14 @@ network, raster decoder, or model adapter. Composition-variant IDs describe
 fixed template behavior; they are not user code or an unvalidated document
 field.
 
+The same entry point exports
+`mapQualityIssuesToAuthoringIssues(unknown)`. This pure `1.0.0` mapping turns
+Core proof issues into the closed action vocabulary without importing the
+renderer. It retains at most 128 input issues, preserves array indices and
+order, reports truncation, and marks malformed issue arrays with `valid: false`.
+Unknown future quality codes produce `QUALITY_REVIEW_REQUIRED` rather than
+silent acceptance.
+
 ## Candidate validation
 
 `validateCandidateDocuments(input)` accepts unknown data and returns a bounded
@@ -74,9 +82,12 @@ unknown model values. The browser-safe issue registry also publishes actions
 for render-time crop, asset, contrast, and safe-area evidence so a UI can use
 one bounded vocabulary across candidate and proof review.
 
-Unknown future quality codes map to `QUALITY_REVIEW_REQUIRED`; they never become
-silent acceptance. The original `QualityIssue` remains available from a render
-result for evidence-specific diagnostics.
+The proof mapper covers current template, brand, typography, glyph, crop,
+contrast, and safe-area issue codes. Mapping guidance always comes from the
+static registry; runtime messages and `details` remain inert evidence and are
+never copied into the action contract. The App Proof Ledger displays both the
+original Core evidence and the mapped next action, and discloses when the
+bounded action view omits additional evidence.
 
 ## Trust boundary
 
@@ -92,7 +103,8 @@ metadata. They do not enter Core documents, fingerprints, or manifests.
 
 ## Version and output impact
 
-Authoring metadata, actionable issue metadata, and candidate validation each
-start at `1.0.0`. This slice adds public coordination contracts only. It does
-not change the design schema, renderer, templates, procedural algorithms,
-manifest, fingerprints, SVG, PNG, or legacy validation/render behavior.
+Authoring metadata, actionable issue metadata, candidate validation, and the
+quality-to-action mapping each start at `1.0.0`. These slices add public
+coordination contracts and proof-ledger guidance only. They do not change the
+design schema, renderer, templates, procedural algorithms, manifest,
+fingerprints, SVG, PNG, or legacy validation/render behavior.

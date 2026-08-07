@@ -8,29 +8,16 @@ import {
 } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
 
-import { AUTHORING_ISSUE_REGISTRY, type AuthoringIssueCode } from "./metadata.js";
+import {
+  CANDIDATE_DOCUMENT_LIMITS,
+  createCandidateDocumentIssue,
+  mapQualityIssueToAuthoringIssue,
+  type CandidateDocumentIssue,
+} from "./issues.js";
 
 export const CANDIDATE_DOCUMENT_VALIDATION_VERSION = "1.0.0" as const;
-export const CANDIDATE_DOCUMENT_LIMITS = Object.freeze({
-  maximumCandidates: 8,
-  maximumIssuesPerCandidate: 32,
-  maximumIssuePathLength: 256,
-} as const);
-
-export type CandidateDocumentIssueSource =
-  "candidate-set" | "schema" | "template" | "quality";
-
-export type CandidateDocumentIssue = {
-  readonly code: AuthoringIssueCode;
-  readonly severity: "warning" | "error";
-  readonly source: CandidateDocumentIssueSource;
-  readonly category: (typeof AUTHORING_ISSUE_REGISTRY)[AuthoringIssueCode]["category"];
-  readonly action: (typeof AUTHORING_ISSUE_REGISTRY)[AuthoringIssueCode]["action"];
-  readonly message: string;
-  readonly path?: string;
-  readonly pathTruncated?: true;
-  readonly layerId?: string;
-};
+export { CANDIDATE_DOCUMENT_LIMITS } from "./issues.js";
+export type { CandidateDocumentIssue, CandidateDocumentIssueSource } from "./issues.js";
 
 export type ValidCandidateDocument = {
   readonly index: number;
@@ -91,7 +78,9 @@ function invalidCandidateSet(candidateCount: number): CandidateDocumentSetValida
     success: false,
     candidateCount,
     candidates: [],
-    issues: [createIssue("DOCUMENT_SET_INVALID", "error", "candidate-set")],
+    issues: [
+      createCandidateDocumentIssue("DOCUMENT_SET_INVALID", "error", "candidate-set"),
+    ],
   };
 }
 
@@ -125,7 +114,9 @@ function validateCandidateDocument(
       return {
         index,
         status: "invalid",
-        issues: [createIssue("TEMPLATE_INCOMPATIBLE", "error", "template")],
+        issues: [
+          createCandidateDocumentIssue("TEMPLATE_INCOMPATIBLE", "error", "template"),
+        ],
         issuesTruncated: false,
       };
     }
@@ -164,83 +155,13 @@ function mapValidationProblem(problem: ValidationProblem): CandidateDocumentIssu
       : contentField && problem.code === "too_big"
         ? "COPY_TOO_LONG"
         : "DOCUMENT_STRUCTURE_INVALID";
-  return createIssue(code, "error", "schema", { path: problem.path });
-}
-
-function mapQualityIssue(issue: QualityIssue): CandidateDocumentIssue {
-  const code = qualityCodeToAuthoringCode(issue.code);
-  return createIssue(code, issue.severity, "quality", {
-    ...(issue.layerId === undefined ? {} : { layerId: issue.layerId }),
+  return createCandidateDocumentIssue(code, "error", "schema", {
+    path: problem.path,
   });
 }
 
-function qualityCodeToAuthoringCode(code: string): AuthoringIssueCode {
-  switch (code) {
-    case "REQUIRED_LAYER_MISSING":
-      return "REQUIRED_ROLE_MISSING";
-    case "UNSUPPORTED_VISIBLE_LAYER":
-      return "UNSUPPORTED_ROLE";
-    case "DUPLICATE_VISIBLE_LAYER":
-      return "DUPLICATE_ROLE";
-    case "CONFLICTING_VISIBLE_LAYERS":
-      return "CONFLICTING_ROLES";
-    case "ASSET_FIT_REQUIRED":
-      return "ASSET_FIT_UNSUPPORTED";
-    case "LOGO_ASPECT_RATIO":
-      return "ASSET_SUITABILITY_RISK";
-    case "LOW_TEXT_CONTRAST":
-      return "CONTRAST_INSUFFICIENT";
-    case "TEXT_OUTSIDE_SAFE_AREA":
-      return "SAFE_AREA_RISK";
-    case "TEXT_OVERFLOW":
-    case "LINGUISTIC_WORD_BROKEN":
-    case "ORPHAN_LINE":
-      return "TEXT_OVERFLOW";
-    case "BIDI_CONTROL_UNSUPPORTED":
-    case "BIDI_LAYOUT_UNSUPPORTED":
-    case "VERTICAL_LAYOUT_UNSUPPORTED":
-      return "TEXT_LAYOUT_UNSUPPORTED";
-    case "MISSING_GLYPH":
-      return "MISSING_GLYPH";
-    case "PROHIBITED_COLOR":
-    case "PROHIBITED_STYLE":
-      return "BRAND_POLICY_CONFLICT";
-    case "NON_PREFERRED_PROCEDURAL_STYLE":
-      return "BRAND_PREFERENCE_REVIEW";
-    case "QUIET_REGION_MISALIGNED":
-      return "QUIET_REGION_RISK";
-    case "INVALID_DIMENSIONS":
-      return "TEMPLATE_INCOMPATIBLE";
-    default:
-      return "QUALITY_REVIEW_REQUIRED";
-  }
-}
-
-function createIssue(
-  code: AuthoringIssueCode,
-  severity: "warning" | "error",
-  source: CandidateDocumentIssueSource,
-  location: { path?: string; layerId?: string } = {},
-): CandidateDocumentIssue {
-  const metadata = AUTHORING_ISSUE_REGISTRY[code];
-  const boundedPath =
-    location.path === undefined ? undefined : boundPath(location.path);
-  return {
-    code,
-    severity,
-    source,
-    category: metadata.category,
-    action: metadata.action,
-    message: metadata.guidance,
-    ...(boundedPath ?? {}),
-    ...(location.layerId === undefined ? {} : { layerId: location.layerId }),
-  };
-}
-
-function boundPath(path: string): { path: string; pathTruncated?: true } {
-  const maximum = CANDIDATE_DOCUMENT_LIMITS.maximumIssuePathLength;
-  if (path.length <= maximum) return { path };
-  return { path: path.slice(0, maximum), pathTruncated: true };
+function mapQualityIssue(issue: QualityIssue): CandidateDocumentIssue {
+  return mapQualityIssueToAuthoringIssue(issue);
 }
 
 function retainIssues(

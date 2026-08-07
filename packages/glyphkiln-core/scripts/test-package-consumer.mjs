@@ -90,11 +90,13 @@ import {
 import {
   AUTHORING_CONTRACT_VERSION,
   AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
 } from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
@@ -104,6 +106,21 @@ assert.equal(
   "1.1.0",
 );
 assert.equal(AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG.action, "shorten-copy");
+const authoringQuality = mapQualityIssuesToAuthoringIssues([
+  {
+    code: "LOW_TEXT_CONTRAST",
+    severity: "error",
+    message: "runtime evidence must not become guidance",
+    layerId: "headline",
+  },
+]);
+assert.equal(authoringQuality.version, AUTHORING_QUALITY_ISSUE_MAPPING_VERSION);
+assert.equal(authoringQuality.valid, true);
+assert.equal(authoringQuality.issues[0].action, "improve-contrast");
+assert.equal(
+  authoringQuality.issues[0].message,
+  AUTHORING_ISSUE_REGISTRY.CONTRAST_INSUFFICIENT.guidance,
+);
 const candidates = validateCandidateDocuments([document]);
 assert.equal(candidates.version, CANDIDATE_DOCUMENT_VALIDATION_VERSION);
 assert.equal(candidates.success, true);
@@ -192,6 +209,7 @@ await assert.rejects(
 import {
   AUTHORING_CONTRACT_VERSION,
   AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
@@ -199,7 +217,9 @@ import {
   calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
   type AuthoringIssueMetadata,
+  type AuthoringQualityIssueMapping,
   type AuthoringTemplateContract,
   type CampaignFamilyDefinition,
   type RenderFingerprintInput,
@@ -228,8 +248,19 @@ void campaignFamily;
 const authoringTemplate: AuthoringTemplateContract =
   AUTHORING_TEMPLATE_REGISTRY["product-announcement@1.1.1"];
 const copyIssue: AuthoringIssueMetadata = AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG;
+const authoringQuality: AuthoringQualityIssueMapping =
+  mapQualityIssuesToAuthoringIssues([
+    {
+      code: "ORPHAN_LINE",
+      severity: "warning",
+      message: "runtime evidence",
+      layerId: "headline",
+    },
+  ]);
 if (
   AUTHORING_CONTRACT_VERSION !== "1.0.0" ||
+  authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||
+  authoringQuality.issues[0]?.action !== "review-copy-rhythm" ||
   authoringTemplate.compositionVariant.selection !== "fixed-by-template-version" ||
   copyIssue.action !== "shorten-copy"
 ) {
