@@ -73,6 +73,26 @@ composition. A host must still resolve exact admitted asset/font bytes and call
 authority for glyph coverage, crop geometry, logo suitability, text fit,
 contrast, and safe-area placement.
 
+## App model-response boundary
+
+The App exports an internal `validateBriefInterpreterResponse(unknown)` seam
+for future operator-configured adapters. The strict `1.0.0` response contains
+only `contractVersion` and three or four ordered `{ document, rationale }`
+proposals. Candidate envelopes reject additional authority fields. Rationales
+are one bounded inert paragraph and emerge as `kind: "model-suggestion"`.
+
+Well-shaped documents are evaluated in one Core candidate-validation call.
+Malformed candidate envelopes are rejected at their original indices, invalid
+documents contain only Core's bounded issues, and exact duplicate normalized
+documents receive a fixed duplicate issue. The result always declares
+`authority: "proposal-only"`: `success: true` means the response is suitable
+for human review, not that assets, fonts, provenance, persistence, rendering,
+export, or publication are authorized.
+
+The boundary has no provider SDK or network call. See the
+[AI-assisted authoring threat model](ai-authoring-threat-model.md) for the
+implemented controls and the decisions required before enabling an adapter.
+
 ## Actionable issues
 
 Candidate issues have a closed authoring code, severity, category, action, and
