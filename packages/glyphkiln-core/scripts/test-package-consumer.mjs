@@ -72,18 +72,39 @@ async function writeConsumerSources() {
     `import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
+  deriveCampaignSeeds,
   inspectDesignDocument,
   renderGraphic,
   renderGraphicIsolated,
 } from "@glyphkiln/core";
 import {
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
   createRenderFingerprintPayload,
 } from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
+assert.equal(
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
+  "1.0.0",
+);
+assert.equal(
+  deriveCampaignSeeds({
+    campaignSeed: "packed-consumer",
+    familyId: "image-led-campaign",
+    directionKey: "direction-a",
+    canvasKey: "landscape-01",
+    template: { id: "image-led-campaign", version: "1.0.0" },
+    format: "linkedin-landscape",
+    compositionVariantId: "focal-editorial",
+  }).version,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
+);
 assert.equal(canonicalJson({ z: 2, a: 1 }), '{"a":1,"z":2}');
 assert.equal(
   createRenderFingerprintPayload({
@@ -125,9 +146,13 @@ await assert.rejects(
   await writeFile(
     join(consumerDirectory, "consumer.ts"),
     `import {
+  CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createDesignDocument,
+  deriveCampaignSeeds,
+  type CampaignSeedDerivationInput,
+  type DerivedCampaignSeeds,
   type DesignTextLayoutDiagnostic,
   type DesignTextLayoutInspection,
   type TextLayoutAnalysis,
@@ -138,12 +163,35 @@ await assert.rejects(
   type RenderEvidence,
 } from "@glyphkiln/core";
 import {
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
   FOCAL_CROP_POLICY_VERSION,
   calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
+  type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+
+const campaignSeedInput = {
+  campaignSeed: "strict-packed-consumer",
+  familyId: "image-led-campaign",
+  directionKey: "direction-a",
+  canvasKey: "portrait-01",
+  template: { id: "image-led-campaign", version: "1.0.0" },
+  format: "instagram-portrait",
+  compositionVariantId: "focal-editorial",
+} satisfies CampaignSeedDerivationInput;
+const campaignSeeds: DerivedCampaignSeeds = deriveCampaignSeeds(campaignSeedInput);
+const campaignFamily: CampaignFamilyDefinition =
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
+if (
+  campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.0.0"
+) {
+  throw new Error("campaign contract");
+}
+void campaignFamily;
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },

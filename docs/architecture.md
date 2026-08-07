@@ -54,6 +54,8 @@ changing the design document, template metadata, asset interface, or manifest.
 - `isolation`: serialized, permission-limited child-process rendering
 - `formats`: centralized immutable output dimensions
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
+- `campaigns`: browser-safe family capabilities and deterministic direction/canvas
+  seed derivation; no campaign persistence or multi-canvas renderer
 - `browser`: browser-safe canonical JSON, fingerprint payloads, and pure focal
   crop geometry for independent response verification and App overlays
 - `fonts`, `assets`, `typography`, `layout`: verified resources, focal-cover and

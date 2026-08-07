@@ -48,3 +48,10 @@ first adaptive image-led composition. Renderer `0.4.0` owns scaled role
 tracking, focal clipping, and pinned focal/treatment/contrast configuration.
 Legacy SVG and PNG bytes remain exact; their renderer identity and fingerprints
 deliberately change. Manifest `1.2.0` remains unchanged.
+
+Campaign-family metadata `1.0.0` identifies exact template members, compatible
+formats, semantic roles, closed composition variants, and safe-area behavior.
+Campaign seed derivation `sha256/canonical-scope-v1` separates a shared
+art-direction stream from exact canvas streams. These App-coordination
+contracts do not change documents, pixels, fingerprints, renderer identity,
+templates, or manifests.

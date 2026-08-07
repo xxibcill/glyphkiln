@@ -52,6 +52,27 @@ export type {
 export { PRNG_ALGORITHM, createSeededRandom } from "./seed/index.js";
 export type { SeededRandom } from "./seed/index.js";
 
+export {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_IDS,
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
+  deriveCampaignSeeds,
+} from "./campaigns/index.js";
+export type {
+  CampaignAssetRole,
+  CampaignCompositionVariant,
+  CampaignCompositionVariantId,
+  CampaignContentRole,
+  CampaignFamilyDefinition,
+  CampaignFamilyId,
+  CampaignFamilyMember,
+  CampaignSafeAreaPolicy,
+  CampaignSeedDerivationInput,
+  DerivedCampaignSeeds,
+} from "./campaigns/index.js";
+
 export { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "./resources/index.js";
 export type {
   RenderResourceLimits,
