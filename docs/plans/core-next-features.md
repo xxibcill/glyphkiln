@@ -229,10 +229,14 @@ browser-safe `1.0.0` quality-to-action mapping used by the App Proof Ledger.
 The App now also has a provider-neutral `1.0.0` response boundary that labels
 rationales as suggestions, evaluates every well-shaped proposal through Core,
 rejects exact normalized duplicates, and grants proposal-only authority. A
-draft threat model records the remaining gate. These slices do not change
-rendered pixels. Resource-backed proof, real-brief acceptance, model adapters,
-option-board rationale display, lock enforcement, persistence, and provider
-disclosures remain open and must pass the decision gate below.
+pure App-owned `1.0.0` lock contract now validates both documents through Core
+and compares closed normalized copy, image, crop, typography, palette, and
+composition projections independently of model claims. A draft threat model
+records the remaining gate. These slices do not change rendered pixels.
+Resource-backed proof, real-brief acceptance, model adapters, option-board and
+lock/vary interaction, authenticated lock persistence/enforcement at save and
+render, and provider disclosures remain open and must pass the decision gate
+below.
 
 ### User outcome
 

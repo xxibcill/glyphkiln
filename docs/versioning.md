@@ -71,3 +71,9 @@ They define a strict three-or-four-proposal envelope, bounded suggestion
 rationales, stable response issues, Core candidate evaluation, and
 proposal-only authority. They do not configure or call a model and do not
 authorize workspace resources, persistence, rendering, export, or publication.
+
+The App authoring lock contract and validator start at `1.0.0`. Six closed lock
+IDs compare fixed projections of two Core-normalized documents and return only
+bounded actionable issues. This App coordination contract has no effect on the
+design schema, templates, renderer, procedural algorithms, manifest,
+fingerprints, SVG, PNG, or legacy validation/render behavior.

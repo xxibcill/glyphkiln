@@ -29,9 +29,11 @@ brand-fidelity work.
    bounded issue actions, deterministic candidate validation, and a
    browser-safe quality-to-action mapping surfaced in the App Proof Ledger. A
    strict provider-neutral App response boundary now evaluates three or four
-   proposal-only candidates and labels rationales as model suggestions. Model
-   calls, resource-backed candidate proof, lock/vary interaction, and
-   acceptance workflows remain App responsibilities.
+   proposal-only candidates and labels rationales as model suggestions. A pure
+   server-owned lock checker now compares six closed normalized projections
+   after Core validation. Model calls, resource-backed candidate proof,
+   lock/vary UI and persistence, save/render enforcement, and acceptance
+   workflows remain App responsibilities.
 4. Market-led horizontal multilingual production, prioritizing RTL or CJK from
    real campaign demand. Vertical typography remains a separate later track.
 5. Specialized campaign content and accessible output, including charts only

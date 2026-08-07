@@ -29,6 +29,11 @@ Only the latest released minor version is supported during the pre-1.0 phase.
   provider-neutral response boundary grants proposal-only authority; model
   output cannot choose trusted provider/workspace identity, immutable resource
   versions, provenance, persistence, rendering, export, or publication.
+- Selective-regeneration lock IDs and the base revision must come from
+  authenticated App state, never model output. The App's pure lock validator
+  compares only closed normalized projections after both documents pass Core
+  candidate validation; a successful comparison still grants proposal-only
+  authority.
 - Glyphkiln Cloud may orchestrate workers but is not trusted by, imported into,
   or required by Core.
 
