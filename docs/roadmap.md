@@ -37,7 +37,10 @@ gate.
    evidence for multi-format and carousel coordination in the App.
 3. AI-ready production contracts: browser-safe authoring metadata, strict
    candidate-document validation, and designer-actionable quality evidence.
-   Model calls and lock/vary interaction remain App responsibilities.
+   The first Core-only slice now publishes exact-template metadata, bounded
+   issue actions, and deterministic candidate validation. Model calls,
+   resource-backed proof, lock/vary interaction, and acceptance workflows
+   remain App responsibilities.
 4. Market-led horizontal multilingual production, prioritizing RTL or CJK from
    real campaign demand. Vertical typography remains a separate later track.
 5. Specialized campaign content and accessible output, including charts only

@@ -73,6 +73,36 @@ export type {
   DerivedCampaignSeeds,
 } from "./campaigns/index.js";
 
+export {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_CODES,
+  AUTHORING_ISSUE_METADATA_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_TEMPLATE_KEYS,
+  AUTHORING_TEMPLATE_REGISTRY,
+  CANDIDATE_DOCUMENT_LIMITS,
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
+  validateCandidateDocuments,
+} from "./authoring/index.js";
+export type {
+  AuthoringAssetRole,
+  AuthoringCompositionVariant,
+  AuthoringContentField,
+  AuthoringContentRole,
+  AuthoringIssueAction,
+  AuthoringIssueCategory,
+  AuthoringIssueCode,
+  AuthoringIssueMetadata,
+  AuthoringTemplateContract,
+  AuthoringTemplateKey,
+  CandidateDocumentIssue,
+  CandidateDocumentIssueSource,
+  CandidateDocumentSetValidation,
+  CandidateDocumentValidation,
+  InvalidCandidateDocument,
+  ValidCandidateDocument,
+} from "./authoring/index.js";
+
 export { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "./resources/index.js";
 export type {
   RenderResourceLimits,

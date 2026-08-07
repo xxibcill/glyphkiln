@@ -254,6 +254,14 @@ stable naming.
 
 ## `0.7.0`: AI-ready production contracts
 
+**Implementation status:** the first dependency-safe Core slice publishes
+browser-safe `1.0.0` authoring metadata for every supported template version,
+`1.0.0` actionable issue metadata, and bounded `1.0.0` candidate validation
+through the normal strict schema, template, brand, and text-layout path. It is
+non-pixel-affecting. Resource-backed proof, real-brief acceptance, the threat
+model, App model adapters, rationale display, lock enforcement, persistence,
+and provider disclosures remain open and must pass the decision gate below.
+
 ### User outcome
 
 Turn a brief into several credible structured directions, understand why each

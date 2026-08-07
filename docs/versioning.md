@@ -55,3 +55,11 @@ Campaign seed derivation `sha256/canonical-scope-v1` separates a shared
 art-direction stream from exact canvas streams. These App-coordination
 contracts do not change documents, pixels, fingerprints, renderer identity,
 templates, or manifests.
+
+Authoring metadata `1.0.0` describes every supported exact template version as
+browser-safe static data. Actionable issue metadata `1.0.0` supplies a bounded
+designer-action vocabulary, and candidate validation `1.0.0` preserves supplied
+order while returning normalized documents and canonical JSON only for strict
+schema/template/document-quality successes. These contracts do not change the
+design schema, templates, renderer, procedural algorithms, manifest,
+fingerprints, SVG, or PNG output.
