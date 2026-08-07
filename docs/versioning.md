@@ -58,8 +58,10 @@ templates, or manifests.
 
 Authoring metadata `1.0.0` describes every supported exact template version as
 browser-safe static data. Actionable issue metadata `1.0.0` supplies a bounded
-designer-action vocabulary, and candidate validation `1.0.0` preserves supplied
+designer-action vocabulary, candidate validation `1.0.0` preserves supplied
 order while returning normalized documents and canonical JSON only for strict
-schema/template/document-quality successes. These contracts do not change the
-design schema, templates, renderer, procedural algorithms, manifest,
-fingerprints, SVG, or PNG output.
+schema/template/document-quality successes, and quality-to-action mapping
+`1.0.0` converts bounded proof issues to fixed guidance without copying runtime
+messages or details. These contracts do not change the design schema,
+templates, renderer, procedural algorithms, manifest, fingerprints, SVG, or
+PNG output.

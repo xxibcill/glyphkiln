@@ -45,3 +45,13 @@ export type {
   AuthoringTemplateContract,
   AuthoringTemplateKey,
 } from "./authoring/metadata.js";
+export {
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  mapQualityIssuesToAuthoringIssues,
+} from "./authoring/issues.js";
+export type {
+  AuthoringQualityIssueMapping,
+  CandidateDocumentIssue,
+  CandidateDocumentIssueSource,
+} from "./authoring/issues.js";

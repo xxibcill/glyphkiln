@@ -78,10 +78,13 @@ export {
   AUTHORING_ISSUE_CODES,
   AUTHORING_ISSUE_METADATA_VERSION,
   AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_KEYS,
   AUTHORING_TEMPLATE_REGISTRY,
   CANDIDATE_DOCUMENT_LIMITS,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
+  mapQualityIssuesToAuthoringIssues,
   validateCandidateDocuments,
 } from "./authoring/index.js";
 export type {
@@ -93,6 +96,7 @@ export type {
   AuthoringIssueCategory,
   AuthoringIssueCode,
   AuthoringIssueMetadata,
+  AuthoringQualityIssueMapping,
   AuthoringTemplateContract,
   AuthoringTemplateKey,
   CandidateDocumentIssue,

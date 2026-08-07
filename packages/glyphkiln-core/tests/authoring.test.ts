@@ -5,12 +5,15 @@ import {
   AUTHORING_ISSUE_CODES,
   AUTHORING_ISSUE_METADATA_VERSION,
   AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_KEYS,
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_REGISTRY,
   CANDIDATE_DOCUMENT_LIMITS,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   canonicalJson,
+  mapQualityIssuesToAuthoringIssues,
   validateCandidateDocuments,
   type DesignDocument,
   type DesignLayer,
@@ -18,7 +21,9 @@ import {
 import {
   AUTHORING_CONTRACT_VERSION as BROWSER_AUTHORING_CONTRACT_VERSION,
   AUTHORING_ISSUE_REGISTRY as BROWSER_AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION as BROWSER_AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_REGISTRY as BROWSER_AUTHORING_TEMPLATE_REGISTRY,
+  mapQualityIssuesToAuthoringIssues as mapBrowserQualityIssuesToAuthoringIssues,
 } from "../src/browser.js";
 import { getTemplate } from "../src/templates/index.js";
 import { cloneDocument, loadExample } from "./helpers.js";
@@ -391,5 +396,260 @@ describe("candidate document validation", () => {
       CANDIDATE_DOCUMENT_LIMITS.maximumIssuePathLength,
     );
     expect(candidate?.issues[0]?.message).not.toContain("model_field");
+  });
+});
+
+describe("authoring quality issue mapping", () => {
+  it("covers every current Core quality code with a closed action", () => {
+    const mappings = [
+      ["REQUIRED_LAYER_MISSING", "REQUIRED_ROLE_MISSING", "add-required-role"],
+      ["UNSUPPORTED_VISIBLE_LAYER", "UNSUPPORTED_ROLE", "remove-unsupported-role"],
+      ["DUPLICATE_VISIBLE_LAYER", "DUPLICATE_ROLE", "remove-duplicate-role"],
+      ["CONFLICTING_VISIBLE_LAYERS", "CONFLICTING_ROLES", "choose-one-role"],
+      ["ASSET_FIT_REQUIRED", "ASSET_FIT_UNSUPPORTED", "choose-supported-asset-fit"],
+      ["LOGO_ASPECT_RATIO", "ASSET_SUITABILITY_RISK", "replace-unsuitable-asset"],
+      [
+        "INVALID_FOCAL_CROP_GEOMETRY",
+        "CROP_CONFIGURATION_INVALID",
+        "adjust-focal-point",
+      ],
+      ["LOW_TEXT_CONTRAST", "CONTRAST_INSUFFICIENT", "improve-contrast"],
+      ["TEXT_OUTSIDE_SAFE_AREA", "SAFE_AREA_RISK", "move-content-inside-safe-area"],
+      ["TEXT_OVERFLOW", "TEXT_OVERFLOW", "resolve-text-overflow"],
+      ["LINGUISTIC_WORD_BROKEN", "TEXT_OVERFLOW", "resolve-text-overflow"],
+      ["ORPHAN_LINE", "COPY_RHYTHM_REVIEW", "review-copy-rhythm"],
+      [
+        "BIDI_CONTROL_UNSUPPORTED",
+        "TEXT_LAYOUT_UNSUPPORTED",
+        "replace-unsupported-text",
+      ],
+      [
+        "BIDI_LAYOUT_UNSUPPORTED",
+        "TEXT_LAYOUT_UNSUPPORTED",
+        "replace-unsupported-text",
+      ],
+      [
+        "VERTICAL_LAYOUT_UNSUPPORTED",
+        "TEXT_LAYOUT_UNSUPPORTED",
+        "replace-unsupported-text",
+      ],
+      ["MISSING_GLYPH", "MISSING_GLYPH", "supply-font-coverage"],
+      ["PROHIBITED_COLOR", "BRAND_POLICY_CONFLICT", "choose-brand-compliant-value"],
+      ["PROHIBITED_STYLE", "BRAND_POLICY_CONFLICT", "choose-brand-compliant-value"],
+      [
+        "NON_PREFERRED_PROCEDURAL_STYLE",
+        "BRAND_PREFERENCE_REVIEW",
+        "review-brand-preference",
+      ],
+      [
+        "QUIET_REGION_MISALIGNED",
+        "QUIET_REGION_RISK",
+        "move-decoration-outside-quiet-region",
+      ],
+      ["INVALID_DIMENSIONS", "TEMPLATE_INCOMPATIBLE", "choose-compatible-template"],
+    ] as const;
+
+    const result = mapQualityIssuesToAuthoringIssues(
+      mappings.map(([code]) => ({
+        code,
+        severity: "warning",
+        message: "Runtime evidence",
+      })),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.issues.map(({ code, action }) => [code, action])).toEqual(
+      mappings.map(([, code, action]) => [code, action]),
+    );
+  });
+
+  it("maps Core proof issues to fixed designer actions in supplied order", () => {
+    const result = mapQualityIssuesToAuthoringIssues([
+      {
+        code: "LOW_TEXT_CONTRAST",
+        severity: "error",
+        message: "Dynamic contrast details",
+        layerId: "headline",
+        details: { ratio: 1.25 },
+      },
+      {
+        code: "TEXT_OUTSIDE_SAFE_AREA",
+        severity: "warning",
+        message: "Dynamic safe-area details",
+      },
+      {
+        code: "LOGO_ASPECT_RATIO",
+        severity: "warning",
+        message: "Dynamic logo details",
+        layerId: "logo",
+      },
+      {
+        code: "INVALID_FOCAL_CROP_GEOMETRY",
+        severity: "error",
+        message: "Dynamic crop details",
+        layerId: "hero",
+      },
+      {
+        code: "ORPHAN_LINE",
+        severity: "warning",
+        message: "Dynamic line details",
+        layerId: "headline",
+      },
+    ]);
+
+    expect(AUTHORING_QUALITY_ISSUE_MAPPING_VERSION).toBe("1.0.0");
+    expect(result).toMatchObject({
+      version: "1.0.0",
+      valid: true,
+      totalIssues: 5,
+      retainedIssues: 5,
+      truncated: false,
+      issues: [
+        {
+          code: "CONTRAST_INSUFFICIENT",
+          action: "improve-contrast",
+          layerId: "headline",
+        },
+        {
+          code: "SAFE_AREA_RISK",
+          action: "move-content-inside-safe-area",
+        },
+        {
+          code: "ASSET_SUITABILITY_RISK",
+          action: "replace-unsuitable-asset",
+          layerId: "logo",
+        },
+        {
+          code: "CROP_CONFIGURATION_INVALID",
+          action: "adjust-focal-point",
+          layerId: "hero",
+        },
+        {
+          code: "COPY_RHYTHM_REVIEW",
+          action: "review-copy-rhythm",
+          layerId: "headline",
+        },
+      ],
+    });
+    expect(result.issues.map((issue) => issue.severity)).toEqual([
+      "error",
+      "warning",
+      "warning",
+      "error",
+      "warning",
+    ]);
+    expect(JSON.stringify(result.issues)).not.toContain("Dynamic");
+    expect(JSON.stringify(result.issues)).not.toContain("ratio");
+  });
+
+  it("uses a fixed review action for unknown future quality codes", () => {
+    const result = mapQualityIssuesToAuthoringIssues([
+      {
+        code: "FUTURE_PROOF_RULE",
+        severity: "warning",
+        message: "Untrusted model explanation",
+        layerId: "future-layer",
+      },
+    ]);
+
+    expect(result).toMatchObject({
+      valid: true,
+      issues: [
+        {
+          code: "QUALITY_REVIEW_REQUIRED",
+          severity: "warning",
+          source: "quality",
+          action: "review-quality-evidence",
+          layerId: "future-layer",
+        },
+      ],
+    });
+    expect(result.issues[0]?.message).not.toContain("Untrusted");
+  });
+
+  it("rejects malformed issue data without echoing it", () => {
+    const result = mapQualityIssuesToAuthoringIssues([
+      {
+        code: "LOW_TEXT_CONTRAST",
+        severity: "catastrophic",
+        message: "javascript:alert(1)",
+      },
+      {
+        code: "LOW_TEXT_CONTRAST",
+        severity: "error",
+        message: "valid shape",
+        layerId: "https://example.invalid/model-selected-layer",
+      },
+    ]);
+    const nonArray = mapQualityIssuesToAuthoringIssues({
+      code: "LOW_TEXT_CONTRAST",
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toHaveLength(2);
+    expect(
+      result.issues.every((issue) => issue.code === "QUALITY_REVIEW_REQUIRED"),
+    ).toBe(true);
+    expect(JSON.stringify(result.issues)).not.toContain("javascript");
+    expect(JSON.stringify(result.issues)).not.toContain("https");
+    expect(nonArray).toMatchObject({
+      valid: false,
+      totalIssues: 0,
+      retainedIssues: 1,
+      truncated: false,
+      issues: [{ code: "QUALITY_REVIEW_REQUIRED", severity: "error" }],
+    });
+  });
+
+  it("bounds large and sparse issue arrays without skipping indices", () => {
+    const input = Array.from(
+      { length: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues + 1 },
+      () => ({
+        code: "TEXT_OVERFLOW",
+        severity: "warning" as const,
+        message: "fixed input shape",
+      }),
+    );
+    const bounded = mapQualityIssuesToAuthoringIssues(input);
+    const sparse = Array<unknown>(2);
+    sparse[1] = input[0];
+    const sparseResult = mapQualityIssuesToAuthoringIssues(sparse);
+
+    expect(bounded).toMatchObject({
+      valid: true,
+      totalIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues + 1,
+      retainedIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
+      truncated: true,
+    });
+    expect(bounded.issues).toHaveLength(
+      AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
+    );
+    expect(sparseResult).toMatchObject({
+      valid: false,
+      totalIssues: 2,
+      retainedIssues: 2,
+      issues: [
+        { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
+        { code: "TEXT_OVERFLOW", severity: "warning" },
+      ],
+    });
+  });
+
+  it("publishes the same mapper from the browser-safe entry point", () => {
+    const input = [
+      {
+        code: "MISSING_GLYPH",
+        severity: "error",
+        message: "fixed input shape",
+        layerId: "headline",
+      },
+    ];
+
+    expect(BROWSER_AUTHORING_QUALITY_ISSUE_MAPPING_VERSION).toBe(
+      AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+    );
+    expect(mapBrowserQualityIssuesToAuthoringIssues(input)).toEqual(
+      mapQualityIssuesToAuthoringIssues(input),
+    );
   });
 });

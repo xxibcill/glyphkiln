@@ -135,9 +135,12 @@ template version. `validateCandidateDocuments` from the main entry point accepts
 one to eight unknown candidate values, applies the normal strict schema,
 template, brand, and text-layout checks, and returns bounded actionable issues.
 Only valid candidates contain a normalized document and deterministic canonical
-JSON. Exact assets and fonts must still be resolved before isolated rendering;
-Core never calls a model or accepts model-selected code, URLs, paths, CSS,
-JavaScript, or active SVG. See
+JSON. `mapQualityIssuesToAuthoringIssues` from the browser entry point maps up
+to 128 proof issues to fixed designer actions and reports malformed or
+truncated input without copying runtime messages or details. Exact assets and
+fonts must still be resolved before isolated rendering; Core never calls a
+model or accepts model-selected code, URLs, paths, CSS, JavaScript, or active
+SVG. See
 [AI-ready authoring contracts](../../docs/ai-authoring-contracts.md).
 
 Campaign coordinators can use `deriveCampaignSeeds` from the main Core entry

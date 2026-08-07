@@ -32,3 +32,10 @@ export type {
   InvalidCandidateDocument,
   ValidCandidateDocument,
 } from "./candidates.js";
+
+export {
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  mapQualityIssuesToAuthoringIssues,
+} from "./issues.js";
+export type { AuthoringQualityIssueMapping } from "./issues.js";
