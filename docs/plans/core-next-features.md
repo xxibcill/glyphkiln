@@ -226,10 +226,13 @@ browser-safe `1.0.0` authoring metadata for every supported template version,
 `1.0.0` actionable issue metadata, bounded `1.0.0` candidate validation through
 the normal strict schema, template, brand, and text-layout path, and a bounded
 browser-safe `1.0.0` quality-to-action mapping used by the App Proof Ledger.
-They do not change rendered pixels. Resource-backed proof, real-brief
-acceptance, the threat model, App model adapters, rationale display, lock
-enforcement, persistence, and provider disclosures remain open and must pass
-the decision gate below.
+The App now also has a provider-neutral `1.0.0` response boundary that labels
+rationales as suggestions, evaluates every well-shaped proposal through Core,
+rejects exact normalized duplicates, and grants proposal-only authority. A
+draft threat model records the remaining gate. These slices do not change
+rendered pixels. Resource-backed proof, real-brief acceptance, model adapters,
+option-board rationale display, lock enforcement, persistence, and provider
+disclosures remain open and must pass the decision gate below.
 
 ### User outcome
 

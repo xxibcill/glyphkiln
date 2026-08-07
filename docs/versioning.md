@@ -65,3 +65,9 @@ schema/template/document-quality successes, and quality-to-action mapping
 messages or details. These contracts do not change the design schema,
 templates, renderer, procedural algorithms, manifest, fingerprints, SVG, or
 PNG output.
+
+The App BriefInterpreter response contract and validator start at `1.0.0`.
+They define a strict three-or-four-proposal envelope, bounded suggestion
+rationales, stable response issues, Core candidate evaluation, and
+proposal-only authority. They do not configure or call a model and do not
+authorize workspace resources, persistence, rendering, export, or publication.
