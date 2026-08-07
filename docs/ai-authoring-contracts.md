@@ -93,6 +93,42 @@ The boundary has no provider SDK or network call. See the
 [AI-assisted authoring threat model](ai-authoring-threat-model.md) for the
 implemented controls and the decisions required before enabling an adapter.
 
+## Server-owned lock enforcement
+
+The App's internal `validateAuthoringLocks(base, candidate, serverLocks)` seam
+enforces selective-regeneration locks without accepting paths, comparison
+expressions, or values from a model. It accepts only the closed `copy`, `image`,
+`crop`, `typography`, `palette`, and `composition` IDs. Duplicate, sparse,
+oversized, or unknown selections fail with fixed guidance and are not echoed.
+The App must derive this array from authenticated server state; it is not part
+of the BriefInterpreter response.
+
+Both unknown documents pass together through Core candidate validation before
+any comparison. Lock projections are computed from Core-normalized documents,
+so schema defaults compare consistently. Invalid documents expose only their
+bounded Core reports, and no lock comparison runs.
+
+| Lock          | Normalized choices preserved                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `copy`        | Text, statistic/chart content, asset alt text, semantic role identity, and visibility                                  |
+| `image`       | Full asset declarations, asset-to-layer choices, image treatment, image role identity, and visibility                  |
+| `crop`        | Asset-layer fit and image focal point                                                                                  |
+| `typography`  | Font declarations, brand typography, and per-text color, family, weight, size, line, alignment, and keep-together data |
+| `palette`     | Mode, brand palette/themes/prohibited colors, and explicit layer/chart colors                                          |
+| `composition` | Schema/template/format/seed, brand layout policy and identity, ordered layer identity/visibility, and structural data  |
+
+Overlap is deliberate and fail-closed. Layer identity ties a choice to its
+semantic role; copy and image locks include visibility so an unlocked
+composition cannot merely hide a locked choice. Explicit text color belongs to
+both typography and palette. A selected lock fails if any field in its
+projection differs, even when another unselected lock also owns that field.
+
+Document revision `id` and inert `metadata` are outside creative locks. The
+result remains `authority: "proposal-only"`; successful equality does not
+authorize a candidate's resource claims, workspace access, persistence,
+rendering, export, or publication. Those checks still belong to a later App
+workflow using immutable server records.
+
 ## Actionable issues
 
 Candidate issues have a closed authoring code, severity, category, action, and
@@ -119,12 +155,14 @@ filesystem path, admitted byte hash, or trusted provenance value.
 
 Candidate rationales, prompts, providers, models, response hashes, locks,
 grouping, ordering, acceptance decisions, and retention disclosures are App
-metadata. They do not enter Core documents, fingerprints, or manifests.
+metadata. The lock validator intentionally ignores document `metadata`; trusted
+lock selections do not enter Core documents, fingerprints, or manifests.
 
 ## Version and output impact
 
-Authoring metadata, actionable issue metadata, candidate validation, and the
-quality-to-action mapping each start at `1.0.0`. These slices add public
-coordination contracts and proof-ledger guidance only. They do not change the
-design schema, renderer, templates, procedural algorithms, manifest,
-fingerprints, SVG, PNG, or legacy validation/render behavior.
+Authoring metadata, actionable issue metadata, candidate validation, the
+quality-to-action mapping, the App response boundary, and the App lock contract
+each start at `1.0.0`. These slices add coordination, validation, and
+proof-ledger guidance only. They do not change the design schema, renderer,
+templates, procedural algorithms, manifest, fingerprints, SVG, PNG, or legacy
+validation/render behavior.
