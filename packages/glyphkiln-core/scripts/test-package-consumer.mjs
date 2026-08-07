@@ -77,6 +77,7 @@ async function writeConsumerSources() {
     `import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
@@ -84,8 +85,12 @@ import {
   inspectDesignDocument,
   renderGraphic,
   renderGraphicIsolated,
+  validateCandidateDocuments,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
@@ -93,6 +98,20 @@ import {
 } from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.0.0");
+assert.equal(
+  AUTHORING_TEMPLATE_REGISTRY["article-cover@1.1.0"].template.version,
+  "1.1.0",
+);
+assert.equal(AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG.action, "shorten-copy");
+const candidates = validateCandidateDocuments([document]);
+assert.equal(candidates.version, CANDIDATE_DOCUMENT_VALIDATION_VERSION);
+assert.equal(candidates.success, true);
+assert.equal(candidates.candidates[0].status, "valid");
+assert.equal(
+  candidates.candidates[0].canonicalDocument,
+  canonicalJson(candidates.candidates[0].document),
+);
 assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
@@ -151,11 +170,14 @@ await assert.rejects(
   await writeFile(
     join(consumerDirectory, "consumer.ts"),
     `import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createDesignDocument,
   deriveCampaignSeeds,
+  validateCandidateDocuments,
+  type CandidateDocumentSetValidation,
   type CampaignSeedDerivationInput,
   type DerivedCampaignSeeds,
   type DesignTextLayoutDiagnostic,
@@ -168,12 +190,17 @@ await assert.rejects(
   type RenderEvidence,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   FOCAL_CROP_POLICY_VERSION,
   calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
+  type AuthoringIssueMetadata,
+  type AuthoringTemplateContract,
   type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
@@ -197,6 +224,17 @@ if (
   throw new Error("campaign contract");
 }
 void campaignFamily;
+
+const authoringTemplate: AuthoringTemplateContract =
+  AUTHORING_TEMPLATE_REGISTRY["product-announcement@1.1.1"];
+const copyIssue: AuthoringIssueMetadata = AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG;
+if (
+  AUTHORING_CONTRACT_VERSION !== "1.0.0" ||
+  authoringTemplate.compositionVariant.selection !== "fixed-by-template-version" ||
+  copyIssue.action !== "shorten-copy"
+) {
+  throw new Error("authoring contract");
+}
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },
@@ -248,6 +286,11 @@ const carousel = createDesignDocument({
   layers: [{ id: "background", type: "background" }],
 });
 void carousel;
+const candidateValidation: CandidateDocumentSetValidation =
+  validateCandidateDocuments([carousel]);
+if (candidateValidation.version !== CANDIDATE_DOCUMENT_VALIDATION_VERSION) {
+  throw new Error("candidate validation contract");
+}
 
 const crop = calculateFocalCrop({
   source: { width: 1600, height: 900 },
