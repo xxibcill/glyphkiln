@@ -34,6 +34,7 @@ jobs:
       - run: npm test
       - run: npm run text-layout-data:verify
       - run: npm run fixtures:verify
+      - run: npm run schema-conformance:verify
       - run: npm run identity:verify
       - run: npm run licenses:verify
       - run: npm audit --audit-level=low
@@ -42,6 +43,5 @@ jobs:
         run: npm run test:coverage
       - if: matrix.node == 24
         run: npm run examples:verify
-      - if: matrix.node == 24
-        name: Installed-package consumer smoke
+      - name: Installed-package consumer smoke
         run: npm run test:package-consumer

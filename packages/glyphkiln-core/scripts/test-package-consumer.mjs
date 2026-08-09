@@ -19,10 +19,18 @@ const typescriptCompiler = resolve(
 );
 const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
 const consumerDirectory = join(temporaryRoot, "consumer");
+const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
+
+if (
+  process.env["GLYPHKILN_PACKAGE_SPEC"] !== undefined &&
+  requestedPackageSpec?.length === 0
+) {
+  throw new Error("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
+}
 
 try {
   await mkdir(consumerDirectory);
-  const archive = await packArchive();
+  const packageSpec = requestedPackageSpec ?? (await packArchive());
   await writeFile(
     join(consumerDirectory, "package.json"),
     `${JSON.stringify({
@@ -35,7 +43,7 @@ try {
     "npm",
     [
       "install",
-      archive,
+      packageSpec,
       "--ignore-scripts",
       "--no-audit",
       "--no-fund",
@@ -52,7 +60,7 @@ try {
   await runTypeScriptConsumer();
   await runCliConsumer();
   process.stdout.write(
-    "Fresh tarball JavaScript, TypeScript, CLI, and isolated consumers passed.\n",
+    `Fresh ${requestedPackageSpec === undefined ? "tarball" : "published-package"} JavaScript, TypeScript, schema-subpath, installed-bin, and isolated consumers passed.\n`,
   );
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
@@ -87,8 +95,14 @@ import {
   canonicalJson,
   createRenderFingerprintPayload,
 } from "@glyphkiln/core/browser";
+import {
+  DesignDocumentSchema,
+  getDesignDocumentJsonSchema,
+} from "@glyphkiln/core/schema";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+assert.equal(DesignDocumentSchema.safeParse(document).success, true);
+assert.equal(typeof getDesignDocumentJsonSchema(), "object");
 assert.equal(canonicalJson({ z: 2, a: 1 }), '{"a":1,"z":2}');
 assert.equal(
   createRenderFingerprintPayload({
@@ -149,6 +163,11 @@ import {
   createRenderFingerprintPayload,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+import {
+  DesignDocumentSchema,
+  getDesignDocumentJsonSchema,
+  type DesignDocument as SchemaDesignDocument,
+} from "@glyphkiln/core/schema";
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },
@@ -209,6 +228,8 @@ const crop = calculateFocalCrop({
 if (crop.policyVersion !== FOCAL_CROP_POLICY_VERSION) throw new Error("crop");
 const evidence = {} as RenderEvidence;
 void evidence;
+const schemaDocument: SchemaDesignDocument = DesignDocumentSchema.parse(carousel);
+void [schemaDocument, getDesignDocumentJsonSchema()];
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {
@@ -276,9 +297,12 @@ async function runTypeScriptConsumer() {
 }
 
 async function runCliConsumer() {
-  const cli = join(consumerDirectory, "node_modules/@glyphkiln/core/dist/cli/index.js");
-  const inspection = await execFileAsync(process.execPath, [
-    cli,
+  const cli = join(
+    consumerDirectory,
+    "node_modules/.bin",
+    process.platform === "win32" ? "glyphkiln.cmd" : "glyphkiln",
+  );
+  const inspection = await execFileAsync(cli, [
     "inspect",
     join(consumerDirectory, "design.json"),
   ]);
@@ -291,8 +315,7 @@ async function runCliConsumer() {
   const unsupportedPath = join(consumerDirectory, "unsupported.json");
   await writeFile(unsupportedPath, `${JSON.stringify(unsupported)}\n`);
   await assert.rejects(
-    execFileAsync(process.execPath, [
-      cli,
+    execFileAsync(cli, [
       "render",
       unsupportedPath,
       "--format",
@@ -334,7 +357,10 @@ async function runCliConsumer() {
   await mkdir(join(bundleRoot, "fonts"), { recursive: true });
   await writeFile(join(bundleRoot, "assets/pixel.png"), pixel);
   await cp(
-    join(root, "assets/fonts/Inter-Variable.ttf"),
+    join(
+      consumerDirectory,
+      "node_modules/@glyphkiln/core/assets/fonts/Inter-Variable.ttf",
+    ),
     join(bundleRoot, "fonts/inter.ttf"),
   );
   await writeFile(
@@ -357,8 +383,7 @@ async function runCliConsumer() {
   );
   const bundledOutput = join(consumerDirectory, "bundled.svg");
   const bundledManifest = join(consumerDirectory, "bundled.manifest.json");
-  await execFileAsync(process.execPath, [
-    cli,
+  await execFileAsync(cli, [
     "render",
     bundledDesignPath,
     "--resource-bundle",

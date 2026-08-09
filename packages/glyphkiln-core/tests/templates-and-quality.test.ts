@@ -236,6 +236,59 @@ describe("template registry", () => {
     await expectDeterministicRender(document, assets);
   });
 
+  it.each([
+    {
+      treatment: "none",
+      mode: "dark",
+      outputHash: "accb227c2e11dbdfcf861cbb1c27e1d9d3bb3115cc88f77e8aca266eafe35393",
+    },
+    {
+      treatment: "light-scrim",
+      mode: "light",
+      outputHash: "684c2aa6c52143980c3d15e6cb0608446fe991cd0fd283c6dd54dfa21548d34d",
+    },
+  ] as const)(
+    "pins exact image-led $treatment output pixels",
+    async ({ treatment, mode, outputHash }) => {
+      const document = cloneDocument(await loadExample("image-led-campaign"));
+      document.id = `image-led-${treatment}-pixel-contract`;
+      document.mode = mode;
+      const image = document.layers.find((layer) => layer.type === "image");
+      if (image?.type !== "image" || !("treatment" in image)) {
+        throw new Error("Expected a current image treatment.");
+      }
+      image.treatment = treatment;
+      const assets = document.assets.map((declaration, index) =>
+        solidPngAsset(
+          declaration,
+          index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255],
+        ),
+      );
+      document.assets = assets.map((asset) => ({
+        id: asset.id,
+        mimeType: asset.mimeType,
+        sha256: asset.sha256,
+        width: asset.width,
+        height: asset.height,
+        origin: asset.origin,
+      }));
+
+      const result = await renderGraphic(document, {
+        formats: ["png"],
+        assets,
+        creationTimestamp: "2026-07-31T00:00:00.000Z",
+      });
+
+      expect(result.outputs[0]?.manifest.output.sha256).toBe(outputHash);
+      expect(result.evidence.crops[0]?.treatment).toBe(treatment);
+      expect(
+        result.evidence.contrast.every(
+          (entry) => entry.minimumRatio >= entry.minimumRequired,
+        ),
+      ).toBe(true);
+    },
+  );
+
   it.each(["product-announcement", "statistic-card", "quote-card", "article-cover"])(
     "renders the %s template in a landscape format",
     async (name) => {

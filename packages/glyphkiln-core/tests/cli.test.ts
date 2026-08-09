@@ -237,8 +237,11 @@ describe("CLI", () => {
 
   it("reports the package version", async () => {
     const capture = captureIo();
+    const packageJson = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { version: string };
     expect(await runCli(["--version"], capture.io)).toBe(0);
-    expect(capture.stdout).toEqual(["0.5.0"]);
+    expect(capture.stdout).toEqual([packageJson.version]);
   });
 
   it("returns nonzero for invalid usage", async () => {

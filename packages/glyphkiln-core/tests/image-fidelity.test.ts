@@ -82,6 +82,36 @@ describe("focal crop geometry", () => {
 });
 
 describe("composited raster contrast evidence", () => {
+  it.each([
+    { treatment: "none", expectedBackground: "#6496C8" },
+    { treatment: "dark-scrim", expectedBackground: "#2C4258" },
+    { treatment: "light-scrim", expectedBackground: "#DDE8F3" },
+  ] as const)(
+    "pins exact $treatment composition before contrast measurement",
+    ({ treatment, expectedBackground }) => {
+      const pixel = [100, 150, 200, 255];
+      const asset = rgbaAsset([...pixel, ...pixel, ...pixel, ...pixel]);
+      const crop = calculateFocalCrop({
+        source: { width: 2, height: 2 },
+        destination: { x: 0, y: 0, width: 100, height: 100 },
+        focalPoint: { x: 0.5, y: 0.5 },
+      });
+      const evidence = inspectImageTextContrast({
+        layerId: "headline",
+        raster: decodeRasterForContrast(asset),
+        crop,
+        textBounds: { x: 0, y: 0, width: 100, height: 100 },
+        foreground: "#FFFFFF",
+        sceneBackground: "#000000",
+        treatment,
+      });
+
+      expect(new Set(evidence.samples.map((sample) => sample.background))).toEqual(
+        new Set([expectedBackground]),
+      );
+    },
+  );
+
   it("samples a fixed bounded grid after source alpha and treatment", () => {
     const asset = rgbaAsset([
       255, 255, 255, 255, 255, 0, 0, 128, 0, 0, 0, 255, 0, 0, 255, 0,
