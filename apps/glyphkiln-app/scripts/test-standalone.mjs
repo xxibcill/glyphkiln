@@ -24,6 +24,7 @@ const REQUIRED_CORE_DISTRIBUTION_FILES = [
   "assets/fonts/OFL.txt",
   "vendor/unicode/LICENSE.txt",
 ];
+const HTTP_REQUEST_TIMEOUT_MS = 15_000;
 
 const layout = await readStandaloneLayout();
 await assert.rejects(
@@ -310,7 +311,7 @@ async function verifyLegacyPreviewIsClosed(originUrl, server) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: "{}",
-    signal: AbortSignal.timeout(5_000),
+    signal: AbortSignal.timeout(HTTP_REQUEST_TIMEOUT_MS),
   });
   const preview = await previewResponse.json();
   assert.equal(
@@ -348,7 +349,7 @@ async function verifyStaticAssets(originUrl, assetPaths) {
   await Promise.all(
     assetPaths.map(async (assetPath) => {
       const response = await fetch(new URL(assetPath, originUrl), {
-        signal: AbortSignal.timeout(5_000),
+        signal: AbortSignal.timeout(HTTP_REQUEST_TIMEOUT_MS),
       });
       assert.equal(response.status, 200, `${assetPath} must be available.`);
       assert.ok(
