@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../next.config";
 
-describe("application document security headers", () => {
+describe("Next.js configuration", () => {
+  it("uses the TypeScript CLI for compiler versions without the legacy API", () => {
+    expect(nextConfig.experimental?.useTypeScriptCli).toBe(true);
+  });
+
   it("denies framing for every page and route", async () => {
     expect(nextConfig.headers).toBeTypeOf("function");
     const rules = await nextConfig.headers?.();

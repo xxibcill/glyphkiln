@@ -12,7 +12,7 @@ jobs:
   verify:
     strategy:
       matrix:
-        node: [22.13.0, 24]
+        node: [22.22.2, 24]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

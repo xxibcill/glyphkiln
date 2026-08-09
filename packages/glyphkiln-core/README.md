@@ -44,7 +44,7 @@ Supported procedural styles:
 
 ## Develop
 
-Use Node.js 22.13 or newer within the Node 22 release line, or Node.js 24 or
+Use Node.js 22.22.2 or newer within the Node 22 release line, or Node.js 24 or
 newer, with npm 10.9.8. Run the verification suite from the monorepo root:
 
 ```bash

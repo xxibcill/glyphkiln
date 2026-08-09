@@ -1,7 +1,7 @@
 # Release process
 
 1. Ensure every user-visible pull request contains a Changeset.
-2. Verify CI with npm 10.9.8 on the minimum supported Node 22.13 release and
+2. Verify CI with npm 10.9.8 on the minimum supported Node 22.22.2 release and
    the current Node 24 release: clean install, build, typecheck, lint/security
    scan, tests, standalone runtime, isolation, text-layout data verification,
    diagnostic determinism, fixtures, dependency licenses, audit, packing, and

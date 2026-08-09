@@ -6,6 +6,9 @@ const applicationRoot = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(applicationRoot, "../..");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    useTypeScriptCli: true,
+  },
   headers() {
     return Promise.resolve([
       {
