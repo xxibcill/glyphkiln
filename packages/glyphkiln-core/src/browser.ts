@@ -25,3 +25,33 @@ export type {
   CampaignFamilyMember,
   CampaignSafeAreaPolicy,
 } from "./campaigns/metadata.js";
+export {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_CODES,
+  AUTHORING_ISSUE_METADATA_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_TEMPLATE_KEYS,
+  AUTHORING_TEMPLATE_REGISTRY,
+} from "./authoring/metadata.js";
+export type {
+  AuthoringAssetRole,
+  AuthoringCompositionVariant,
+  AuthoringContentField,
+  AuthoringContentRole,
+  AuthoringIssueAction,
+  AuthoringIssueCategory,
+  AuthoringIssueCode,
+  AuthoringIssueMetadata,
+  AuthoringTemplateContract,
+  AuthoringTemplateKey,
+} from "./authoring/metadata.js";
+export {
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  mapQualityIssuesToAuthoringIssues,
+} from "./authoring/issues.js";
+export type {
+  AuthoringQualityIssueMapping,
+  CandidateDocumentIssue,
+  CandidateDocumentIssueSource,
+} from "./authoring/issues.js";

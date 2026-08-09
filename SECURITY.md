@@ -25,7 +25,15 @@ Only the latest released minor version is supported during the pre-1.0 phase.
   `RENDER_WORKER_PROFILE` in a permission-limited child process. Services may
   add a container-level network/credential policy for tenant defense in depth.
 - Optional LLM adapters may propose a design document. Their output is untrusted
-  data and receives exactly the same validation as any other caller.
+  data and receives exactly the same validation as any other caller. The App's
+  provider-neutral response boundary grants proposal-only authority; model
+  output cannot choose trusted provider/workspace identity, immutable resource
+  versions, provenance, persistence, rendering, export, or publication.
+- Selective-regeneration lock IDs and the base revision must come from
+  authenticated App state, never model output. The App's pure lock validator
+  compares only closed normalized projections after both documents pass Core
+  candidate validation; a successful comparison still grants proposal-only
+  authority.
 - Glyphkiln Cloud may orchestrate workers but is not trusted by, imported into,
   or required by Core.
 

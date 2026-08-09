@@ -37,7 +37,15 @@ gate.
    evidence for multi-format and carousel coordination in the App.
 3. AI-ready production contracts: browser-safe authoring metadata, strict
    candidate-document validation, and designer-actionable quality evidence.
-   Model calls and lock/vary interaction remain App responsibilities.
+   The completed dependency-safe slices publish exact-template metadata,
+   bounded issue actions, deterministic candidate validation, and a
+   browser-safe quality-to-action mapping surfaced in the App Proof Ledger. A
+   strict provider-neutral App response boundary now evaluates three or four
+   proposal-only candidates and labels rationales as model suggestions. A pure
+   server-owned lock checker now compares six closed normalized projections
+   after Core validation. Model calls, resource-backed candidate proof,
+   lock/vary UI and persistence, save/render enforcement, and acceptance
+   workflows remain App responsibilities.
 4. Market-led horizontal multilingual production, prioritizing RTL or CJK from
    real campaign demand. Vertical typography remains a separate later track.
 5. Specialized campaign content and accessible output, including charts only
