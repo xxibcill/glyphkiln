@@ -1,6 +1,12 @@
 import type { QualityIssue } from "../domain/types.js";
 
 import { AUTHORING_ISSUE_REGISTRY, type AuthoringIssueCode } from "./metadata.js";
+import {
+  isPlainRecord,
+  readArrayDataValue,
+  readArrayLength,
+  readOwnDataProperty,
+} from "./inert-data.js";
 
 export const AUTHORING_QUALITY_ISSUE_MAPPING_VERSION = "1.0.0" as const;
 export const CANDIDATE_DOCUMENT_LIMITS = Object.freeze({
@@ -46,7 +52,8 @@ const LAYER_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
 export function mapQualityIssuesToAuthoringIssues(
   input: unknown,
 ): AuthoringQualityIssueMapping {
-  if (!Array.isArray(input)) {
+  const inputLength = readArrayLength(input);
+  if (inputLength === undefined || !Array.isArray(input)) {
     const issue = createCandidateDocumentIssue(
       "QUALITY_REVIEW_REQUIRED",
       "error",
@@ -63,13 +70,13 @@ export function mapQualityIssuesToAuthoringIssues(
   }
 
   const retainedCount = Math.min(
-    input.length,
+    inputLength,
     AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
   );
   const issues: CandidateDocumentIssue[] = [];
   let valid = true;
   for (let index = 0; index < retainedCount; index += 1) {
-    const qualityIssue = readQualityIssue(input[index]);
+    const qualityIssue = readQualityIssue(readArrayDataValue(input, index));
     if (qualityIssue === undefined) {
       valid = false;
       issues.push(
@@ -83,9 +90,9 @@ export function mapQualityIssuesToAuthoringIssues(
   return {
     version: AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
     valid,
-    totalIssues: input.length,
+    totalIssues: inputLength,
     retainedIssues: issues.length,
-    truncated: input.length > retainedCount,
+    truncated: inputLength > retainedCount,
     issues,
   };
 }
@@ -124,10 +131,17 @@ export function createCandidateDocumentIssue(
 
 function readQualityIssue(value: unknown): QualityIssueShape | undefined {
   if (!isPlainRecord(value)) return undefined;
-  const code = value["code"];
-  const severity = value["severity"];
-  const message = value["message"];
-  const layerId = value["layerId"];
+  const codeProperty = readOwnDataProperty(value, "code");
+  const severityProperty = readOwnDataProperty(value, "severity");
+  const messageProperty = readOwnDataProperty(value, "message");
+  const layerIdProperty = readOwnDataProperty(value, "layerId");
+  if (!codeProperty.found || !severityProperty.found || !messageProperty.found) {
+    return undefined;
+  }
+  const code = codeProperty.value;
+  const severity = severityProperty.value;
+  const message = messageProperty.value;
+  const layerId = layerIdProperty.found ? layerIdProperty.value : undefined;
   if (
     typeof code !== "string" ||
     !QUALITY_CODE_PATTERN.test(code) ||
@@ -190,12 +204,4 @@ function boundPath(path: string): { path: string; pathTruncated?: true } {
   const maximum = CANDIDATE_DOCUMENT_LIMITS.maximumIssuePathLength;
   if (path.length <= maximum) return { path };
   return { path: path.slice(0, maximum), pathTruncated: true };
-}
-
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-  const prototype = Object.getPrototypeOf(value) as unknown;
-  return prototype === Object.prototype || prototype === null;
 }
