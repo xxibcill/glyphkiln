@@ -32,12 +32,12 @@ database still permits only one successful bootstrap transaction.
 
 ## Reverse-proxy and TLS assumptions
 
-For a non-loopback deployment, terminate TLS at a reverse proxy controlled by
-the operator and make the application reachable only from that proxy. The
-proxy must overwrite, rather than append to, client-supplied forwarding
-headers; it must provide the original HTTPS scheme and host consistently with
-`GLYPHKILN_PUBLIC_ORIGIN`. Limit the trusted proxy hop or source network so
-clients cannot reach the application directly and forge forwarding metadata.
+For a non-loopback deployment, the supported Compose topology terminates TLS at
+its pinned Caddy service and makes the application reachable only over the
+internal `app-proxy` network. Caddy overwrites client-supplied forwarding
+headers and provides the original HTTPS scheme and host consistently with
+`GLYPHKILN_PUBLIC_ORIGIN`. The app publishes no host port, so clients cannot
+reach it directly and forge forwarding metadata.
 
 `GLYPHKILN_TRUST_PROXY=true` is an operator assertion that those network
 controls are in place. `GLYPHKILN_SECURE_COOKIES=true` ensures session cookies
@@ -50,9 +50,9 @@ The supported Compose profile separates the DDL-owning
 `glyphkiln_migrator`, web `glyphkiln_runtime`, and queue-limited
 `glyphkiln_worker` roles. Keep all three credentials in the host's
 secret-management facility and restrict database ingress to the internal
-application network. Configure certificate issuance, renewal, modern TLS
-policy, request size limits, anti-framing headers, and source/global request
-admission at the proxy. The stock Caddy example does not implement rate
+application network. The checked-in Caddy configuration owns certificate
+issuance, renewal, modern TLS policy, request size limits, and anti-framing
+headers. It does not implement rate
 limiting; without a trusted upstream admission policy, restrict the service to
 a controlled-access network.
 

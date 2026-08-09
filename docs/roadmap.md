@@ -57,12 +57,13 @@ workspace:
 - the supported PostgreSQL/shared-filesystem/ClamAV self-hosting topology and
   operator documentation.
 
-The implementation does not make App Alpha released or production-verified.
-The remaining gate is integrated qualification: the full repository matrix,
-real-PostgreSQL migration/concurrency/isolation tests, a fresh Compose
-create-to-export run, live scanner readiness/update checks, reverse-proxy HTTPS,
-and a stopped-writer database-plus-filesystem backup/restore drill. Status and
-the exact gate are tracked in [the App Alpha plan](plans/app-alpha.md).
+App Alpha is release-qualified for the documented single-host topology. The
+2026-08-09 pass covered the full repository matrix, real PostgreSQL 17.6
+migration/concurrency/isolation, fresh Compose create-to-export, live scanner
+update/readiness, reverse-proxy HTTPS, and a stopped-writer
+database-plus-filesystem restore. Exact evidence is recorded in the
+[App Alpha qualification](qualification/app-alpha-2026-08-09.md); scope and
+limitations remain tracked in [the App Alpha plan](plans/app-alpha.md).
 
 ## App work after Alpha qualification
 

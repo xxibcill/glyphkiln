@@ -1,12 +1,12 @@
 # Glyphkiln App Alpha execution plan
 
-Status: feature and automated qualification complete; real-topology qualification active
+Status: release-qualified for the supported single-host Alpha topology
 
 Starting point: signed Core `v0.3.0` (`47764de`)
 
 Primary product track: `apps/glyphkiln-app`
 
-Last reconciled with code: 2026-07-31
+Last reconciled with code: 2026-08-09
 
 ## Outcome
 
@@ -168,7 +168,7 @@ See [the ingestion boundary](../app-resource-ingestion.md) and
 
 ## Slice 5: async worker and genuine self-hosting
 
-Feature implementation: complete. Operational release qualification: pending.
+Feature implementation and operational release qualification: complete.
 
 - [x] A PostgreSQL queue persists idempotent requests, leases, attempts,
       deterministic retry times, exhaustion, terminal output metadata, and
@@ -193,12 +193,10 @@ Feature implementation: complete. Operational release qualification: pending.
       topology, and operator guidance are present for the supported topology.
 
 The code has focused PGlite-backed queue, retry, lost-lease, authorization,
-workspace-isolation, storage-integrity, and worker tests. Compose configuration
-validation and a narrow local-PostgreSQL least-privilege role smoke also passed.
-Those checks are not evidence that the built containers, full PostgreSQL
-concurrency semantics, ClamAV updates, TLS proxying, or a filesystem/database
-restore have been exercised on this integrated branch. Those release gates
-remain open.
+workspace-isolation, storage-integrity, and worker tests. The final operational
+pass additionally exercised the pinned production PostgreSQL, ClamAV, Caddy,
+built application image, and paired database/filesystem restore. See the
+[dated qualification record](../qualification/app-alpha-2026-08-09.md).
 
 ## Slice 6: bounded Core resource bundle
 
@@ -219,21 +217,21 @@ Implementation: complete independently of the App path.
 See [the resource-bundle contract](../resource-bundles.md) and
 [ADR 0013](../adr/0013-offline-cli-resource-bundles.md).
 
-## Remaining release qualification
+## Release qualification
 
-Before App Alpha is called releasable:
+The release gate is complete:
 
 - [x] Run the complete integrated repository command matrix after all App,
       self-hosting, and documentation changes settle.
-- [ ] Run migration forward → rollback → forward against supported real
+- [x] Run migration forward → rollback → forward against supported real
       PostgreSQL, not only the local PGlite-compatible test engine.
-- [ ] Run workspace-isolation and concurrent queue/admission checks against real
+- [x] Run workspace-isolation and concurrent queue/admission checks against real
       PostgreSQL.
-- [ ] Build both images and complete a fresh documented Compose
+- [x] Build the shared app/worker image and complete a fresh documented Compose
       bootstrap → upload → create → save → reopen → revise → queued export flow.
-- [ ] Exercise ClamAV signature update/readiness and the reverse-proxy HTTPS
+- [x] Exercise ClamAV signature update/readiness and the reverse-proxy HTTPS
       configuration.
-- [ ] Perform and verify a stopped-writer PostgreSQL-plus-filesystem backup and
+- [x] Perform and verify a stopped-writer PostgreSQL-plus-filesystem backup and
       restore.
 - [x] Confirm no unresolved critical security finding and reconcile any final
       operational limitations.
@@ -243,20 +241,15 @@ may be checked only when a dated, committed qualification record identifies the
 exact commit, supported dependency versions, executed procedure, and outcome.
 Records must not contain secrets or private resource data.
 
-The final automated pass completed on 2026-07-31: Core ran 190 tests, App ran
-363 tests, App coverage remained above the repository thresholds, the
-standalone artifact smoke passed, all deterministic fixture/example/data,
-license, package-consumer, and package-dry-run checks passed, and the dependency
-audit reported zero vulnerabilities. An independent read-only review found no
-P0/P1 correctness or security issue and no renderer trust-boundary or deliberate
-pixel change.
-
-An isolated native PostgreSQL 14 cluster also completed migration forward →
-rollback → forward, idempotent reapplication, and the checked-in runtime/worker
-grant smoke. The supported Compose topology pins PostgreSQL 17, so this evidence
-does not close the fresh-Compose or supported-version concurrency gates above.
-The Compose file itself parses successfully; the local Docker daemon was not
-available for image or live-service qualification.
+The final operational pass completed on 2026-08-09 against candidate
+`d709e586472d081cbd359e55bb0640555384fc79`. PostgreSQL 17.6 completed
+forward → rollback → forward and real-concurrency checks; fresh Compose
+completed the authenticated create-to-export workflow; ClamAV updated and
+loaded the same daily database; Caddy served the configured origin over trusted
+HTTPS; and a stopped-writer database/filesystem snapshot restored into fresh
+volumes with matching rows and output bytes. Exact versions, commands, and
+outcomes are in the
+[qualification record](../qualification/app-alpha-2026-08-09.md).
 
 The required integrated command matrix is:
 
@@ -277,15 +270,15 @@ npm audit --audit-level=low
 
 ## Scope ledger
 
-| Scope                                             | Implementation | Release qualification     |
-| ------------------------------------------------- | -------------- | ------------------------- |
-| Identity, roles, invitations, and soft revocation | Complete       | Automated matrix complete |
-| Workspace isolation                               | Complete       | Real PostgreSQL pending   |
-| Immutable brand snapshots                         | Complete       | Automated matrix complete |
-| Persisted designs and revisions                   | Complete       | Automated matrix complete |
-| Manual create/save/reopen/revise/export flow      | Complete       | Compose E2E pending       |
-| Safe raster/font ingestion                        | Complete       | Live ClamAV pending       |
-| Durable async worker                              | Complete       | Real PostgreSQL pending   |
-| Supported Docker Compose topology                 | Present        | Fresh-install pending     |
-| Backup/restore and deployment guidance            | Present        | Restore drill pending     |
-| Core offline CLI resource bundle                  | Complete       | Integrated matrix pending |
+| Scope                                             | Implementation | Release qualification      |
+| ------------------------------------------------- | -------------- | -------------------------- |
+| Identity, roles, invitations, and soft revocation | Complete       | Automated matrix complete  |
+| Workspace isolation                               | Complete       | PostgreSQL 17.6 qualified  |
+| Immutable brand snapshots                         | Complete       | Automated matrix complete  |
+| Persisted designs and revisions                   | Complete       | Automated matrix complete  |
+| Manual create/save/reopen/revise/export flow      | Complete       | Fresh Compose qualified    |
+| Safe raster/font ingestion                        | Complete       | Live ClamAV qualified      |
+| Durable async worker                              | Complete       | PostgreSQL 17.6 qualified  |
+| Supported Docker Compose topology                 | Present        | Fresh install qualified    |
+| Backup/restore and deployment guidance            | Present        | Restore drill qualified    |
+| Core offline CLI resource bundle                  | Complete       | Integrated matrix complete |

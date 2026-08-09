@@ -4,7 +4,7 @@ The supported Alpha topology is:
 
 ```text
 browser
-  → operator TLS reverse proxy
+  → bundled Caddy TLS reverse proxy
     → Glyphkiln App
       → PostgreSQL (application state and durable render queue)
       → shared filesystem volume (resources, outputs, manifests)
@@ -20,17 +20,17 @@ There is no Redis or MinIO dependency in this profile. PostgreSQL is the
 durable queue, and the shared named volume is the supported local object store.
 This profile targets one Docker host. Do not place app and worker on different
 hosts until an independently tested shared object-storage adapter exists.
-Only the FreshClam updater joins the `scanner-egress` network. The ClamAV parser
-has no egress or database-network access; it shares definitions with the
-updater and is reachable from the app only over the internal `app-scanner`
-network. App, worker, migration, grant, and database services remain on the
-internal backend network without general internet egress.
+Only the Caddy proxy and FreshClam updater join non-internal networks. Caddy
+reaches the app only over `app-proxy`; FreshClam shares only the signature
+volume with the parser. The ClamAV parser has no egress or database-network
+access and is reachable from the app only over `app-scanner`. App, worker,
+migration, grant, and database services remain without general internet egress.
 
 ## Prerequisites
 
 - Docker Engine 28 or a compatible current engine with Compose v2
 - a DNS name controlled by the operator
-- a TLS-terminating reverse proxy on the Docker host
+- inbound TCP ports 80 and 443 available to the bundled Caddy proxy
 - persistent local capacity for PostgreSQL and `glyphkiln-storage`
 - at least 6 GiB host memory (8 GiB preferred) so ClamAV can reload signatures
   without competing with PostgreSQL, app, and the bounded render worker
@@ -60,9 +60,10 @@ After the first owner succeeds, clear `GLYPHKILN_BOOTSTRAP_TOKEN` from the
 protected environment and recreate the app container. An absent token closes
 bootstrap registration; it does not reopen or alter the bootstrapped database.
 
-Configure the host reverse proxy using
-`deploy/self-host/Caddyfile.example` as a starting point, then validate and
-start the stack:
+The bundled Caddy service loads `deploy/self-host/Caddyfile.example`. It obtains
+and renews the certificate for `GLYPHKILN_PUBLIC_ORIGIN`; make sure public DNS
+and inbound ports 80/443 reach the Docker host before starting the stack. Then
+validate and start it:
 
 ```sh
 docker compose \
@@ -82,9 +83,15 @@ The one-shot `migrate` service applies DDL as `glyphkiln_migrator`. The
 and render-queue columns it must change. App and worker use separate credentials
 and only verify migration checksums during normal startup. `app` additionally
 waits for ClamAV's health check. ClamAV is not ready merely because its
-container is running: `clamd` must answer its ping check and at least one
-signature database must have been refreshed within 48 hours. Ingestion fails
-closed whenever the scanner is unavailable or signatures are stale.
+container is running: `clamd` must answer its ping check, the daily signature
+database must have been refreshed within 48 hours, and the version loaded by
+the daemon must match that on-disk database after FreshClam updates it.
+Ingestion fails closed whenever the scanner is unavailable or signatures are
+stale.
+
+On a fresh signature volume, Compose waits for FreshClam to verify a current
+daily database before starting ClamD. This ordering prevents ClamD from loading
+the image's older bundled database while the updater atomically replaces it.
 
 Inspect startup:
 
@@ -115,7 +122,10 @@ its migration state, queue schema, and storage directory.
 | `GLYPHKILN_POSTGRES_WORKER_PASSWORD`                | postgres, worker                 | Required distinct long URL-safe secret for the queue-limited worker role                                |
 | `GLYPHKILN_BOOTSTRAP_TOKEN`                         | app                              | Secret of 32–256 characters required only to claim a fresh installation; clear it after setup           |
 | `GLYPHKILN_PUBLIC_ORIGIN`                           | app                              | Required exact HTTPS origin, without path or trailing slash                                             |
-| `GLYPHKILN_APP_PORT`                                | host                             | Optional loopback proxy port; default `3000`                                                            |
+| `GLYPHKILN_PROXY_BIND_ADDRESS`                      | proxy                            | Host address for Caddy; production default `0.0.0.0`, use `127.0.0.1` only for a controlled local drill |
+| `GLYPHKILN_PROXY_HTTP_PORT`                         | proxy                            | Caddy HTTP/ACME and redirect port; supported production value `80`                                      |
+| `GLYPHKILN_PROXY_HTTPS_PORT`                        | proxy                            | Caddy HTTPS port; supported production value `443`                                                      |
+| `GLYPHKILN_CADDY_TLS`                               | proxy                            | Leave unset for public automatic HTTPS; `tls internal` requires explicitly trusting Caddy's local CA    |
 | `DATABASE_URL`                                      | app, worker, migrate             | Compose-generated role-specific PostgreSQL URL; keep secret                                             |
 | `GLYPHKILN_DATABASE_SSL`                            | app, worker                      | `prefer` for the private Compose network; use `require` or `verify-full` for external PostgreSQL        |
 | `GLYPHKILN_DATABASE_MAX_CONNECTIONS`                | app                              | Integer 1–100; Compose uses 10                                                                          |
@@ -140,7 +150,7 @@ its migration state, queue schema, and storage directory.
 | `GLYPHKILN_WORKER_POLL_MS`                          | worker                           | Idle poll interval 50–60,000 ms; default 500                                                            |
 | `GLYPHKILN_WORKER_LEASE_MS`                         | worker                           | Attempt lease 20,000–900,000 ms; default 60,000                                                         |
 
-Compose also sets `GLYPHKILN_HOSTNAME=app`,
+Compose also sets `GLYPHKILN_HOSTNAME=app-proxy-upstream`,
 `GLYPHKILN_TRUST_PROXY=true`, and `GLYPHKILN_SECURE_COOKIES=true`. See
 [`app-self-hosting-security.md`](app-self-hosting-security.md) before changing
 network settings.
@@ -196,18 +206,22 @@ filenames while diagnosing a job.
 
 ## Reverse proxy and TLS
 
-The Compose port is published only on host loopback. Terminate TLS at a proxy
-on that host and expose only the proxy. It must overwrite client forwarding
-headers and forward to `127.0.0.1:$GLYPHKILN_APP_PORT`. The public origin must
-match the browser's scheme, hostname, and port exactly. Glyphkiln does not
-support an origin path prefix.
+The app has no published host port. The bundled Caddy service is the only
+public container and reaches `app-proxy-upstream:3000` over the isolated
+`app-proxy` network. That network-scoped alias also gives the multi-network app
+a single concrete bind address without using a wildcard listener.
+Caddy overwrites untrusted forwarding headers with the observed client, scheme,
+and host. The public origin must match the browser's HTTPS origin exactly.
+Glyphkiln does not support an origin path prefix. The supported production
+profile uses standard ports 80 and 443 so automatic certificate issuance and
+renewal can complete.
 
 Use an automatically renewed certificate, modern TLS policy, HSTS only after
 HTTPS is proven, and a request-body limit no lower than the admitted 16 MiB
 raster boundary plus protocol overhead. Deny framing with both CSP
 `frame-ancestors 'none'` and `X-Frame-Options: DENY`.
 
-The checked-in stock Caddy example supplies TLS, body limits, and security
+The checked-in Caddy configuration supplies TLS, body limits, and security
 headers, but stock Caddy has no source-rate-limit directive. Before exposing
 the service to untrusted public traffic, add a trusted upstream or proxy module
 that enforces per-source and global request admission on `/api/app/commands`,
@@ -217,9 +231,10 @@ application's persistent credential throttle and bounded Argon2 work queue are
 defense in depth, not a source-level denial-of-service control.
 
 Core's render process has no network permission. The ClamAV parser also has no
-egress; only its separate FreshClam updater can reach the internet, and it
-shares only the signature volume with the parser. Do not join app, worker, or
-the parser to `scanner-egress`.
+egress; only its separate FreshClam updater can reach signature servers, and it
+shares only the signature volume with the parser. Caddy has certificate/network
+egress but no application or database credential. Do not join app, worker, or
+the parser to either egress network.
 
 ## Back up
 
@@ -260,7 +275,9 @@ docker compose --env-file deploy/self-host/.env \
 Verify every backup immediately:
 
 ```sh
-pg_restore --list "$SNAPSHOT_DIR/database.dump" >/dev/null
+docker compose --env-file deploy/self-host/.env \
+  -f deploy/self-host/compose.yaml exec -T postgres \
+  pg_restore --list < "$SNAPSHOT_DIR/database.dump" >/dev/null
 (
   cd "$SNAPSHOT_DIR"
   sha256sum --check SHA256SUMS
@@ -279,17 +296,21 @@ Never test a restore over the production project. Use a fresh Docker Compose
 project and fresh volumes:
 
 1. Copy `deploy/self-host/.env` to an isolated restore environment with three
-   new database passwords and an unused host port.
+   new database passwords, an isolated HTTPS origin, and unused HTTP/HTTPS
+   proxy ports. Keep `GLYPHKILN_PROXY_HTTPS_PORT` equal to the port in that
+   origin.
 2. Set `COMPOSE_PROJECT_NAME=glyphkiln-restore`.
 3. Start only PostgreSQL and wait for health.
-4. Pipe `database.dump` to `pg_restore --username glyphkiln_migrator --dbname
-glyphkiln --no-owner --no-acl`.
-5. Create the stopped app container with `docker compose create --no-deps app`,
-   extract verified `storage.tar` into a new empty staging directory, and copy
-   that directory's contents to `/var/lib/glyphkiln` using
+4. Pipe `database.dump` into the pinned PostgreSQL service with `docker compose
+exec -T postgres pg_restore --username glyphkiln_migrator --dbname glyphkiln
+--no-owner --no-acl`.
+5. Create the stopped app container with `docker compose create app`. Compose
+   also creates its dependency containers in the stopped state; it does not
+   start them. Extract verified `storage.tar` into a new empty staging
+   directory, and copy that directory's contents to `/var/lib/glyphkiln` using
    `docker compose cp -a`.
 6. Start ClamAV and its updater, run `migrate`, run `grant-runtime`, then start
-   app and worker.
+   app, worker, and proxy.
 7. Require both health endpoints, run the worker `--healthcheck`, compare row
    counts for `workspaces`, `design_revisions`, `resource_versions`,
    `render_jobs`, and `render_outputs`, then reopen and verify at least one

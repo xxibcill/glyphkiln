@@ -9,6 +9,7 @@ import type {
 } from "./contracts";
 import type {
   SqlDatabase,
+  SqlJsonValue,
   SqlParameters,
   SqlTransaction,
 } from "@/server/persistence/database";
@@ -804,7 +805,7 @@ export class AppState {
         input.brandKitId,
         input.sequence,
         input.version,
-        JSON.stringify(input.snapshot),
+        input.snapshot,
         input.canonicalHash,
         input.createdBy,
         input.createdAt,
@@ -944,7 +945,7 @@ export class AppState {
         input.revisionNumber,
         input.parentRevisionId ?? null,
         input.brandSnapshotId,
-        JSON.stringify(input.document),
+        input.document,
         input.canonicalHash,
         input.changeNote ?? null,
         input.createdBy,
@@ -1147,7 +1148,7 @@ export class AppState {
     action: string;
     targetType: string;
     targetId?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: Readonly<Record<string, SqlJsonValue | undefined>>;
     createdAt: Date;
   }): Promise<void> {
     await this.#query(
@@ -1163,7 +1164,7 @@ export class AppState {
         input.action,
         input.targetType,
         input.targetId ?? null,
-        JSON.stringify(input.metadata ?? {}),
+        input.metadata ?? {},
         input.createdAt,
       ],
     );

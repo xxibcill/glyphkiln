@@ -1,5 +1,11 @@
 # @glyphkiln/app
 
+## 0.0.4
+
+### Patch Changes
+
+- d709e58: Fix production PostgreSQL JSON persistence and harden the supported self-hosted topology with a bundled HTTPS proxy, deterministic single-image builds, and signature-matched ClamAV readiness.
+
 ## 0.0.3
 
 ### Patch Changes

@@ -111,6 +111,18 @@ describe("PostgreSQL database adapter", () => {
     expect(client.unsafe).toHaveBeenLastCalledWith("SELECT 1", []);
   });
 
+  it("passes structured JSON parameters through without stringifying them", async () => {
+    const client = createClient();
+    client.unsafe.mockResolvedValue([]);
+    postgresMock.mockReturnValue(client);
+    const database = createPostgresDatabase("postgresql://runtime@database/glyphkiln");
+    const structured = { name: "Bound JSON", nested: { enabled: true } };
+
+    await database.query("SELECT $1::jsonb", [structured]);
+
+    expect(client.unsafe).toHaveBeenCalledWith("SELECT $1::jsonb", [structured]);
+  });
+
   it("runs operations against the transaction-scoped executor", async () => {
     const client = createClient();
     client.transactionUnsafe.mockResolvedValue([{ value: "inside" }]);
