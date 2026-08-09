@@ -1,6 +1,6 @@
 {
   "name": "@glyphkiln/app",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "description": "The self-hostable Glyphkiln application.",
   "license": "Apache-2.0",
