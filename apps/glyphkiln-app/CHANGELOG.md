@@ -1,5 +1,12 @@
 # @glyphkiln/app
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [8a231f6]
+  - @glyphkiln/core@0.5.0
+
 ## 0.0.2
 
 ### Patch Changes

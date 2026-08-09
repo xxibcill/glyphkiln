@@ -1,15 +1,15 @@
 # Core next-feature release plan
 
-**Status:** Proposed on 2026-07-31. Package-version targets after `0.4.0` are
+**Status:** Updated on 2026-08-09. Package-version targets after `0.5.0` are
 planning labels, not release commitments. A milestone may move only at its
 decision gate; deterministic-output, compatibility, and security gates do not
 move with it.
 
 ## Outcome
 
-Qualify and ship the current scope-frozen `0.4.0` candidate, then make
-Glyphkiln useful as the deterministic production layer in an AI-assisted senior
-designer's workflow:
+Build on the signed `v0.4.0` baseline and the bounded `0.5.0` brand-fidelity
+vertical slice to make Glyphkiln useful as the deterministic production layer
+in an AI-assisted senior designer's workflow:
 
 > Brief → several credible on-brand directions → compare → lock what works →
 > vary the rest → adapt across formats, slides, and locales → approve exact
@@ -30,14 +30,10 @@ lock/vary interaction, campaign coordination, comments, approvals, and export
 bundles. Determinism should feel like confidence to a designer, not like a task
 of manually managing manifests.
 
-## Baseline and `0.4.0` release-candidate scope
+## Released baseline through `0.5.0`
 
-Changesets versioning has materialized Core `0.4.0`, App `0.0.2`, and the style
-showcase `0.0.1` in release commit `52fbd04`. There is no signed `v0.4.0` tag at
-`HEAD`, so this remains an unreleased candidate until its remaining
-qualification and source tag are complete.
-
-The candidate already contains:
+Core `0.4.0` was qualified and published as a signed GitHub source release on
+2026-07-31. It contains:
 
 - deterministic Thai segmentation, balanced line breaking, orphan warnings,
   blocking linguistic-word-break errors, and `keepTogether`;
@@ -48,46 +44,12 @@ The candidate already contains:
 - validated offline CLI resource bundles `1.0.0`; and
 - a deterministic consumer-style showcase.
 
-The embedded contracts at this baseline are design schema `1.3.0`, renderer
-`0.3.0`, manifest `1.2.0`, typography algorithm `2.0.0`, and text-layout
-diagnostics `unicode-17.0.0/ltr-horizontal-v1`.
-
-Do not add another feature to `0.4.0`. Qualification, compatibility repair, and
-release metadata are the only remaining allowed changes.
-
-### `0.4.0` compatibility repair
-
-`createDesignDocument()` defaults to schema `1.3.0`, but its public
-`CreateDesignDocumentInput` type was derived from the `1.2.0` schema. The
-runtime accepted `tiktok-photo-carousel`, while a strict TypeScript consumer
-could not author it through the helper without a cast.
-
-Release commit `52fbd04` contains a focused repair that derives the helper input
-from schema `1.3.0` and adds unit and strict packed-consumer coverage. Local
-qualification confirms that strict consumers can author the current format and
-that legacy helper inputs retain their normalization behavior.
-
-Before tagging the release:
-
-- review the compatibility repair as part of the complete release diff;
-- repeat the supported Node-version qualification matrix; and
-- complete the remaining visual, packaging, and source-release gates below.
-
-### `0.4.0` exit gates
-
-- [x] Verify and land the `CreateDesignDocumentInput` compatibility repair and
-      regression coverage.
-- [ ] Review every changed carousel design, PNG, SVG, and manifest together.
-- [ ] Verify schema-conformance, fixtures, Unicode data, examples, licenses,
-      isolation, deterministic text corpora, standalone App packaging, and the
-      packed consumer.
-- [ ] Run the full root build, typecheck, lint, test, and coverage gates.
-- [x] Run `npx changeset version` and review Core/App/showcase versions,
-      dependency ranges, changelogs, and lockfile changes.
-- [ ] Repeat clean-install and packed-consumer qualification on Node `22.13`
-      and the supported Node `24` line with npm `10.9.8`.
-- [ ] Create a signed `v0.4.0` source release. npm publication remains a
-      separate owner-controlled decision.
+Core `0.5.0` adds the first brand-fidelity vertical slice: schema `1.4.0`
+typography roles, focal crops and treatments, composited contrast evidence, and
+`image-led-campaign@1.0.0`. Renderer `0.4.0` owns the shared pixel changes;
+manifest `1.2.0`, typography algorithm `2.0.0`, and text-layout diagnostics
+`unicode-17.0.0/ltr-horizontal-v1` remain unchanged. Pinned color normalization
+and three-brand product acceptance remain follow-up brand-fidelity work.
 
 ## Rules shared by every feature milestone
 
@@ -110,6 +72,11 @@ Before tagging the release:
   milestone; generated churn is never accepted as a test fix.
 
 ## `0.5.0`: brand and asset fidelity
+
+The `0.5.0` package release delivers the first bounded vertical slice described
+above. The broader user outcome and exit gate below remain the acceptance target
+for follow-up brand-fidelity work; the package version is not a claim that every
+product-level item in this section is complete.
 
 ### User outcome
 

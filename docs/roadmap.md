@@ -1,37 +1,25 @@
 # Roadmap
 
-## Core `0.4.0` candidate
+## Core `0.5.0`
 
-Changesets versioning has materialized Core `0.4.0`, App `0.0.2`, and the style
-showcase `0.0.1` in release commit `52fbd04`. There is no signed `v0.4.0` tag at
-`HEAD`, so this remains an unreleased candidate. It contains:
+Core `0.5.0` advances the signed `v0.4.0` baseline with the first brand and
+asset-fidelity vertical slice. It adds schema `1.4.0` typography roles,
+deterministic focal crops and closed image treatments, composited contrast and
+bounded layout evidence, and `image-led-campaign@1.0.0` with reviewed
+landscape, square, and portrait outputs. Renderer `0.4.0` owns the shared pixel
+changes; manifest `1.2.0` remains unchanged.
 
-- deterministic Thai segmentation and balanced wrapping, schema `1.2.0`
-  `keepTogether`, renderer `0.3.0`, and manifest `1.2.0` typography provenance;
-- preserved 9:16 TikTok carousel-ad templates plus the schema `1.3.0`, 3:4
-  organic-photo composition; and
-- a validated `1.0.0` CLI [resource-bundle format](resource-bundles.md) for
-  bounded offline raster assets and fonts. Bundle paths are explicit operator
-  intent, never design data, and the adapter adds no network or
-  dynamic-execution capability.
-
-Feature scope is frozen until release qualification is complete. See the
-[Core next-feature release plan](plans/core-next-features.md) for the release
-blockers, version ownership, and exit gates.
-
-## Core after `0.4.0`
-
-Implementation of the first `0.5.0` vertical slice is tracked in the
+The implementation and contract choices are tracked in the
 [brand-fidelity slice plan](plans/core-0.5-brand-fidelity-vertical-slice.md) and
-[ADR 0015](adr/0015-image-led-brand-fidelity.md). It covers schema 1.4 type
-roles, focal crops/treatments, composited contrast proof, and one reviewed
-image-led campaign family. Color-profile normalization and three-brand product
-acceptance remain milestone work; this is not yet the complete `0.5.0` exit
-gate.
+[ADR 0015](adr/0015-image-led-brand-fidelity.md). The package release is a
+bounded vertical slice rather than completion of the broader product milestone:
+color-profile normalization and three-brand product acceptance remain follow-up
+brand-fidelity work.
 
-1. Brand and asset fidelity: real font roles, logo/image slots, deterministic
-   focal crops and treatments, color normalization, composited contrast, and an
-   image-led campaign family.
+## Core after `0.5.0`
+
+1. Complete brand and asset fidelity with pinned color normalization and
+   three-brand product acceptance.
 2. Campaign systems: machine-readable template families, named composition
    variants, content-length profiles, deterministic seed derivation, and layout
    evidence for multi-format and carousel coordination in the App.
