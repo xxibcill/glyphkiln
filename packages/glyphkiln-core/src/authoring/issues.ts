@@ -73,8 +73,9 @@ export function mapQualityIssuesToAuthoringIssues(
     inputLength,
     AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
   );
+  const truncated = inputLength > retainedCount;
   const issues: CandidateDocumentIssue[] = [];
-  let valid = true;
+  let valid = !truncated;
   for (let index = 0; index < retainedCount; index += 1) {
     const qualityIssue = readQualityIssue(readArrayDataValue(input, index));
     if (qualityIssue === undefined) {
@@ -92,7 +93,7 @@ export function mapQualityIssuesToAuthoringIssues(
     valid,
     totalIssues: inputLength,
     retainedIssues: issues.length,
-    truncated: inputLength > retainedCount,
+    truncated,
     issues,
   };
 }

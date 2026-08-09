@@ -689,12 +689,16 @@ describe("authoring quality issue mapping", () => {
       }),
     );
     const bounded = mapQualityIssuesToAuthoringIssues(input);
+    const malformedTail = mapQualityIssuesToAuthoringIssues([
+      ...input.slice(0, AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues),
+      null,
+    ]);
     const sparse = Array<unknown>(2);
     sparse[1] = input[0];
     const sparseResult = mapQualityIssuesToAuthoringIssues(sparse);
 
     expect(bounded).toMatchObject({
-      valid: true,
+      valid: false,
       totalIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues + 1,
       retainedIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
       truncated: true,
@@ -702,6 +706,12 @@ describe("authoring quality issue mapping", () => {
     expect(bounded.issues).toHaveLength(
       AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
     );
+    expect(malformedTail).toMatchObject({
+      valid: false,
+      totalIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues + 1,
+      retainedIssues: AUTHORING_QUALITY_ISSUE_LIMITS.maximumInputIssues,
+      truncated: true,
+    });
     expect(sparseResult).toMatchObject({
       valid: false,
       totalIssues: 2,

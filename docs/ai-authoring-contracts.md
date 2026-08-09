@@ -29,9 +29,10 @@ The same entry point exports
 `mapQualityIssuesToAuthoringIssues(unknown)`. This pure `1.0.0` mapping turns
 Core proof issues into the closed action vocabulary without importing the
 renderer. It retains at most 128 input issues, preserves array indices and
-order, reports truncation, and marks malformed issue arrays with `valid: false`.
-Unknown future quality codes produce `QUALITY_REVIEW_REQUIRED` rather than
-silent acceptance.
+order, reports truncation, and marks malformed or truncated issue arrays with
+`valid: false`. A `valid: true` result therefore describes the entire supplied
+array, not only the retained prefix. Unknown future quality codes produce
+`QUALITY_REVIEW_REQUIRED` rather than silent acceptance.
 
 ## Candidate validation
 
