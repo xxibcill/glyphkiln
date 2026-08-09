@@ -672,11 +672,11 @@ export const AUTHORING_ISSUE_REGISTRY = deepFreeze({
 } as const satisfies Record<AuthoringIssueCode, AuthoringIssueMetadata>);
 
 function deepFreeze<Value>(value: Value): Value {
-  if (typeof value !== "object" || value === null || Object.isFrozen(value)) {
+  if (typeof value !== "object" || value === null) {
     return value;
   }
   for (const child of Object.values(value)) {
     deepFreeze(child);
   }
-  return Object.freeze(value);
+  return Object.isFrozen(value) ? value : Object.freeze(value);
 }
