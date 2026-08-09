@@ -5,6 +5,12 @@ import {
 
 import { containsControlCharacter } from "@/server/resources/inert-text";
 
+import {
+  readArrayDataValue,
+  readArrayLength,
+  readExactDataRecord,
+} from "./inert-input";
+
 export const BRIEF_INTERPRETER_RESPONSE_CONTRACT_VERSION = "1.0.0" as const;
 export const BRIEF_INTERPRETER_RESPONSE_VALIDATION_VERSION = "1.0.0" as const;
 export const BRIEF_INTERPRETER_RESPONSE_LIMITS = Object.freeze({
@@ -71,8 +77,8 @@ type ParsedCandidate = {
   readonly rationale: string;
 };
 
-const RESPONSE_KEYS = new Set<PropertyKey>(["contractVersion", "candidates"]);
-const CANDIDATE_KEYS = new Set<PropertyKey>(["document", "rationale"]);
+const RESPONSE_KEYS = new Set(["contractVersion", "candidates"]);
+const CANDIDATE_KEYS = new Set(["document", "rationale"]);
 
 const ISSUE_MESSAGES = Object.freeze({
   RESPONSE_SHAPE_INVALID:
@@ -91,27 +97,29 @@ const ISSUE_MESSAGES = Object.freeze({
 export function validateBriefInterpreterResponse(
   input: unknown,
 ): BriefInterpreterResponseValidation {
-  if (!isPlainRecord(input) || !hasExactKeys(input, RESPONSE_KEYS)) {
+  const response = readExactDataRecord(input, RESPONSE_KEYS);
+  if (response === undefined) {
     return invalidResponse(0, "RESPONSE_SHAPE_INVALID");
   }
-  if (input.contractVersion !== BRIEF_INTERPRETER_RESPONSE_CONTRACT_VERSION) {
+  if (response.contractVersion !== BRIEF_INTERPRETER_RESPONSE_CONTRACT_VERSION) {
     return invalidResponse(0, "RESPONSE_VERSION_UNSUPPORTED");
   }
-  const rawCandidates = input.candidates;
-  if (!Array.isArray(rawCandidates)) {
+  const rawCandidates = response.candidates;
+  const candidateCount = readArrayLength(rawCandidates);
+  if (candidateCount === undefined || !Array.isArray(rawCandidates)) {
     return invalidResponse(0, "RESPONSE_SHAPE_INVALID");
   }
   if (
-    rawCandidates.length < BRIEF_INTERPRETER_RESPONSE_LIMITS.minimumCandidates ||
-    rawCandidates.length > BRIEF_INTERPRETER_RESPONSE_LIMITS.maximumCandidates
+    candidateCount < BRIEF_INTERPRETER_RESPONSE_LIMITS.minimumCandidates ||
+    candidateCount > BRIEF_INTERPRETER_RESPONSE_LIMITS.maximumCandidates
   ) {
-    return invalidResponse(rawCandidates.length, "CANDIDATE_COUNT_INVALID");
+    return invalidResponse(candidateCount, "CANDIDATE_COUNT_INVALID");
   }
 
   const parsedCandidates: ParsedCandidate[] = [];
   const candidateByIndex = new Map<number, BriefInterpreterCandidate>();
-  for (let index = 0; index < rawCandidates.length; index += 1) {
-    const parsed = readCandidate(rawCandidates[index], index);
+  for (let index = 0; index < candidateCount; index += 1) {
+    const parsed = readCandidate(readArrayDataValue(rawCandidates, index), index);
     if ("issue" in parsed) {
       candidateByIndex.set(index, {
         index,
@@ -142,7 +150,7 @@ export function validateBriefInterpreterResponse(
     }
   }
 
-  const candidates = Array.from({ length: rawCandidates.length }, (_, index) => {
+  const candidates = Array.from({ length: candidateCount }, (_, index) => {
     const candidate = candidateByIndex.get(index);
     if (candidate === undefined) {
       throw new Error("BriefInterpreter candidate validation lost an input index.");
@@ -159,7 +167,7 @@ export function validateBriefInterpreterResponse(
         (candidate) =>
           candidate.status === "evaluated" && candidate.validation.status === "valid",
       ),
-    candidateCount: rawCandidates.length,
+    candidateCount,
     candidates,
     issues,
   };
@@ -169,14 +177,15 @@ function readCandidate(
   input: unknown,
   index: number,
 ): ParsedCandidate | { readonly issue: BriefInterpreterResponseIssue } {
-  if (!isPlainRecord(input) || !hasExactKeys(input, CANDIDATE_KEYS)) {
+  const candidate = readExactDataRecord(input, CANDIDATE_KEYS);
+  if (candidate === undefined) {
     return {
       issue: createIssue("CANDIDATE_SHAPE_INVALID", "candidate", {
         candidateIndex: index,
       }),
     };
   }
-  const rationale = input.rationale;
+  const rationale = candidate.rationale;
   if (!isValidRationale(rationale)) {
     return {
       issue: createIssue("CANDIDATE_RATIONALE_INVALID", "candidate", {
@@ -184,7 +193,7 @@ function readCandidate(
       }),
     };
   }
-  return { index, document: input.document, rationale };
+  return { index, document: candidate.document, rationale };
 }
 
 function isValidRationale(input: unknown): input is string {
@@ -266,22 +275,4 @@ function createIssue(
       ? {}
       : { relatedCandidateIndex: location.relatedCandidateIndex }),
   };
-}
-
-function hasExactKeys(
-  input: Record<string, unknown>,
-  expectedKeys: ReadonlySet<PropertyKey>,
-): boolean {
-  const keys = Reflect.ownKeys(input);
-  return (
-    keys.length === expectedKeys.size && keys.every((key) => expectedKeys.has(key))
-  );
-}
-
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-  const prototype = Object.getPrototypeOf(value) as unknown;
-  return prototype === Object.prototype || prototype === null;
 }

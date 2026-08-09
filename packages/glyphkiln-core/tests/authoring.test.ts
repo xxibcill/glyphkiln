@@ -394,6 +394,32 @@ describe("candidate document validation", () => {
     });
   });
 
+  it("does not invoke accessor-backed candidate array entries", () => {
+    let accessorReads = 0;
+    const candidates = Array<unknown>(1);
+    Object.defineProperty(candidates, "0", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Candidate accessor must not run.");
+      },
+    });
+
+    const result = validateCandidateDocuments(candidates);
+
+    expect(accessorReads).toBe(0);
+    expect(result).toMatchObject({
+      success: false,
+      candidateCount: 1,
+      candidates: [
+        {
+          index: 0,
+          status: "invalid",
+          issues: [{ code: "DOCUMENT_STRUCTURE_INVALID" }],
+        },
+      ],
+    });
+  });
+
   it("caps deep validation paths without echoing unknown values", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     let metadata: Record<string, unknown> = {};
@@ -615,6 +641,41 @@ describe("authoring quality issue mapping", () => {
       retainedIssues: 1,
       truncated: false,
       issues: [{ code: "QUALITY_REVIEW_REQUIRED", severity: "error" }],
+    });
+  });
+
+  it("does not invoke accessor-backed quality issue entries or fields", () => {
+    let accessorReads = 0;
+    const accessorIssue: Record<string, unknown> = {
+      severity: "warning",
+      message: "runtime evidence",
+    };
+    Object.defineProperty(accessorIssue, "code", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Quality issue accessor must not run.");
+      },
+    });
+    const input = Array<unknown>(2);
+    Object.defineProperty(input, "0", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Quality issue array accessor must not run.");
+      },
+    });
+    input[1] = accessorIssue;
+
+    const result = mapQualityIssuesToAuthoringIssues(input);
+
+    expect(accessorReads).toBe(0);
+    expect(result).toMatchObject({
+      valid: false,
+      totalIssues: 2,
+      retainedIssues: 2,
+      issues: [
+        { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
+        { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
+      ],
     });
   });
 

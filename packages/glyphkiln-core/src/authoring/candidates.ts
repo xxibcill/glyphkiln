@@ -14,6 +14,7 @@ import {
   mapQualityIssueToAuthoringIssue,
   type CandidateDocumentIssue,
 } from "./issues.js";
+import { readArrayDataValue, readArrayLength } from "./inert-data.js";
 
 export const CANDIDATE_DOCUMENT_VALIDATION_VERSION = "1.0.0" as const;
 export { CANDIDATE_DOCUMENT_LIMITS } from "./issues.js";
@@ -49,19 +50,20 @@ export type CandidateDocumentSetValidation = {
 export function validateCandidateDocuments(
   input: unknown,
 ): CandidateDocumentSetValidation {
-  if (!Array.isArray(input)) {
+  const candidateCount = readArrayLength(input);
+  if (candidateCount === undefined || !Array.isArray(input)) {
     return invalidCandidateSet(0);
   }
   if (
-    input.length === 0 ||
-    input.length > CANDIDATE_DOCUMENT_LIMITS.maximumCandidates
+    candidateCount === 0 ||
+    candidateCount > CANDIDATE_DOCUMENT_LIMITS.maximumCandidates
   ) {
-    return invalidCandidateSet(input.length);
+    return invalidCandidateSet(candidateCount);
   }
 
   const candidates: CandidateDocumentValidation[] = [];
-  for (let index = 0; index < input.length; index += 1) {
-    candidates.push(validateCandidateDocument(input[index], index));
+  for (let index = 0; index < candidateCount; index += 1) {
+    candidates.push(validateCandidateDocument(readArrayDataValue(input, index), index));
   }
   return {
     version: CANDIDATE_DOCUMENT_VALIDATION_VERSION,

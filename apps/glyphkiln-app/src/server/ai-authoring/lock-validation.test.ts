@@ -189,6 +189,30 @@ describe("server-owned authoring lock validation", () => {
     ).toMatchObject([{ code: "LOCK_SELECTION_INVALID" }]);
   });
 
+  it("does not invoke accessor-backed server lock entries", () => {
+    let accessorReads = 0;
+    const locks = Array<AuthoringLockId>(1);
+    Object.defineProperty(locks, "0", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Lock accessor must not run.");
+      },
+    });
+
+    const result = validateAuthoringLocks(
+      authoringDocument(),
+      authoringDocument(),
+      locks,
+    );
+
+    expect(accessorReads).toBe(0);
+    expect(result).toMatchObject({
+      success: false,
+      locks: [],
+      issues: [{ code: "LOCK_SELECTION_INVALID" }],
+    });
+  });
+
   it("returns invalid documents only through bounded Core reports and fixed lock issues", () => {
     const base = { ...authoringDocument(), path: "/trusted/base" };
     const candidate = {

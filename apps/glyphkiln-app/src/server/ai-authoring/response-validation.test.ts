@@ -230,6 +230,52 @@ describe("BriefInterpreter response validation", () => {
     expect(JSON.stringify(result)).not.toMatch(/[\u0080-\u009f]/u);
   });
 
+  it("does not invoke accessor-backed response or candidate fields", () => {
+    let accessorReads = 0;
+    const accessorResponse = {
+      candidates: [],
+    } as Record<string, unknown>;
+    Object.defineProperty(accessorResponse, "contractVersion", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Response accessor must not run.");
+      },
+    });
+
+    const candidates = Array<unknown>(3);
+    Object.defineProperty(candidates, "0", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Candidate array accessor must not run.");
+      },
+    });
+    const accessorCandidate = {
+      document: candidateDocument(1),
+    } as Record<string, unknown>;
+    Object.defineProperty(accessorCandidate, "rationale", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Candidate accessor must not run.");
+      },
+    });
+    candidates[1] = accessorCandidate;
+    candidates[2] = {
+      document: candidateDocument(2),
+      rationale: "A safely readable proposal.",
+    };
+
+    const invalidResponse = validateBriefInterpreterResponse(accessorResponse);
+    const invalidCandidates = validateBriefInterpreterResponse(response(candidates));
+
+    expect(accessorReads).toBe(0);
+    expect(invalidResponse.issues).toMatchObject([{ code: "RESPONSE_SHAPE_INVALID" }]);
+    expect(invalidCandidates.candidates).toMatchObject([
+      { index: 0, status: "rejected", issues: [{ code: "CANDIDATE_SHAPE_INVALID" }] },
+      { index: 1, status: "rejected", issues: [{ code: "CANDIDATE_SHAPE_INVALID" }] },
+      { index: 2, status: "evaluated", validation: { status: "valid" } },
+    ]);
+  });
+
   it("does not skip sparse candidate indices", () => {
     const candidates = Array<unknown>(3);
     candidates[2] = {
