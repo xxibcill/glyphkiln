@@ -78,6 +78,7 @@ describe("AI-ready authoring metadata", () => {
 
     expect(BROWSER_AUTHORING_CONTRACT_VERSION).toBe(AUTHORING_CONTRACT_VERSION);
     expect(BROWSER_AUTHORING_TEMPLATE_REGISTRY).toBe(AUTHORING_TEMPLATE_REGISTRY);
+    expectDeepFrozen(AUTHORING_TEMPLATE_REGISTRY);
   });
 
   it("stays aligned with runtime template requirements and formats", () => {
@@ -140,6 +141,22 @@ describe("AI-ready authoring metadata", () => {
     expect(AUTHORING_ISSUE_REGISTRY.SAFE_AREA_RISK.category).toBe("safe-area");
   });
 });
+
+function expectDeepFrozen(value: unknown): void {
+  const pending: unknown[] = [value];
+  const visited = new WeakSet();
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+    visited.add(current);
+    expect(Object.isFrozen(current)).toBe(true);
+    for (const child of Object.values(current as Record<string, unknown>)) {
+      pending.push(child);
+    }
+  }
+}
 
 describe("candidate document validation", () => {
   it("normalizes valid candidates, preserves order, and returns canonical JSON", async () => {
