@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run && npm run test:standalone",
+    "test:postgres-qualification": "vitest run src/server/persistence/real-postgres-qualification.test.ts",
     "test:standalone": "npm run build && node scripts/test-standalone.mjs",
     "test:coverage": "vitest run --coverage"
   },

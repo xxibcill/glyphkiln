@@ -1,4 +1,6 @@
-glyphkiln.example.com {
+{$GLYPHKILN_PUBLIC_ORIGIN} {
+	{$GLYPHKILN_CADDY_TLS}
+
 	encode zstd gzip
 
 	request_body {
@@ -13,5 +15,5 @@ glyphkiln.example.com {
 		Referrer-Policy "no-referrer"
 	}
 
-	reverse_proxy 127.0.0.1:3000
+	reverse_proxy app-proxy-upstream:3000
 }

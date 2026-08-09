@@ -28,14 +28,43 @@ describe("supported self-hosting boundary", () => {
     const clamDaemon = serviceBlock("clamav");
     const clamUpdater = serviceBlock("clamav-updater");
     const app = serviceBlock("app");
+    const migrate = serviceBlock("migrate");
+    const proxy = serviceBlock("proxy");
     const worker = serviceBlock("worker");
+    expect(clamDaemon).toContain(
+      "clamav/clamav-debian:1.4.3@sha256:1d261f9c83ef2bbeef3915c7792f125e5707500fde0019d53547461747b90374",
+    );
+    expect(clamUpdater).toContain(
+      "clamav/clamav-debian:1.4.3@sha256:1d261f9c83ef2bbeef3915c7792f125e5707500fde0019d53547461747b90374",
+    );
+    expect(app).toContain("build:");
+    expect(app).toContain("dockerfile: apps/glyphkiln-app/Dockerfile");
+    expect(migrate).not.toContain("build:");
+    expect(worker).not.toContain("build:");
+    expect(app).not.toContain("ports:");
+    expect(app).toContain("GLYPHKILN_HOSTNAME: app-proxy-upstream");
+    expect(app).toContain(
+      "app-proxy:\n        aliases:\n          - app-proxy-upstream",
+    );
+    expect(proxy).toContain(
+      "caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d",
+    );
+    expect(proxy).toContain("- app-proxy");
+    expect(proxy).toContain("- proxy-egress");
+    expect(proxy).toContain("GLYPHKILN_PROXY_BIND_ADDRESS");
     expect(clamDaemon).toContain("CLAMAV_NO_FRESHCLAMD");
+    expect(clamDaemon).toContain('CLAMD_CONF_SelfCheck: "30"');
+    expect(clamDaemon).toContain("qualification_loaded");
+    expect(clamDaemon).toContain("qualification_disk");
+    expect(clamDaemon).toContain("condition: service_healthy");
     expect(clamDaemon).toContain("- app-scanner");
     expect(clamDaemon).not.toContain("scanner-egress");
     expect(clamUpdater).toContain("CLAMAV_NO_CLAMD");
+    expect(clamUpdater).toContain("sigtool --info");
     expect(clamUpdater).toContain("- scanner-egress");
     expect(clamUpdater).not.toContain("- backend");
-    expect(app).toContain("- app-scanner");
+    expect(app).toContain("app-scanner:");
+    expect(app).toContain("backend:");
     expect(app).toContain(
       'GLYPHKILN_BOOTSTRAP_TOKEN: "${GLYPHKILN_BOOTSTRAP_TOKEN:-}"',
     );

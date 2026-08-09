@@ -2,9 +2,6 @@ name: glyphkiln
 
 x-app-image: &app-image
   image: glyphkiln-app:0.1.0-alpha
-  build:
-    context: ../..
-    dockerfile: apps/glyphkiln-app/Dockerfile
 
 x-migration-database-environment: &migration-database-environment
   DATABASE_URL: postgresql://glyphkiln_migrator:${GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD:?set GLYPHKILN_POSTGRES_MIGRATOR_PASSWORD}@postgres:5432/glyphkiln
@@ -59,19 +56,27 @@ services:
       - backend
 
   clamav:
-    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    image: clamav/clamav-debian:1.4.3@sha256:1d261f9c83ef2bbeef3915c7792f125e5707500fde0019d53547461747b90374
     restart: unless-stopped
     init: true
     environment:
       CLAMAV_NO_FRESHCLAMD: "true"
+      CLAMD_CONF_SelfCheck: "30"
+    depends_on:
+      clamav-updater:
+        condition: service_healthy
     volumes:
       - clamav-signatures:/var/lib/clamav
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "clamdscan --ping=1 >/dev/null && find /var/lib/clamav -maxdepth 1 -type f \\( -name '*.cvd' -o -name '*.cld' \\) -mmin -2880 -print -quit | grep -q .",
-        ]
+        - CMD-SHELL
+        - >-
+          clamdscan --ping=1 >/dev/null &&
+          qualification_daily="$$(find /var/lib/clamav -maxdepth 1 -type f \( -name 'daily.cvd' -o -name 'daily.cld' \) -mmin -2880 -print -quit)" &&
+          test -n "$$qualification_daily" &&
+          qualification_loaded="$$(clamdscan --version | awk -F/ '{print $$2}')" &&
+          qualification_disk="$$(sigtool --info "$$qualification_daily" | awk '/^Version:/ {print $$2}')" &&
+          test "$$qualification_loaded" = "$$qualification_disk"
       interval: 30s
       timeout: 10s
       retries: 20
@@ -85,7 +90,7 @@ services:
       - app-scanner
 
   clamav-updater:
-    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    image: clamav/clamav-debian:1.4.3@sha256:1d261f9c83ef2bbeef3915c7792f125e5707500fde0019d53547461747b90374
     restart: unless-stopped
     init: true
     environment:
@@ -93,6 +98,17 @@ services:
       FRESHCLAM_CHECKS: "24"
     volumes:
       - clamav-signatures:/var/lib/clamav
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          qualification_daily="$$(find /var/lib/clamav -maxdepth 1 -type f \( -name 'daily.cvd' -o -name 'daily.cld' \) -mmin -2880 -print -quit)" &&
+          test -n "$$qualification_daily" &&
+          sigtool --info "$$qualification_daily" | grep -q '^Verification OK'
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
     security_opt:
       - no-new-privileges:true
     pids_limit: 64
@@ -141,11 +157,14 @@ services:
     <<:
       - *app-image
       - *runtime-hardening
+    build:
+      context: ../..
+      dockerfile: apps/glyphkiln-app/Dockerfile
     restart: unless-stopped
     hostname: app
     environment:
       <<: *runtime-database-environment
-      GLYPHKILN_HOSTNAME: app
+      GLYPHKILN_HOSTNAME: app-proxy-upstream
       GLYPHKILN_PUBLIC_ORIGIN: ${GLYPHKILN_PUBLIC_ORIGIN:?set an https GLYPHKILN_PUBLIC_ORIGIN}
       GLYPHKILN_BOOTSTRAP_TOKEN: "${GLYPHKILN_BOOTSTRAP_TOKEN:-}"
       GLYPHKILN_TRUST_PROXY: "true"
@@ -168,22 +187,20 @@ services:
       GLYPHKILN_CLAMAV_MAX_SIGNATURE_AGE_HOURS: "48"
     volumes:
       - glyphkiln-storage:/var/lib/glyphkiln
-    ports:
-      - "127.0.0.1:${GLYPHKILN_APP_PORT:-3000}:3000"
     depends_on:
       grant-runtime:
         condition: service_completed_successfully
       clamav:
         condition: service_healthy
       clamav-updater:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://app:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://app-proxy-upstream:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 15s
       timeout: 5s
@@ -193,8 +210,11 @@ services:
     mem_limit: 768m
     cpus: 1.5
     networks:
-      - backend
-      - app-scanner
+      app-proxy:
+        aliases:
+          - app-proxy-upstream
+      app-scanner:
+      backend: {}
 
   worker:
     <<:
@@ -225,15 +245,53 @@ services:
     networks:
       - backend
 
+  proxy:
+    <<: *runtime-hardening
+    image: caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+    restart: unless-stopped
+    environment:
+      GLYPHKILN_PUBLIC_ORIGIN: ${GLYPHKILN_PUBLIC_ORIGIN:?set an https GLYPHKILN_PUBLIC_ORIGIN}
+      GLYPHKILN_CADDY_TLS: "${GLYPHKILN_CADDY_TLS:-}"
+    cap_add:
+      - NET_BIND_SERVICE
+    volumes:
+      - ./Caddyfile.example:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - "${GLYPHKILN_PROXY_BIND_ADDRESS:-0.0.0.0}:${GLYPHKILN_PROXY_HTTP_PORT:-80}:80"
+      - "${GLYPHKILN_PROXY_BIND_ADDRESS:-0.0.0.0}:${GLYPHKILN_PROXY_HTTPS_PORT:-443}:${GLYPHKILN_PROXY_HTTPS_PORT:-443}"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1
+    networks:
+      - app-proxy
+      - proxy-egress
+
 volumes:
   postgres-data:
   glyphkiln-storage:
   clamav-signatures:
+  caddy-config:
+  caddy-data:
 
 networks:
   backend:
     internal: true
   app-scanner:
     internal: true
+  app-proxy:
+    internal: true
+  proxy-egress:
+    internal: false
   scanner-egress:
     internal: false
