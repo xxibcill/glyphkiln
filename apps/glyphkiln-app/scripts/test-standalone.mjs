@@ -209,7 +209,7 @@ async function verifyRuntimeAttempt(isolatedAppRoot) {
   try {
     const home = await waitForApplication(server, origin);
     assert.equal(home.status, 200);
-    const assetPaths = extractStaticAssetPaths(await home.text());
+    const assetPaths = extractStaticAssetPaths(home.html);
     assert.ok(assetPaths.length > 0, "The home page must reference static assets.");
     await verifyStaticAssets(origin, assetPaths);
     await verifyLegacyPreviewIsClosed(origin, server);
@@ -329,7 +329,13 @@ async function waitForApplication(server, originUrl) {
       throw new Error(`Application exited during startup.\n${server.output}`);
     }
     try {
-      return await fetch(originUrl, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(originUrl, {
+        signal: AbortSignal.timeout(500),
+      });
+      return {
+        html: await response.text(),
+        status: response.status,
+      };
     } catch {
       await delay(50);
     }
