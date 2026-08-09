@@ -275,7 +275,9 @@ docker compose --env-file deploy/self-host/.env \
 Verify every backup immediately:
 
 ```sh
-pg_restore --list "$SNAPSHOT_DIR/database.dump" >/dev/null
+docker compose --env-file deploy/self-host/.env \
+  -f deploy/self-host/compose.yaml exec -T postgres \
+  pg_restore --list < "$SNAPSHOT_DIR/database.dump" >/dev/null
 (
   cd "$SNAPSHOT_DIR"
   sha256sum --check SHA256SUMS
@@ -299,11 +301,13 @@ project and fresh volumes:
    origin.
 2. Set `COMPOSE_PROJECT_NAME=glyphkiln-restore`.
 3. Start only PostgreSQL and wait for health.
-4. Pipe `database.dump` to `pg_restore --username glyphkiln_migrator --dbname
-glyphkiln --no-owner --no-acl`.
-5. Create the stopped app container with `docker compose create --no-deps app`,
-   extract verified `storage.tar` into a new empty staging directory, and copy
-   that directory's contents to `/var/lib/glyphkiln` using
+4. Pipe `database.dump` into the pinned PostgreSQL service with `docker compose
+exec -T postgres pg_restore --username glyphkiln_migrator --dbname glyphkiln
+--no-owner --no-acl`.
+5. Create the stopped app container with `docker compose create app`. Compose
+   also creates its dependency containers in the stopped state; it does not
+   start them. Extract verified `storage.tar` into a new empty staging
+   directory, and copy that directory's contents to `/var/lib/glyphkiln` using
    `docker compose cp -a`.
 6. Start ClamAV and its updater, run `migrate`, run `grant-runtime`, then start
    app, worker, and proxy.
