@@ -13,7 +13,7 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This package is a production-quality vertical slice (`0.4.0`).
+This package is a production-quality vertical slice (`0.5.0`).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 

@@ -1,6 +1,6 @@
 {
   "name": "@glyphkiln/example-style-showcase",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "A deterministic industrial-editorial style showcase for Glyphkiln Core.",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@glyphkiln/core": "^0.4.0"
+    "@glyphkiln/core": "^0.5.0"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

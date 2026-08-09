@@ -158,7 +158,7 @@ async function seedBrandAndDesignState(database: SqlDatabase): Promise<void> {
       "brand-a",
       1,
       "1.0.0",
-      JSON.stringify({ name: "Brand A" }),
+      { name: "Brand A" },
       HASH_A,
       "user-a",
       "snapshot-b",
@@ -166,7 +166,7 @@ async function seedBrandAndDesignState(database: SqlDatabase): Promise<void> {
       "brand-b",
       1,
       "1.0.0",
-      JSON.stringify({ name: "Brand B" }),
+      { name: "Brand B" },
       HASH_B,
       "user-b",
     ],
@@ -229,7 +229,7 @@ async function insertRevision(
       input.revisionNumber,
       input.parentRevisionId ?? null,
       input.brandSnapshotId,
-      JSON.stringify({ name: input.documentName, schemaVersion: "1.0.0" }),
+      { name: input.documentName, schemaVersion: "1.0.0" },
       HASH_C,
       "test revision",
       "user-a",
@@ -618,7 +618,7 @@ describe("App Alpha PostgreSQL migration", () => {
         "workspace-a",
         "design-a",
         "snapshot-a",
-        JSON.stringify({
+        {
           schemaVersion: "1.0.0",
           metadata: {
             resourceVersions: {
@@ -633,7 +633,7 @@ describe("App Alpha PostgreSQL migration", () => {
               ],
             },
           },
-        }),
+        },
         HASH_B,
         "user-a",
         new Date("2029-01-01T00:00:00.000Z"),
@@ -723,7 +723,7 @@ describe("App Alpha PostgreSQL migration", () => {
           SET snapshot = $1::jsonb
           WHERE workspace_id = $2 AND id = $3
         `,
-        [JSON.stringify({ name: "Mutated" }), "workspace-a", "snapshot-a"],
+        [{ name: "Mutated" }, "workspace-a", "snapshot-a"],
       ),
     ).rejects.toHaveProperty("code", "55000");
     await expect(
@@ -733,7 +733,7 @@ describe("App Alpha PostgreSQL migration", () => {
           SET design_document = $1::jsonb
           WHERE workspace_id = $2 AND id = $3
         `,
-        [JSON.stringify({ name: "Mutated" }), "workspace-a", "revision-a"],
+        [{ name: "Mutated" }, "workspace-a", "revision-a"],
       ),
     ).rejects.toHaveProperty("code", "55000");
 
