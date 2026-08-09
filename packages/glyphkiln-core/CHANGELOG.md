@@ -1,5 +1,12 @@
 # @glyphkiln/core
 
+## 0.5.0
+
+### Minor Changes
+
+- 8a231f6: Add schema 1.4 brand typography roles, deterministic focal crops and image
+  treatments, scene-aware contrast proof, and the image-led campaign template.
+
 ## 0.4.0
 
 ### Minor Changes
