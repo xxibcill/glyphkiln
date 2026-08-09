@@ -9,7 +9,12 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const typescriptCompiler = require.resolve("typescript/bin/tsc");
+const typescriptPackagePath = require.resolve("typescript/package.json");
+const typescriptPackage = require(typescriptPackagePath);
+const typescriptCompiler = resolve(
+  dirname(typescriptPackagePath),
+  typescriptPackage.bin.tsc,
+);
 const readme = await readFile(join(root, "README.md"), "utf8");
 const match = /```ts\n([\s\S]*?)\n```/.exec(readme);
 assert.notEqual(match, null, "README.md must contain a TypeScript SDK example.");

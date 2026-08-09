@@ -11,7 +11,12 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const typescriptCompiler = require.resolve("typescript/bin/tsc");
+const typescriptPackagePath = require.resolve("typescript/package.json");
+const typescriptPackage = require(typescriptPackagePath);
+const typescriptCompiler = resolve(
+  dirname(typescriptPackagePath),
+  typescriptPackage.bin.tsc,
+);
 const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
 const consumerDirectory = join(temporaryRoot, "consumer");
 
