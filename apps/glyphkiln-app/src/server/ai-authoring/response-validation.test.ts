@@ -209,6 +209,27 @@ describe("BriefInterpreter response validation", () => {
     expect(JSON.stringify(result)).not.toContain("secret-");
   });
 
+  it("rejects the complete C1 control range in rationales", () => {
+    const result = validateBriefInterpreterResponse(
+      response(
+        ["\u0080", "\u009b", "\u009f"].map((control, index) => ({
+          document: candidateDocument(index),
+          rationale: `Visible${control}control`,
+        })),
+      ),
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.candidates).toMatchObject(
+      [0, 1, 2].map((candidateIndex) => ({
+        index: candidateIndex,
+        status: "rejected",
+        issues: [{ code: "CANDIDATE_RATIONALE_INVALID", candidateIndex }],
+      })),
+    );
+    expect(JSON.stringify(result)).not.toMatch(/[\u0080-\u009f]/u);
+  });
+
   it("does not skip sparse candidate indices", () => {
     const candidates = Array<unknown>(3);
     candidates[2] = {

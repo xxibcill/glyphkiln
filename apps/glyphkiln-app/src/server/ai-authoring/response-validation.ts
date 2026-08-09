@@ -194,7 +194,7 @@ function isValidRationale(input: unknown): input is string {
     input.length <= BRIEF_INTERPRETER_RESPONSE_LIMITS.maximumRationaleCharacters &&
     input.trim().length > 0 &&
     !containsControlCharacter(input) &&
-    !/[\u0085\u2028\u2029]/u.test(input)
+    !/[\u0080-\u009f\u2028\u2029]/u.test(input)
   );
 }
 
