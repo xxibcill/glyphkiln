@@ -1,0 +1,97 @@
+name: Publish Core to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Signed vX.Y.Z source-release tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-glyphkiln-core
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish signed Core release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: npm
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+      - name: Verify release tag and lineage
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -eu
+          if ! [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must match vX.Y.Z." >&2
+            exit 1
+          fi
+          test "$(git cat-file -t "$RELEASE_TAG")" = "tag"
+          test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$(git rev-parse HEAD)"
+          git config gpg.format ssh
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/release-allowed-signers"
+          git tag -v "$RELEASE_TAG"
+          package_version="$(node -p "require('./packages/glyphkiln-core/package.json').version")"
+          test "$RELEASE_TAG" = "v$package_version"
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          if find .changeset -maxdepth 1 -type f -name '*.md' ! -name README.md | grep -q .; then
+            echo "Unmaterialized Changesets remain in the tagged release." >&2
+            exit 1
+          fi
+          printf 'package_spec=@glyphkiln/core@%s\n' "$package_version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:coverage
+      - run: npm run text-layout-data:verify
+      - run: npm run fixtures:verify
+      - run: npm run schema-conformance:verify
+      - run: npm run identity:verify
+      - run: npm run examples:verify
+      - run: npm run licenses:verify
+      - run: npm audit --audit-level=low
+      - run: npm run pack:core:dry-run
+      - run: npm run test:package-consumer
+      - name: Publish with provenance
+        run: npm publish --workspace @glyphkiln/core --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Verify published provenance
+        env:
+          PACKAGE_SPEC: ${{ steps.release.outputs.package_spec }}
+        run: |
+          set -eu
+          attestations="$(npm view "$PACKAGE_SPEC" dist.attestations --json)"
+          test -n "$attestations"
+          test "$attestations" != "null"
+          test "$attestations" != "[]"
+      - name: Verify the published archive
+        run: npm run test:package-consumer
+        env:
+          GLYPHKILN_PACKAGE_SPEC: ${{ steps.release.outputs.package_spec }}
