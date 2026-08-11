@@ -420,6 +420,34 @@ describe("candidate document validation", () => {
     });
   });
 
+  it("does not invoke accessor-backed candidate document fields", async () => {
+    let accessorReads = 0;
+    const document = cloneDocument(await loadExample("product-announcement"));
+    Object.defineProperty(document, "mode", {
+      configurable: true,
+      enumerable: false,
+      get() {
+        accessorReads += 1;
+        throw new Error("Candidate document accessor must not run.");
+      },
+    });
+
+    const result = validateCandidateDocuments([document]);
+
+    expect(accessorReads).toBe(0);
+    expect(result).toMatchObject({
+      success: false,
+      candidateCount: 1,
+      candidates: [
+        {
+          index: 0,
+          status: "invalid",
+          issues: [{ code: "DOCUMENT_STRUCTURE_INVALID", source: "schema" }],
+        },
+      ],
+    });
+  });
+
   it("caps deep validation paths without echoing unknown values", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
     let metadata: Record<string, unknown> = {};
