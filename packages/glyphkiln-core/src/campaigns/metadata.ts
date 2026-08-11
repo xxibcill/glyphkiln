@@ -4,10 +4,12 @@ import type { TemplateDefinition } from "../templates/types.js";
 
 export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.0.0" as const;
 
-export const CAMPAIGN_FAMILY_IDS = ["image-led-campaign"] as const;
+export const CAMPAIGN_FAMILY_IDS = Object.freeze(["image-led-campaign"] as const);
 export type CampaignFamilyId = (typeof CAMPAIGN_FAMILY_IDS)[number];
 
-export const CAMPAIGN_COMPOSITION_VARIANT_IDS = ["focal-editorial"] as const;
+export const CAMPAIGN_COMPOSITION_VARIANT_IDS = Object.freeze([
+  "focal-editorial",
+] as const);
 export type CampaignCompositionVariantId =
   (typeof CAMPAIGN_COMPOSITION_VARIANT_IDS)[number];
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_IDS,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   CAMPAIGN_SEED_DERIVATION_VERSION,
@@ -70,6 +72,8 @@ describe("campaign-family metadata", () => {
     const family = CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
     const member = family.members[0];
 
+    expect(Object.isFrozen(CAMPAIGN_FAMILY_IDS)).toBe(true);
+    expect(Object.isFrozen(CAMPAIGN_COMPOSITION_VARIANT_IDS)).toBe(true);
     expect(Object.isFrozen(CAMPAIGN_FAMILY_REGISTRY)).toBe(true);
     expect(Object.isFrozen(family)).toBe(true);
     expect(Object.isFrozen(family.members)).toBe(true);
