@@ -134,7 +134,8 @@ jobs:
           test -n "$attestations"
           test "$attestations" != "null"
           test "$attestations" != "[]"
-      - name: Verify the published archive
+      - name: Verify the published archive and attestations
         run: npm run test:package-consumer
         env:
           GLYPHKILN_PACKAGE_SPEC: ${{ steps.release.outputs.package_spec }}
+          GLYPHKILN_VERIFY_PACKAGE_SIGNATURES: "1"
