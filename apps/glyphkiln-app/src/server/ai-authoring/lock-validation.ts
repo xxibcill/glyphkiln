@@ -214,19 +214,19 @@ function lockMatches(
 function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
   switch (lock) {
     case "copy":
-      return projectUnorderedLayers(document, copyProjection);
+      return projectUnorderedLayers(document, "copy");
     case "image":
       return {
         assets: projectUnorderedValues(document.assets),
-        layers: projectUnorderedLayers(document, imageProjection),
+        layers: projectUnorderedLayers(document, "image"),
       };
     case "crop":
-      return projectUnorderedLayers(document, cropProjection);
+      return projectUnorderedLayers(document, "crop");
     case "typography":
       return {
         brand: document.brand.typography,
         fonts: projectUnorderedValues(document.fonts),
-        layers: projectUnorderedLayers(document, typographyProjection),
+        layers: projectUnorderedLayers(document, "typography"),
       };
     case "palette":
       return {
@@ -234,7 +234,7 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
         palette: document.brand.palette,
         themes: document.brand.themes,
         prohibitedColors: projectUnorderedValues(document.brand.prohibitedColors),
-        layers: projectUnorderedLayers(document, paletteProjection),
+        layers: projectUnorderedLayers(document, "palette"),
       };
     case "composition":
       return {
@@ -255,16 +255,29 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
           safeArea: document.brand.safeArea,
           prohibitedStyles: projectUnorderedValues(document.brand.prohibitedStyles),
         },
-        layers: document.layers.map(compositionProjection),
+        layers: document.layers.map((layer) => projectLayerLocks(layer).composition),
       };
   }
 }
 
+type NonCompositionLockId = Exclude<AuthoringLockId, "composition">;
+type LayerLockProjection = Readonly<Record<string, unknown>>;
+type LayerLockProjections = {
+  readonly [Lock in AuthoringLockId]: Lock extends "composition"
+    ? LayerLockProjection
+    : LayerLockProjection | undefined;
+};
+
 function projectUnorderedLayers(
   document: DesignDocument,
-  project: (layer: DesignLayer) => unknown[],
+  lock: NonCompositionLockId,
 ): unknown[] {
-  return projectUnorderedValues(document.layers.flatMap(project));
+  return projectUnorderedValues(
+    document.layers.flatMap((layer) => {
+      const projection = projectLayerLocks(layer)[lock];
+      return projection === undefined ? [] : [projection];
+    }),
+  );
 }
 
 function projectUnorderedValues(values: readonly unknown[]): unknown[] {
@@ -276,7 +289,7 @@ function projectUnorderedValues(values: readonly unknown[]): unknown[] {
     .map(({ value }) => value);
 }
 
-function copyProjection(layer: DesignLayer): unknown[] {
+function projectLayerLocks(layer: DesignLayer): LayerLockProjections {
   const identity = layerIdentity(layer);
   switch (layer.type) {
     case "headline":
@@ -284,144 +297,130 @@ function copyProjection(layer: DesignLayer): unknown[] {
     case "eyebrow":
     case "cta":
     case "footer":
-    case "attribution":
+    case "attribution": {
+      const typography = {
+        id: layer.id,
+        type: layer.type,
+        color: layer.color,
+        fontFamily: layer.fontFamily,
+        fontWeight: layer.fontWeight,
+        fontSize: layer.fontSize,
+        maxLines: layer.maxLines,
+        align: layer.align,
+        keepTogether: "keepTogether" in layer ? layer.keepTogether : undefined,
+      };
+      return createLayerLockProjections(identity, {
+        copy: { ...identity, text: layer.text },
+        typography,
+        palette: { id: layer.id, type: layer.type, color: layer.color },
+      });
+    }
     case "badge":
-      return [{ ...identity, text: layer.text }];
+      return createLayerLockProjections(identity, {
+        copy: { ...identity, text: layer.text },
+        palette: { id: layer.id, type: layer.type, color: layer.color },
+      });
     case "statistic":
-      return [
-        { ...identity, value: layer.value, label: layer.label, trend: layer.trend },
-      ];
-    case "chart":
-      return [
-        {
+      return createLayerLockProjections(identity, {
+        copy: {
           ...identity,
-          values: layer.values.map(({ label, value }) => ({ label, value })),
+          value: layer.value,
+          label: layer.label,
+          trend: layer.trend,
         },
-      ];
-    case "logo":
-    case "product-screenshot":
-    case "image":
-      return [{ ...identity, alt: layer.alt }];
-    default:
-      return [];
-  }
-}
-
-function imageProjection(layer: DesignLayer): unknown[] {
-  switch (layer.type) {
-    case "logo":
-    case "product-screenshot":
-      return [{ ...layerIdentity(layer), assetId: layer.assetId }];
-    case "image":
-      return [
+      });
+    case "chart":
+      return createLayerLockProjections(
+        { ...identity, chart: layer.chart },
         {
-          ...layerIdentity(layer),
+          copy: {
+            ...identity,
+            values: layer.values.map(({ label, value }) => ({ label, value })),
+          },
+          palette: {
+            id: layer.id,
+            type: layer.type,
+            colors: layer.values.map(({ color }) => color),
+          },
+        },
+      );
+    case "logo":
+    case "product-screenshot":
+      return createLayerLockProjections(identity, {
+        copy: { ...identity, alt: layer.alt },
+        image: { ...identity, assetId: layer.assetId },
+        crop: { id: layer.id, type: layer.type, fit: layer.fit },
+      });
+    case "image":
+      return createLayerLockProjections(identity, {
+        copy: { ...identity, alt: layer.alt },
+        image: {
+          ...identity,
           assetId: layer.assetId,
           treatment: "treatment" in layer ? layer.treatment : undefined,
         },
-      ];
-    default:
-      return [];
-  }
-}
-
-function cropProjection(layer: DesignLayer): unknown[] {
-  switch (layer.type) {
-    case "logo":
-    case "product-screenshot":
-      return [{ id: layer.id, type: layer.type, fit: layer.fit }];
-    case "image":
-      return [
-        {
+        crop: {
           id: layer.id,
           type: layer.type,
           fit: layer.fit,
           focalPoint: "focalPoint" in layer ? layer.focalPoint : undefined,
         },
-      ];
-    default:
-      return [];
-  }
-}
-
-function typographyProjection(layer: DesignLayer): unknown[] {
-  switch (layer.type) {
-    case "headline":
-    case "subtitle":
-    case "eyebrow":
-    case "cta":
-    case "footer":
-    case "attribution":
-      return [
-        {
-          id: layer.id,
-          type: layer.type,
-          color: layer.color,
-          fontFamily: layer.fontFamily,
-          fontWeight: layer.fontWeight,
-          fontSize: layer.fontSize,
-          maxLines: layer.maxLines,
-          align: layer.align,
-          keepTogether: "keepTogether" in layer ? layer.keepTogether : undefined,
-        },
-      ];
-    default:
-      return [];
-  }
-}
-
-function paletteProjection(layer: DesignLayer): unknown[] {
-  switch (layer.type) {
+      });
     case "background":
-    case "icon":
-    case "badge":
-    case "shape":
-    case "headline":
-    case "subtitle":
-    case "eyebrow":
-    case "cta":
-    case "footer":
-    case "attribution":
-      return [{ id: layer.id, type: layer.type, color: layer.color }];
-    case "chart":
-      return [
+      return createLayerLockProjections(identity, {
+        palette: { id: layer.id, type: layer.type, color: layer.color },
+      });
+    case "procedural-decoration":
+      return createLayerLockProjections(
         {
-          id: layer.id,
-          type: layer.type,
-          colors: layer.values.map(({ color }) => color),
+          ...identity,
+          style: layer.style,
+          intensity: layer.intensity,
+          density: layer.density,
+          complexity: layer.complexity,
+          contrast: layer.contrast,
+          quietRegion: layer.quietRegion,
         },
-      ];
-    default:
-      return [];
+        {},
+      );
+    case "icon":
+      return createLayerLockProjections(
+        { ...identity, name: layer.name },
+        {
+          palette: { id: layer.id, type: layer.type, color: layer.color },
+        },
+      );
+    case "shape":
+      return createLayerLockProjections(
+        { ...identity, shape: layer.shape, opacity: layer.opacity },
+        {
+          palette: { id: layer.id, type: layer.type, color: layer.color },
+        },
+      );
   }
+  return assertNeverLayer(layer);
 }
 
-function compositionProjection(layer: DesignLayer): unknown {
-  const identity = layerIdentity(layer);
-  switch (layer.type) {
-    case "procedural-decoration":
-      return {
-        ...identity,
-        style: layer.style,
-        intensity: layer.intensity,
-        density: layer.density,
-        complexity: layer.complexity,
-        contrast: layer.contrast,
-        quietRegion: layer.quietRegion,
-      };
-    case "icon":
-      return { ...identity, name: layer.name };
-    case "shape":
-      return { ...identity, shape: layer.shape, opacity: layer.opacity };
-    case "chart":
-      return { ...identity, chart: layer.chart };
-    default:
-      return identity;
-  }
+function createLayerLockProjections(
+  composition: LayerLockProjection,
+  projections: Partial<Record<NonCompositionLockId, LayerLockProjection>>,
+): LayerLockProjections {
+  return {
+    copy: projections.copy,
+    image: projections.image,
+    crop: projections.crop,
+    typography: projections.typography,
+    palette: projections.palette,
+    composition,
+  };
 }
 
 function layerIdentity(layer: DesignLayer) {
   return { id: layer.id, type: layer.type, visible: layer.visible } as const;
+}
+
+function assertNeverLayer(layer: never): never {
+  throw new Error(`Unsupported normalized layer: ${canonicalJson(layer)}`);
 }
 
 function issueDefinition(
