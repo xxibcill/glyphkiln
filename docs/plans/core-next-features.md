@@ -146,6 +146,13 @@ Figma before publication.
 
 ## `0.6.0`: campaign systems and controlled variation
 
+**Implementation status:** the first dependency-safe Core slice publishes
+browser-safe `1.0.0` family metadata for the existing image-led composition and
+stable `sha256/canonical-scope-v1` direction/canvas seed derivation. It is
+non-pixel-affecting. Additional variants, evidence comparison, content profiles,
+App persistence, option boards, lock/vary behavior, and bundles remain open and
+must pass the decision gate below.
+
 ### User outcome
 
 Choose one art direction and adapt it coherently across square, portrait,

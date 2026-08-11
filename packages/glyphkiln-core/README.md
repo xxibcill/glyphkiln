@@ -122,11 +122,21 @@ the example document. The SVG identity files are design deliverables, not Core
 render inputs; Core continues to admit PNG and JPEG only.
 
 Browser applications can import `canonicalJson`,
-`createRenderFingerprintPayload`, and `calculateFocalCrop` from
+`createRenderFingerprintPayload`, `calculateFocalCrop`, and the immutable
+`CAMPAIGN_FAMILY_REGISTRY` from
 `@glyphkiln/core/browser`. This subpath contains no Node renderer or hashing
 dependency; callers hash its canonical payload with their platform's SHA-256
 implementation and can use the exact Core crop geometry for interaction
 overlays.
+
+Campaign coordinators can use `createCampaignDirectionKey`,
+`createCampaignCanvasKey`, and `deriveCampaignSeeds` from the main Core entry
+point. The distinct validated key types prevent accidental direction/canvas
+swaps, while derivation produces one stable art-direction seed plus a
+canvas-specific seed from bounded family, template, format, variant, and
+App-owned scope keys. Core still renders one document per canvas and does not
+store campaign, lock, ordering, or review state. See
+[Campaign-system contracts](../../docs/campaign-systems.md).
 
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
 `BIDI_LAYOUT_UNSUPPORTED`, and `VERTICAL_LAYOUT_UNSUPPORTED` diagnostics with
@@ -252,6 +262,7 @@ npm run examples:verify
 - [Provenance](../../docs/provenance.md)
 - [Validation and quality policy](../../docs/quality-policy.md)
 - [Template authoring](../../docs/template-authoring.md)
+- [Campaign-system contracts](../../docs/campaign-systems.md)
 - [Procedural backgrounds](../../docs/procedural-backgrounds.md)
 - [Visual regression](../../docs/visual-regression.md)
 - [Versioning](../../docs/versioning.md),
