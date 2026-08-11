@@ -8,6 +8,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { installedCliInvocation } from "./package-consumer-cli.mjs";
+
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -17,12 +19,25 @@ const typescriptCompiler = resolve(
   dirname(typescriptPackagePath),
   typescriptPackage.bin.tsc,
 );
+const invocationDirectory = process.cwd();
+const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
+
+if (
+  process.env["GLYPHKILN_PACKAGE_SPEC"] !== undefined &&
+  requestedPackageSpec?.length === 0
+) {
+  throw new Error("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
+}
+
 const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
 const consumerDirectory = join(temporaryRoot, "consumer");
 
 try {
   await mkdir(consumerDirectory);
-  const archive = await packArchive();
+  const packageSpec =
+    requestedPackageSpec === undefined
+      ? await packArchive()
+      : resolveSelectedPackageSpec(requestedPackageSpec);
   await writeFile(
     join(consumerDirectory, "package.json"),
     `${JSON.stringify({
@@ -35,7 +50,7 @@ try {
     "npm",
     [
       "install",
-      archive,
+      packageSpec,
       "--ignore-scripts",
       "--no-audit",
       "--no-fund",
@@ -52,7 +67,7 @@ try {
   await runTypeScriptConsumer();
   await runCliConsumer();
   process.stdout.write(
-    "Fresh tarball JavaScript, TypeScript, CLI, and isolated consumers passed.\n",
+    `Fresh ${requestedPackageSpec === undefined ? "tarball" : "published-package"} JavaScript, TypeScript, schema-subpath, installed-bin, and isolated consumers passed.\n`,
   );
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
@@ -69,6 +84,29 @@ async function packArchive() {
     throw new Error("npm pack did not report an archive name.");
   }
   return join(temporaryRoot, archiveName);
+}
+
+function resolveSelectedPackageSpec(packageSpec) {
+  if (packageSpec.startsWith("file:")) {
+    const filePath = packageSpec.slice("file:".length);
+    return isRelativePathSpec(filePath)
+      ? `file:${resolve(invocationDirectory, filePath)}`
+      : packageSpec;
+  }
+  return isRelativePathSpec(packageSpec)
+    ? resolve(invocationDirectory, packageSpec)
+    : packageSpec;
+}
+
+function isRelativePathSpec(packageSpec) {
+  return (
+    packageSpec === "." ||
+    packageSpec === ".." ||
+    packageSpec.startsWith("./") ||
+    packageSpec.startsWith("../") ||
+    packageSpec.startsWith(".\\") ||
+    packageSpec.startsWith("..\\")
+  );
 }
 
 async function writeConsumerSources() {
@@ -103,8 +141,14 @@ import {
   readInertArrayDataValue,
   readInertArrayLength,
 } from "@glyphkiln/core/browser";
+import {
+  DesignDocumentSchema,
+  getDesignDocumentJsonSchema,
+} from "@glyphkiln/core/schema";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+assert.equal(DesignDocumentSchema.safeParse(document).success, true);
+assert.equal(typeof getDesignDocumentJsonSchema(), "object");
 const inertRecord = readExactInertDataRecord(
   { value: "safe" },
   new Set(["value"]),
@@ -243,6 +287,11 @@ import {
   type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+import {
+  DesignDocumentSchema,
+  getDesignDocumentJsonSchema,
+  type DesignDocument as SchemaDesignDocument,
+} from "@glyphkiln/core/schema";
 
 const inertRecord = readExactInertDataRecord(
   { value: "safe" },
@@ -364,6 +413,8 @@ const crop = calculateFocalCrop({
 if (crop.policyVersion !== FOCAL_CROP_POLICY_VERSION) throw new Error("crop");
 const evidence = {} as RenderEvidence;
 void evidence;
+const schemaDocument: SchemaDesignDocument = DesignDocumentSchema.parse(carousel);
+void [schemaDocument, getDesignDocumentJsonSchema()];
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {
@@ -431,9 +482,12 @@ async function runTypeScriptConsumer() {
 }
 
 async function runCliConsumer() {
-  const cli = join(consumerDirectory, "node_modules/@glyphkiln/core/dist/cli/index.js");
-  const inspection = await execFileAsync(process.execPath, [
-    cli,
+  const cli = join(
+    consumerDirectory,
+    "node_modules/.bin",
+    process.platform === "win32" ? "glyphkiln.cmd" : "glyphkiln",
+  );
+  const inspection = await runInstalledCli(cli, [
     "inspect",
     join(consumerDirectory, "design.json"),
   ]);
@@ -446,8 +500,7 @@ async function runCliConsumer() {
   const unsupportedPath = join(consumerDirectory, "unsupported.json");
   await writeFile(unsupportedPath, `${JSON.stringify(unsupported)}\n`);
   await assert.rejects(
-    execFileAsync(process.execPath, [
-      cli,
+    runInstalledCli(cli, [
       "render",
       unsupportedPath,
       "--format",
@@ -489,7 +542,10 @@ async function runCliConsumer() {
   await mkdir(join(bundleRoot, "fonts"), { recursive: true });
   await writeFile(join(bundleRoot, "assets/pixel.png"), pixel);
   await cp(
-    join(root, "assets/fonts/Inter-Variable.ttf"),
+    join(
+      consumerDirectory,
+      "node_modules/@glyphkiln/core/assets/fonts/Inter-Variable.ttf",
+    ),
     join(bundleRoot, "fonts/inter.ttf"),
   );
   await writeFile(
@@ -512,8 +568,7 @@ async function runCliConsumer() {
   );
   const bundledOutput = join(consumerDirectory, "bundled.svg");
   const bundledManifest = join(consumerDirectory, "bundled.manifest.json");
-  await execFileAsync(process.execPath, [
-    cli,
+  await runInstalledCli(cli, [
     "render",
     bundledDesignPath,
     "--resource-bundle",
@@ -528,4 +583,14 @@ async function runCliConsumer() {
   assert.match(await readFile(bundledOutput, "utf8"), /^<svg /);
   const provenance = JSON.parse(await readFile(bundledManifest, "utf8"));
   assert.equal(provenance.assets[0].sha256, pixelHash);
+}
+
+function runInstalledCli(cliPath, args) {
+  const invocation = installedCliInvocation(
+    process.platform,
+    cliPath,
+    args,
+    process.env["ComSpec"],
+  );
+  return execFileAsync(invocation.file, invocation.args);
 }
