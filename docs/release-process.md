@@ -19,6 +19,13 @@
    `.github/release-allowed-signers`, and create the GitHub source release. This
    establishes source and local-tarball readiness even when registry
    publication is paused.
+
+   The tag must contain both `.github/workflows/publish-core.yml` and
+   `.github/release-allowed-signers`. The existing `v0.5.0` tag predates those
+   files and is intentionally ineligible for registry publication; do not move
+   or recreate it. Begin npm publication with the next versioned release tagged
+   after this workflow reaches `main`.
+
 9. If approved by the owner, manually dispatch the `Publish Core to npm`
    workflow at the signed tag ref, passing the same tag as its input:
 

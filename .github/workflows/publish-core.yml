@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Signed vX.Y.Z source-release tag to publish
+        description: Signed vX.Y.Z tag containing this workflow
         required: true
         type: string
 
