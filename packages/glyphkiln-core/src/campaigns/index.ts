@@ -15,5 +15,15 @@ export type {
   CampaignSafeAreaPolicy,
 } from "./metadata.js";
 
-export { CAMPAIGN_SEED_DERIVATION_VERSION, deriveCampaignSeeds } from "./seed.js";
-export type { CampaignSeedDerivationInput, DerivedCampaignSeeds } from "./seed.js";
+export {
+  CAMPAIGN_SEED_DERIVATION_VERSION,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+} from "./seed.js";
+export type {
+  CampaignCanvasKey,
+  CampaignDirectionKey,
+  CampaignSeedDerivationInput,
+  DerivedCampaignSeeds,
+} from "./seed.js";

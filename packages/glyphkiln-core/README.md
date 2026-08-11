@@ -143,11 +143,13 @@ model or accepts model-selected code, URLs, paths, CSS, JavaScript, or active
 SVG. See
 [AI-ready authoring contracts](../../docs/ai-authoring-contracts.md).
 
-Campaign coordinators can use `deriveCampaignSeeds` from the main Core entry
-point. It produces one stable art-direction seed plus a canvas-specific seed
-from bounded family, template, format, variant, and App-owned scope keys. Core
-still renders one document per canvas and does not store campaign, lock,
-ordering, or review state. See
+Campaign coordinators can use `createCampaignDirectionKey`,
+`createCampaignCanvasKey`, and `deriveCampaignSeeds` from the main Core entry
+point. The distinct validated key types prevent accidental direction/canvas
+swaps, while derivation produces one stable art-direction seed plus a
+canvas-specific seed from bounded family, template, format, variant, and
+App-owned scope keys. Core still renders one document per canvas and does not
+store campaign, lock, ordering, or review state. See
 [Campaign-system contracts](../../docs/campaign-systems.md).
 
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,

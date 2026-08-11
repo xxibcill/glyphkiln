@@ -29,22 +29,28 @@ adapters.
 
 ## Seed derivation
 
-`deriveCampaignSeeds()` accepts a bounded campaign seed plus stable App-owned
-direction and canvas keys. It validates that the selected template version,
-format, and composition variant belong to the requested family, then returns:
+`createCampaignDirectionKey()` and `createCampaignCanvasKey()` validate distinct,
+bounded App-owned scope identities so TypeScript callers cannot accidentally
+swap them. `deriveCampaignSeeds()` accepts those keys plus a bounded campaign
+seed. It validates that the selected template version, format, and composition
+variant belong to the requested family, then returns:
 
 - `directionSeed`, shared by related canvases in one art direction; and
 - `canvasSeed`, separated by canvas key, exact template version, format, and
   composition variant.
 
 ```ts
-import { deriveCampaignSeeds } from "@glyphkiln/core";
+import {
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+} from "@glyphkiln/core";
 
 const seeds = deriveCampaignSeeds({
   campaignSeed: "kiln-launch-2026",
   familyId: "image-led-campaign",
-  directionKey: "direction-a",
-  canvasKey: "hero-square",
+  directionKey: createCampaignDirectionKey("direction-a"),
+  canvasKey: createCampaignCanvasKey("hero-square"),
   template: { id: "image-led-campaign", version: "1.0.0" },
   format: "instagram-square",
   compositionVariantId: "focal-editorial",

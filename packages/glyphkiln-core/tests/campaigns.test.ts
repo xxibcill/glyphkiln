@@ -1,18 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_IDS,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   GlyphkilnError,
   IMAGE_TREATMENT_IDS,
   TEMPLATE_REGISTRY,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
   deriveCampaignSeeds,
+  type CampaignCanvasKey,
+  type CampaignDirectionKey,
 } from "../src/index.js";
 import {
   CAMPAIGN_FAMILY_METADATA_VERSION as BROWSER_CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY as BROWSER_CAMPAIGN_FAMILY_REGISTRY,
 } from "../src/browser.js";
+import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led-campaign-contract.js";
 
 describe("campaign-family metadata", () => {
   it("publishes the exact image-led family contract", () => {
@@ -70,6 +77,8 @@ describe("campaign-family metadata", () => {
     const family = CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
     const member = family.members[0];
 
+    expect(Object.isFrozen(CAMPAIGN_FAMILY_IDS)).toBe(true);
+    expect(Object.isFrozen(CAMPAIGN_COMPOSITION_VARIANT_IDS)).toBe(true);
     expect(Object.isFrozen(CAMPAIGN_FAMILY_REGISTRY)).toBe(true);
     expect(Object.isFrozen(family)).toBe(true);
     expect(Object.isFrozen(family.members)).toBe(true);
@@ -87,8 +96,24 @@ describe("campaign-family metadata", () => {
     const template = TEMPLATE_REGISTRY[member.template.id];
     const imageRole = family.assetRoles.find((role) => role.layerType === "image");
 
-    expect(member.template.version).toBe(template.version);
-    expect(member.formats).toEqual(template.supportedFormats);
+    expect(template.requiredLayers).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+    );
+    expect(template.supportedLayers).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
+    );
+    expect(template.requiredAssetFits).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
+    );
+    expect(template.constraints).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.constraints);
+    expect(member.template.version).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version);
+    expect(member.formats).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats);
+    expect(member.compositionVariants).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
+    );
+    expect(family.safeAreaPolicy).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
+    );
     expect(imageRole?.supportedTreatments).toEqual(IMAGE_TREATMENT_IDS);
   });
 
@@ -104,12 +129,31 @@ describe("campaign seed derivation", () => {
   const baseInput = {
     campaignSeed: "kiln-launch-2026",
     familyId: "image-led-campaign",
-    directionKey: "direction-a",
-    canvasKey: "hero",
+    directionKey: createCampaignDirectionKey("direction-a"),
+    canvasKey: createCampaignCanvasKey("hero"),
     template: { id: "image-led-campaign", version: "1.0.0" },
     format: "linkedin-landscape",
     compositionVariantId: "focal-editorial",
   } as const;
+
+  it("creates distinct validated direction and canvas identities", () => {
+    const directionKey: CampaignDirectionKey =
+      createCampaignDirectionKey("direction-a");
+    const canvasKey: CampaignCanvasKey = createCampaignCanvasKey("hero-01");
+    // @ts-expect-error Direction and canvas keys are intentionally distinct.
+    const swappedCanvasKey: CampaignCanvasKey = directionKey;
+    // @ts-expect-error Direction and canvas keys are intentionally distinct.
+    const swappedDirectionKey: CampaignDirectionKey = canvasKey;
+
+    expect(directionKey).toBe("direction-a");
+    expect(canvasKey).toBe("hero-01");
+    expect(() => createCampaignCanvasKey("hero 01")).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAMPAIGN_SEED_SCOPE",
+      }),
+    );
+    void [swappedCanvasKey, swappedDirectionKey];
+  });
 
   it("publishes stable direction and canvas seed vectors", () => {
     expect(CAMPAIGN_SEED_DERIVATION_VERSION).toBe("sha256/canonical-scope-v1");
@@ -124,7 +168,7 @@ describe("campaign seed derivation", () => {
     const hero = deriveCampaignSeeds(baseInput);
     const square = deriveCampaignSeeds({
       ...baseInput,
-      canvasKey: "square-01",
+      canvasKey: createCampaignCanvasKey("square-01"),
       format: "instagram-square",
     });
 
@@ -136,11 +180,11 @@ describe("campaign seed derivation", () => {
     const first = deriveCampaignSeeds(baseInput);
     const nextDirection = deriveCampaignSeeds({
       ...baseInput,
-      directionKey: "direction-b",
+      directionKey: createCampaignDirectionKey("direction-b"),
     });
     const nextSlide = deriveCampaignSeeds({
       ...baseInput,
-      canvasKey: "hero-02",
+      canvasKey: createCampaignCanvasKey("hero-02"),
     });
 
     expect(nextDirection.directionSeed).not.toBe(first.directionSeed);

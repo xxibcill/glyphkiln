@@ -81,6 +81,8 @@ import {
   CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
   deriveCampaignSeeds,
   inspectDesignDocument,
   renderGraphic,
@@ -138,8 +140,8 @@ assert.equal(
   deriveCampaignSeeds({
     campaignSeed: "packed-consumer",
     familyId: "image-led-campaign",
-    directionKey: "direction-a",
-    canvasKey: "landscape-01",
+    directionKey: createCampaignDirectionKey("direction-a"),
+    canvasKey: createCampaignCanvasKey("landscape-01"),
     template: { id: "image-led-campaign", version: "1.0.0" },
     format: "linkedin-landscape",
     compositionVariantId: "focal-editorial",
@@ -192,9 +194,13 @@ await assert.rejects(
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createDesignDocument,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
   deriveCampaignSeeds,
   validateCandidateDocuments,
   type CandidateDocumentSetValidation,
+  type CampaignCanvasKey,
+  type CampaignDirectionKey,
   type CampaignSeedDerivationInput,
   type DerivedCampaignSeeds,
   type DesignTextLayoutDiagnostic,
@@ -228,12 +234,14 @@ import {
 const campaignSeedInput = {
   campaignSeed: "strict-packed-consumer",
   familyId: "image-led-campaign",
-  directionKey: "direction-a",
-  canvasKey: "portrait-01",
+  directionKey: createCampaignDirectionKey("direction-a"),
+  canvasKey: createCampaignCanvasKey("portrait-01"),
   template: { id: "image-led-campaign", version: "1.0.0" },
   format: "instagram-portrait",
   compositionVariantId: "focal-editorial",
 } satisfies CampaignSeedDerivationInput;
+const campaignDirectionKey: CampaignDirectionKey = campaignSeedInput.directionKey;
+const campaignCanvasKey: CampaignCanvasKey = campaignSeedInput.canvasKey;
 const campaignSeeds: DerivedCampaignSeeds = deriveCampaignSeeds(campaignSeedInput);
 const campaignFamily: CampaignFamilyDefinition =
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
@@ -243,7 +251,7 @@ if (
 ) {
   throw new Error("campaign contract");
 }
-void campaignFamily;
+void [campaignFamily, campaignDirectionKey, campaignCanvasKey];
 
 const authoringTemplate: AuthoringTemplateContract =
   AUTHORING_TEMPLATE_REGISTRY["product-announcement@1.1.1"];

@@ -1,13 +1,16 @@
 import type { DesignLayer, ImageTreatmentId, TemplateId } from "../schema/index.js";
 import type { FormatId } from "../formats/index.js";
+import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../templates/image-led-campaign-contract.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
 export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.0.0" as const;
 
-export const CAMPAIGN_FAMILY_IDS = ["image-led-campaign"] as const;
+export const CAMPAIGN_FAMILY_IDS = Object.freeze(["image-led-campaign"] as const);
 export type CampaignFamilyId = (typeof CAMPAIGN_FAMILY_IDS)[number];
 
-export const CAMPAIGN_COMPOSITION_VARIANT_IDS = ["focal-editorial"] as const;
+export const CAMPAIGN_COMPOSITION_VARIANT_IDS = Object.freeze([
+  "focal-editorial",
+] as const);
 export type CampaignCompositionVariantId =
   (typeof CAMPAIGN_COMPOSITION_VARIANT_IDS)[number];
 
@@ -64,57 +67,65 @@ export type CampaignFamilyDefinition = {
 };
 
 const imageLedCampaignFamily = {
-  id: "image-led-campaign",
+  id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
   label: "Image-led campaign",
   members: [
     {
       template: {
-        id: "image-led-campaign",
-        version: "1.0.0",
+        id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
+        version: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version,
       },
-      formats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
-      compositionVariants: [
-        {
-          id: "focal-editorial",
-          label: "Focal editorial",
-          description:
-            "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
-        },
-      ],
+      formats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
+      compositionVariants: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
     },
   ],
-  contentRoles: [
-    { layerType: "eyebrow", required: false },
-    { layerType: "headline", required: true },
-    { layerType: "subtitle", required: false },
-    { layerType: "cta", required: false },
-  ],
-  assetRoles: [
-    {
-      layerType: "image",
-      required: true,
-      fit: "cover",
-      supportsFocalPoint: true,
-      supportedTreatments: ["none", "dark-scrim", "light-scrim"],
-    },
-    {
-      layerType: "logo",
-      required: true,
-      fit: "contain",
-      supportsFocalPoint: false,
-      supportedTreatments: [],
-    },
-  ],
-  safeAreaPolicy: {
-    semanticContent: "brand-snapshot",
-    fullBleedAssetLayers: ["image"],
-    exposesRenderEvidence: true,
-  },
+  contentRoles: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers
+    .filter(isImageLedContentLayerType)
+    .map((layerType) => ({
+      layerType,
+      required: includesLayer(
+        IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+        layerType,
+      ),
+    })),
+  assetRoles: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits.map(
+    ({ layerType, fit }) => ({
+      layerType,
+      required: includesLayer(
+        IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+        layerType,
+      ),
+      fit,
+      ...IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.assetCapabilities[layerType],
+    }),
+  ),
+  safeAreaPolicy: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
 } as const satisfies CampaignFamilyDefinition;
 
 export const CAMPAIGN_FAMILY_REGISTRY = deepFreeze({
   "image-led-campaign": imageLedCampaignFamily,
 } as const satisfies Record<CampaignFamilyId, CampaignFamilyDefinition>);
+
+function isImageLedContentLayerType(
+  layerType: (typeof IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers)[number],
+): layerType is Extract<
+  (typeof IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers)[number],
+  ContentLayerType
+> {
+  return (
+    layerType === "eyebrow" ||
+    layerType === "headline" ||
+    layerType === "subtitle" ||
+    layerType === "cta"
+  );
+}
+
+function includesLayer(
+  layers: readonly DesignLayer["type"][],
+  layerType: DesignLayer["type"],
+): boolean {
+  return layers.some((candidate) => candidate === layerType);
+}
 
 function deepFreeze<Value>(value: Value): Value {
   if (typeof value !== "object" || value === null || Object.isFrozen(value)) {

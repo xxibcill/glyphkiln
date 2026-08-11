@@ -12,11 +12,22 @@ import {
 
 export const CAMPAIGN_SEED_DERIVATION_VERSION = "sha256/canonical-scope-v1" as const;
 
+declare const CAMPAIGN_DIRECTION_KEY_BRAND: unique symbol;
+declare const CAMPAIGN_CANVAS_KEY_BRAND: unique symbol;
+
+export type CampaignDirectionKey = string & {
+  readonly [CAMPAIGN_DIRECTION_KEY_BRAND]: "CampaignDirectionKey";
+};
+
+export type CampaignCanvasKey = string & {
+  readonly [CAMPAIGN_CANVAS_KEY_BRAND]: "CampaignCanvasKey";
+};
+
 export type CampaignSeedDerivationInput = {
   readonly campaignSeed: string;
   readonly familyId: CampaignFamilyId;
-  readonly directionKey: string;
-  readonly canvasKey: string;
+  readonly directionKey: CampaignDirectionKey;
+  readonly canvasKey: CampaignCanvasKey;
   readonly template: {
     readonly id: TemplateId;
     readonly version: CampaignFamilyMember["template"]["version"];
@@ -51,16 +62,20 @@ const SEED_SCOPE_KEYS = new Set([
 ]);
 const TEMPLATE_KEYS = new Set(["id", "version"]);
 
+export function createCampaignDirectionKey(value: string): CampaignDirectionKey {
+  return createCampaignScopeKey("directionKey", value) as CampaignDirectionKey;
+}
+
+export function createCampaignCanvasKey(value: string): CampaignCanvasKey {
+  return createCampaignScopeKey("canvasKey", value) as CampaignCanvasKey;
+}
+
 export function deriveCampaignSeeds(
   input: CampaignSeedDerivationInput,
 ): DerivedCampaignSeeds {
   const problems = validateCampaignSeedScope(input);
   if (problems.length > 0) {
-    throw new GlyphkilnError(
-      "Campaign seed scope is invalid.",
-      "INVALID_CAMPAIGN_SEED_SCOPE",
-      { problems },
-    );
+    throw invalidCampaignSeedScope(problems);
   }
 
   const directionSeed = hashCanonical({
@@ -183,6 +198,26 @@ function validateScopeKey(
       ),
     );
   }
+}
+
+function createCampaignScopeKey(
+  path: "directionKey" | "canvasKey",
+  value: string,
+): string {
+  const problems: SeedScopeProblem[] = [];
+  validateScopeKey(path, value, problems);
+  if (problems.length > 0) {
+    throw invalidCampaignSeedScope(problems);
+  }
+  return value;
+}
+
+function invalidCampaignSeedScope(problems: SeedScopeProblem[]): GlyphkilnError {
+  return new GlyphkilnError(
+    "Campaign seed scope is invalid.",
+    "INVALID_CAMPAIGN_SEED_SCOPE",
+    { problems },
+  );
 }
 
 function validateExactKeys(
