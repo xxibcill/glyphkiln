@@ -86,21 +86,8 @@ jobs:
         run: |
           node --version
           npm --version
-      - run: npm ci
-      - run: npm run build
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run test:coverage
-      - run: npm run text-layout-data:verify
-      - run: npm run fixtures:verify
-      - run: npm run schema-conformance:verify
-      - run: npm run identity:verify
-      - run: npm run examples:verify
-      - run: npm run licenses:verify
-      - run: npm audit --audit-level=low
-      - run: npm run pack:core:dry-run
-      - run: npm run test:package-consumer
+      - name: Run release verification
+        run: bash .github/scripts/verify-release.sh
 
   publish:
     name: Publish signed Core release
@@ -128,21 +115,8 @@ jobs:
         run: |
           node --version
           npm --version
-      - run: npm ci
-      - run: npm run build
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run test:coverage
-      - run: npm run text-layout-data:verify
-      - run: npm run fixtures:verify
-      - run: npm run schema-conformance:verify
-      - run: npm run identity:verify
-      - run: npm run examples:verify
-      - run: npm run licenses:verify
-      - run: npm audit --audit-level=low
-      - run: npm run pack:core:dry-run
-      - run: npm run test:package-consumer
+      - name: Run release verification
+        run: bash .github/scripts/verify-release.sh
       - name: Publish with provenance
         run: npm publish --workspace @glyphkiln/core --access public --provenance
         env:
