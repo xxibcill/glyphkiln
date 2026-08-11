@@ -17,8 +17,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify-minimum-node:
+    name: Verify release on Node 22.22.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.2
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:coverage
+      - run: npm run text-layout-data:verify
+      - run: npm run fixtures:verify
+      - run: npm run schema-conformance:verify
+      - run: npm run identity:verify
+      - run: npm run examples:verify
+      - run: npm run licenses:verify
+      - run: npm audit --audit-level=low
+      - run: npm run pack:core:dry-run
+      - run: npm run test:package-consumer
+
   publish:
     name: Publish signed Core release
+    needs: verify-minimum-node
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: npm
