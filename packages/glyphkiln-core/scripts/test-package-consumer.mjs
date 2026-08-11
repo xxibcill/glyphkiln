@@ -17,6 +17,7 @@ const typescriptCompiler = resolve(
   dirname(typescriptPackagePath),
   typescriptPackage.bin.tsc,
 );
+const invocationDirectory = process.cwd();
 const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
 
 if (
@@ -31,7 +32,10 @@ const consumerDirectory = join(temporaryRoot, "consumer");
 
 try {
   await mkdir(consumerDirectory);
-  const packageSpec = requestedPackageSpec ?? (await packArchive());
+  const packageSpec =
+    requestedPackageSpec === undefined
+      ? await packArchive()
+      : resolveSelectedPackageSpec(requestedPackageSpec);
   await writeFile(
     join(consumerDirectory, "package.json"),
     `${JSON.stringify({
@@ -78,6 +82,29 @@ async function packArchive() {
     throw new Error("npm pack did not report an archive name.");
   }
   return join(temporaryRoot, archiveName);
+}
+
+function resolveSelectedPackageSpec(packageSpec) {
+  if (packageSpec.startsWith("file:")) {
+    const filePath = packageSpec.slice("file:".length);
+    return isRelativePathSpec(filePath)
+      ? `file:${resolve(invocationDirectory, filePath)}`
+      : packageSpec;
+  }
+  return isRelativePathSpec(packageSpec)
+    ? resolve(invocationDirectory, packageSpec)
+    : packageSpec;
+}
+
+function isRelativePathSpec(packageSpec) {
+  return (
+    packageSpec === "." ||
+    packageSpec === ".." ||
+    packageSpec.startsWith("./") ||
+    packageSpec.startsWith("../") ||
+    packageSpec.startsWith(".\\") ||
+    packageSpec.startsWith("..\\")
+  );
 }
 
 async function writeConsumerSources() {
