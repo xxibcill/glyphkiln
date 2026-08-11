@@ -16,26 +16,16 @@ import {
   type CreateDesignDocumentInput,
   type DesignDocument,
 } from "../src/index.js";
-import { cloneDocument, loadExample } from "./helpers.js";
+import { cloneDocument, expectProcessFailureStderr, loadExample } from "./helpers.js";
 
 const execFileAsync = promisify(execFile);
 const schemaConformanceGenerator = resolve("scripts/generate-schema-conformance.mjs");
 
 async function schemaConformanceVerifierFailure(): Promise<string> {
-  try {
-    await execFileAsync(process.execPath, [schemaConformanceGenerator, "--verify"]);
-    throw new Error("Expected schema conformance verifier to fail.");
-  } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "stderr" in error &&
-      typeof error.stderr === "string"
-    ) {
-      return error.stderr;
-    }
-    throw error;
-  }
+  return expectProcessFailureStderr(
+    () => execFileAsync(process.execPath, [schemaConformanceGenerator, "--verify"]),
+    "Expected schema conformance verifier to fail.",
+  );
 }
 
 function currentDisplayRole(document: DesignDocument): {

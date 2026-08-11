@@ -6,6 +6,8 @@ import { promisify } from "node:util";
 
 import { expect, it } from "vitest";
 
+import { expectProcessFailureStderr } from "./helpers.js";
+
 const execFileAsync = promisify(execFile);
 const packageConsumer = resolve("scripts/test-package-consumer.mjs");
 
@@ -31,18 +33,8 @@ it("rejects an empty package spec before creating consumer files", async () => {
 });
 
 async function packageConsumerFailure(env: NodeJS.ProcessEnv): Promise<string> {
-  try {
-    await execFileAsync(process.execPath, [packageConsumer], { env });
-    throw new Error("Expected package consumer to fail.");
-  } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "stderr" in error &&
-      typeof error.stderr === "string"
-    ) {
-      return error.stderr;
-    }
-    throw error;
-  }
+  return expectProcessFailureStderr(
+    () => execFileAsync(process.execPath, [packageConsumer], { env }),
+    "Expected package consumer to fail.",
+  );
 }

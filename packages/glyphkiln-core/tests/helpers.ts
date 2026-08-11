@@ -13,3 +13,23 @@ export async function loadExample(name: string): Promise<DesignDocument> {
 export function cloneDocument(document: DesignDocument): DesignDocument {
   return structuredClone(document);
 }
+
+export async function expectProcessFailureStderr(
+  action: () => Promise<unknown>,
+  unexpectedSuccessMessage: string,
+): Promise<string> {
+  try {
+    await action();
+    throw new Error(unexpectedSuccessMessage);
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "stderr" in error &&
+      typeof error.stderr === "string"
+    ) {
+      return error.stderr;
+    }
+    throw error;
+  }
+}
