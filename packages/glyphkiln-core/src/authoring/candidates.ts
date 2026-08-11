@@ -127,7 +127,7 @@ function validateCandidateDocument(
 
   const documentQuality = runDocumentQualityChecks(document);
   const qualityIssues = [...requirementIssues, ...documentQuality.issues];
-  const mapped = qualityIssues.map(mapQualityIssue);
+  const mapped = qualityIssues.map(mapQualityIssueToAuthoringIssue);
   const retained = retainIssues(mapped);
   const hasErrors = qualityIssues.some((issue) => issue.severity === "error");
   if (hasErrors) {
@@ -160,10 +160,6 @@ function mapValidationProblem(problem: ValidationProblem): CandidateDocumentIssu
   return createCandidateDocumentIssue(code, "error", "schema", {
     path: problem.path,
   });
-}
-
-function mapQualityIssue(issue: QualityIssue): CandidateDocumentIssue {
-  return mapQualityIssueToAuthoringIssue(issue);
 }
 
 function retainIssues(
