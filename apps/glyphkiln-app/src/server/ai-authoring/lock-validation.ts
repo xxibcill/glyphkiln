@@ -218,7 +218,7 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
       return projectUnorderedLayers(document, copyProjection);
     case "image":
       return {
-        assets: document.assets,
+        assets: projectUnorderedValues(document.assets),
         layers: projectUnorderedLayers(document, imageProjection),
       };
     case "crop":
@@ -226,7 +226,7 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
     case "typography":
       return {
         brand: document.brand.typography,
-        fonts: document.fonts,
+        fonts: projectUnorderedValues(document.fonts),
         layers: projectUnorderedLayers(document, typographyProjection),
       };
     case "palette":
@@ -234,7 +234,7 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
         mode: document.mode,
         palette: document.brand.palette,
         themes: document.brand.themes,
-        prohibitedColors: document.brand.prohibitedColors,
+        prohibitedColors: projectUnorderedValues(document.brand.prohibitedColors),
         layers: projectUnorderedLayers(document, paletteProjection),
       };
     case "composition":
@@ -250,9 +250,11 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
           spacingScale: document.brand.spacingScale,
           borderRadii: document.brand.borderRadii,
           visualDensity: document.brand.visualDensity,
-          preferredProceduralStyles: document.brand.preferredProceduralStyles,
+          preferredProceduralStyles: projectUnorderedValues(
+            document.brand.preferredProceduralStyles,
+          ),
           safeArea: document.brand.safeArea,
-          prohibitedStyles: document.brand.prohibitedStyles,
+          prohibitedStyles: projectUnorderedValues(document.brand.prohibitedStyles),
         },
         layers: document.layers.map(compositionProjection),
       };
@@ -263,8 +265,11 @@ function projectUnorderedLayers(
   document: DesignDocument,
   project: (layer: DesignLayer) => unknown[],
 ): unknown[] {
-  return document.layers
-    .flatMap(project)
+  return projectUnorderedValues(document.layers.flatMap(project));
+}
+
+function projectUnorderedValues(values: readonly unknown[]): unknown[] {
+  return values
     .map((value) => ({ canonical: canonicalJson(value), value }))
     .sort((left, right) =>
       left.canonical < right.canonical ? -1 : left.canonical > right.canonical ? 1 : 0,

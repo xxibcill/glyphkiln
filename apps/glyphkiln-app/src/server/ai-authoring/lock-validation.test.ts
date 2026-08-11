@@ -124,6 +124,38 @@ describe("server-owned authoring lock validation", () => {
     ]);
   });
 
+  it("treats set-like declarations and brand preferences as order-independent", () => {
+    const base = authoringDocument();
+    base.assets.push({
+      id: "alternate-product-preview",
+      mimeType: "image/png",
+      sha256: "b".repeat(64),
+      width: 800,
+      height: 800,
+      origin: { kind: "unknown" },
+    });
+    base.brand.prohibitedColors = ["#123456", "#654321"];
+    base.brand.preferredProceduralStyles = ["layered-waves", "flow-field"];
+    base.brand.prohibitedStyles = ["photorealistic-ai", "generic-stock"];
+    const candidate = structuredClone(base);
+    candidate.assets.reverse();
+    candidate.fonts.reverse();
+    candidate.brand.prohibitedColors.reverse();
+    candidate.brand.preferredProceduralStyles.reverse();
+    candidate.brand.prohibitedStyles.reverse();
+    const before = structuredClone(candidate);
+
+    const result = validateAuthoringLocks(base, candidate, AUTHORING_LOCK_IDS);
+
+    expect(result).toMatchObject({
+      success: true,
+      baseValidation: { status: "valid" },
+      candidateValidation: { status: "valid" },
+      issues: [],
+    });
+    expect(candidate).toEqual(before);
+  });
+
   it("reports every changed lock once in canonical bounded order", () => {
     const base = authoringDocument();
     const candidate = structuredClone(base);
