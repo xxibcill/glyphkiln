@@ -55,6 +55,75 @@ describe("ProofLedger", () => {
     expect(markup).not.toContain("Contract clean");
   });
 
+  it("pairs render evidence with fixed browser-safe authoring guidance", () => {
+    const failure: PreviewFailure = {
+      ok: false,
+      status: 422,
+      title: "Design document needs attention",
+      code: "QUALITY_VALIDATION_FAILED",
+      detail: "Review the render evidence.",
+      qualityIssues: [
+        {
+          code: "LOW_TEXT_CONTRAST",
+          severity: "error",
+          message: "Measured foreground contrast is 1.25:1.",
+          layerId: "headline",
+        },
+      ],
+    };
+    const markup = renderToStaticMarkup(
+      <ProofLedger
+        catalog={createPreviewCatalog()}
+        document={createPreviewDesign()}
+        response={failure}
+        proof={null}
+        hasUnrenderedEdits={false}
+        validationIsStale={false}
+      />,
+    );
+
+    expect(markup).toContain("LOW_TEXT_CONTRAST");
+    expect(markup).toContain("Measured foreground contrast is 1.25:1.");
+    expect(markup).toContain("Next action:");
+    expect(markup).toContain(
+      "Adjust brand colors, imagery, or the closed treatment and review contrast evidence.",
+    );
+    expect(markup).toContain('data-authoring-action="improve-contrast"');
+  });
+
+  it("keeps complete quality evidence when authoring guidance is bounded", () => {
+    const failure: PreviewFailure = {
+      ok: false,
+      status: 422,
+      title: "Design document needs attention",
+      code: "QUALITY_VALIDATION_FAILED",
+      detail: "Review the render evidence.",
+      qualityIssues: Array.from({ length: 129 }, (_, index) => ({
+        code: "ORPHAN_LINE",
+        severity: "warning" as const,
+        message: `Review line ${index.toString()}.`,
+        layerId: `headline-${index.toString()}`,
+      })),
+    };
+    const markup = renderToStaticMarkup(
+      <ProofLedger
+        catalog={createPreviewCatalog()}
+        document={createPreviewDesign()}
+        response={failure}
+        proof={null}
+        hasUnrenderedEdits={false}
+        validationIsStale={false}
+      />,
+    );
+
+    expect(markup).toContain(">129<");
+    expect(markup).toContain(
+      "Additional quality issues are shown without mapped authoring guidance.",
+    );
+    expect(markup).toContain("Review line 128.");
+    expect(markup.match(/Next action:/g)).toHaveLength(128);
+  });
+
   it("reads rendered provenance from the manifest and marks stale evidence", async () => {
     const result = await createProjectPreview(createPreviewDesign(), {
       render: async (document, options) => renderGraphic(document, options),

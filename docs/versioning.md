@@ -48,3 +48,32 @@ first adaptive image-led composition. Renderer `0.4.0` owns scaled role
 tracking, focal clipping, and pinned focal/treatment/contrast configuration.
 Legacy SVG and PNG bytes remain exact; their renderer identity and fingerprints
 deliberately change. Manifest `1.2.0` remains unchanged.
+
+Campaign-family metadata `1.0.0` identifies exact template members, compatible
+formats, semantic roles, closed composition variants, and safe-area behavior.
+Campaign seed derivation `sha256/canonical-scope-v1` separates a shared
+art-direction stream from exact canvas streams. These App-coordination
+contracts do not change documents, pixels, fingerprints, renderer identity,
+templates, or manifests.
+
+Authoring metadata `1.0.0` describes every supported exact template version as
+browser-safe static data. Actionable issue metadata `1.0.0` supplies a bounded
+designer-action vocabulary, candidate validation `1.0.0` preserves supplied
+order while returning normalized documents and canonical JSON only for strict
+schema/template/document-quality successes, and quality-to-action mapping
+`1.0.0` converts bounded proof issues to fixed guidance without copying runtime
+messages or details. These contracts do not change the design schema,
+templates, renderer, procedural algorithms, manifest, fingerprints, SVG, or
+PNG output.
+
+The App BriefInterpreter response contract and validator start at `1.0.0`.
+They define a strict three-or-four-proposal envelope, bounded suggestion
+rationales, stable response issues, Core candidate evaluation, and
+proposal-only authority. They do not configure or call a model and do not
+authorize workspace resources, persistence, rendering, export, or publication.
+
+The App authoring lock contract and validator start at `1.0.0`. Six closed lock
+IDs compare fixed projections of two Core-normalized documents and return only
+bounded actionable issues. This App coordination contract has no effect on the
+design schema, templates, renderer, procedural algorithms, manifest,
+fingerprints, SVG, PNG, or legacy validation/render behavior.
