@@ -20,10 +20,16 @@
    establishes source and local-tarball readiness even when registry
    publication is paused.
 9. If approved by the owner, manually dispatch the `Publish Core to npm`
-   workflow with the signed release tag. The protected `npm` environment must
-   require owner approval and provide `NPM_TOKEN`. The workflow re-runs the
-   release checks, publishes from the signed tag with GitHub OIDC provenance,
-   and repeats the installed-package checks against the published archive.
+   workflow at the signed tag ref, passing the same tag as its input:
+
+   ```sh
+   gh workflow run publish-core.yml --ref vX.Y.Z -f tag=vX.Y.Z
+   ```
+
+   The protected `npm` environment must require owner approval and provide
+   `NPM_TOKEN`. The workflow rejects a branch-ref dispatch, re-runs the release
+   checks, publishes from the signed tag with GitHub OIDC provenance, and
+   repeats the installed-package checks against the published archive.
 
 This repository does not publish on push or release creation. The publish
 workflow is manual and environment-gated; npm publication remains optional and

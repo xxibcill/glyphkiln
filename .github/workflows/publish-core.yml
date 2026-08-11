@@ -79,6 +79,12 @@ jobs:
             echo "Release tag must match vX.Y.Z." >&2
             exit 1
           fi
+          expected_ref="refs/tags/$RELEASE_TAG"
+          if [ "$GITHUB_REF" != "$expected_ref" ]; then
+            echo "Dispatch this workflow from the $RELEASE_TAG tag ref." >&2
+            exit 1
+          fi
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
           test "$(git cat-file -t "$RELEASE_TAG")" = "tag"
           test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$(git rev-parse HEAD)"
           git config gpg.format ssh
