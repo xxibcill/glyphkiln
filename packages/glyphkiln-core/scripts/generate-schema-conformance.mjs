@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import prettier from "prettier";
 
 const root = new URL("../", import.meta.url);
@@ -79,7 +79,10 @@ generatedFiles.push({
 });
 
 if (mode === "verify") {
-  const staleFiles = [];
+  const expectedFileNames = new Set(generatedFiles.map((file) => file.name));
+  const staleFiles = (await readJsonFileNames(outputDirectory)).filter(
+    (name) => !expectedFileNames.has(name),
+  );
   for (const file of generatedFiles) {
     try {
       const current = await readFile(new URL(file.name, outputDirectory), "utf8");
@@ -130,4 +133,13 @@ function parseMode(args) {
 
 function isNodeError(error) {
   return error instanceof Error && "code" in error;
+}
+
+async function readJsonFileNames(directory) {
+  try {
+    return (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") return [];
+    throw error;
+  }
 }

@@ -1,6 +1,8 @@
+import { execFile } from "node:child_process";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { readFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -15,6 +17,26 @@ import {
   type DesignDocument,
 } from "../src/index.js";
 import { cloneDocument, loadExample } from "./helpers.js";
+
+const execFileAsync = promisify(execFile);
+const schemaConformanceGenerator = resolve("scripts/generate-schema-conformance.mjs");
+
+async function schemaConformanceVerifierFailure(): Promise<string> {
+  try {
+    await execFileAsync(process.execPath, [schemaConformanceGenerator, "--verify"]);
+    throw new Error("Expected schema conformance verifier to fail.");
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "stderr" in error &&
+      typeof error.stderr === "string"
+    ) {
+      return error.stderr;
+    }
+    throw error;
+  }
+}
 
 function currentDisplayRole(document: DesignDocument): {
   weight: number;
@@ -320,6 +342,22 @@ describe("design document schema", () => {
       expect(validateDesignDocument(document).success, name).toBe(
         expected.runtimeValid,
       );
+    }
+  });
+
+  it("rejects obsolete conformance artifacts without rewriting them", async () => {
+    const unexpectedFixture = resolve(
+      "fixtures/schema-conformance/obsolete-verifier-test.json",
+    );
+    await writeFile(unexpectedFixture, "{}\n", "utf8");
+
+    try {
+      await expect(schemaConformanceVerifierFailure()).resolves.toContain(
+        "obsolete-verifier-test.json",
+      );
+      await expect(readFile(unexpectedFixture, "utf8")).resolves.toBe("{}\n");
+    } finally {
+      await rm(unexpectedFixture, { force: true });
     }
   });
 });
