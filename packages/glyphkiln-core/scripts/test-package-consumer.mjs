@@ -8,6 +8,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { installedCliInvocation } from "./package-consumer-cli.mjs";
+
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -485,7 +487,7 @@ async function runCliConsumer() {
     "node_modules/.bin",
     process.platform === "win32" ? "glyphkiln.cmd" : "glyphkiln",
   );
-  const inspection = await execFileAsync(cli, [
+  const inspection = await runInstalledCli(cli, [
     "inspect",
     join(consumerDirectory, "design.json"),
   ]);
@@ -498,7 +500,7 @@ async function runCliConsumer() {
   const unsupportedPath = join(consumerDirectory, "unsupported.json");
   await writeFile(unsupportedPath, `${JSON.stringify(unsupported)}\n`);
   await assert.rejects(
-    execFileAsync(cli, [
+    runInstalledCli(cli, [
       "render",
       unsupportedPath,
       "--format",
@@ -566,7 +568,7 @@ async function runCliConsumer() {
   );
   const bundledOutput = join(consumerDirectory, "bundled.svg");
   const bundledManifest = join(consumerDirectory, "bundled.manifest.json");
-  await execFileAsync(cli, [
+  await runInstalledCli(cli, [
     "render",
     bundledDesignPath,
     "--resource-bundle",
@@ -581,4 +583,14 @@ async function runCliConsumer() {
   assert.match(await readFile(bundledOutput, "utf8"), /^<svg /);
   const provenance = JSON.parse(await readFile(bundledManifest, "utf8"));
   assert.equal(provenance.assets[0].sha256, pixelHash);
+}
+
+function runInstalledCli(cliPath, args) {
+  const invocation = installedCliInvocation(
+    process.platform,
+    cliPath,
+    args,
+    process.env["ComSpec"],
+  );
+  return execFileAsync(invocation.file, invocation.args);
 }

@@ -6,10 +6,24 @@ import { promisify } from "node:util";
 
 import { expect, it } from "vitest";
 
+import { installedCliInvocation } from "../scripts/package-consumer-cli.mjs";
 import { expectProcessFailureStderr } from "./helpers.js";
 
 const execFileAsync = promisify(execFile);
 const packageConsumer = resolve("scripts/test-package-consumer.mjs");
+
+it("launches the installed Windows CLI shim through the command shell", () => {
+  const cli = String.raw`C:\consumer path\node_modules\.bin\glyphkiln.cmd`;
+  const design = String.raw`C:\consumer path\design.json`;
+  const commandShell = String.raw`C:\Windows\System32\cmd.exe`;
+
+  expect(
+    installedCliInvocation("win32", cli, ["inspect", design], commandShell),
+  ).toEqual({
+    file: commandShell,
+    args: ["/d", "/s", "/c", cli, "inspect", design],
+  });
+});
 
 it("rejects an empty package spec before creating consumer files", async () => {
   const temporaryRoot = await mkdtemp(
