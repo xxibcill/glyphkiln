@@ -7,6 +7,8 @@ import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { expectProcessFailureStderr } from "./helpers.js";
+
 const execFileAsync = promisify(execFile);
 const temporaryDirectories: string[] = [];
 const generator = resolve("scripts/generate-text-layout-data.mjs");
@@ -54,28 +56,19 @@ describe("Unicode text-layout data generation", () => {
 
 async function generatorFailure(sourceDirectory: string): Promise<string> {
   const output = join(sourceDirectory, "generated.ts");
-  try {
-    await execFileAsync(process.execPath, [
-      generator,
-      "--source-dir",
-      sourceDirectory,
-      "--checksums",
-      join(sourceDirectory, "source-checksums.json"),
-      "--output",
-      output,
-    ]);
-    throw new Error("Expected generator to fail.");
-  } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "stderr" in error &&
-      typeof error.stderr === "string"
-    ) {
-      return error.stderr;
-    }
-    throw error;
-  }
+  return expectProcessFailureStderr(
+    () =>
+      execFileAsync(process.execPath, [
+        generator,
+        "--source-dir",
+        sourceDirectory,
+        "--checksums",
+        join(sourceDirectory, "source-checksums.json"),
+        "--output",
+        output,
+      ]),
+    "Expected generator to fail.",
+  );
 }
 
 async function copiedUnicodeSources(): Promise<string> {

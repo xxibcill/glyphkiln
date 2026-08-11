@@ -1,4 +1,8 @@
 import type { DesignDocument, QualityIssue, RenderManifest } from "@glyphkiln/core";
+import {
+  mapQualityIssuesToAuthoringIssues,
+  type CandidateDocumentIssue,
+} from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -18,7 +22,16 @@ type ProofLedgerProps = {
 
 type LedgerIssue =
   | { kind: "schema"; problem: PreviewProblem }
-  | { kind: "quality"; issue: QualityIssue };
+  | {
+      kind: "quality";
+      issue: QualityIssue;
+      authoring?: CandidateDocumentIssue;
+    };
+
+type LedgerIssueCollection = {
+  issues: LedgerIssue[];
+  authoringGuidanceTruncated: boolean;
+};
 
 export function ProofLedger({
   catalog,
@@ -28,7 +41,8 @@ export function ProofLedger({
   hasUnrenderedEdits,
   validationIsStale,
 }: ProofLedgerProps) {
-  const issues = collectIssues(response);
+  const issueCollection = collectIssues(response);
+  const { issues } = issueCollection;
   const provenanceDocument = proof?.document ?? document;
   const manifest = proof?.outputs.find((output) => output.format === "svg")?.manifest;
 
@@ -81,18 +95,26 @@ export function ProofLedger({
               </div>
             </div>
           ) : (
-            <ol className="issue-list">
-              {issues.map((item, index) => (
-                <IssueItem
-                  key={
-                    item.kind === "schema"
-                      ? `schema-${item.problem.path}-${item.problem.code}-${index.toString()}`
-                      : `quality-${item.issue.layerId ?? "document"}-${item.issue.code}-${index.toString()}`
-                  }
-                  item={item}
-                />
-              ))}
-            </ol>
+            <>
+              <ol className="issue-list">
+                {issues.map((item, index) => (
+                  <IssueItem
+                    key={
+                      item.kind === "schema"
+                        ? `schema-${item.problem.path}-${item.problem.code}-${index.toString()}`
+                        : `quality-${item.issue.layerId ?? "document"}-${item.issue.code}-${index.toString()}`
+                    }
+                    item={item}
+                  />
+                ))}
+              </ol>
+              {issueCollection.authoringGuidanceTruncated ? (
+                <p className="provenance-note">
+                  Additional quality issues are shown without mapped authoring guidance.
+                  Review their original render evidence before approval.
+                </p>
+              ) : null}
+            </>
           )}
         </div>
       </section>
@@ -246,13 +268,21 @@ function IssueItem({ item }: { item: LedgerIssue }) {
     );
   }
   return (
-    <li data-severity={item.issue.severity}>
+    <li
+      data-severity={item.issue.severity}
+      data-authoring-action={item.authoring?.action}
+    >
       <div className="issue-meta">
         <span>{item.issue.severity === "error" ? "Error" : "Warning"}</span>
         <code>{item.issue.code}</code>
       </div>
       <strong>{item.issue.layerId ?? "Document quality"}</strong>
       <p>{item.issue.message}</p>
+      {item.authoring === undefined ? null : (
+        <p>
+          <b>Next action:</b> {item.authoring.message}
+        </p>
+      )}
     </li>
   );
 }
@@ -313,21 +343,32 @@ function formatFonts(
     .join(", ");
 }
 
-function collectIssues(response: PreviewResponse | null): LedgerIssue[] {
-  if (response === null) return [];
-  if (response.ok) {
-    return response.qualityIssues.map((issue) => ({ kind: "quality", issue }));
+function collectIssues(response: PreviewResponse | null): LedgerIssueCollection {
+  if (response === null) {
+    return { issues: [], authoringGuidanceTruncated: false };
   }
-  return [
-    ...(response.problems ?? []).map((problem): LedgerIssue => ({
-      kind: "schema",
-      problem,
-    })),
-    ...(response.qualityIssues ?? []).map((issue): LedgerIssue => ({
+  const qualityIssues = response.ok
+    ? response.qualityIssues
+    : (response.qualityIssues ?? []);
+  const mappedQualityIssues = mapQualityIssuesToAuthoringIssues(qualityIssues);
+  const schemaIssues = response.ok
+    ? []
+    : (response.problems ?? []).map((problem): LedgerIssue => ({
+        kind: "schema",
+        problem,
+      }));
+  const qualityLedgerIssues = qualityIssues.map((issue, index): LedgerIssue => {
+    const authoring = mappedQualityIssues.issues.at(index);
+    return {
       kind: "quality",
       issue,
-    })),
-  ];
+      ...(authoring === undefined ? {} : { authoring }),
+    };
+  });
+  return {
+    issues: [...schemaIssues, ...qualityLedgerIssues],
+    authoringGuidanceTruncated: mappedQualityIssues.truncated,
+  };
 }
 
 function shortHash(hash: string): string {

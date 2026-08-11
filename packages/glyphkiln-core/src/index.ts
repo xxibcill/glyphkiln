@@ -52,6 +52,68 @@ export type {
 export { PRNG_ALGORITHM, createSeededRandom } from "./seed/index.js";
 export type { SeededRandom } from "./seed/index.js";
 
+export {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_IDS,
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+} from "./campaigns/index.js";
+export type {
+  CampaignAssetRole,
+  CampaignCanvasKey,
+  CampaignCompositionVariant,
+  CampaignCompositionVariantId,
+  CampaignContentRole,
+  CampaignDirectionKey,
+  CampaignFamilyDefinition,
+  CampaignFamilyId,
+  CampaignFamilyMember,
+  CampaignSafeAreaPolicy,
+  CampaignSeedDerivationInput,
+  DerivedCampaignSeeds,
+} from "./campaigns/index.js";
+
+export {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_CODES,
+  AUTHORING_ISSUE_METADATA_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_LIMITS,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  AUTHORING_TEMPLATE_KEYS,
+  AUTHORING_TEMPLATE_REGISTRY,
+  CANDIDATE_DOCUMENT_LIMITS,
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
+  mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
+  validateCandidateDocuments,
+} from "./authoring/index.js";
+export type {
+  AuthoringAssetRole,
+  AuthoringCompositionVariant,
+  AuthoringContentField,
+  AuthoringContentRole,
+  AuthoringIssueAction,
+  AuthoringIssueCategory,
+  AuthoringIssueCode,
+  AuthoringIssueMetadata,
+  AuthoringQualityIssueMapping,
+  AuthoringTemplateContract,
+  AuthoringTemplateKey,
+  CandidateDocumentIssue,
+  CandidateDocumentIssueSource,
+  CandidateDocumentSetValidation,
+  CandidateDocumentValidation,
+  InvalidCandidateDocument,
+  ValidCandidateDocument,
+} from "./authoring/index.js";
+
 export { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "./resources/index.js";
 export type {
   RenderResourceLimits,

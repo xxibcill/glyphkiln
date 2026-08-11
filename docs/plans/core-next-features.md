@@ -146,6 +146,13 @@ Figma before publication.
 
 ## `0.6.0`: campaign systems and controlled variation
 
+**Implementation status:** the first dependency-safe Core slice publishes
+browser-safe `1.0.0` family metadata for the existing image-led composition and
+stable `sha256/canonical-scope-v1` direction/canvas seed derivation. It is
+non-pixel-affecting. Additional variants, evidence comparison, content profiles,
+App persistence, option boards, lock/vary behavior, and bundles remain open and
+must pass the decision gate below.
+
 ### User outcome
 
 Choose one art direction and adapt it coherently across square, portrait,
@@ -213,6 +220,23 @@ reproducible; and the complete campaign exports in one verified bundle with
 stable naming.
 
 ## `0.7.0`: AI-ready production contracts
+
+**Implementation status:** the completed dependency-safe slices publish
+browser-safe `1.0.0` authoring metadata for every supported template version,
+`1.0.0` actionable issue metadata, bounded `1.0.0` candidate validation through
+the normal strict schema, template, brand, and text-layout path, and a bounded
+browser-safe `1.0.0` quality-to-action mapping used by the App Proof Ledger.
+The App now also has a provider-neutral `1.0.0` response boundary that labels
+rationales as suggestions, evaluates every well-shaped proposal through Core,
+rejects exact normalized duplicates, and grants proposal-only authority. A
+pure App-owned `1.0.0` lock contract now validates both documents through Core
+and compares closed normalized copy, image, crop, typography, palette, and
+composition projections independently of model claims. A draft threat model
+records the remaining gate. These slices do not change rendered pixels.
+Resource-backed proof, real-brief acceptance, model adapters, option-board and
+lock/vary interaction, authenticated lock persistence/enforcement at save and
+render, and provider disclosures remain open and must pass the decision gate
+below.
 
 ### User outcome
 

@@ -122,11 +122,35 @@ the example document. The SVG identity files are design deliverables, not Core
 render inputs; Core continues to admit PNG and JPEG only.
 
 Browser applications can import `canonicalJson`,
-`createRenderFingerprintPayload`, and `calculateFocalCrop` from
+`createRenderFingerprintPayload`, `calculateFocalCrop`, and the immutable
+campaign and authoring registries from
 `@glyphkiln/core/browser`. This subpath contains no Node renderer or hashing
 dependency; callers hash its canonical payload with their platform's SHA-256
 implementation and can use the exact Core crop geometry for interaction
 overlays.
+
+`AUTHORING_TEMPLATE_REGISTRY` publishes fixed composition, semantic role,
+asset, format, schema, hard-bound, and guidance metadata for every supported
+template version. `validateCandidateDocuments` from the main entry point accepts
+one to eight unknown candidate values, applies the normal strict schema,
+template, brand, and text-layout checks, and returns bounded actionable issues.
+Only valid candidates contain a normalized document and deterministic canonical
+JSON. `mapQualityIssuesToAuthoringIssues` from the browser entry point maps up
+to 128 proof issues to fixed designer actions and reports malformed or
+truncated input without copying runtime messages or details. Exact assets and
+fonts must still be resolved before isolated rendering; Core never calls a
+model or accepts model-selected code, URLs, paths, CSS, JavaScript, or active
+SVG. See
+[AI-ready authoring contracts](../../docs/ai-authoring-contracts.md).
+
+Campaign coordinators can use `createCampaignDirectionKey`,
+`createCampaignCanvasKey`, and `deriveCampaignSeeds` from the main Core entry
+point. The distinct validated key types prevent accidental direction/canvas
+swaps, while derivation produces one stable art-direction seed plus a
+canvas-specific seed from bounded family, template, format, variant, and
+App-owned scope keys. Core still renders one document per canvas and does not
+store campaign, lock, ordering, or review state. See
+[Campaign-system contracts](../../docs/campaign-systems.md).
 
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
 `BIDI_LAYOUT_UNSUPPORTED`, and `VERTICAL_LAYOUT_UNSUPPORTED` diagnostics with
@@ -243,6 +267,7 @@ npm run examples:verify
 ## Documentation
 
 - [Architecture](../../docs/architecture.md)
+- [AI-ready authoring contracts](../../docs/ai-authoring-contracts.md)
 - [Rendering lifecycle](../../docs/rendering-lifecycle.md)
 - [Design-document specification](../../docs/design-document.md)
 - [Resource limits and worker profile](../../docs/resource-limits.md)
@@ -252,6 +277,7 @@ npm run examples:verify
 - [Provenance](../../docs/provenance.md)
 - [Validation and quality policy](../../docs/quality-policy.md)
 - [Template authoring](../../docs/template-authoring.md)
+- [Campaign-system contracts](../../docs/campaign-systems.md)
 - [Procedural backgrounds](../../docs/procedural-backgrounds.md)
 - [Visual regression](../../docs/visual-regression.md)
 - [Versioning](../../docs/versioning.md),

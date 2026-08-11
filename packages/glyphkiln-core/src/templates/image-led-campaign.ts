@@ -17,33 +17,17 @@ import {
   type TemplateCanvas,
   type TextLayer,
 } from "./shared.js";
+import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "./image-led-campaign-contract.js";
 import type { TemplateRenderContext, TemplateDefinition } from "./types.js";
 
 export const imageLedCampaignTemplate: TemplateDefinition = {
-  id: "image-led-campaign",
-  version: "1.0.0",
-  requiredLayers: ["image", "logo", "headline"],
-  supportedLayers: [
-    "background",
-    "image",
-    "logo",
-    "eyebrow",
-    "headline",
-    "subtitle",
-    "cta",
-  ],
-  supportedFormats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
-  requiredAssetFits: [
-    { layerType: "image", fit: "cover" },
-    { layerType: "logo", fit: "contain" },
-  ],
-  constraints: {
-    headlineMaximumLines: 4,
-    safeAreaBehavior:
-      "Logo and semantic copy stay inside the brand safe area; the focal image is full bleed.",
-    layout:
-      "A full-bleed focal image, closed composited treatment, compact logo, and role-driven editorial copy form one adaptable image-led campaign family.",
-  },
+  id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
+  version: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version,
+  requiredLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+  supportedLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
+  supportedFormats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
+  requiredAssetFits: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
+  constraints: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.constraints,
   render(context) {
     const canvas = createTemplateCanvas(context);
     const image = findLayer(context.document.layers, "image")!;

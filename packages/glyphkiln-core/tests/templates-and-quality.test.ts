@@ -123,6 +123,25 @@ function solidPngAsset(
   };
 }
 
+async function loadImageLedRasterFixture(): Promise<{
+  document: DesignDocument;
+  assets: ResolvedAsset[];
+}> {
+  const document = cloneDocument(await loadExample("image-led-campaign"));
+  const assets = document.assets.map((declaration, index) =>
+    solidPngAsset(declaration, index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255]),
+  );
+  document.assets = assets.map((asset) => ({
+    id: asset.id,
+    mimeType: asset.mimeType,
+    sha256: asset.sha256,
+    width: asset.width,
+    height: asset.height,
+    origin: asset.origin,
+  }));
+  return { document, assets };
+}
+
 async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
   const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
   document.template.version = "1.0.1";
@@ -217,21 +236,7 @@ describe("template registry", () => {
   );
 
   it("renders image-led assets deterministically with bounded raster fixtures", async () => {
-    const document = cloneDocument(await loadExample("image-led-campaign"));
-    const assets = document.assets.map((declaration, index) =>
-      solidPngAsset(
-        declaration,
-        index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255],
-      ),
-    );
-    document.assets = assets.map((asset) => ({
-      id: asset.id,
-      mimeType: asset.mimeType,
-      sha256: asset.sha256,
-      width: asset.width,
-      height: asset.height,
-      origin: asset.origin,
-    }));
+    const { document, assets } = await loadImageLedRasterFixture();
 
     await expectDeterministicRender(document, assets);
   });
@@ -250,7 +255,7 @@ describe("template registry", () => {
   ] as const)(
     "pins exact image-led $treatment output pixels",
     async ({ treatment, mode, outputHash }) => {
-      const document = cloneDocument(await loadExample("image-led-campaign"));
+      const { document, assets } = await loadImageLedRasterFixture();
       document.id = `image-led-${treatment}-pixel-contract`;
       document.mode = mode;
       const image = document.layers.find((layer) => layer.type === "image");
@@ -258,20 +263,6 @@ describe("template registry", () => {
         throw new Error("Expected a current image treatment.");
       }
       image.treatment = treatment;
-      const assets = document.assets.map((declaration, index) =>
-        solidPngAsset(
-          declaration,
-          index === 0 ? [20, 40, 80, 255] : [255, 246, 231, 255],
-        ),
-      );
-      document.assets = assets.map((asset) => ({
-        id: asset.id,
-        mimeType: asset.mimeType,
-        sha256: asset.sha256,
-        width: asset.width,
-        height: asset.height,
-        origin: asset.origin,
-      }));
 
       const result = await renderGraphic(document, {
         formats: ["png"],

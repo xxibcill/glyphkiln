@@ -302,7 +302,14 @@ function getJsonChildren(
       values,
     };
   }
-  const prototype = Object.getPrototypeOf(value) as unknown;
+  let prototype: unknown;
+  let ownKeys: readonly PropertyKey[];
+  try {
+    prototype = Object.getPrototypeOf(value) as unknown;
+    ownKeys = Reflect.ownKeys(value);
+  } catch {
+    return { problem: unsafePropertyProblem(path) };
+  }
   if (prototype !== Object.prototype && prototype !== null) {
     return {
       problem: problem(
@@ -313,8 +320,10 @@ function getJsonChildren(
     };
   }
   const keys: string[] = [];
-  for (const key in value) {
-    if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+  for (const key of ownKeys) {
+    if (typeof key !== "string") {
+      return { problem: unsafePropertyProblem(path) };
+    }
     keys.push(key);
     if (keys.length > maximumEntries) return { entryLimitExceeded: true };
   }
@@ -322,8 +331,17 @@ function getJsonChildren(
   let containerBytes = 2 + Math.max(0, keys.length - 1);
   for (const key of keys) {
     const childPath = `${path}.${key}`;
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    if (descriptor === undefined || !("value" in descriptor)) {
+    let descriptor: PropertyDescriptor | undefined;
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(value, key);
+    } catch {
+      return { problem: unsafePropertyProblem(childPath) };
+    }
+    if (
+      descriptor === undefined ||
+      !("value" in descriptor) ||
+      !descriptor.enumerable
+    ) {
       return { problem: unsafePropertyProblem(childPath) };
     }
     containerBytes += Buffer.byteLength(JSON.stringify(key)) + 1;
@@ -359,7 +377,7 @@ function unsafePropertyProblem(path: string): ResourceProblem {
   return problem(
     path,
     "UNSAFE_DESIGN_INPUT",
-    "Design input properties must contain data values, not accessors.",
+    "Design input properties must be enumerable string data values.",
   );
 }
 

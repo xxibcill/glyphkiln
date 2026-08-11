@@ -8,6 +8,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { installedCliInvocation } from "./package-consumer-cli.mjs";
+
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -17,8 +19,7 @@ const typescriptCompiler = resolve(
   dirname(typescriptPackagePath),
   typescriptPackage.bin.tsc,
 );
-const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
-const consumerDirectory = join(temporaryRoot, "consumer");
+const invocationDirectory = process.cwd();
 const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
 
 if (
@@ -28,9 +29,15 @@ if (
   throw new Error("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
 }
 
+const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
+const consumerDirectory = join(temporaryRoot, "consumer");
+
 try {
   await mkdir(consumerDirectory);
-  const packageSpec = requestedPackageSpec ?? (await packArchive());
+  const packageSpec =
+    requestedPackageSpec === undefined
+      ? await packArchive()
+      : resolveSelectedPackageSpec(requestedPackageSpec);
   await writeFile(
     join(consumerDirectory, "package.json"),
     `${JSON.stringify({
@@ -79,21 +86,60 @@ async function packArchive() {
   return join(temporaryRoot, archiveName);
 }
 
+function resolveSelectedPackageSpec(packageSpec) {
+  if (packageSpec.startsWith("file:")) {
+    const filePath = packageSpec.slice("file:".length);
+    return isRelativePathSpec(filePath)
+      ? `file:${resolve(invocationDirectory, filePath)}`
+      : packageSpec;
+  }
+  return isRelativePathSpec(packageSpec)
+    ? resolve(invocationDirectory, packageSpec)
+    : packageSpec;
+}
+
+function isRelativePathSpec(packageSpec) {
+  return (
+    packageSpec === "." ||
+    packageSpec === ".." ||
+    packageSpec.startsWith("./") ||
+    packageSpec.startsWith("../") ||
+    packageSpec.startsWith(".\\") ||
+    packageSpec.startsWith("..\\")
+  );
+}
+
 async function writeConsumerSources() {
   await writeFile(
     join(consumerDirectory, "consumer.mjs"),
     `import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
   inspectDesignDocument,
   renderGraphic,
   renderGraphicIsolated,
+  validateCandidateDocuments,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  AUTHORING_TEMPLATE_REGISTRY,
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
 } from "@glyphkiln/core/browser";
 import {
   DesignDocumentSchema,
@@ -103,6 +149,59 @@ import {
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
 assert.equal(DesignDocumentSchema.safeParse(document).success, true);
 assert.equal(typeof getDesignDocumentJsonSchema(), "object");
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+assert.equal(inertRecord?.value, "safe");
+assert.equal(readInertArrayLength([inertRecord]), 1);
+assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.0.0");
+assert.equal(
+  AUTHORING_TEMPLATE_REGISTRY["article-cover@1.1.0"].template.version,
+  "1.1.0",
+);
+assert.equal(AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG.action, "shorten-copy");
+const authoringQuality = mapQualityIssuesToAuthoringIssues([
+  {
+    code: "LOW_TEXT_CONTRAST",
+    severity: "error",
+    message: "runtime evidence must not become guidance",
+    layerId: "headline",
+  },
+]);
+assert.equal(authoringQuality.version, AUTHORING_QUALITY_ISSUE_MAPPING_VERSION);
+assert.equal(authoringQuality.valid, true);
+assert.equal(authoringQuality.issues[0].action, "improve-contrast");
+assert.equal(
+  authoringQuality.issues[0].message,
+  AUTHORING_ISSUE_REGISTRY.CONTRAST_INSUFFICIENT.guidance,
+);
+const candidates = validateCandidateDocuments([document]);
+assert.equal(candidates.version, CANDIDATE_DOCUMENT_VALIDATION_VERSION);
+assert.equal(candidates.success, true);
+assert.equal(candidates.candidates[0].status, "valid");
+assert.equal(
+  candidates.candidates[0].canonicalDocument,
+  canonicalJson(candidates.candidates[0].document),
+);
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
+assert.equal(
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
+  "1.0.0",
+);
+assert.equal(
+  deriveCampaignSeeds({
+    campaignSeed: "packed-consumer",
+    familyId: "image-led-campaign",
+    directionKey: createCampaignDirectionKey("direction-a"),
+    canvasKey: createCampaignCanvasKey("landscape-01"),
+    template: { id: "image-led-campaign", version: "1.0.0" },
+    format: "linkedin-landscape",
+    compositionVariantId: "focal-editorial",
+  }).version,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
+);
 assert.equal(canonicalJson({ z: 2, a: 1 }), '{"a":1,"z":2}');
 assert.equal(
   createRenderFingerprintPayload({
@@ -144,9 +243,20 @@ await assert.rejects(
   await writeFile(
     join(consumerDirectory, "consumer.ts"),
     `import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
+  CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createDesignDocument,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+  validateCandidateDocuments,
+  type CandidateDocumentSetValidation,
+  type CampaignCanvasKey,
+  type CampaignDirectionKey,
+  type CampaignSeedDerivationInput,
+  type DerivedCampaignSeeds,
   type DesignTextLayoutDiagnostic,
   type DesignTextLayoutInspection,
   type TextLayoutAnalysis,
@@ -157,10 +267,24 @@ await assert.rejects(
   type RenderEvidence,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  AUTHORING_TEMPLATE_REGISTRY,
+  CAMPAIGN_FAMILY_METADATA_VERSION,
+  CAMPAIGN_FAMILY_REGISTRY,
   FOCAL_CROP_POLICY_VERSION,
   calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
+  type AuthoringIssueMetadata,
+  type AuthoringQualityIssueMapping,
+  type AuthoringTemplateContract,
+  type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
 import {
@@ -168,6 +292,62 @@ import {
   getDesignDocumentJsonSchema,
   type DesignDocument as SchemaDesignDocument,
 } from "@glyphkiln/core/schema";
+
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+if (
+  inertRecord?.value !== "safe" ||
+  readInertArrayLength([inertRecord]) !== 1 ||
+  readInertArrayDataValue([inertRecord], 0) !== inertRecord
+) {
+  throw new Error("inert data reader contract");
+}
+
+const campaignSeedInput = {
+  campaignSeed: "strict-packed-consumer",
+  familyId: "image-led-campaign",
+  directionKey: createCampaignDirectionKey("direction-a"),
+  canvasKey: createCampaignCanvasKey("portrait-01"),
+  template: { id: "image-led-campaign", version: "1.0.0" },
+  format: "instagram-portrait",
+  compositionVariantId: "focal-editorial",
+} satisfies CampaignSeedDerivationInput;
+const campaignDirectionKey: CampaignDirectionKey = campaignSeedInput.directionKey;
+const campaignCanvasKey: CampaignCanvasKey = campaignSeedInput.canvasKey;
+const campaignSeeds: DerivedCampaignSeeds = deriveCampaignSeeds(campaignSeedInput);
+const campaignFamily: CampaignFamilyDefinition =
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
+if (
+  campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.0.0"
+) {
+  throw new Error("campaign contract");
+}
+void [campaignFamily, campaignDirectionKey, campaignCanvasKey];
+
+const authoringTemplate: AuthoringTemplateContract =
+  AUTHORING_TEMPLATE_REGISTRY["product-announcement@1.1.1"];
+const copyIssue: AuthoringIssueMetadata = AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG;
+const authoringQuality: AuthoringQualityIssueMapping =
+  mapQualityIssuesToAuthoringIssues([
+    {
+      code: "ORPHAN_LINE",
+      severity: "warning",
+      message: "runtime evidence",
+      layerId: "headline",
+    },
+  ]);
+if (
+  AUTHORING_CONTRACT_VERSION !== "1.0.0" ||
+  authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||
+  authoringQuality.issues[0]?.action !== "review-copy-rhythm" ||
+  authoringTemplate.compositionVariant.selection !== "fixed-by-template-version" ||
+  copyIssue.action !== "shorten-copy"
+) {
+  throw new Error("authoring contract");
+}
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },
@@ -219,6 +399,11 @@ const carousel = createDesignDocument({
   layers: [{ id: "background", type: "background" }],
 });
 void carousel;
+const candidateValidation: CandidateDocumentSetValidation =
+  validateCandidateDocuments([carousel]);
+if (candidateValidation.version !== CANDIDATE_DOCUMENT_VALIDATION_VERSION) {
+  throw new Error("candidate validation contract");
+}
 
 const crop = calculateFocalCrop({
   source: { width: 1600, height: 900 },
@@ -302,7 +487,7 @@ async function runCliConsumer() {
     "node_modules/.bin",
     process.platform === "win32" ? "glyphkiln.cmd" : "glyphkiln",
   );
-  const inspection = await execFileAsync(cli, [
+  const inspection = await runInstalledCli(cli, [
     "inspect",
     join(consumerDirectory, "design.json"),
   ]);
@@ -315,7 +500,7 @@ async function runCliConsumer() {
   const unsupportedPath = join(consumerDirectory, "unsupported.json");
   await writeFile(unsupportedPath, `${JSON.stringify(unsupported)}\n`);
   await assert.rejects(
-    execFileAsync(cli, [
+    runInstalledCli(cli, [
       "render",
       unsupportedPath,
       "--format",
@@ -383,7 +568,7 @@ async function runCliConsumer() {
   );
   const bundledOutput = join(consumerDirectory, "bundled.svg");
   const bundledManifest = join(consumerDirectory, "bundled.manifest.json");
-  await execFileAsync(cli, [
+  await runInstalledCli(cli, [
     "render",
     bundledDesignPath,
     "--resource-bundle",
@@ -398,4 +583,14 @@ async function runCliConsumer() {
   assert.match(await readFile(bundledOutput, "utf8"), /^<svg /);
   const provenance = JSON.parse(await readFile(bundledManifest, "utf8"));
   assert.equal(provenance.assets[0].sha256, pixelHash);
+}
+
+function runInstalledCli(cliPath, args) {
+  const invocation = installedCliInvocation(
+    process.platform,
+    cliPath,
+    args,
+    process.env["ComSpec"],
+  );
+  return execFileAsync(invocation.file, invocation.args);
 }
