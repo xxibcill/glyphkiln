@@ -24,13 +24,13 @@ type LedgerIssue =
   | { kind: "schema"; problem: PreviewProblem }
   | {
       kind: "quality";
-      issue?: QualityIssue;
-      authoring: CandidateDocumentIssue;
+      issue: QualityIssue;
+      authoring?: CandidateDocumentIssue;
     };
 
 type LedgerIssueCollection = {
   issues: LedgerIssue[];
-  qualityIssuesTruncated: boolean;
+  authoringGuidanceTruncated: boolean;
 };
 
 export function ProofLedger({
@@ -58,11 +58,7 @@ export function ProofLedger({
         <div className="ledger-section-heading">
           <h3 id="issues-title">Validation</h3>
           <span>
-            {validationIsStale
-              ? "STALE"
-              : `${issues.length.toString().padStart(2, "0")}${
-                  issueCollection.qualityIssuesTruncated ? "+" : ""
-                }`}
+            {validationIsStale ? "STALE" : issues.length.toString().padStart(2, "0")}
           </span>
         </div>
         <div aria-live="polite">
@@ -106,16 +102,16 @@ export function ProofLedger({
                     key={
                       item.kind === "schema"
                         ? `schema-${item.problem.path}-${item.problem.code}-${index.toString()}`
-                        : `quality-${item.issue?.layerId ?? item.authoring.layerId ?? "document"}-${item.issue?.code ?? item.authoring.code}-${index.toString()}`
+                        : `quality-${item.issue.layerId ?? "document"}-${item.issue.code}-${index.toString()}`
                     }
                     item={item}
                   />
                 ))}
               </ol>
-              {issueCollection.qualityIssuesTruncated ? (
+              {issueCollection.authoringGuidanceTruncated ? (
                 <p className="provenance-note">
-                  Additional quality issues were omitted by the bounded authoring
-                  contract. Review the complete render evidence before approval.
+                  Additional quality issues are shown without mapped authoring guidance.
+                  Review their original render evidence before approval.
                 </p>
               ) : null}
             </>
@@ -273,20 +269,20 @@ function IssueItem({ item }: { item: LedgerIssue }) {
   }
   return (
     <li
-      data-severity={item.authoring.severity}
-      data-authoring-action={item.authoring.action}
+      data-severity={item.issue.severity}
+      data-authoring-action={item.authoring?.action}
     >
       <div className="issue-meta">
-        <span>{item.authoring.severity === "error" ? "Error" : "Warning"}</span>
-        <code>{item.issue?.code ?? item.authoring.code}</code>
+        <span>{item.issue.severity === "error" ? "Error" : "Warning"}</span>
+        <code>{item.issue.code}</code>
       </div>
-      <strong>
-        {item.issue?.layerId ?? item.authoring.layerId ?? "Document quality"}
-      </strong>
-      {item.issue === undefined ? null : <p>{item.issue.message}</p>}
-      <p>
-        <b>Next action:</b> {item.authoring.message}
-      </p>
+      <strong>{item.issue.layerId ?? "Document quality"}</strong>
+      <p>{item.issue.message}</p>
+      {item.authoring === undefined ? null : (
+        <p>
+          <b>Next action:</b> {item.authoring.message}
+        </p>
+      )}
     </li>
   );
 }
@@ -349,7 +345,7 @@ function formatFonts(
 
 function collectIssues(response: PreviewResponse | null): LedgerIssueCollection {
   if (response === null) {
-    return { issues: [], qualityIssuesTruncated: false };
+    return { issues: [], authoringGuidanceTruncated: false };
   }
   const qualityIssues = response.ok
     ? response.qualityIssues
@@ -361,20 +357,17 @@ function collectIssues(response: PreviewResponse | null): LedgerIssueCollection 
         kind: "schema",
         problem,
       }));
-  const qualityLedgerIssues: LedgerIssue[] = [];
-  for (let index = 0; index < mappedQualityIssues.issues.length; index += 1) {
-    const issue = qualityIssues.at(index);
+  const qualityLedgerIssues = qualityIssues.map((issue, index): LedgerIssue => {
     const authoring = mappedQualityIssues.issues.at(index);
-    if (authoring === undefined) continue;
-    qualityLedgerIssues.push({
+    return {
       kind: "quality",
-      authoring,
-      ...(issue === undefined ? {} : { issue }),
-    });
-  }
+      issue,
+      ...(authoring === undefined ? {} : { authoring }),
+    };
+  });
   return {
     issues: [...schemaIssues, ...qualityLedgerIssues],
-    qualityIssuesTruncated: mappedQualityIssues.truncated,
+    authoringGuidanceTruncated: mappedQualityIssues.truncated,
   };
 }
 

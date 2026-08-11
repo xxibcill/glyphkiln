@@ -91,7 +91,7 @@ describe("ProofLedger", () => {
     expect(markup).toContain('data-authoring-action="improve-contrast"');
   });
 
-  it("discloses quality evidence omitted by the bounded authoring contract", () => {
+  it("keeps complete quality evidence when authoring guidance is bounded", () => {
     const failure: PreviewFailure = {
       ok: false,
       status: 422,
@@ -116,11 +116,12 @@ describe("ProofLedger", () => {
       />,
     );
 
-    expect(markup).toContain(">128+<");
+    expect(markup).toContain(">129<");
     expect(markup).toContain(
-      "Additional quality issues were omitted by the bounded authoring contract.",
+      "Additional quality issues are shown without mapped authoring guidance.",
     );
-    expect(markup).not.toContain("Review line 128.");
+    expect(markup).toContain("Review line 128.");
+    expect(markup.match(/Next action:/g)).toHaveLength(128);
   });
 
   it("reads rendered provenance from the manifest and marks stale evidence", async () => {
