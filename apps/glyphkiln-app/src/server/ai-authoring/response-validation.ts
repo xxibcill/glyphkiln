@@ -6,10 +6,10 @@ import {
 import { containsControlCharacter } from "@/server/resources/inert-text";
 
 import {
-  readArrayDataValue,
-  readArrayLength,
-  readExactDataRecord,
-} from "./inert-input";
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
+} from "@glyphkiln/core/browser";
 
 export const BRIEF_INTERPRETER_RESPONSE_CONTRACT_VERSION = "1.0.0" as const;
 export const BRIEF_INTERPRETER_RESPONSE_VALIDATION_VERSION = "1.0.0" as const;
@@ -97,7 +97,7 @@ const ISSUE_MESSAGES = Object.freeze({
 export function validateBriefInterpreterResponse(
   input: unknown,
 ): BriefInterpreterResponseValidation {
-  const response = readExactDataRecord(input, RESPONSE_KEYS);
+  const response = readExactInertDataRecord(input, RESPONSE_KEYS);
   if (response === undefined) {
     return invalidResponse(0, "RESPONSE_SHAPE_INVALID");
   }
@@ -105,7 +105,7 @@ export function validateBriefInterpreterResponse(
     return invalidResponse(0, "RESPONSE_VERSION_UNSUPPORTED");
   }
   const rawCandidates = response.candidates;
-  const candidateCount = readArrayLength(rawCandidates);
+  const candidateCount = readInertArrayLength(rawCandidates);
   if (candidateCount === undefined || !Array.isArray(rawCandidates)) {
     return invalidResponse(0, "RESPONSE_SHAPE_INVALID");
   }
@@ -119,7 +119,7 @@ export function validateBriefInterpreterResponse(
   const parsedCandidates: ParsedCandidate[] = [];
   const candidateByIndex = new Map<number, BriefInterpreterCandidate>();
   for (let index = 0; index < candidateCount; index += 1) {
-    const parsed = readCandidate(readArrayDataValue(rawCandidates, index), index);
+    const parsed = readCandidate(readInertArrayDataValue(rawCandidates, index), index);
     if ("issue" in parsed) {
       candidateByIndex.set(index, {
         index,
@@ -177,7 +177,7 @@ function readCandidate(
   input: unknown,
   index: number,
 ): ParsedCandidate | { readonly issue: BriefInterpreterResponseIssue } {
-  const candidate = readExactDataRecord(input, CANDIDATE_KEYS);
+  const candidate = readExactInertDataRecord(input, CANDIDATE_KEYS);
   if (candidate === undefined) {
     return {
       issue: createIssue("CANDIDATE_SHAPE_INVALID", "candidate", {

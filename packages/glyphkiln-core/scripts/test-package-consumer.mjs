@@ -99,9 +99,19 @@ import {
   canonicalJson,
   createRenderFingerprintPayload,
   mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
 } from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+assert.equal(inertRecord?.value, "safe");
+assert.equal(readInertArrayLength([inertRecord]), 1);
+assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
 assert.equal(AUTHORING_CONTRACT_VERSION, "1.0.0");
 assert.equal(
   AUTHORING_TEMPLATE_REGISTRY["article-cover@1.1.0"].template.version,
@@ -224,12 +234,27 @@ import {
   canonicalJson,
   createRenderFingerprintPayload,
   mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
   type AuthoringIssueMetadata,
   type AuthoringQualityIssueMapping,
   type AuthoringTemplateContract,
   type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+if (
+  inertRecord?.value !== "safe" ||
+  readInertArrayLength([inertRecord]) !== 1 ||
+  readInertArrayDataValue([inertRecord], 0) !== inertRecord
+) {
+  throw new Error("inert data reader contract");
+}
 
 const campaignSeedInput = {
   campaignSeed: "strict-packed-consumer",

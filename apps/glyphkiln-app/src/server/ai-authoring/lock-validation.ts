@@ -5,8 +5,7 @@ import {
   type DesignDocument,
   type DesignLayer,
 } from "@glyphkiln/core";
-
-import { readArrayDataValue, readArrayLength } from "./inert-input";
+import { readInertArrayDataValue, readInertArrayLength } from "@glyphkiln/core/browser";
 
 export const AUTHORING_LOCK_CONTRACT_VERSION = "1.0.0" as const;
 export const AUTHORING_LOCK_VALIDATION_VERSION = "1.0.0" as const;
@@ -182,7 +181,7 @@ export function validateAuthoringLocks(
 }
 
 function readLocks(input: unknown): AuthoringLockId[] | undefined {
-  const inputLength = readArrayLength(input);
+  const inputLength = readInertArrayLength(input);
   if (
     inputLength === undefined ||
     !Array.isArray(input) ||
@@ -192,7 +191,7 @@ function readLocks(input: unknown): AuthoringLockId[] | undefined {
   }
   const selected = new Set<AuthoringLockId>();
   for (let index = 0; index < inputLength; index += 1) {
-    const value = readArrayDataValue(input, index);
+    const value = readInertArrayDataValue(input, index);
     if (typeof value !== "string" || !LOCK_IDS.has(value)) return undefined;
     const lock = value as AuthoringLockId;
     if (selected.has(lock)) return undefined;

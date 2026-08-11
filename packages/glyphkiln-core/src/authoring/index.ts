@@ -39,3 +39,9 @@ export {
   mapQualityIssuesToAuthoringIssues,
 } from "./issues.js";
 export type { AuthoringQualityIssueMapping } from "./issues.js";
+
+export {
+  readArrayDataValue as readInertArrayDataValue,
+  readArrayLength as readInertArrayLength,
+  readExactDataRecord as readExactInertDataRecord,
+} from "./inert-data.js";

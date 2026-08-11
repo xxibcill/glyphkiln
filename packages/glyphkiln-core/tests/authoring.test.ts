@@ -14,6 +14,9 @@ import {
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   canonicalJson,
   mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
   validateCandidateDocuments,
   type DesignDocument,
   type DesignLayer,
@@ -24,6 +27,9 @@ import {
   AUTHORING_QUALITY_ISSUE_MAPPING_VERSION as BROWSER_AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_REGISTRY as BROWSER_AUTHORING_TEMPLATE_REGISTRY,
   mapQualityIssuesToAuthoringIssues as mapBrowserQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord as readBrowserExactInertDataRecord,
+  readInertArrayDataValue as readBrowserInertArrayDataValue,
+  readInertArrayLength as readBrowserInertArrayLength,
 } from "../src/browser.js";
 import { getTemplate } from "../src/templates/index.js";
 import { cloneDocument, loadExample } from "./helpers.js";
@@ -45,6 +51,37 @@ const assetLayerTypes = new Set<DesignLayer["type"]>([
 ]);
 
 describe("AI-ready authoring metadata", () => {
+  it("publishes descriptor-safe inert-data readers from both public entries", () => {
+    let accessorReads = 0;
+    const record = { value: "safe" };
+    const values = Array<unknown>(2);
+    values[0] = record;
+    Object.defineProperty(values, "1", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Inert array accessor must not run.");
+      },
+    });
+    const accessorRecord = {} as Record<string, unknown>;
+    Object.defineProperty(accessorRecord, "value", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Inert record accessor must not run.");
+      },
+    });
+    const expectedKeys = new Set(["value"]);
+
+    expect(readInertArrayLength(values)).toBe(2);
+    expect(readBrowserInertArrayLength(values)).toBe(2);
+    expect(readInertArrayDataValue(values, 0)).toBe(record);
+    expect(readBrowserInertArrayDataValue(values, 1)).toBeUndefined();
+    expect(readExactInertDataRecord(record, expectedKeys)).toMatchObject(record);
+    expect(
+      readBrowserExactInertDataRecord(accessorRecord, expectedKeys),
+    ).toBeUndefined();
+    expect(accessorReads).toBe(0);
+  });
+
   it("publishes every supported template version as immutable browser-safe data", () => {
     expect(AUTHORING_CONTRACT_VERSION).toBe("1.0.0");
     expect(AUTHORING_TEMPLATE_KEYS).toEqual([

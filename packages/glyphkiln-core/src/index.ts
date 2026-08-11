@@ -89,6 +89,9 @@ export {
   CANDIDATE_DOCUMENT_LIMITS,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
   validateCandidateDocuments,
 } from "./authoring/index.js";
 export type {

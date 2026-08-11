@@ -55,3 +55,8 @@ export type {
   CandidateDocumentIssue,
   CandidateDocumentIssueSource,
 } from "./authoring/issues.js";
+export {
+  readArrayDataValue as readInertArrayDataValue,
+  readArrayLength as readInertArrayLength,
+  readExactDataRecord as readExactInertDataRecord,
+} from "./authoring/inert-data.js";

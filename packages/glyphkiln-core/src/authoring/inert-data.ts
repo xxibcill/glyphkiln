@@ -26,6 +26,37 @@ export function readArrayDataValue(input: readonly unknown[], index: number): un
   return property.found ? property.value : undefined;
 }
 
+export function readExactDataRecord(
+  input: unknown,
+  expectedKeys: ReadonlySet<string>,
+): Record<string, unknown> | undefined {
+  if (!isPlainRecord(input)) return undefined;
+  let keys: readonly PropertyKey[];
+  try {
+    keys = Reflect.ownKeys(input);
+  } catch {
+    return undefined;
+  }
+  if (
+    keys.length !== expectedKeys.size ||
+    keys.some((key) => typeof key !== "string" || !expectedKeys.has(key))
+  ) {
+    return undefined;
+  }
+
+  const output: Record<string, unknown> = Object.create(null) as Record<
+    string,
+    unknown
+  >;
+  for (const key of keys) {
+    if (typeof key !== "string") return undefined;
+    const property = readOwnDataProperty(input, key);
+    if (!property.found) return undefined;
+    output[key] = property.value;
+  }
+  return output;
+}
+
 export function readOwnDataProperty(input: object, key: PropertyKey): OwnDataProperty {
   try {
     const descriptor = Object.getOwnPropertyDescriptor(input, key);
