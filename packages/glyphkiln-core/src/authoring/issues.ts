@@ -136,7 +136,12 @@ function readQualityIssue(value: unknown): QualityIssueShape | undefined {
   const severityProperty = readOwnDataProperty(value, "severity");
   const messageProperty = readOwnDataProperty(value, "message");
   const layerIdProperty = readOwnDataProperty(value, "layerId");
-  if (!codeProperty.found || !severityProperty.found || !messageProperty.found) {
+  if (
+    !codeProperty.found ||
+    !severityProperty.found ||
+    !messageProperty.found ||
+    layerIdProperty.unsafe
+  ) {
     return undefined;
   }
   const code = codeProperty.value;

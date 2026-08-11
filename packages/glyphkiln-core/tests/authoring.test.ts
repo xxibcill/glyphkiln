@@ -684,7 +684,18 @@ describe("authoring quality issue mapping", () => {
         throw new Error("Quality issue accessor must not run.");
       },
     });
-    const input = Array<unknown>(2);
+    const optionalAccessorIssue: Record<string, unknown> = {
+      code: "LOW_TEXT_CONTRAST",
+      severity: "warning",
+      message: "runtime evidence",
+    };
+    Object.defineProperty(optionalAccessorIssue, "layerId", {
+      get() {
+        accessorReads += 1;
+        throw new Error("Optional quality issue accessor must not run.");
+      },
+    });
+    const input = Array<unknown>(3);
     Object.defineProperty(input, "0", {
       get() {
         accessorReads += 1;
@@ -692,15 +703,17 @@ describe("authoring quality issue mapping", () => {
       },
     });
     input[1] = accessorIssue;
+    input[2] = optionalAccessorIssue;
 
     const result = mapQualityIssuesToAuthoringIssues(input);
 
     expect(accessorReads).toBe(0);
     expect(result).toMatchObject({
       valid: false,
-      totalIssues: 2,
-      retainedIssues: 2,
+      totalIssues: 3,
+      retainedIssues: 3,
       issues: [
+        { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
         { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
         { code: "QUALITY_REVIEW_REQUIRED", severity: "error" },
       ],

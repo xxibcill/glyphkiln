@@ -1,5 +1,6 @@
 type OwnDataProperty =
-  { readonly found: false } | { readonly found: true; readonly value: unknown };
+  | { readonly found: false; readonly unsafe: boolean }
+  | { readonly found: true; readonly unsafe: false; readonly value: unknown };
 
 export function readArrayLength(input: unknown): number | undefined {
   try {
@@ -28,11 +29,12 @@ export function readArrayDataValue(input: readonly unknown[], index: number): un
 export function readOwnDataProperty(input: object, key: PropertyKey): OwnDataProperty {
   try {
     const descriptor = Object.getOwnPropertyDescriptor(input, key);
-    return descriptor !== undefined && "value" in descriptor
-      ? { found: true, value: descriptor.value }
-      : { found: false };
+    if (descriptor === undefined) return { found: false, unsafe: false };
+    return "value" in descriptor
+      ? { found: true, unsafe: false, value: descriptor.value }
+      : { found: false, unsafe: true };
   } catch {
-    return { found: false };
+    return { found: false, unsafe: true };
   }
 }
 
