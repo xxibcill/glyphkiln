@@ -121,17 +121,68 @@ jobs:
         run: npm publish --workspace @glyphkiln/core --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Verify published provenance
+
+  verify-published:
+    name: Verify published Core release
+    needs: [preflight, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.preflight.outputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - name: Wait for published provenance
         env:
           PACKAGE_SPEC: ${{ needs.preflight.outputs.package_spec }}
         run: |
           set -eu
-          attestations="$(npm view "$PACKAGE_SPEC" dist.attestations --json)"
-          test -n "$attestations"
-          test "$attestations" != "null"
-          test "$attestations" != "[]"
+          attempt=1
+          max_attempts=6
+          while true; do
+            attestations="$(npm view "$PACKAGE_SPEC" dist.attestations --json 2>/dev/null || true)"
+            if [ -n "$attestations" ] && [ "$attestations" != "null" ] && [ "$attestations" != "[]" ]; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Published attestations were unavailable after $max_attempts attempts." >&2
+              exit 1
+            fi
+            delay_seconds=$((attempt * 5))
+            echo "Published attestations are not available yet; retrying in $delay_seconds seconds."
+            sleep "$delay_seconds"
+            attempt=$((attempt + 1))
+          done
       - name: Verify the published archive and attestations
-        run: npm run test:package-consumer
         env:
           GLYPHKILN_PACKAGE_SPEC: ${{ needs.preflight.outputs.package_spec }}
           GLYPHKILN_VERIFY_PACKAGE_SIGNATURES: "1"
+        run: |
+          set -eu
+          attempt=1
+          max_attempts=3
+          while true; do
+            if npm run test:package-consumer; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Published-package verification failed after $max_attempts attempts." >&2
+              exit 1
+            fi
+            delay_seconds=$((attempt * 10))
+            echo "Published-package verification failed; retrying in $delay_seconds seconds."
+            sleep "$delay_seconds"
+            attempt=$((attempt + 1))
+          done
