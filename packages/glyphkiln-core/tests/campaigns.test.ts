@@ -9,7 +9,11 @@ import {
   GlyphkilnError,
   IMAGE_TREATMENT_IDS,
   TEMPLATE_REGISTRY,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
   deriveCampaignSeeds,
+  type CampaignCanvasKey,
+  type CampaignDirectionKey,
 } from "../src/index.js";
 import {
   CAMPAIGN_FAMILY_METADATA_VERSION as BROWSER_CAMPAIGN_FAMILY_METADATA_VERSION,
@@ -125,12 +129,31 @@ describe("campaign seed derivation", () => {
   const baseInput = {
     campaignSeed: "kiln-launch-2026",
     familyId: "image-led-campaign",
-    directionKey: "direction-a",
-    canvasKey: "hero",
+    directionKey: createCampaignDirectionKey("direction-a"),
+    canvasKey: createCampaignCanvasKey("hero"),
     template: { id: "image-led-campaign", version: "1.0.0" },
     format: "linkedin-landscape",
     compositionVariantId: "focal-editorial",
   } as const;
+
+  it("creates distinct validated direction and canvas identities", () => {
+    const directionKey: CampaignDirectionKey =
+      createCampaignDirectionKey("direction-a");
+    const canvasKey: CampaignCanvasKey = createCampaignCanvasKey("hero-01");
+    // @ts-expect-error Direction and canvas keys are intentionally distinct.
+    const swappedCanvasKey: CampaignCanvasKey = directionKey;
+    // @ts-expect-error Direction and canvas keys are intentionally distinct.
+    const swappedDirectionKey: CampaignDirectionKey = canvasKey;
+
+    expect(directionKey).toBe("direction-a");
+    expect(canvasKey).toBe("hero-01");
+    expect(() => createCampaignCanvasKey("hero 01")).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAMPAIGN_SEED_SCOPE",
+      }),
+    );
+    void [swappedCanvasKey, swappedDirectionKey];
+  });
 
   it("publishes stable direction and canvas seed vectors", () => {
     expect(CAMPAIGN_SEED_DERIVATION_VERSION).toBe("sha256/canonical-scope-v1");
@@ -145,7 +168,7 @@ describe("campaign seed derivation", () => {
     const hero = deriveCampaignSeeds(baseInput);
     const square = deriveCampaignSeeds({
       ...baseInput,
-      canvasKey: "square-01",
+      canvasKey: createCampaignCanvasKey("square-01"),
       format: "instagram-square",
     });
 
@@ -157,11 +180,11 @@ describe("campaign seed derivation", () => {
     const first = deriveCampaignSeeds(baseInput);
     const nextDirection = deriveCampaignSeeds({
       ...baseInput,
-      directionKey: "direction-b",
+      directionKey: createCampaignDirectionKey("direction-b"),
     });
     const nextSlide = deriveCampaignSeeds({
       ...baseInput,
-      canvasKey: "hero-02",
+      canvasKey: createCampaignCanvasKey("hero-02"),
     });
 
     expect(nextDirection.directionSeed).not.toBe(first.directionSeed);

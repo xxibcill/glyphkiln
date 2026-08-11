@@ -58,13 +58,17 @@ export {
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   CAMPAIGN_SEED_DERIVATION_VERSION,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
   deriveCampaignSeeds,
 } from "./campaigns/index.js";
 export type {
   CampaignAssetRole,
+  CampaignCanvasKey,
   CampaignCompositionVariant,
   CampaignCompositionVariantId,
   CampaignContentRole,
+  CampaignDirectionKey,
   CampaignFamilyDefinition,
   CampaignFamilyId,
   CampaignFamilyMember,

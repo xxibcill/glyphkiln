@@ -129,11 +129,13 @@ dependency; callers hash its canonical payload with their platform's SHA-256
 implementation and can use the exact Core crop geometry for interaction
 overlays.
 
-Campaign coordinators can use `deriveCampaignSeeds` from the main Core entry
-point. It produces one stable art-direction seed plus a canvas-specific seed
-from bounded family, template, format, variant, and App-owned scope keys. Core
-still renders one document per canvas and does not store campaign, lock,
-ordering, or review state. See
+Campaign coordinators can use `createCampaignDirectionKey`,
+`createCampaignCanvasKey`, and `deriveCampaignSeeds` from the main Core entry
+point. The distinct validated key types prevent accidental direction/canvas
+swaps, while derivation produces one stable art-direction seed plus a
+canvas-specific seed from bounded family, template, format, variant, and
+App-owned scope keys. Core still renders one document per canvas and does not
+store campaign, lock, ordering, or review state. See
 [Campaign-system contracts](../../docs/campaign-systems.md).
 
 `analyzeTextLayoutSupport` returns stable `BIDI_CONTROL_UNSUPPORTED`,
