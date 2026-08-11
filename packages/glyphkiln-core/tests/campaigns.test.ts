@@ -15,6 +15,7 @@ import {
   CAMPAIGN_FAMILY_METADATA_VERSION as BROWSER_CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY as BROWSER_CAMPAIGN_FAMILY_REGISTRY,
 } from "../src/browser.js";
+import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led-campaign-contract.js";
 
 describe("campaign-family metadata", () => {
   it("publishes the exact image-led family contract", () => {
@@ -91,8 +92,24 @@ describe("campaign-family metadata", () => {
     const template = TEMPLATE_REGISTRY[member.template.id];
     const imageRole = family.assetRoles.find((role) => role.layerType === "image");
 
-    expect(member.template.version).toBe(template.version);
-    expect(member.formats).toEqual(template.supportedFormats);
+    expect(template.requiredLayers).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+    );
+    expect(template.supportedLayers).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
+    );
+    expect(template.requiredAssetFits).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
+    );
+    expect(template.constraints).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.constraints);
+    expect(member.template.version).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version);
+    expect(member.formats).toBe(IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats);
+    expect(member.compositionVariants).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
+    );
+    expect(family.safeAreaPolicy).toBe(
+      IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
+    );
     expect(imageRole?.supportedTreatments).toEqual(IMAGE_TREATMENT_IDS);
   });
 
