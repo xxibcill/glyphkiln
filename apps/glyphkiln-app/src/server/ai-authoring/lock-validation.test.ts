@@ -104,6 +104,26 @@ describe("server-owned authoring lock validation", () => {
     });
   });
 
+  it("keeps layer ordering exclusive to the composition lock", () => {
+    const base = authoringDocument();
+    const candidate = structuredClone(base);
+    candidate.layers.reverse();
+
+    for (const lock of ["copy", "image", "crop", "typography", "palette"] as const) {
+      expect(validateAuthoringLocks(base, candidate, [lock])).toMatchObject({
+        success: true,
+        locks: [lock],
+        issues: [],
+      });
+    }
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).issues).toEqual([
+      expect.objectContaining({
+        code: "COMPOSITION_LOCK_VIOLATED",
+        lock: "composition",
+      }),
+    ]);
+  });
+
   it("reports every changed lock once in canonical bounded order", () => {
     const base = authoringDocument();
     const candidate = structuredClone(base);

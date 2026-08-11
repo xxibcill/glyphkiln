@@ -215,19 +215,19 @@ function lockMatches(
 function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
   switch (lock) {
     case "copy":
-      return document.layers.flatMap(copyProjection);
+      return projectUnorderedLayers(document, copyProjection);
     case "image":
       return {
         assets: document.assets,
-        layers: document.layers.flatMap(imageProjection),
+        layers: projectUnorderedLayers(document, imageProjection),
       };
     case "crop":
-      return document.layers.flatMap(cropProjection);
+      return projectUnorderedLayers(document, cropProjection);
     case "typography":
       return {
         brand: document.brand.typography,
         fonts: document.fonts,
-        layers: document.layers.flatMap(typographyProjection),
+        layers: projectUnorderedLayers(document, typographyProjection),
       };
     case "palette":
       return {
@@ -235,7 +235,7 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
         palette: document.brand.palette,
         themes: document.brand.themes,
         prohibitedColors: document.brand.prohibitedColors,
-        layers: document.layers.flatMap(paletteProjection),
+        layers: projectUnorderedLayers(document, paletteProjection),
       };
     case "composition":
       return {
@@ -257,6 +257,19 @@ function projectLock(lock: AuthoringLockId, document: DesignDocument): unknown {
         layers: document.layers.map(compositionProjection),
       };
   }
+}
+
+function projectUnorderedLayers(
+  document: DesignDocument,
+  project: (layer: DesignLayer) => unknown[],
+): unknown[] {
+  return document.layers
+    .flatMap(project)
+    .map((value) => ({ canonical: canonicalJson(value), value }))
+    .sort((left, right) =>
+      left.canonical < right.canonical ? -1 : left.canonical > right.canonical ? 1 : 0,
+    )
+    .map(({ value }) => value);
 }
 
 function copyProjection(layer: DesignLayer): unknown[] {
