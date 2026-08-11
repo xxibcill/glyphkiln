@@ -77,6 +77,7 @@ async function writeConsumerSources() {
     `import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
@@ -86,15 +87,60 @@ import {
   inspectDesignDocument,
   renderGraphic,
   renderGraphicIsolated,
+  validateCandidateDocuments,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
 } from "@glyphkiln/core/browser";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+assert.equal(inertRecord?.value, "safe");
+assert.equal(readInertArrayLength([inertRecord]), 1);
+assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.0.0");
+assert.equal(
+  AUTHORING_TEMPLATE_REGISTRY["article-cover@1.1.0"].template.version,
+  "1.1.0",
+);
+assert.equal(AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG.action, "shorten-copy");
+const authoringQuality = mapQualityIssuesToAuthoringIssues([
+  {
+    code: "LOW_TEXT_CONTRAST",
+    severity: "error",
+    message: "runtime evidence must not become guidance",
+    layerId: "headline",
+  },
+]);
+assert.equal(authoringQuality.version, AUTHORING_QUALITY_ISSUE_MAPPING_VERSION);
+assert.equal(authoringQuality.valid, true);
+assert.equal(authoringQuality.issues[0].action, "improve-contrast");
+assert.equal(
+  authoringQuality.issues[0].message,
+  AUTHORING_ISSUE_REGISTRY.CONTRAST_INSUFFICIENT.guidance,
+);
+const candidates = validateCandidateDocuments([document]);
+assert.equal(candidates.version, CANDIDATE_DOCUMENT_VALIDATION_VERSION);
+assert.equal(candidates.success, true);
+assert.equal(candidates.candidates[0].status, "valid");
+assert.equal(
+  candidates.candidates[0].canonicalDocument,
+  canonicalJson(candidates.candidates[0].document),
+);
 assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
@@ -153,6 +199,7 @@ await assert.rejects(
   await writeFile(
     join(consumerDirectory, "consumer.ts"),
     `import {
+  CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
@@ -160,6 +207,8 @@ await assert.rejects(
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
+  validateCandidateDocuments,
+  type CandidateDocumentSetValidation,
   type CampaignCanvasKey,
   type CampaignDirectionKey,
   type CampaignSeedDerivationInput,
@@ -174,15 +223,38 @@ await assert.rejects(
   type RenderEvidence,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_CONTRACT_VERSION,
+  AUTHORING_ISSUE_REGISTRY,
+  AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
+  AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
   FOCAL_CROP_POLICY_VERSION,
   calculateFocalCrop,
   canonicalJson,
   createRenderFingerprintPayload,
+  mapQualityIssuesToAuthoringIssues,
+  readExactInertDataRecord,
+  readInertArrayDataValue,
+  readInertArrayLength,
+  type AuthoringIssueMetadata,
+  type AuthoringQualityIssueMapping,
+  type AuthoringTemplateContract,
   type CampaignFamilyDefinition,
   type RenderFingerprintInput,
 } from "@glyphkiln/core/browser";
+
+const inertRecord = readExactInertDataRecord(
+  { value: "safe" },
+  new Set(["value"]),
+);
+if (
+  inertRecord?.value !== "safe" ||
+  readInertArrayLength([inertRecord]) !== 1 ||
+  readInertArrayDataValue([inertRecord], 0) !== inertRecord
+) {
+  throw new Error("inert data reader contract");
+}
 
 const campaignSeedInput = {
   campaignSeed: "strict-packed-consumer",
@@ -205,6 +277,28 @@ if (
   throw new Error("campaign contract");
 }
 void [campaignFamily, campaignDirectionKey, campaignCanvasKey];
+
+const authoringTemplate: AuthoringTemplateContract =
+  AUTHORING_TEMPLATE_REGISTRY["product-announcement@1.1.1"];
+const copyIssue: AuthoringIssueMetadata = AUTHORING_ISSUE_REGISTRY.COPY_TOO_LONG;
+const authoringQuality: AuthoringQualityIssueMapping =
+  mapQualityIssuesToAuthoringIssues([
+    {
+      code: "ORPHAN_LINE",
+      severity: "warning",
+      message: "runtime evidence",
+      layerId: "headline",
+    },
+  ]);
+if (
+  AUTHORING_CONTRACT_VERSION !== "1.0.0" ||
+  authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||
+  authoringQuality.issues[0]?.action !== "review-copy-rhythm" ||
+  authoringTemplate.compositionVariant.selection !== "fixed-by-template-version" ||
+  copyIssue.action !== "shorten-copy"
+) {
+  throw new Error("authoring contract");
+}
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },
@@ -256,6 +350,11 @@ const carousel = createDesignDocument({
   layers: [{ id: "background", type: "background" }],
 });
 void carousel;
+const candidateValidation: CandidateDocumentSetValidation =
+  validateCandidateDocuments([carousel]);
+if (candidateValidation.version !== CANDIDATE_DOCUMENT_VALIDATION_VERSION) {
+  throw new Error("candidate validation contract");
+}
 
 const crop = calculateFocalCrop({
   source: { width: 1600, height: 900 },

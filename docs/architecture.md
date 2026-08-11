@@ -56,8 +56,16 @@ changing the design document, template metadata, asset interface, or manifest.
 - `seed` and `cache`: stable randomness, canonical JSON, and fingerprints
 - `campaigns`: browser-safe family capabilities and deterministic direction/canvas
   seed derivation; no campaign persistence or multi-canvas renderer
-- `browser`: browser-safe canonical JSON, fingerprint payloads, and pure focal
-  crop geometry for independent response verification and App overlays
+- `authoring`: browser-safe exact-template capabilities, bounded candidate
+  validation through the normal schema/template/quality path, and a fixed
+  quality-to-action mapping; no model adapter or creative-direction selection
+- App `server/ai-authoring`: provider-neutral validation of unknown proposal
+  envelopes plus server-owned lock comparison across Core-normalized base and
+  candidate documents; proposal-only output, no model SDK, model-supplied lock
+  paths, resource authority, persistence, rendering, or publication
+- `browser`: browser-safe authoring/campaign metadata, canonical JSON,
+  fingerprint payloads, actionable issue mapping, and pure focal crop geometry
+  for independent response verification and App overlays
 - `fonts`, `assets`, `typography`, `layout`: verified resources, focal-cover and
   composited-raster contrast policy, pinned
   Unicode 17 text-layout diagnostics, deterministic Thai segmentation and
