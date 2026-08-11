@@ -27,6 +27,11 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
       - name: Verify release tag and lineage
         id: release
         env:
@@ -51,11 +56,6 @@ jobs:
             exit 1
           fi
           printf 'package_spec=@glyphkiln/core@%s\n' "$package_version" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-          package-manager-cache: false
       - name: Pin npm
         working-directory: ${{ runner.temp }}
         run: npm install --global npm@10.9.8
