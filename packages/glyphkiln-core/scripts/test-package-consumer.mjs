@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { installedCliInvocation } from "./package-consumer-cli.mjs";
+import { packageConsumerInstallPlan } from "./package-consumer-install.mjs";
 
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -58,19 +59,13 @@ try {
       type: "module",
     })}\n`,
   );
-  const installArguments = [
-    "install",
+  const { installArguments, signatureAuditArguments } = packageConsumerInstallPlan(
     packageSpec,
-    "--ignore-scripts",
-    "--no-audit",
-    "--no-fund",
-  ];
-  if (!verifyPackageSignatures) {
-    installArguments.push("--package-lock=false");
-  }
+    verifyPackageSignatures,
+  );
   await execFileAsync("npm", installArguments, { cwd: consumerDirectory });
-  if (verifyPackageSignatures) {
-    const verification = await execFileAsync("npm", ["audit", "signatures"], {
+  if (signatureAuditArguments !== undefined) {
+    const verification = await execFileAsync("npm", signatureAuditArguments, {
       cwd: consumerDirectory,
     });
     process.stdout.write(verification.stdout);

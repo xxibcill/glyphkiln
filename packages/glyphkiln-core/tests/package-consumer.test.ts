@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { expect, it } from "vitest";
 
 import { installedCliInvocation } from "../scripts/package-consumer-cli.mjs";
+import { packageConsumerInstallPlan } from "../scripts/package-consumer-install.mjs";
 import { expectProcessFailureStderr } from "./helpers.js";
 
 const execFileAsync = promisify(execFile);
@@ -22,6 +23,33 @@ it("launches the installed Windows CLI shim through the command shell", () => {
   ).toEqual({
     file: commandShell,
     args: ["/d", "/s", "/c", cli, "inspect", design],
+  });
+});
+
+it("keeps the lockfile and audits signatures for a published package", () => {
+  expect(packageConsumerInstallPlan("@glyphkiln/core@0.5.0", true)).toEqual({
+    installArguments: [
+      "install",
+      "@glyphkiln/core@0.5.0",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+    ],
+    signatureAuditArguments: ["audit", "signatures"],
+  });
+});
+
+it("disables the lockfile when signature verification is not requested", () => {
+  expect(packageConsumerInstallPlan("./glyphkiln-core.tgz", false)).toEqual({
+    installArguments: [
+      "install",
+      "./glyphkiln-core.tgz",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--package-lock=false",
+    ],
+    signatureAuditArguments: undefined,
   });
 });
 
