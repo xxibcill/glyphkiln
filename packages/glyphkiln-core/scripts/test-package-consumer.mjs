@@ -17,8 +17,6 @@ const typescriptCompiler = resolve(
   dirname(typescriptPackagePath),
   typescriptPackage.bin.tsc,
 );
-const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
-const consumerDirectory = join(temporaryRoot, "consumer");
 const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
 
 if (
@@ -27,6 +25,9 @@ if (
 ) {
   throw new Error("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
 }
+
+const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
+const consumerDirectory = join(temporaryRoot, "consumer");
 
 try {
   await mkdir(consumerDirectory);
