@@ -158,6 +158,15 @@ describe("canonical sRGB color normalization", () => {
     ).rejects.toMatchObject({ code: "COLOR_PROFILE_INVALID" });
   });
 
+  it("rejects an out-of-range PNG sRGB rendering intent", async () => {
+    const source = createPng([0, 0, 0, 255], 1, 1);
+    const crafted = insertPngChunk(source, "sRGB", Uint8Array.of(255));
+
+    await expect(
+      normalizeRasterColorInProcess({ bytes: crafted, mimeType: "image/png" }),
+    ).rejects.toMatchObject({ code: "COLOR_PROFILE_INVALID" });
+  });
+
   it("rejects incomplete JPEG ICC chunk sequences", async () => {
     const jpeg = encodeJpeg(
       { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },

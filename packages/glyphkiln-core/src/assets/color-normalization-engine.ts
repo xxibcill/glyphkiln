@@ -199,7 +199,12 @@ function inspectPng(bytes: Uint8Array): SourceInspection {
         profileBytes = readPngProfile(data);
         break;
       case "sRGB":
-        if (declaredSrgb || profileBytes !== undefined || length !== 1) {
+        if (
+          declaredSrgb ||
+          profileBytes !== undefined ||
+          length !== 1 ||
+          data[0]! > 3
+        ) {
           throwInvalidProfile();
         }
         declaredSrgb = true;
