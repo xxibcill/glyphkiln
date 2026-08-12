@@ -75,6 +75,19 @@ const EXPECTED_STARTER_SVG_SHA256 = {
 } as const satisfies Record<(typeof PREVIEW_TEMPLATE_IDS)[number], string>;
 
 describe("buildPreviewDocument", () => {
+  it("orders selected assets by deterministic code units", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.resources.assetIds = ["asset-a", "asset-Z"];
+
+    const document = buildPreviewDocument(state, catalog, [
+      rasterResource("asset-a", "a"),
+      rasterResource("asset-Z", "b"),
+    ]);
+
+    expect(document.assets.map((asset) => asset.id)).toEqual(["asset-Z", "asset-a"]);
+  });
+
   it("builds a Core-valid image-led draft from explicit resource roles", () => {
     const catalog = createPreviewCatalog({ resourceBacked: true });
     const state = createInitialPreviewForm(catalog);

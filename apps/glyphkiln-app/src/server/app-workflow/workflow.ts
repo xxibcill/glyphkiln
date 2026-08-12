@@ -19,7 +19,7 @@ import type {
 import { AUTHORING_LOCK_IDS } from "@/server/ai-authoring";
 import type { PreviewResponse, PreviewSuccess } from "@/features/project-preview/types";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
-import { compareCanonicalStrings } from "@/server/deterministic-order";
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
 import type { SqlDatabase } from "@/server/persistence/database";
 import {
   RenderQueueError,

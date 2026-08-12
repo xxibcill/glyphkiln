@@ -12,7 +12,7 @@ import type {
   ValidationProblem,
 } from "@glyphkiln/core";
 
-import { compareCanonicalStrings } from "@/server/deterministic-order";
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
 
 import type { ManualDraft } from "./contracts";
 

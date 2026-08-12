@@ -1,5 +1,7 @@
 import type { AssetOrigin, DesignDocument, DesignLayer } from "@glyphkiln/core";
 
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
+
 import { assertUnreachable } from "./assert-unreachable";
 import { buildBrandTypography, createInitialBrandTypography } from "./brand-typography";
 import type {
@@ -328,7 +330,7 @@ function selectedAssets(
           : { sourceName: resource.origin.sourceName }),
       },
     }))
-    .sort((left, right) => left.id.localeCompare(right.id));
+    .sort((left, right) => compareCanonicalStrings(left.id, right.id));
 }
 
 function normalizeOriginKind(value: string): AssetOrigin["kind"] {
