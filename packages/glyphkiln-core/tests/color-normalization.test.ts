@@ -266,6 +266,26 @@ describe("canonical sRGB color normalization", () => {
     ).rejects.toMatchObject({ code: "COLOR_PROFILE_INVALID" });
   });
 
+  it.each([
+    ["a second complete image", (jpeg: Uint8Array) => concatenate([jpeg, jpeg])],
+    [
+      "trailing bytes",
+      (jpeg: Uint8Array) => concatenate([jpeg, Uint8Array.of(1, 2, 3)]),
+    ],
+  ])("rejects JPEG input containing %s", async (_description, appendData) => {
+    const jpeg = encodeJpeg(
+      { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },
+      90,
+    ).data;
+
+    await expect(
+      normalizeRasterColorInProcess({
+        bytes: appendData(jpeg),
+        mimeType: "image/jpeg",
+      }),
+    ).rejects.toMatchObject({ code: "COLOR_NORMALIZATION_RASTER_INVALID" });
+  });
+
   it("rejects CMYK sample data until raw CMYK decoding is available", async () => {
     const jpeg = encodeJpeg(
       { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },

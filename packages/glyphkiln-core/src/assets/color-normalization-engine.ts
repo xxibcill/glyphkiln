@@ -297,6 +297,7 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
   let orientation = 1;
   let sawExif = false;
   let reachedImageData = false;
+  let sawEnd = false;
   const profileChunks = new Map<number, Uint8Array>();
   let expectedProfileChunks: number | undefined;
   let totalProfileBytes = 0;
@@ -307,13 +308,17 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
     if (offset >= bytes.byteLength) throwInvalidRaster("JPEG marker byte");
     const marker = bytes[offset]!;
     offset += 1;
-    if (marker === 0xd9) break;
-    if (marker === 0xda) {
-      reachedImageData = true;
+    if (marker === 0xd9) {
+      sawEnd = true;
+      if (offset !== bytes.byteLength) throwInvalidRaster("JPEG trailing data");
       break;
     }
-    if (marker === 0x00 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd8)) {
+    if (marker === 0xd8) throwInvalidRaster("JPEG additional image");
+    if (marker === 0x01) {
       continue;
+    }
+    if (marker === 0x00 || (marker >= 0xd0 && marker <= 0xd7)) {
+      throwInvalidRaster("JPEG marker placement");
     }
     if (offset + 2 > bytes.byteLength) throwInvalidRaster("JPEG segment length");
     const segmentLength = readUint16Be(bytes, offset);
@@ -354,13 +359,18 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
       profileChunks.set(index, new Uint8Array(chunk));
     }
     offset += segmentLength;
+    if (marker === 0xda) {
+      reachedImageData = true;
+      offset = findJpegScanEnd(bytes, offset);
+    }
   }
 
   if (
     width === undefined ||
     height === undefined ||
     componentCount === undefined ||
-    !reachedImageData
+    !reachedImageData ||
+    !sawEnd
   ) {
     throwInvalidRaster("JPEG structure");
   }
@@ -394,6 +404,27 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
     ...(profileBytes === undefined ? {} : { profileBytes }),
     orientation,
   };
+}
+
+function findJpegScanEnd(bytes: Uint8Array, start: number): number {
+  let offset = start;
+  while (offset < bytes.byteLength) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const markerStart = offset;
+    offset += 1;
+    while (offset < bytes.byteLength && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.byteLength) throwInvalidRaster("JPEG scan marker");
+    const marker = bytes[offset]!;
+    if (marker === 0x00 || (marker >= 0xd0 && marker <= 0xd7)) {
+      offset += 1;
+      continue;
+    }
+    return markerStart;
+  }
+  throwInvalidRaster("JPEG scan end");
 }
 
 function isStartOfFrame(marker: number): boolean {
