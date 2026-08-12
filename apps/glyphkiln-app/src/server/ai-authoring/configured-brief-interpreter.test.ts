@@ -10,11 +10,22 @@ describe("configured BriefInterpreter", () => {
         environment({ GLYPHKILN_AI_PROVIDER: "disabled" }),
       ),
     ).toBeUndefined();
+    expect(
+      createBriefInterpreterFromEnvironment(
+        environment({
+          GLYPHKILN_AI_PROVIDER: "openai-responses",
+          GLYPHKILN_OPENAI_API_KEY: "operator-owned-key-value-123456789",
+          GLYPHKILN_AI_MODEL: "operator-model-snapshot",
+          GLYPHKILN_AI_RETENTION_DISCLOSURE: "Operator-reviewed disclosure.",
+        }),
+      ),
+    ).toBeUndefined();
   });
 
   it("builds the one supported adapter only from operator-owned settings", () => {
     const interpreter = createBriefInterpreterFromEnvironment(
       environment({
+        GLYPHKILN_AI_PROPOSALS: "production-approved",
         GLYPHKILN_AI_PROVIDER: "openai-responses",
         GLYPHKILN_OPENAI_API_KEY: "operator-owned-key-value-123456789",
         GLYPHKILN_AI_MODEL: "operator-model-snapshot",
@@ -35,9 +46,18 @@ describe("configured BriefInterpreter", () => {
   });
 
   it.each([
-    [{ GLYPHKILN_AI_PROVIDER: "other" }, "GLYPHKILN_AI_PROVIDER"],
+    [{ GLYPHKILN_AI_PROPOSALS: "maybe" }, "GLYPHKILN_AI_PROPOSALS"],
+    [{ GLYPHKILN_AI_PROPOSALS: "production-approved" }, "GLYPHKILN_AI_PROVIDER"],
     [
       {
+        GLYPHKILN_AI_PROPOSALS: "production-approved",
+        GLYPHKILN_AI_PROVIDER: "other",
+      },
+      "GLYPHKILN_AI_PROVIDER",
+    ],
+    [
+      {
+        GLYPHKILN_AI_PROPOSALS: "production-approved",
         GLYPHKILN_AI_PROVIDER: "openai-responses",
         GLYPHKILN_AI_MODEL: "model",
         GLYPHKILN_AI_RETENTION_DISCLOSURE: "disclosure",
@@ -46,6 +66,7 @@ describe("configured BriefInterpreter", () => {
     ],
     [
       {
+        GLYPHKILN_AI_PROPOSALS: "production-approved",
         GLYPHKILN_AI_PROVIDER: "openai-responses",
         GLYPHKILN_OPENAI_API_KEY: "operator-owned-key-value-123456789",
         GLYPHKILN_AI_MODEL: "model",

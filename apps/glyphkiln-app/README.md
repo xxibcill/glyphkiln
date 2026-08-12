@@ -119,13 +119,14 @@ printf 'First-owner token: %s\n' "$GLYPHKILN_BOOTSTRAP_TOKEN"
 Keep the printed token private. You will enter it once in the browser. The
 token must contain 32–256 characters.
 
-Optional AI proposal infrastructure is disabled by default and is not required
-for any manual workflow. The current adapter foundation does not expose an AI
-command or automatically send workspace data. To make the configured adapter
-available to a future capability-protected server workflow, the operator must
-set every required value explicitly:
+Optional AI proposals are disabled by default and are not required for any
+manual workflow. Provider configuration alone cannot enable workspace-data
+egress. After the documented product, outbound-field, provider-account, and
+retention gates have been approved, the operator must set the exact production
+approval value together with every provider value:
 
 ```bash
+export GLYPHKILN_AI_PROPOSALS="production-approved"
 export GLYPHKILN_AI_PROVIDER="openai-responses"
 export GLYPHKILN_OPENAI_API_KEY="operator-secret"
 export GLYPHKILN_AI_MODEL="operator-approved-model-snapshot"
@@ -143,7 +144,8 @@ responses remain unknown until strict App and Core validation, and model URLs,
 paths, hashes, provenance, and resource identities have no authority. See the
 [AI authoring threat model](../../docs/ai-authoring-threat-model.md) for the
 implemented boundary and remaining product gates. Leave
-`GLYPHKILN_AI_PROVIDER` absent or set it to `disabled` to keep the adapter off.
+`GLYPHKILN_AI_PROPOSALS` absent or set it to `disabled` to keep the adapter off;
+in that state, provider variables are inert.
 
 ### 5. Prepare the database and worker
 

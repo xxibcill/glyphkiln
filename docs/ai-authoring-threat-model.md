@@ -38,7 +38,9 @@ and [Responses text generation](https://developers.openai.com/api/docs/guides/te
 
 ## Authority flow
 
-1. An operator explicitly configures and enables an App-owned provider adapter.
+1. After the production gates below are approved, an operator explicitly sets
+   `GLYPHKILN_AI_PROPOSALS=production-approved` and configures an App-owned
+   provider adapter. Provider configuration alone remains inert.
 2. The adapter sends only operator-approved brief fields under a disclosed
    provider policy.
 3. Its parsed JSON response remains `unknown` and enters
