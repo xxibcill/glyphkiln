@@ -150,6 +150,7 @@ export function CampaignStudio({
     const result = await api.campaignBoard(workspaceId, campaignId);
     if (result.ok) {
       setBoard(result.value);
+      setProposalRun(undefined);
       setCanvasSeedPlan(undefined);
       const directionIds = result.value.directions.map((direction) => direction.id);
       setCanvasDirectionId((current) =>
@@ -323,6 +324,24 @@ export function CampaignStudio({
     if (result.ok) {
       setProposalRun(result.value);
       setMessage("Proposal-only directions returned. Nothing is saved until accepted.");
+    } else {
+      setFailure(result);
+    }
+    setBusy(undefined);
+  }
+
+  async function openProposalRun(runId: string) {
+    if (board === undefined || busy !== undefined) return;
+    setBusy("proposal-history");
+    setFailure(undefined);
+    const result = await api.campaignProposalRun({
+      workspaceId,
+      campaignId: board.campaign.id,
+      runId,
+    });
+    if (result.ok) {
+      setProposalRun(result.value);
+      setMessage("Stored proposal history loaded. Decisions remain immutable.");
     } else {
       setFailure(result);
     }
@@ -574,6 +593,33 @@ export function CampaignStudio({
                     >
                       Request 3 optional proposals
                     </button>
+                  )}
+                  {direction.proposalRuns.length === 0 ? null : (
+                    <div className="proposal-history">
+                      <strong>Proposal history</strong>
+                      <ul>
+                        {direction.proposalRuns.map((run, runIndex) => (
+                          <li key={run.id}>
+                            <button
+                              type="button"
+                              className="text-action"
+                              disabled={busy !== undefined}
+                              onClick={() => void openProposalRun(run.id)}
+                            >
+                              Open run {(runIndex + 1).toString().padStart(2, "0")}
+                            </button>
+                            <small>
+                              {run.providerId} · {run.modelId} · {run.decidedCount}/
+                              {run.candidateCount} decided
+                            </small>
+                            <time dateTime={run.createdAt}>{run.createdAt}</time>
+                          </li>
+                        ))}
+                      </ul>
+                      {direction.proposalRunsTruncated ? (
+                        <small>Showing the 20 most recent proposal runs.</small>
+                      ) : null}
+                    </div>
                   )}
                 </article>
               ))

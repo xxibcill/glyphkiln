@@ -18,6 +18,7 @@ import type {
   CampaignProposalIssueProjection,
   CampaignProposalProofProjection,
   CampaignProposalRunProjection,
+  CampaignProposalRunSummaryProjection,
   CampaignSummary,
   DesignSummary,
   RevisionApprovalOutputEvidence,
@@ -42,6 +43,8 @@ import {
   type RevisionResourceReferenceRow,
 } from "@/server/resources/revision-resource-provenance";
 import type { WorkspaceRole } from "@/server/security/workspace-policy";
+
+const MAX_CAMPAIGN_PROPOSAL_RUN_SUMMARIES_PER_DIRECTION = 20;
 
 export type AuthenticatedSessionRecord = {
   sessionId: string;
@@ -1458,6 +1461,52 @@ export class AppState {
         ORDER BY direction_id, ordinal, id`,
       [workspaceId, campaignId],
     );
+    const proposalRunRows = await this.#query<{
+      id: string;
+      direction_id: string;
+      provider_id: string;
+      model_id: string;
+      candidate_count: number | string;
+      decided_count: number | string;
+      accepted_count: number | string;
+      created_at: Date | string;
+    }>(
+      `WITH ranked_runs AS (
+         SELECT id, direction_id, provider_id, model_id, created_at,
+                row_number() OVER (
+                  PARTITION BY direction_id
+                  ORDER BY created_at DESC, id DESC
+                ) AS history_ordinal
+           FROM campaign_proposal_runs
+          WHERE workspace_id = $1
+            AND campaign_id = $2
+       )
+       SELECT ranked.id, ranked.direction_id, ranked.provider_id, ranked.model_id,
+              (
+                SELECT count(*)::integer
+                  FROM campaign_proposal_candidates candidate
+                 WHERE candidate.workspace_id = $1
+                   AND candidate.run_id = ranked.id
+              ) AS candidate_count,
+              (
+                SELECT count(*)::integer
+                  FROM campaign_proposal_decisions decision
+                 WHERE decision.workspace_id = $1
+                   AND decision.run_id = ranked.id
+              ) AS decided_count,
+              (
+                SELECT count(*)::integer
+                  FROM campaign_proposal_decisions decision
+                 WHERE decision.workspace_id = $1
+                   AND decision.run_id = ranked.id
+                   AND decision.decision = 'accepted'
+              ) AS accepted_count,
+              ranked.created_at
+         FROM ranked_runs ranked
+        WHERE ranked.history_ordinal <= $3
+        ORDER BY ranked.direction_id, ranked.history_ordinal`,
+      [workspaceId, campaignId, MAX_CAMPAIGN_PROPOSAL_RUN_SUMMARIES_PER_DIRECTION + 1],
+    );
     const locksByDirection = new Map<string, AuthoringLockId[]>();
     for (const row of lockRows) {
       const locks = locksByDirection.get(row.direction_id) ?? [];
@@ -1470,6 +1519,23 @@ export class AppState {
       canvases.push(toCampaignCanvasProjection(row));
       canvasesByDirection.set(row.direction_id, canvases);
     }
+    const proposalRunsByDirection = new Map<
+      string,
+      CampaignProposalRunSummaryProjection[]
+    >();
+    for (const row of proposalRunRows) {
+      const runs = proposalRunsByDirection.get(row.direction_id) ?? [];
+      runs.push({
+        id: row.id,
+        providerId: row.provider_id,
+        modelId: row.model_id,
+        candidateCount: Number(row.candidate_count),
+        decidedCount: Number(row.decided_count),
+        acceptedCount: Number(row.accepted_count),
+        createdAt: asDate(row.created_at).toISOString(),
+      });
+      proposalRunsByDirection.set(row.direction_id, runs);
+    }
     return {
       kind: "campaign-board",
       campaign: toCampaignSummary(campaign),
@@ -1480,6 +1546,13 @@ export class AppState {
         locks: locksByDirection.get(row.id) ?? [],
         createdAt: asDate(row.created_at).toISOString(),
         canvases: canvasesByDirection.get(row.id) ?? [],
+        proposalRuns: (proposalRunsByDirection.get(row.id) ?? []).slice(
+          0,
+          MAX_CAMPAIGN_PROPOSAL_RUN_SUMMARIES_PER_DIRECTION,
+        ),
+        proposalRunsTruncated:
+          (proposalRunsByDirection.get(row.id)?.length ?? 0) >
+          MAX_CAMPAIGN_PROPOSAL_RUN_SUMMARIES_PER_DIRECTION,
       })),
     };
   }

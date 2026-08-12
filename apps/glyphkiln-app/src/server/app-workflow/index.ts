@@ -14,6 +14,7 @@ export type {
   CampaignProposalCandidateProjection,
   CampaignProposalDecisionProjection,
   CampaignProposalRunProjection,
+  CampaignProposalRunSummaryProjection,
   CampaignSummary,
   DesignRevisionProjection,
   RevisionComparisonProjection,

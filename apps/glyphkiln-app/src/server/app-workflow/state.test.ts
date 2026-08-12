@@ -77,6 +77,59 @@ describe("AppState", () => {
       "revision-3",
     ]);
   });
+
+  it("bounds proposal-run summaries per campaign direction", async () => {
+    const createdAt = new Date("2026-08-12T01:00:00.000Z");
+    const database = new RecordingTransaction([
+      [
+        {
+          id: "campaign-1",
+          workspace_id: "workspace-1",
+          name: "Campaign",
+          brief: "A bounded proposal history.",
+          campaign_seed: "campaign-seed",
+          family_id: "image-led-campaign",
+          created_at: createdAt,
+          updated_at: createdAt,
+        },
+      ],
+      [
+        {
+          id: "direction-1",
+          direction_key: "direction-a",
+          name: "Direction A",
+          created_at: createdAt,
+        },
+      ],
+      [],
+      [],
+      Array.from({ length: 21 }, (_, index) => ({
+        id: `run-${index.toString().padStart(2, "0")}`,
+        direction_id: "direction-1",
+        provider_id: "provider-1",
+        model_id: "model-1",
+        candidate_count: 3,
+        decided_count: 0,
+        accepted_count: 0,
+        created_at: createdAt,
+      })),
+    ]);
+    const board = await new AppState(database).readCampaignBoard(
+      "workspace-1",
+      "campaign-1",
+    );
+
+    expect(board?.directions[0]?.proposalRuns).toHaveLength(20);
+    expect(board?.directions[0]?.proposalRunsTruncated).toBe(true);
+    expect(database.statements[4]?.statement).toMatch(
+      /row_number\(\) OVER[\s\S]+history_ordinal <= \$3/u,
+    );
+    expect(database.statements[4]?.parameters).toEqual([
+      "workspace-1",
+      "campaign-1",
+      21,
+    ]);
+  });
 });
 
 class RecordingTransaction implements SqlTransaction {
@@ -84,12 +137,17 @@ class RecordingTransaction implements SqlTransaction {
     statement: string;
     parameters: SqlParameters;
   }[] = [];
+  readonly #results: SqlRow[][];
+
+  constructor(results: SqlRow[][] = []) {
+    this.#results = [...results];
+  }
 
   query<Row extends SqlRow = SqlRow>(
     statement: string,
     parameters: SqlParameters = [],
   ): Promise<Row[]> {
     this.statements.push({ statement, parameters });
-    return Promise.resolve([]);
+    return Promise.resolve((this.#results.shift() ?? []) as Row[]);
   }
 }

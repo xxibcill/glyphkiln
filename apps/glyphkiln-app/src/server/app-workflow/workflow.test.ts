@@ -1087,6 +1087,25 @@ describe("AppWorkflow", () => {
         candidate.proof?.outputs.every((output) => output.base64 !== undefined),
       ),
     ).toBe(true);
+    const proposalBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+    expect(proposalBoard.directions[0]?.proposalRuns).toEqual([
+      {
+        id: proposalRun.id,
+        providerId: "test-proposal-provider",
+        modelId: "bounded-test-model",
+        candidateCount: 3,
+        decidedCount: 0,
+        acceptedCount: 0,
+        createdAt: NOW.toISOString(),
+      },
+    ]);
+    expect(proposalBoard.directions[0]?.proposalRunsTruncated).toBe(false);
 
     briefInterpreter.responseOverride = (input) => ({
       contractVersion: "1.0.0",
@@ -1712,6 +1731,38 @@ describe("AppWorkflow", () => {
       }),
       403,
       "ROLE_FORBIDDEN",
+    );
+    workflow = createAppWorkflow({
+      database,
+      bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
+      passwordHasher: new TestPasswordHasher(),
+      secretFactory: secrets,
+      clock,
+      renderQueue,
+      resourceStore,
+    });
+    const recoveryBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+    const recoveryRunId = recoveryBoard.directions
+      .flatMap((candidate) => candidate.proposalRuns)
+      .find((run) => run.id === proposalRun.id)?.id;
+    expect(recoveryRunId).toBe(proposalRun.id);
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: recoveryRunId ?? "missing-history",
+        },
+      }),
+      "campaign-proposal-run",
     );
   }, 15_000);
 

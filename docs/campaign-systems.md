@@ -122,3 +122,10 @@ identity, retention disclosure, canonical input/response hashes, validation,
 proof metadata, and the human accept/reject decision never enter the Core
 document or manifest. A human acceptance creates a new immutable design and
 revision; it does not silently replace or attach a campaign canvas.
+
+Each campaign-board direction includes the 20 most recent proposal-run
+summaries plus an explicit truncation flag. Those summaries contain only stored
+provider/model identity, candidate/decision counts, and creation time; the
+existing exact-run read loads one selected immutable record. Board and exact-run
+reads remain available when campaign mutations are disabled so proposal history
+is recoverable after a browser reload without exposing a table-shaped API.

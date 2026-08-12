@@ -623,6 +623,8 @@ export type CampaignDirectionProjection = {
   locks: AuthoringLockId[];
   createdAt: string;
   canvases: CampaignCanvasProjection[];
+  proposalRuns: CampaignProposalRunSummaryProjection[];
+  proposalRunsTruncated: boolean;
 };
 
 export type CampaignBoardProjection = {
@@ -679,6 +681,16 @@ export type CampaignProposalRunProjection = {
   locks: AuthoringLockId[];
   createdAt: string;
   candidates: CampaignProposalCandidateProjection[];
+};
+
+export type CampaignProposalRunSummaryProjection = {
+  id: string;
+  providerId: string;
+  modelId: string;
+  candidateCount: number;
+  decidedCount: number;
+  acceptedCount: number;
+  createdAt: string;
 };
 
 export type CampaignProposalDecisionProjection = {

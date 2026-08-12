@@ -1481,6 +1481,8 @@ class AppWorkflowImplementation implements AppWorkflow {
         locks: [...locks],
         createdAt: now.toISOString(),
         canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       } satisfies CampaignDirectionProjection;
     });
     return success(
@@ -1555,6 +1557,8 @@ class AppWorkflowImplementation implements AppWorkflow {
         locks: [...locks],
         createdAt: now.toISOString(),
         canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       } satisfies CampaignDirectionProjection;
     });
     return success(

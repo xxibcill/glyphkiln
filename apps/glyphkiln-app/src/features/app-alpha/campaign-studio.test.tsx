@@ -23,7 +23,7 @@ import { constructManualDocument } from "@/server/app-workflow/document-factory"
 import { createPreviewDesign } from "@/test/preview-design";
 import type { PreviewSuccess } from "@/features/project-preview/types";
 
-import { createAppAlphaApi } from "./api-client";
+import { createAppAlphaApi, type CampaignBoard } from "./api-client";
 import { CampaignStudio } from "./campaign-studio";
 
 const CAMPAIGN: CampaignSummary = {
@@ -75,6 +75,8 @@ describe("CampaignStudio", () => {
               locks: ["copy", "image", "palette"],
               createdAt: CAMPAIGN.createdAt,
               canvases: [],
+              proposalRuns: [],
+              proposalRunsTruncated: false,
             },
           }),
         );
@@ -136,6 +138,57 @@ describe("CampaignStudio", () => {
 
     await clickButton("Open revision");
     expect(onOpenDesign).toHaveBeenCalledWith("design-1", "revision-1");
+  });
+
+  it("recovers bounded proposal history while campaign mutations are disabled", async () => {
+    const board = campaignBoardFixture();
+    const direction = board.directions[0];
+    direction.proposalRuns.push({
+      id: "run-1",
+      providerId: "provider-1",
+      modelId: "model-1",
+      candidateCount: 3,
+      decidedCount: 1,
+      acceptedCount: 0,
+      createdAt: CAMPAIGN.createdAt,
+    });
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, board));
+      }
+      if (body.type === "campaign.proposal.run") {
+        return Promise.resolve(success(200, proposalRunFixture()));
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas()}
+          canCoordinate={false}
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    expect(container.textContent).toContain("Proposal history");
+    expect(container.textContent).toContain("1/3 decided");
+    await clickButton("Open run 01");
+    expect(container.textContent).toContain("Model suggestions under human locks");
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "campaign.proposal.run",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      runId: "run-1",
+    });
   });
 
   it.each([
@@ -318,6 +371,8 @@ describe("CampaignStudio", () => {
       directionKey: "editorial-b",
       name: "Editorial B",
       canvases: [],
+      proposalRuns: [],
+      proposalRunsTruncated: false,
     });
     const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
       const body = JSON.parse(requestBody(init?.body)) as { type: string };
@@ -442,7 +497,7 @@ describe("CampaignStudio", () => {
   }
 });
 
-function campaignBoardFixture() {
+function campaignBoardFixture(): CampaignBoard {
   return {
     kind: "campaign-board",
     campaign: CAMPAIGN,
@@ -469,6 +524,8 @@ function campaignBoardFixture() {
             createdAt: CAMPAIGN.createdAt,
           },
         ],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       },
     ],
   };

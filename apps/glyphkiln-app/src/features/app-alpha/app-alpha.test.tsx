@@ -639,6 +639,8 @@ function campaignBoard(): CampaignBoard {
         locks: ["copy", "image", "palette"],
         createdAt: "2026-08-12T01:00:00.000Z",
         canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       },
     ],
   };

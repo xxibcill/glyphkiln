@@ -178,6 +178,28 @@ const CampaignCanvasSeedSchema = z
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
   })
   .strict();
+const CampaignProposalRunSummarySchema = z
+  .object({
+    id: z.string().min(1),
+    providerId: z.string().min(1),
+    modelId: z.string().min(1),
+    candidateCount: z.number().int().min(0).max(4),
+    decidedCount: z.number().int().min(0).max(4),
+    acceptedCount: z.number().int().min(0).max(1),
+    createdAt: z.string().min(1),
+  })
+  .strict()
+  .superRefine((summary, context) => {
+    if (
+      summary.acceptedCount > summary.decidedCount ||
+      summary.decidedCount > summary.candidateCount
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Campaign proposal history counts are inconsistent.",
+      });
+    }
+  });
 const CampaignDirectionSchema = z
   .object({
     id: z.string().min(1),
@@ -186,6 +208,8 @@ const CampaignDirectionSchema = z
     locks: z.array(AuthoringLockSchema).max(6),
     createdAt: z.string().min(1),
     canvases: z.array(CampaignCanvasSchema),
+    proposalRuns: z.array(CampaignProposalRunSummarySchema).max(20),
+    proposalRunsTruncated: z.boolean(),
   })
   .strict();
 const CampaignBoardSchema = z
