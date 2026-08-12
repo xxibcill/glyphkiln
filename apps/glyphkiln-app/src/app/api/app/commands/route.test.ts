@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type {
+  AppCommand,
   AppResult,
   AppWorkflow,
   CommandEnvelope,
@@ -217,6 +218,121 @@ describe("POST /api/app/commands", () => {
       error: { code: "AUTH_CAPACITY_REACHED" },
     });
   });
+
+  it("forwards the closed campaign proposal commands with matching CSRF evidence", async () => {
+    const commands = [
+      {
+        type: "campaign.direction.branch",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        sourceDirectionId: "direction-id",
+        directionKey: "editorial-branch",
+        name: "Editorial branch",
+      },
+      {
+        type: "campaign.proposals.request",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        directionId: "direction-id",
+        baseCanvasId: "canvas-id",
+        candidateCount: 3,
+      },
+      {
+        type: "campaign.proposal.accept",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        runId: "proposal-run-id",
+        candidateId: "candidate-id",
+        designName: "Accepted direction",
+      },
+      {
+        type: "campaign.proposal.reject",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        runId: "proposal-run-id",
+        candidateId: "candidate-id",
+        reason: "The alternative is clearer.",
+      },
+    ] as const satisfies readonly AppCommand[];
+    const execute = vi.fn<AppWorkflow["execute"]>().mockResolvedValue({
+      ok: false,
+      status: 404,
+      error: {
+        code: "RESOURCE_NOT_FOUND",
+        title: "Not found",
+        detail: "The campaign test stops at the HTTP boundary.",
+      },
+    });
+    const route = createCommandRoute({
+      getWorkflow: () => Promise.resolve(workflowWith(execute)),
+      environment: { NODE_ENV: "test" },
+    });
+
+    for (const command of commands) {
+      const response = await route(
+        request(command, {
+          cookie: "gk_session=session; gk_csrf=csrf",
+          "x-glyphkiln-csrf": "csrf",
+        }),
+      );
+      expect(response.status).toBe(404);
+    }
+
+    expect(execute.mock.calls.map(([envelope]) => envelope)).toEqual(
+      commands.map((command) => ({
+        evidence: { sessionToken: "session", csrfToken: "csrf" },
+        command,
+      })),
+    );
+  });
+
+  it.each([
+    {
+      name: "provider authority",
+      command: {
+        type: "campaign.proposals.request",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        directionId: "direction-id",
+        baseCanvasId: "canvas-id",
+        candidateCount: 3,
+        providerId: "browser-selected-provider",
+      },
+    },
+    {
+      name: "unbounded candidate count",
+      command: {
+        type: "campaign.proposals.request",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+        directionId: "direction-id",
+        baseCanvasId: "canvas-id",
+        candidateCount: 5,
+      },
+    },
+  ])(
+    "rejects campaign proposal $name before resolving the workflow",
+    async ({ command }) => {
+      const getWorkflow = vi.fn<() => Promise<AppWorkflow>>();
+      const route = createCommandRoute({
+        getWorkflow,
+        environment: { NODE_ENV: "test" },
+      });
+
+      const response = await route(
+        request(command, {
+          cookie: "gk_session=session; gk_csrf=csrf",
+          "x-glyphkiln-csrf": "csrf",
+        }),
+      );
+
+      expect(response.status).toBe(422);
+      expect(getWorkflow).not.toHaveBeenCalled();
+      await expect(response.json()).resolves.toMatchObject({
+        error: { code: "INVALID_INPUT" },
+      });
+    },
+  );
 });
 
 function request(body: unknown, headers: Record<string, string> = {}): Request {
