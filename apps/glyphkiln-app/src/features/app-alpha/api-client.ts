@@ -162,6 +162,21 @@ const CampaignCanvasSchema = z
     createdAt: z.string().min(1),
   })
   .strict();
+const CampaignCanvasSeedSchema = z
+  .object({
+    kind: z.literal("campaign-canvas-seed"),
+    workspaceId: z.string().min(1),
+    campaignId: z.string().min(1),
+    directionId: z.string().min(1),
+    canvasKey: z.string().min(1),
+    template: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
+    format: z.string().min(1),
+    compositionVariantId: z.literal("focal-editorial"),
+    seedDerivationVersion: z.string().min(1),
+    directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
+    canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
+  })
+  .strict();
 const CampaignDirectionSchema = z
   .object({
     id: z.string().min(1),
@@ -742,6 +757,11 @@ export type RenderJobOutput = z.infer<typeof RenderJobOutputSchema>;
 export type CampaignBoard = z.infer<typeof CampaignBoardSchema>;
 export type CampaignDirection = z.infer<typeof CampaignDirectionSchema>;
 export type CampaignCanvas = z.infer<typeof CampaignCanvasSchema>;
+export type CampaignCanvasSeed = z.infer<typeof CampaignCanvasSeedSchema>;
+export type CampaignCanvasSeedInput = Omit<
+  Extract<AppQuery, { type: "campaign.canvas.seed" }>,
+  "type"
+>;
 export type CampaignProposalRun = CampaignProposalRunProjection;
 export type CampaignProposalDecision = z.infer<typeof ProposalDecisionSchema>;
 export type CampaignHandoff = Omit<CampaignHandoffProjection, "base64"> & {
@@ -845,6 +865,9 @@ export type AppAlphaApi = {
     workspaceId: string,
     campaignId: string,
   ) => Promise<ApiResult<CampaignBoard>>;
+  campaignCanvasSeed: (
+    input: CampaignCanvasSeedInput,
+  ) => Promise<ApiResult<CampaignCanvasSeed>>;
   createCampaignDirection: (input: {
     workspaceId: string;
     campaignId: string;
@@ -1173,6 +1196,25 @@ export function createAppAlphaApi(
         CampaignBoardSchema,
         (value) => value,
       );
+    },
+    async campaignCanvasSeed(input) {
+      const parsed = parseValue(
+        await query({ type: "campaign.canvas.seed", ...input }),
+        CampaignCanvasSeedSchema,
+        (value) => value,
+      );
+      if (
+        !parsed.ok ||
+        (parsed.value.workspaceId === input.workspaceId &&
+          parsed.value.campaignId === input.campaignId &&
+          parsed.value.directionId === input.directionId &&
+          parsed.value.canvasKey === input.canvasKey &&
+          parsed.value.template.id === input.templateId &&
+          parsed.value.format === input.format)
+      ) {
+        return parsed;
+      }
+      return malformedResponse();
     },
     async createCampaignDirection(input) {
       return parseValue(

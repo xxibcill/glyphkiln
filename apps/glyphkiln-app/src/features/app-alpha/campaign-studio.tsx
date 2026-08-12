@@ -11,6 +11,8 @@ import type {
   AppAlphaApi,
   CampaignBoard,
   CampaignCanvas,
+  CampaignCanvasSeed,
+  CampaignCanvasSeedInput,
   CampaignProposalRun,
   DesignRevision,
   RevisionComparison,
@@ -25,20 +27,38 @@ const LOCKS = [
   "composition",
 ] as const;
 
+const CAMPAIGN_COMPOSITION_VARIANT = "focal-editorial" as const;
+const CANVAS_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
+
+type CampaignDraftCanvas = {
+  templateId: CampaignCanvasSeedInput["templateId"];
+  format: CampaignCanvasSeedInput["format"];
+  seed: string;
+};
+
+type CampaignCanvasSeedPlan = {
+  scope: CampaignCanvasSeedInput;
+  result: CampaignCanvasSeed;
+};
+
 export function CampaignStudio({
   api,
   workspaceId,
   campaigns,
+  draftCanvas,
   openRevision,
   canCoordinate,
+  onApplyCanvasSeed,
   onCampaignChanged,
   onOpenDesign,
 }: {
   api: AppAlphaApi;
   workspaceId: string;
   campaigns: CampaignSummary[];
+  draftCanvas: CampaignDraftCanvas;
   openRevision?: DesignRevision;
   canCoordinate: boolean;
+  onApplyCanvasSeed: (seed: string) => void;
   onCampaignChanged: () => Promise<void>;
   onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
 }) {
@@ -48,6 +68,9 @@ export function CampaignStudio({
   const [comparison, setComparison] = useState<RevisionComparison>();
   const [leftCanvasId, setLeftCanvasId] = useState("");
   const [rightCanvasId, setRightCanvasId] = useState("");
+  const [canvasDirectionId, setCanvasDirectionId] = useState("");
+  const [canvasKey, setCanvasKey] = useState("");
+  const [canvasSeedPlan, setCanvasSeedPlan] = useState<CampaignCanvasSeedPlan>();
   const [busy, setBusy] = useState<string>();
   const [failure, setFailure] = useState<ApiFailure>();
   const [message, setMessage] = useState(
@@ -61,6 +84,46 @@ export function CampaignStudio({
       ) ?? [],
     [board],
   );
+  const currentCanvasScope = useMemo<CampaignCanvasSeedInput | undefined>(() => {
+    if (
+      board === undefined ||
+      canvasDirectionId === "" ||
+      !CANVAS_KEY_PATTERN.test(canvasKey)
+    ) {
+      return undefined;
+    }
+    return {
+      workspaceId,
+      campaignId: board.campaign.id,
+      directionId: canvasDirectionId,
+      canvasKey,
+      templateId: draftCanvas.templateId,
+      format: draftCanvas.format,
+      compositionVariantId: CAMPAIGN_COMPOSITION_VARIANT,
+    };
+  }, [board, canvasDirectionId, canvasKey, draftCanvas, workspaceId]);
+  const currentCanvasSeedPlan =
+    canvasSeedPlan !== undefined &&
+    currentCanvasScope !== undefined &&
+    sameCanvasSeedScope(canvasSeedPlan.scope, currentCanvasScope)
+      ? canvasSeedPlan
+      : undefined;
+  const draftMatchesCanvasSeed = draftMatchesSeedPlan(
+    draftCanvas,
+    currentCanvasSeedPlan,
+  );
+  const revisionMatchesCanvasSeed = revisionMatchesSeedPlan(
+    openRevision,
+    currentCanvasSeedPlan,
+  );
+  const canAttachCanvas =
+    canCoordinate &&
+    currentCanvasSeedPlan !== undefined &&
+    draftMatchesCanvasSeed &&
+    revisionMatchesCanvasSeed &&
+    board !== undefined &&
+    board.directions.some((direction) => direction.id === canvasDirectionId) &&
+    busy === undefined;
 
   useEffect(() => {
     const next =
@@ -71,10 +134,15 @@ export function CampaignStudio({
     setSelectedCampaignId(next);
     if (next === undefined) {
       setBoard(undefined);
+      setCanvasSeedPlan(undefined);
       return;
     }
     void loadBoard(next);
   }, [campaigns, workspaceId]);
+
+  useEffect(() => {
+    setCanvasSeedPlan(undefined);
+  }, [draftCanvas.templateId, draftCanvas.format]);
 
   async function loadBoard(campaignId: string): Promise<void> {
     setBusy("board");
@@ -82,6 +150,11 @@ export function CampaignStudio({
     const result = await api.campaignBoard(workspaceId, campaignId);
     if (result.ok) {
       setBoard(result.value);
+      setCanvasSeedPlan(undefined);
+      const directionIds = result.value.directions.map((direction) => direction.id);
+      setCanvasDirectionId((current) =>
+        directionIds.includes(current) ? current : (directionIds.at(0) ?? ""),
+      );
       const available = result.value.directions.flatMap((direction) =>
         direction.canvases.map((canvas) => canvas.id),
       );
@@ -174,22 +247,15 @@ export function CampaignStudio({
 
   async function attachCanvas(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (
-      !canCoordinate ||
-      board === undefined ||
-      openRevision === undefined ||
-      busy !== undefined
-    ) {
-      return;
-    }
+    if (openRevision === undefined || !canAttachCanvas) return;
     const form = new FormData(event.currentTarget);
     setBusy("canvas");
     setFailure(undefined);
     const result = await api.attachCampaignCanvas({
       workspaceId,
       campaignId: board.campaign.id,
-      directionId: requiredFormText(form, "canvasDirection"),
-      canvasKey: requiredFormText(form, "canvasKey"),
+      directionId: currentCanvasSeedPlan.scope.directionId,
+      canvasKey: currentCanvasSeedPlan.scope.canvasKey,
       designId: openRevision.designId,
       revisionId: openRevision.revisionId,
       ordinal: Number(requiredFormText(form, "canvasOrdinal")),
@@ -197,6 +263,24 @@ export function CampaignStudio({
     if (result.ok) {
       await loadBoard(board.campaign.id);
       setMessage("Exact revision attached to the coordinated campaign board.");
+    } else {
+      setFailure(result);
+    }
+    setBusy(undefined);
+  }
+
+  async function planCanvasSeed(): Promise<void> {
+    if (!canCoordinate || currentCanvasScope === undefined || busy !== undefined)
+      return;
+    const requestedScope = currentCanvasScope;
+    setBusy("canvas-seed");
+    setFailure(undefined);
+    const result = await api.campaignCanvasSeed(requestedScope);
+    if (result.ok) {
+      setCanvasSeedPlan({ scope: requestedScope, result: result.value });
+      setMessage(
+        "Canvas seed planned for this exact direction, key, template, and format.",
+      );
     } else {
       setFailure(result);
     }
@@ -360,6 +444,7 @@ export function CampaignStudio({
             onChange={(event) => {
               const campaignId = event.currentTarget.value;
               setSelectedCampaignId(campaignId);
+              setCanvasSeedPlan(undefined);
               void loadBoard(campaignId);
             }}
           >
@@ -502,7 +587,16 @@ export function CampaignStudio({
             <span>04 / ATTACH EXACT REVISION</span>
             <label>
               Direction
-              <select name="canvasDirection" required>
+              <select
+                name="canvasDirection"
+                required
+                value={canvasDirectionId}
+                disabled={busy !== undefined}
+                onChange={(event) => {
+                  setCanvasDirectionId(event.currentTarget.value);
+                  setCanvasSeedPlan(undefined);
+                }}
+              >
                 {board.directions.map((direction) => (
                   <option key={direction.id} value={direction.id}>
                     {direction.name}
@@ -512,7 +606,18 @@ export function CampaignStudio({
             </label>
             <label>
               Canvas key
-              <input name="canvasKey" pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*" required />
+              <input
+                name="canvasKey"
+                pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*"
+                maxLength={160}
+                required
+                value={canvasKey}
+                disabled={busy !== undefined}
+                onChange={(event) => {
+                  setCanvasKey(event.currentTarget.value);
+                  setCanvasSeedPlan(undefined);
+                }}
+              />
             </label>
             <label>
               Order
@@ -530,15 +635,56 @@ export function CampaignStudio({
                 ? "Open a saved revision first."
                 : `Open: ${openRevision.designName} · revision ${openRevision.revisionNumber.toString()}`}
             </p>
+            <p>
+              Draft scope: {draftCanvas.templateId} · {draftCanvas.format}. The planned
+              seed is advisory and will be recomputed when the exact revision is
+              attached.
+            </p>
             <button
-              className="secondary-action"
+              className="quiet-action"
+              type="button"
               disabled={
-                !canCoordinate ||
-                openRevision === undefined ||
-                board.directions.length === 0 ||
-                busy !== undefined
+                !canCoordinate || currentCanvasScope === undefined || busy !== undefined
               }
+              onClick={() => void planCanvasSeed()}
             >
+              Plan canvas seed
+            </button>
+            {currentCanvasSeedPlan === undefined ? null : (
+              <div>
+                <small>
+                  {currentCanvasSeedPlan.result.seedDerivationVersion} · template{" "}
+                  {currentCanvasSeedPlan.result.template.id}@
+                  {currentCanvasSeedPlan.result.template.version}
+                </small>
+                <code>{currentCanvasSeedPlan.result.canvasSeed}</code>
+                <button
+                  className="quiet-action"
+                  type="button"
+                  disabled={
+                    !canCoordinate || draftMatchesCanvasSeed || busy !== undefined
+                  }
+                  onClick={() => {
+                    onApplyCanvasSeed(currentCanvasSeedPlan.result.canvasSeed);
+                    setMessage(
+                      "Canvas seed applied to the draft only. Preview, save, and reopen it before attachment.",
+                    );
+                  }}
+                >
+                  Apply seed to draft
+                </button>
+              </div>
+            )}
+            <p>
+              {currentCanvasSeedPlan === undefined
+                ? "Plan a seed for the current scope before attachment."
+                : !draftMatchesCanvasSeed
+                  ? "Apply the planned seed to the current draft."
+                  : !revisionMatchesCanvasSeed
+                    ? "Preview, save, and reopen a revision with this exact seed, template version, and format."
+                    : "The reopened immutable revision matches this canvas seed plan."}
+            </p>
+            <button className="secondary-action" disabled={!canAttachCanvas}>
               Attach revision
             </button>
           </form>
@@ -718,6 +864,35 @@ function findCanvas(
   canvasId: string,
 ): CampaignCanvas | undefined {
   return canvases.find((entry) => entry.canvas.id === canvasId)?.canvas;
+}
+
+function sameCanvasSeedScope(
+  left: CampaignCanvasSeedInput,
+  right: CampaignCanvasSeedInput,
+): boolean {
+  return canonicalJson(left) === canonicalJson(right);
+}
+
+function draftMatchesSeedPlan(
+  draft: CampaignDraftCanvas,
+  plan: CampaignCanvasSeedPlan | undefined,
+): boolean {
+  return draft.seed === plan?.result.canvasSeed;
+}
+
+function revisionMatchesSeedPlan(
+  revision: DesignRevision | undefined,
+  plan: CampaignCanvasSeedPlan | undefined,
+): boolean {
+  const document = revision?.document;
+  const result = plan?.result;
+  return (
+    result !== undefined &&
+    document?.seed === result.canvasSeed &&
+    document.template.id === result.template.id &&
+    document.template.version === result.template.version &&
+    document.format === result.format
+  );
 }
 
 function requiredFormText(form: FormData, name: string): string {

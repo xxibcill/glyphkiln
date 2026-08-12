@@ -15,8 +15,10 @@ describe("App Alpha API client", () => {
   });
 
   it("rejects a failure whose body status does not match HTTP status", async () => {
-    const fetchMock = vi.fn(() =>
-      Promise.resolve(
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
         jsonResponse(
           {
             ok: false,
@@ -29,8 +31,8 @@ describe("App Alpha API client", () => {
           },
           403,
         ),
-      ),
-    );
+      );
+    });
     const api = createAppAlphaApi(fetchMock);
 
     await expect(api.currentSession()).resolves.toMatchObject({
@@ -232,7 +234,9 @@ describe("App Alpha API client", () => {
         outputs: [{ format: "svg", artifactByteSize: 100 }],
       },
     });
-    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    const seedRequest = fetchMock.mock.calls.at(0);
+    if (seedRequest === undefined) throw new Error("Expected a seed request.");
+    expect(JSON.parse(requestBody(seedRequest[1]?.body))).toEqual({
       type: "revision.export.request",
       workspaceId: "workspace-1",
       designId: "design-1",
@@ -414,6 +418,89 @@ describe("App Alpha API client", () => {
     });
   });
 
+  it("requests a campaign canvas seed for an exact scope", async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: campaignCanvasSeedFixture(),
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.campaignCanvasSeed({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        canvasKey: "hero-landscape",
+        templateId: "image-led-campaign",
+        format: "linkedin-landscape",
+        compositionVariantId: "focal-editorial",
+      }),
+    ).resolves.toEqual({ ok: true, value: campaignCanvasSeedFixture() });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      type: "campaign.canvas.seed",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign",
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+  });
+
+  it.each([
+    ["workspace", { workspaceId: "workspace-other" }],
+    ["campaign", { campaignId: "campaign-other" }],
+    ["direction", { directionId: "direction-other" }],
+    ["canvas", { canvasKey: "hero-square" }],
+    ["template", { template: { id: "product-announcement", version: "1.1.1" } }],
+    ["format", { format: "instagram-square" }],
+    ["seed", { canvasSeed: "b".repeat(63) }],
+    ["unknown field", { ignoredScope: "slide-2" }],
+  ])(
+    "rejects a campaign canvas seed with a mismatched %s",
+    async (_name, overrides) => {
+      const fetchMock = vi.fn(() =>
+        Promise.resolve(
+          jsonResponse(
+            {
+              ok: true,
+              status: 200,
+              value: { ...campaignCanvasSeedFixture(), ...overrides },
+            },
+            200,
+          ),
+        ),
+      );
+
+      await expect(
+        createAppAlphaApi(fetchMock).campaignCanvasSeed({
+          workspaceId: "workspace-1",
+          campaignId: "campaign-1",
+          directionId: "direction-1",
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        }),
+      ).resolves.toMatchObject({
+        ok: false,
+        status: 502,
+        error: { code: "INVALID_APP_RESPONSE" },
+      });
+    },
+  );
+
   it.each([
     ["campaign", { campaignId: "campaign-other" }],
     ["byte size", { byteSize: 1 }],
@@ -539,6 +626,22 @@ function campaignHandoffFixture(
     approvedCanvasCount: 0,
     unapprovedCanvasCount: 1,
     ...overrides,
+  };
+}
+
+function campaignCanvasSeedFixture() {
+  return {
+    kind: "campaign-canvas-seed" as const,
+    workspaceId: "workspace-1",
+    campaignId: "campaign-1",
+    directionId: "direction-1",
+    canvasKey: "hero-landscape",
+    template: { id: "image-led-campaign" as const, version: "1.0.0" },
+    format: "linkedin-landscape" as const,
+    compositionVariantId: "focal-editorial" as const,
+    seedDerivationVersion: "sha256/canonical-scope-v1",
+    directionSeed: "a".repeat(64),
+    canvasSeed: "b".repeat(64),
   };
 }
 

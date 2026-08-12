@@ -387,6 +387,189 @@ describe("AppWorkflow", () => {
     );
   });
 
+  it("derives campaign canvas seeds only from trusted campaign scope", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Seed advice",
+          brief: "Prepare one exact campaign canvas seed before saving a revision.",
+          campaignSeed: "seed-advice-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "trusted-direction",
+          name: "Trusted direction",
+          locks: [],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const expected = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-landscape"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+
+    const advised = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId: ` ${workspaceId} `,
+          campaignId: ` ${campaign.id} `,
+          directionId: ` ${direction.id} `,
+          canvasKey: " hero-landscape ",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(advised).toEqual({
+      kind: "campaign-canvas-seed",
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: direction.id,
+      canvasKey: "hero-landscape",
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+      seedDerivationVersion: expected.version,
+      directionSeed: expected.directionSeed,
+      canvasSeed: expected.canvasSeed,
+    });
+
+    const foreignCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Foreign seed advice",
+          brief: "Keep direction identities qualified by campaign.",
+          campaignSeed: "foreign-seed-advice-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const foreignDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: foreignCampaign.id,
+          directionKey: "foreign-direction",
+          name: "Foreign direction",
+          locks: [],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: foreignDirection.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "unsupported-template",
+          templateId: "quote-card",
+          format: "instagram-square",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+
+    const overPrivilegedQuery = {
+      type: "campaign.canvas.seed" as const,
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: direction.id,
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign" as const,
+      format: "linkedin-landscape" as const,
+      compositionVariantId: "focal-editorial" as const,
+      templateVersion: "untrusted-version",
+      campaignSeed: "untrusted-campaign-seed",
+      directionKey: "untrusted-direction-key",
+      directionSeed: "0".repeat(64),
+      canvasSeed: "1".repeat(64),
+    };
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: overPrivilegedQuery,
+      }),
+      422,
+      "INVALID_INPUT",
+    );
+
+    const viewer = await registerMember(
+      owner,
+      workspaceId,
+      "seed-viewer@example.com",
+      "viewer",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: viewer.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      403,
+      "ROLE_FORBIDDEN",
+    );
+  });
+
   it("coordinates a deterministic campaign board around exact revisions and canonical locks", async () => {
     const owner = await bootstrapOwner();
     const workspaceId = requireWorkspaceId(owner);
@@ -420,7 +603,7 @@ describe("AppWorkflow", () => {
     ).direction;
     expect(direction.locks).toEqual(["copy", "image", "palette"]);
 
-    const seeds = deriveCampaignSeeds({
+    const expectedSeeds = deriveCampaignSeeds({
       campaignSeed: campaign.campaignSeed,
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
@@ -428,6 +611,28 @@ describe("AppWorkflow", () => {
       template: { id: "image-led-campaign", version: "1.0.0" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
+    });
+    const seedAdvice = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(seedAdvice).toMatchObject({
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      seedDerivationVersion: expectedSeeds.version,
+      directionSeed: expectedSeeds.directionSeed,
+      canvasSeed: expectedSeeds.canvasSeed,
     });
     const campaignAssets = [
       {
@@ -521,7 +726,7 @@ describe("AppWorkflow", () => {
           workspaceId,
           name: "Campaign hero",
           brandSnapshotId: brand.snapshotId,
-          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
         },
       }),
       "design-saved",
@@ -545,9 +750,9 @@ describe("AppWorkflow", () => {
     ).canvas;
     expect(attached).toMatchObject({
       revisionId: revision.revisionId,
-      seedDerivationVersion: seeds.version,
-      directionSeed: seeds.directionSeed,
-      canvasSeed: seeds.canvasSeed,
+      seedDerivationVersion: seedAdvice.seedDerivationVersion,
+      directionSeed: seedAdvice.directionSeed,
+      canvasSeed: seedAdvice.canvasSeed,
     });
 
     const board = expectProjection(
@@ -598,7 +803,7 @@ describe("AppWorkflow", () => {
       canvases: [],
     });
 
-    const copyViolation = imageLedCampaignDraft(seeds.canvasSeed);
+    const copyViolation = imageLedCampaignDraft(seedAdvice.canvasSeed);
     const lockedHeadline = copyViolation.layers.find(
       (layer) => layer.type === "headline",
     );
@@ -630,7 +835,7 @@ describe("AppWorkflow", () => {
           type: "design.preview",
           workspaceId,
           brandSnapshotId: brand.snapshotId,
-          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
           baseRevision: {
             designId: revision.designId,
             revisionId: revision.revisionId,
@@ -1240,7 +1445,7 @@ describe("AppWorkflow", () => {
           designId: revision.designId,
           baseRevisionId: revision.revisionId,
           brandSnapshotId: brand.snapshotId,
-          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
           changeNote: "Preserve the campaign locks in an intermediate revision.",
         },
       }),

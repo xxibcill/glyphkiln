@@ -19,6 +19,7 @@ import {
 import type { RenderManifest } from "@glyphkiln/core";
 
 import type { CampaignSummary } from "@/server/app-workflow";
+import { constructManualDocument } from "@/server/app-workflow/document-factory";
 import { createPreviewDesign } from "@/test/preview-design";
 import type { PreviewSuccess } from "@/features/project-preview/types";
 
@@ -97,7 +98,9 @@ describe("CampaignStudio", () => {
           api={createAppAlphaApi(fetchMock)}
           workspaceId="workspace-1"
           campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas()}
           canCoordinate
+          onApplyCanvasSeed={vi.fn()}
           onCampaignChanged={onCampaignChanged}
           onOpenDesign={onOpenDesign}
         />,
@@ -192,7 +195,9 @@ describe("CampaignStudio", () => {
             api={createAppAlphaApi(fetchMock)}
             workspaceId="workspace-1"
             campaigns={[CAMPAIGN]}
+            draftCanvas={campaignDraftCanvas()}
             canCoordinate
+            onApplyCanvasSeed={vi.fn()}
             onCampaignChanged={() => Promise.resolve()}
             onOpenDesign={() => Promise.resolve()}
           />,
@@ -208,13 +213,216 @@ describe("CampaignStudio", () => {
     },
   );
 
+  it("applies an exact scoped seed to the draft without attaching it", async () => {
+    const board = campaignBoardFixture();
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, board));
+      }
+      if (body.type === "campaign.canvas.seed") {
+        return Promise.resolve(success(200, campaignCanvasSeedFixture()));
+      }
+      if (body.type === "campaign.canvas.attach") {
+        return Promise.resolve(
+          success(201, {
+            kind: "campaign-canvas-attached",
+            campaignId: CAMPAIGN.id,
+            directionId: "direction-1",
+            canvas: board.directions[0]?.canvases[0],
+          }),
+        );
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+    const api = createAppAlphaApi(fetchMock);
+    const campaigns = [CAMPAIGN];
+    const onApplyCanvasSeed = vi.fn();
+    const renderStudio = async (
+      draftCanvas = campaignDraftCanvas(),
+      openRevision?: Parameters<typeof CampaignStudio>[0]["openRevision"],
+    ) => {
+      await act(async () => {
+        root.render(
+          <CampaignStudio
+            api={api}
+            workspaceId="workspace-1"
+            campaigns={campaigns}
+            draftCanvas={draftCanvas}
+            openRevision={openRevision}
+            canCoordinate
+            onApplyCanvasSeed={onApplyCanvasSeed}
+            onCampaignChanged={() => Promise.resolve()}
+            onOpenDesign={() => Promise.resolve()}
+          />,
+        );
+        await flushEffects();
+      });
+    };
+
+    await renderStudio();
+    await setInput('input[name="canvasKey"]', "hero-landscape");
+    await clickButton("Plan canvas seed");
+
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "campaign.canvas.seed",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign",
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    expect(container.textContent).toContain("sha256/canonical-scope-v1");
+    expect(button("Attach revision").disabled).toBe(true);
+
+    await clickButton("Apply seed to draft");
+    expect(onApplyCanvasSeed).toHaveBeenCalledWith("b".repeat(64));
+    expect(
+      requestBodies(fetchMock).filter(
+        (request) =>
+          typeof request === "object" &&
+          request !== null &&
+          "type" in request &&
+          request.type === "campaign.canvas.attach",
+      ),
+    ).toHaveLength(0);
+    expect(button("Attach revision").disabled).toBe(true);
+
+    await renderStudio(
+      campaignDraftCanvas("b".repeat(64)),
+      campaignRevision("b".repeat(64)),
+    );
+    expect(button("Attach revision").disabled).toBe(false);
+    await clickButton("Attach revision");
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "campaign.canvas.attach",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "hero-landscape",
+      designId: "design-seeded",
+      revisionId: "revision-seeded",
+      ordinal: 0,
+      compositionVariantId: "focal-editorial",
+    });
+  });
+
+  it("invalidates a canvas seed plan when any editable scope field changes", async () => {
+    const board = campaignBoardFixture();
+    const firstDirection = board.directions[0];
+    board.directions.push({
+      ...firstDirection,
+      id: "direction-2",
+      directionKey: "editorial-b",
+      name: "Editorial B",
+      canvases: [],
+    });
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      return Promise.resolve(
+        success(
+          200,
+          body.type === "campaign.board" ? board : campaignCanvasSeedFixture(),
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+    const campaigns = [CAMPAIGN];
+    const renderStudio = async (draftCanvas = campaignDraftCanvas()) => {
+      await act(async () => {
+        root.render(
+          <CampaignStudio
+            api={api}
+            workspaceId="workspace-1"
+            campaigns={campaigns}
+            draftCanvas={draftCanvas}
+            openRevision={campaignRevision("b".repeat(64))}
+            canCoordinate
+            onApplyCanvasSeed={vi.fn()}
+            onCampaignChanged={() => Promise.resolve()}
+            onOpenDesign={() => Promise.resolve()}
+          />,
+        );
+        await flushEffects();
+      });
+    };
+    const restorePlan = async () => {
+      await setInput('input[name="canvasKey"]', "hero-landscape");
+      await clickButton("Plan canvas seed");
+      expect(container.textContent).toContain("sha256/canonical-scope-v1");
+    };
+
+    await renderStudio(campaignDraftCanvas("b".repeat(64)));
+    await restorePlan();
+    await setInput('input[name="canvasKey"]', "hero-square");
+    expect(container.textContent).not.toContain("sha256/canonical-scope-v1");
+
+    await restorePlan();
+    await setSelect('select[name="canvasDirection"]', "direction-2");
+    expect(container.textContent).not.toContain("sha256/canonical-scope-v1");
+
+    await setSelect('select[name="canvasDirection"]', "direction-1");
+    await restorePlan();
+    await renderStudio({
+      ...campaignDraftCanvas("b".repeat(64)),
+      templateId: "product-announcement",
+    });
+    expect(container.textContent).not.toContain("sha256/canonical-scope-v1");
+
+    await renderStudio(campaignDraftCanvas("b".repeat(64)));
+    await restorePlan();
+    await renderStudio({
+      ...campaignDraftCanvas("b".repeat(64)),
+      format: "instagram-square",
+    });
+    expect(container.textContent).not.toContain("sha256/canonical-scope-v1");
+    expect(button("Attach revision").disabled).toBe(true);
+  });
+
   async function clickButton(label: string): Promise<void> {
-    const button = [...container.querySelectorAll("button")].find(
+    const target = button(label);
+    await act(async () => {
+      target.click();
+      await flushEffects();
+    });
+  }
+
+  function button(label: string): HTMLButtonElement {
+    const target = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
     );
-    if (button === undefined) throw new Error(`Button “${label}” was not found.`);
+    if (target === undefined) throw new Error(`Button “${label}” was not found.`);
+    return target;
+  }
+
+  async function setInput(selector: string, value: string): Promise<void> {
+    const input = container.querySelector<HTMLInputElement>(selector);
+    if (input === null) throw new Error(`Input “${selector}” was not found.`);
+    await setControlValue(input, HTMLInputElement.prototype, value);
+  }
+
+  async function setSelect(selector: string, value: string): Promise<void> {
+    const select = container.querySelector<HTMLSelectElement>(selector);
+    if (select === null) throw new Error(`Select “${selector}” was not found.`);
+    await setControlValue(select, HTMLSelectElement.prototype, value);
+  }
+
+  async function setControlValue(
+    control: HTMLInputElement | HTMLSelectElement,
+    prototype: object,
+    value: string,
+  ): Promise<void> {
+    const setter = Reflect.getOwnPropertyDescriptor(prototype, "value")?.set;
+    if (setter === undefined) throw new Error("Control value setter was not found.");
     await act(async () => {
-      button.click();
+      Reflect.apply(setter, control, [value]);
+      control.dispatchEvent(
+        new Event(control instanceof HTMLSelectElement ? "change" : "input", {
+          bubbles: true,
+        }),
+      );
       await flushEffects();
     });
   }
@@ -263,6 +471,105 @@ function campaignBoardFixture() {
         ],
       },
     ],
+  };
+}
+
+function campaignDraftCanvas(
+  seed = "draft-seed",
+): Parameters<typeof CampaignStudio>[0]["draftCanvas"] {
+  return {
+    templateId: "image-led-campaign" as const,
+    format: "linkedin-landscape" as const,
+    seed,
+  };
+}
+
+function campaignCanvasSeedFixture() {
+  return {
+    kind: "campaign-canvas-seed" as const,
+    workspaceId: "workspace-1",
+    campaignId: CAMPAIGN.id,
+    directionId: "direction-1",
+    canvasKey: "hero-landscape",
+    template: { id: "image-led-campaign" as const, version: "1.0.0" },
+    format: "linkedin-landscape" as const,
+    compositionVariantId: "focal-editorial" as const,
+    seedDerivationVersion: "sha256/canonical-scope-v1",
+    directionSeed: "a".repeat(64),
+    canvasSeed: "b".repeat(64),
+  };
+}
+
+function campaignRevision(
+  seed: string,
+): NonNullable<Parameters<typeof CampaignStudio>[0]["openRevision"]> {
+  const document = constructManualDocument({
+    documentId: "design-seeded",
+    brand: createPreviewDesign().brand,
+    draft: {
+      templateId: "image-led-campaign",
+      format: "linkedin-landscape",
+      seed,
+      mode: "dark",
+      resources: {
+        assetIds: ["campaign-image", "campaign-logo"],
+        fontIds: [],
+      },
+      layers: [
+        {
+          id: "campaign-image-layer",
+          type: "image",
+          visible: true,
+          assetId: "campaign-image",
+          alt: "Campaign photograph",
+          fit: "cover",
+          focalPoint: { x: 0.5, y: 0.5 },
+          treatment: "dark-scrim",
+        },
+        {
+          id: "campaign-logo-layer",
+          type: "logo",
+          visible: true,
+          assetId: "campaign-logo",
+          alt: "Brand mark",
+          fit: "contain",
+        },
+        { id: "eyebrow", type: "eyebrow", visible: true, text: "CAMPAIGN" },
+        { id: "headline", type: "headline", visible: true, text: "Seeded canvas" },
+        { id: "subtitle", type: "subtitle", visible: true, text: "Exact scope" },
+        { id: "cta", type: "cta", visible: true, text: "VIEW →" },
+      ],
+    },
+    assets: [
+      {
+        id: "campaign-image",
+        mimeType: "image/png",
+        sha256: "d".repeat(64),
+        width: 1_200,
+        height: 800,
+        origin: { kind: "user-upload" },
+      },
+      {
+        id: "campaign-logo",
+        mimeType: "image/png",
+        sha256: "e".repeat(64),
+        width: 400,
+        height: 200,
+        origin: { kind: "user-upload" },
+      },
+    ],
+  });
+  if (!document.ok) throw new Error("Expected a valid image-led campaign document.");
+  return {
+    kind: "design-revision" as const,
+    designId: "design-seeded",
+    designName: "Seeded canvas",
+    revisionId: "revision-seeded",
+    revisionNumber: 1,
+    brandSnapshotId: "brand-snapshot-1",
+    documentHash: "c".repeat(64),
+    document: document.document,
+    createdAt: CAMPAIGN.createdAt,
   };
 }
 

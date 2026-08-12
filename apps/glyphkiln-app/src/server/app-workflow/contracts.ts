@@ -219,6 +219,16 @@ export type AppQuery =
   | { type: "workspace.resources"; workspaceId: string }
   | { type: "campaign.board"; workspaceId: string; campaignId: string }
   | {
+      type: "campaign.canvas.seed";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      canvasKey: string;
+      templateId: TemplateId;
+      format: FormatId;
+      compositionVariantId: CampaignCompositionVariantId;
+    }
+  | {
       type: "campaign.proposal.run";
       workspaceId: string;
       campaignId: string;
@@ -440,6 +450,7 @@ export type QueryProjection =
       truncated: boolean;
     }
   | CampaignBoardProjection
+  | CampaignCanvasSeedProjection
   | CampaignProposalRunProjection
   | CampaignHandoffProjection
   | RevisionComparisonProjection
@@ -583,6 +594,23 @@ export type CampaignCanvasProjection = {
   canvasSeed: string;
   ordinal: number;
   createdAt: string;
+};
+
+export type CampaignCanvasSeedProjection = {
+  kind: "campaign-canvas-seed";
+  workspaceId: string;
+  campaignId: string;
+  directionId: string;
+  canvasKey: string;
+  template: {
+    id: TemplateId;
+    version: string;
+  };
+  format: FormatId;
+  compositionVariantId: CampaignCompositionVariantId;
+  seedDerivationVersion: string;
+  directionSeed: string;
+  canvasSeed: string;
 };
 
 export type CampaignDirectionProjection = {

@@ -383,6 +383,18 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
     .strict(),
   z
     .object({
+      type: z.literal("campaign.canvas.seed"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      directionId: identifier,
+      canvasKey: identifier,
+      templateId: z.enum(TEMPLATE_IDS),
+      format: z.enum(FORMAT_IDS),
+      compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("campaign.proposal.run"),
       workspaceId: identifier,
       campaignId: identifier,

@@ -573,6 +573,19 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
     clearProof();
   }
 
+  function applyCampaignCanvasSeed(seed: string): void {
+    setFormState((current) => ({
+      ...current,
+      composition: {
+        ...current.composition,
+        seed,
+      },
+    }));
+    setActivityMessage(
+      "Campaign canvas seed applied to the draft. It remains unsaved and unrendered.",
+    );
+  }
+
   function clearProof(): void {
     setProof(null);
     setProofKind(undefined);
@@ -714,8 +727,14 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                   api={api}
                   workspaceId={selectedWorkspaceId}
                   campaigns={dashboard?.campaigns ?? []}
+                  draftCanvas={{
+                    templateId: formState.composition.templateId,
+                    format: formState.composition.formatId,
+                    seed: formState.composition.seed,
+                  }}
                   openRevision={openRevision}
                   canCoordinate={canEdit}
+                  onApplyCanvasSeed={applyCampaignCanvasSeed}
                   onCampaignChanged={refreshDashboard}
                   onOpenDesign={reopenDesign}
                 />

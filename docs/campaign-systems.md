@@ -86,6 +86,15 @@ The option board compares two exact immutable revisions by rendering them
 sequentially through the normal bounded admission and resource resolver. It
 does not compare browser screenshots or recompute Core evidence.
 
+Before first attachment, Campaign Studio can request an advisory canvas seed for
+one exact campaign, direction, canvas key, template, format, and composition
+variant. Applying that result changes only the unsaved draft seed: it does not
+preview, save, reopen, or attach a revision. Changing any scoped field invalidates
+the plan. Attachment remains disabled until the current draft and reopened
+immutable revision carry the planned seed, exact template version, and format.
+The server recomputes the seed from the persisted campaign and direction at
+attachment, so the browser plan is never authoritative.
+
 `campaign.handoff` creates a canonical JSON archive with stable sorted paths.
 Each canvas contributes its exact design document, immutable resource pins,
 SVG and PNG bytes, both render manifests, and an approval record. The record is

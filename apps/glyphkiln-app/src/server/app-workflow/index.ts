@@ -8,6 +8,7 @@ export type {
   BrandSnapshotDraft,
   CampaignBoardProjection,
   CampaignCanvasProjection,
+  CampaignCanvasSeedProjection,
   CampaignDirectionProjection,
   CampaignHandoffProjection,
   CampaignProposalCandidateProjection,

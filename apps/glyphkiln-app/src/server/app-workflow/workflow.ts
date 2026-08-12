@@ -12,9 +12,12 @@ import {
 } from "@glyphkiln/core";
 import type {
   AssetDeclaration,
+  CampaignCompositionVariantId,
   DesignDocument,
   FontDeclaration,
+  FormatId,
   QualityIssue,
+  TemplateId,
   ValidationProblem,
 } from "@glyphkiln/core";
 
@@ -89,6 +92,7 @@ import type {
   AppResult,
   AppWorkflow,
   CampaignCanvasProjection,
+  CampaignCanvasSeedProjection,
   CampaignDirectionProjection,
   CampaignHandoffProjection,
   CampaignProposalCandidateProjection,
@@ -119,6 +123,8 @@ import type {
   AuthenticatedSessionRecord,
   InvitationRecord,
   StoredBrandSnapshot,
+  StoredCampaign,
+  StoredCampaignDirection,
   StoredDesignRevision,
 } from "./state";
 import {
@@ -433,6 +439,28 @@ class AppWorkflowImplementation implements AppWorkflow {
         );
         if (board === undefined) throw resourceNotFound();
         return success(board);
+      }
+      case "campaign.canvas.seed": {
+        await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "coordinate_campaigns",
+        );
+        const [campaign, direction] = await Promise.all([
+          context.state.findCampaign(query.workspaceId, query.campaignId),
+          context.state.findCampaignDirection({
+            workspaceId: query.workspaceId,
+            campaignId: query.campaignId,
+            directionId: query.directionId,
+          }),
+        ]);
+        if (campaign === undefined || direction === undefined) {
+          throw resourceNotFound();
+        }
+        return success({
+          kind: "campaign-canvas-seed",
+          ...deriveStoredCampaignCanvasSeed(campaign, direction, query),
+        });
       }
       case "campaign.proposal.run": {
         await this.#authorizeWorkspace(context, query.workspaceId, "read_campaigns");
@@ -1560,24 +1588,19 @@ class AppWorkflowImplementation implements AppWorkflow {
       if (campaign === undefined || direction === undefined) {
         throw resourceNotFound();
       }
-      const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
-      const familyMember = family.members.find(
-        (member) =>
-          member.template.id === revision.document.template.id &&
-          member.template.version === revision.document.template.version &&
-          member.formats.some((format) => format === revision.document.format),
-      );
-      if (familyMember === undefined) throw invalidCampaignCanvas();
-      const seeds = deriveCampaignSeeds({
-        campaignSeed: campaign.campaignSeed,
-        familyId: campaign.familyId,
-        directionKey: createCampaignDirectionKey(direction.directionKey),
-        canvasKey: createCampaignCanvasKey(command.canvasKey),
-        template: familyMember.template,
+      const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {
+        canvasKey: command.canvasKey,
+        templateId: revision.document.template.id,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
       });
-      if (revision.document.seed !== seeds.canvasSeed) {
+      if (
+        revision.document.template.id !== derivedSeed.template.id ||
+        revision.document.template.version !== derivedSeed.template.version
+      ) {
+        throw invalidCampaignCanvas();
+      }
+      if (revision.document.seed !== derivedSeed.canvasSeed) {
         throw invalidCampaignCanvas(
           "Create the exact revision with the campaign-derived canvas seed before attaching it to the board.",
         );
@@ -1616,9 +1639,9 @@ class AppWorkflowImplementation implements AppWorkflow {
         templateVersion: revision.document.template.version,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        seedDerivationVersion: seeds.version,
-        directionSeed: seeds.directionSeed,
-        canvasSeed: seeds.canvasSeed,
+        seedDerivationVersion: derivedSeed.seedDerivationVersion,
+        directionSeed: derivedSeed.directionSeed,
+        canvasSeed: derivedSeed.canvasSeed,
         ordinal: command.ordinal,
         createdBy: context.session.user.id,
         createdAt: now,
@@ -1635,9 +1658,9 @@ class AppWorkflowImplementation implements AppWorkflow {
           canvasKey: command.canvasKey,
           designId: command.designId,
           revisionId: command.revisionId,
-          seedDerivationVersion: seeds.version,
-          directionSeed: seeds.directionSeed,
-          canvasSeed: seeds.canvasSeed,
+          seedDerivationVersion: derivedSeed.seedDerivationVersion,
+          directionSeed: derivedSeed.directionSeed,
+          canvasSeed: derivedSeed.canvasSeed,
         },
         createdAt: now,
       });
@@ -1649,9 +1672,9 @@ class AppWorkflowImplementation implements AppWorkflow {
         template: { ...revision.document.template },
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        seedDerivationVersion: seeds.version,
-        directionSeed: seeds.directionSeed,
-        canvasSeed: seeds.canvasSeed,
+        seedDerivationVersion: derivedSeed.seedDerivationVersion,
+        directionSeed: derivedSeed.directionSeed,
+        canvasSeed: derivedSeed.canvasSeed,
         ordinal: command.ordinal,
         createdAt: now.toISOString(),
       } satisfies CampaignCanvasProjection;
@@ -3488,6 +3511,46 @@ function invalidDocument(problems: ValidationProblem[]): WorkflowFault {
     "Core rejected the constructed manual design document.",
     { problems },
   );
+}
+
+function deriveStoredCampaignCanvasSeed(
+  campaign: StoredCampaign,
+  direction: StoredCampaignDirection,
+  scope: {
+    canvasKey: string;
+    templateId: TemplateId;
+    format: FormatId;
+    compositionVariantId: CampaignCompositionVariantId;
+  },
+): Omit<CampaignCanvasSeedProjection, "kind"> {
+  const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
+  const member = family.members.find(
+    (candidate) =>
+      candidate.template.id === scope.templateId &&
+      candidate.formats.some((format) => format === scope.format),
+  );
+  if (member === undefined) throw invalidCampaignCanvas();
+  const seeds = deriveCampaignSeeds({
+    campaignSeed: campaign.campaignSeed,
+    familyId: campaign.familyId,
+    directionKey: createCampaignDirectionKey(direction.directionKey),
+    canvasKey: createCampaignCanvasKey(scope.canvasKey),
+    template: member.template,
+    format: scope.format,
+    compositionVariantId: scope.compositionVariantId,
+  });
+  return {
+    workspaceId: campaign.workspaceId,
+    campaignId: campaign.id,
+    directionId: direction.id,
+    canvasKey: scope.canvasKey,
+    template: { ...member.template },
+    format: scope.format,
+    compositionVariantId: scope.compositionVariantId,
+    seedDerivationVersion: seeds.version,
+    directionSeed: seeds.directionSeed,
+    canvasSeed: seeds.canvasSeed,
+  };
 }
 
 function invalidCampaignCanvas(
