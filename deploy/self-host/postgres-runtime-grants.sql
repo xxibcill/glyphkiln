@@ -12,7 +12,9 @@ GRANT USAGE, SELECT
 GRANT CONNECT ON DATABASE glyphkiln TO glyphkiln_worker;
 GRANT USAGE ON SCHEMA public TO glyphkiln_worker;
 GRANT SELECT
-  ON schema_migrations,
+  ON campaign_canvases,
+     campaign_direction_locks,
+     schema_migrations,
      design_revision_resources,
      render_jobs,
      render_workspace_queue_schedules,
@@ -34,6 +36,7 @@ GRANT SELECT (
     workspace_id,
     design_id,
     id,
+    parent_revision_id,
     brand_snapshot_id,
     design_document,
     canonical_hash

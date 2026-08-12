@@ -106,9 +106,13 @@ describe("supported self-hosting boundary", () => {
   });
 
   it("limits worker database privileges to render execution", () => {
+    expect(grants).toContain("ON campaign_canvases,\n     campaign_direction_locks,");
     expect(grants).toContain("GRANT SELECT (id, disabled_at)");
     expect(grants).not.toMatch(/GRANT SELECT\s+ON users\s+TO glyphkiln_worker/u);
     expect(grants).toContain("GRANT UPDATE (\n    state,");
+    expect(grants).toContain(
+      "design_id,\n    id,\n    parent_revision_id,\n    brand_snapshot_id,",
+    );
     expect(grants).not.toMatch(
       /GRANT (?:SELECT,\s*)?INSERT,\s*UPDATE,\s*DELETE[^;]*TO glyphkiln_worker/u,
     );
