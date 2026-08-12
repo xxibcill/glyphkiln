@@ -7,6 +7,7 @@ import {
   createBriefInterpreterFromEnvironment,
   type BriefInterpreter,
 } from "@/server/ai-authoring";
+import { readBoundedEnvironmentInteger } from "@/server/environment";
 import {
   createPostgresDatabase,
   type PostgresDatabase,
@@ -49,7 +50,13 @@ export async function createAppRuntime(
 
   const database = createPostgresDatabase(databaseUrl, {
     applicationName: "glyphkiln-app",
-    maxConnections: readConnectionLimit(environment),
+    maxConnections: readBoundedEnvironmentInteger(
+      environment,
+      "GLYPHKILN_DATABASE_MAX_CONNECTIONS",
+      10,
+      1,
+      100,
+    ),
     ssl: readDatabaseSslMode(environment),
   });
   try {
@@ -148,18 +155,6 @@ function readBootstrapTokenHash(environment: NodeJS.ProcessEnv): string | undefi
   return hashSecret(token);
 }
 
-function readConnectionLimit(environment: NodeJS.ProcessEnv): number {
-  const input = environment.GLYPHKILN_DATABASE_MAX_CONNECTIONS?.trim();
-  if (input === undefined || input === "") return 10;
-  const value = Number(input);
-  if (!Number.isInteger(value) || value < 1 || value > 100) {
-    throw new Error(
-      "GLYPHKILN_DATABASE_MAX_CONNECTIONS must be an integer from 1 through 100.",
-    );
-  }
-  return value;
-}
-
 function readMaximumOutstandingJobsPerWorkspace(
   environment: NodeJS.ProcessEnv,
 ): number {
@@ -182,24 +177,6 @@ function readMaximumOutstandingJobsPerInstallation(
     1,
     100_000,
   );
-}
-
-function readBoundedEnvironmentInteger(
-  environment: NodeJS.ProcessEnv,
-  name: string,
-  fallback: number,
-  minimum: number,
-  maximum: number,
-): number {
-  const input = environment[name]?.trim();
-  if (input === undefined || input === "") return fallback;
-  const value = Number(input);
-  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
-    throw new Error(
-      `${name} must be an integer from ${String(minimum)} through ${String(maximum)}.`,
-    );
-  }
-  return value;
 }
 
 function readDatabaseSslMode(
