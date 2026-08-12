@@ -1,0 +1,188 @@
+name: Publish Core to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Signed vX.Y.Z tag containing this workflow
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-glyphkiln-core
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Verify signed release source
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      package_spec: ${{ steps.release.outputs.package_spec }}
+      release_sha: ${{ steps.release.outputs.release_sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verify release tag and lineage
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -eu
+          if ! [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must match vX.Y.Z." >&2
+            exit 1
+          fi
+          expected_ref="refs/tags/$RELEASE_TAG"
+          if [ "$GITHUB_REF" != "$expected_ref" ]; then
+            echo "Dispatch this workflow from the $RELEASE_TAG tag ref." >&2
+            exit 1
+          fi
+          release_sha="$(git rev-parse HEAD)"
+          test "$GITHUB_SHA" = "$release_sha"
+          test "$(git cat-file -t "$RELEASE_TAG")" = "tag"
+          test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$release_sha"
+          git config gpg.format ssh
+          git config gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/release-allowed-signers"
+          git tag -v "$RELEASE_TAG"
+          package_version="$(node -p "require('./packages/glyphkiln-core/package.json').version")"
+          test "$RELEASE_TAG" = "v$package_version"
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          if find .changeset -maxdepth 1 -type f -name '*.md' ! -name README.md | grep -q .; then
+            echo "Unmaterialized Changesets remain in the tagged release." >&2
+            exit 1
+          fi
+          printf 'package_spec=@glyphkiln/core@%s\n' "$package_version" >> "$GITHUB_OUTPUT"
+          printf 'release_sha=%s\n' "$release_sha" >> "$GITHUB_OUTPUT"
+
+  verify-minimum-node:
+    name: Verify release on Node 22.22.2
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.preflight.outputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.2
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - name: Run release verification
+        run: bash .github/scripts/verify-release.sh
+
+  publish:
+    name: Publish signed Core release
+    needs: [preflight, verify-minimum-node]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.preflight.outputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - name: Run release verification
+        run: bash .github/scripts/verify-release.sh
+      - name: Publish with provenance
+        run: npm publish --workspace @glyphkiln/core --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  verify-published:
+    name: Verify published Core release
+    needs: [preflight, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.preflight.outputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Pin npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@10.9.8
+      - name: Report toolchain
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - name: Wait for published provenance
+        env:
+          PACKAGE_SPEC: ${{ needs.preflight.outputs.package_spec }}
+        run: |
+          set -eu
+          attempt=1
+          max_attempts=6
+          while true; do
+            attestations="$(npm view "$PACKAGE_SPEC" dist.attestations --json 2>/dev/null || true)"
+            if [ -n "$attestations" ] && [ "$attestations" != "null" ] && [ "$attestations" != "[]" ]; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Published attestations were unavailable after $max_attempts attempts." >&2
+              exit 1
+            fi
+            delay_seconds=$((attempt * 5))
+            echo "Published attestations are not available yet; retrying in $delay_seconds seconds."
+            sleep "$delay_seconds"
+            attempt=$((attempt + 1))
+          done
+      - name: Verify the published archive and attestations
+        env:
+          GLYPHKILN_PACKAGE_SPEC: ${{ needs.preflight.outputs.package_spec }}
+          GLYPHKILN_VERIFY_PACKAGE_SIGNATURES: "1"
+        run: |
+          set -eu
+          attempt=1
+          max_attempts=3
+          while true; do
+            if npm run test:package-consumer; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Published-package verification failed after $max_attempts attempts." >&2
+              exit 1
+            fi
+            delay_seconds=$((attempt * 10))
+            echo "Published-package verification failed; retrying in $delay_seconds seconds."
+            sleep "$delay_seconds"
+            attempt=$((attempt + 1))
+          done

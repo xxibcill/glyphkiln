@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { installedCliInvocation } from "./package-consumer-cli.mjs";
+import { packageConsumerInstallPlan } from "./package-consumer-install.mjs";
 
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -21,12 +22,24 @@ const typescriptCompiler = resolve(
 );
 const invocationDirectory = process.cwd();
 const requestedPackageSpec = process.env["GLYPHKILN_PACKAGE_SPEC"]?.trim();
+const signatureVerificationMode =
+  process.env["GLYPHKILN_VERIFY_PACKAGE_SIGNATURES"]?.trim();
 
 if (
   process.env["GLYPHKILN_PACKAGE_SPEC"] !== undefined &&
   requestedPackageSpec?.length === 0
 ) {
   throw new Error("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
+}
+if (signatureVerificationMode !== undefined && signatureVerificationMode !== "1") {
+  throw new Error("GLYPHKILN_VERIFY_PACKAGE_SIGNATURES must be 1 when provided.");
+}
+
+const verifyPackageSignatures = signatureVerificationMode === "1";
+if (verifyPackageSignatures && requestedPackageSpec === undefined) {
+  throw new Error(
+    "GLYPHKILN_VERIFY_PACKAGE_SIGNATURES requires GLYPHKILN_PACKAGE_SPEC.",
+  );
 }
 
 const temporaryRoot = await mkdtemp(join(tmpdir(), "glyphkiln-consumer-"));
@@ -46,18 +59,18 @@ try {
       type: "module",
     })}\n`,
   );
-  await execFileAsync(
-    "npm",
-    [
-      "install",
-      packageSpec,
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-      "--package-lock=false",
-    ],
-    { cwd: consumerDirectory },
+  const { installArguments, signatureAuditArguments } = packageConsumerInstallPlan(
+    packageSpec,
+    verifyPackageSignatures,
   );
+  await execFileAsync("npm", installArguments, { cwd: consumerDirectory });
+  if (signatureAuditArguments !== undefined) {
+    const verification = await execFileAsync("npm", signatureAuditArguments, {
+      cwd: consumerDirectory,
+    });
+    process.stdout.write(verification.stdout);
+    process.stdout.write("Verified installed-package signatures and attestations.\n");
+  }
   await cp(
     join(root, "examples/article-cover.json"),
     join(consumerDirectory, "design.json"),

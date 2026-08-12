@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { expect, it } from "vitest";
 
 import { installedCliInvocation } from "../scripts/package-consumer-cli.mjs";
+import { packageConsumerInstallPlan } from "../scripts/package-consumer-install.mjs";
 import { expectProcessFailureStderr } from "./helpers.js";
 
 const execFileAsync = promisify(execFile);
@@ -25,6 +26,33 @@ it("launches the installed Windows CLI shim through the command shell", () => {
   });
 });
 
+it("keeps the lockfile and audits signatures for a published package", () => {
+  expect(packageConsumerInstallPlan("@glyphkiln/core@0.5.0", true)).toEqual({
+    installArguments: [
+      "install",
+      "@glyphkiln/core@0.5.0",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+    ],
+    signatureAuditArguments: ["audit", "signatures"],
+  });
+});
+
+it("disables the lockfile when signature verification is not requested", () => {
+  expect(packageConsumerInstallPlan("./glyphkiln-core.tgz", false)).toEqual({
+    installArguments: [
+      "install",
+      "./glyphkiln-core.tgz",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--package-lock=false",
+    ],
+    signatureAuditArguments: undefined,
+  });
+});
+
 it("rejects an empty package spec before creating consumer files", async () => {
   const temporaryRoot = await mkdtemp(
     join(tmpdir(), "glyphkiln-package-consumer-test-"),
@@ -40,6 +68,52 @@ it("rejects an empty package spec before creating consumer files", async () => {
         TMPDIR: temporaryRoot,
       }),
     ).resolves.toContain("GLYPHKILN_PACKAGE_SPEC must not be empty when provided.");
+    await expect(readdir(temporaryRoot)).resolves.toEqual([]);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+it("rejects an invalid package-signature verification mode", async () => {
+  const temporaryRoot = await mkdtemp(
+    join(tmpdir(), "glyphkiln-package-signature-mode-test-"),
+  );
+
+  try {
+    await expect(
+      packageConsumerFailure({
+        ...process.env,
+        GLYPHKILN_VERIFY_PACKAGE_SIGNATURES: "true",
+        TEMP: temporaryRoot,
+        TMP: temporaryRoot,
+        TMPDIR: temporaryRoot,
+      }),
+    ).resolves.toContain(
+      "GLYPHKILN_VERIFY_PACKAGE_SIGNATURES must be 1 when provided.",
+    );
+    await expect(readdir(temporaryRoot)).resolves.toEqual([]);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+it("requires a selected package for signature verification", async () => {
+  const temporaryRoot = await mkdtemp(
+    join(tmpdir(), "glyphkiln-package-signature-spec-test-"),
+  );
+
+  try {
+    await expect(
+      packageConsumerFailure({
+        ...process.env,
+        GLYPHKILN_VERIFY_PACKAGE_SIGNATURES: "1",
+        TEMP: temporaryRoot,
+        TMP: temporaryRoot,
+        TMPDIR: temporaryRoot,
+      }),
+    ).resolves.toContain(
+      "GLYPHKILN_VERIFY_PACKAGE_SIGNATURES requires GLYPHKILN_PACKAGE_SPEC.",
+    );
     await expect(readdir(temporaryRoot)).resolves.toEqual([]);
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

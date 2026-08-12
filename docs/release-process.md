@@ -15,12 +15,29 @@
 7. Inspect `npm run pack:core:dry-run`, then install the local archive in a fresh
    consumer and verify strict TypeScript, public exports, CLI, and
    direct/isolated rendering.
-8. Create a signed Git tag and GitHub source release. This establishes source
-   and local-tarball readiness even when registry publication is paused.
-9. If approved by the owner, publish `@glyphkiln/core` manually with npm
-   provenance and repeat the installed-package checks against the published
-   archive.
+8. Create a signed Git tag, verify it against
+   `.github/release-allowed-signers`, and create the GitHub source release. This
+   establishes source and local-tarball readiness even when registry
+   publication is paused.
 
-This repository does not automatically publish from CI. npm publication is an
-optional, owner-controlled step and is not required for a signed source release
-or a verified local tarball.
+   The tag must contain both `.github/workflows/publish-core.yml` and
+   `.github/release-allowed-signers`. The existing `v0.5.0` tag predates those
+   files and is intentionally ineligible for registry publication; do not move
+   or recreate it. Begin npm publication with the next versioned release tagged
+   after this workflow reaches `main`.
+
+9. If approved by the owner, manually dispatch the `Publish Core to npm`
+   workflow at the signed tag ref, passing the same tag as its input:
+
+   ```sh
+   gh workflow run publish-core.yml --ref vX.Y.Z -f tag=vX.Y.Z
+   ```
+
+   The protected `npm` environment must require owner approval and provide
+   `NPM_TOKEN`. The workflow rejects a branch-ref dispatch, re-runs the release
+   checks, publishes from the signed tag with GitHub OIDC provenance, and
+   repeats the installed-package checks against the published archive.
+
+This repository does not publish on push or release creation. The publish
+workflow is manual and environment-gated; npm publication remains optional and
+is not required for a signed source release or verified local tarball.
