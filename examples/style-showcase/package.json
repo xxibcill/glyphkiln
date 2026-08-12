@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.22.2 || >=24.0.0"
   },
   "scripts": {
     "render": "node scripts/render.mjs",

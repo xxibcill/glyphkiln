@@ -33,7 +33,7 @@ unless a malware scanner is configured.
 You need:
 
 - Git
-- Node.js 22.13 or newer in the Node 22 line, or Node.js 24 or newer
+- Node.js 22.22.2 or newer in the Node 22 line, or Node.js 24 or newer
 - npm 10.9.8
 - Docker Engine or Docker Desktop with the Docker daemon running
 - OpenSSL, used once to create the first-owner token
