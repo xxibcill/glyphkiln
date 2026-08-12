@@ -23,7 +23,7 @@ import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led
 
 describe("campaign-family metadata", () => {
   it("publishes the exact image-led family contract", () => {
-    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.0.0");
+    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.1.0");
     expect(CAMPAIGN_FAMILY_REGISTRY).toEqual({
       "image-led-campaign": {
         id: "image-led-campaign",
@@ -32,6 +32,18 @@ describe("campaign-family metadata", () => {
           {
             template: { id: "image-led-campaign", version: "1.0.0" },
             formats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
+            compositionVariants: [
+              {
+                id: "focal-editorial",
+                label: "Focal editorial",
+                description:
+                  "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
+              },
+            ],
+          },
+          {
+            template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+            formats: ["tiktok-photo-carousel"],
             compositionVariants: [
               {
                 id: "focal-editorial",
@@ -115,6 +127,13 @@ describe("campaign-family metadata", () => {
       IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
     );
     expect(imageRole?.supportedTreatments).toEqual(IMAGE_TREATMENT_IDS);
+    const carouselMember = family.members[1];
+    const carouselTemplate = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
+    expect(carouselMember.template).toEqual({
+      id: carouselTemplate.id,
+      version: carouselTemplate.version,
+    });
+    expect(carouselMember.formats).toBe(carouselTemplate.supportedFormats);
   });
 
   it("exposes the same static catalog through the browser entry point", () => {
@@ -191,6 +210,24 @@ describe("campaign seed derivation", () => {
     expect(nextDirection.canvasSeed).not.toBe(first.canvasSeed);
     expect(nextSlide.directionSeed).toBe(first.directionSeed);
     expect(nextSlide.canvasSeed).not.toBe(first.canvasSeed);
+  });
+
+  it("derives exact canvas streams for the fourth carousel format", () => {
+    const firstSlide = deriveCampaignSeeds({
+      ...baseInput,
+      canvasKey: createCampaignCanvasKey("carousel-01"),
+      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      format: "tiktok-photo-carousel",
+    });
+    const secondSlide = deriveCampaignSeeds({
+      ...baseInput,
+      canvasKey: createCampaignCanvasKey("carousel-02"),
+      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      format: "tiktok-photo-carousel",
+    });
+
+    expect(firstSlide.directionSeed).toBe(secondSlide.directionSeed);
+    expect(firstSlide.canvasSeed).not.toBe(secondSlide.canvasSeed);
   });
 
   it.each([

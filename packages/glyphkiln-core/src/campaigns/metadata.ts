@@ -1,9 +1,10 @@
 import type { DesignLayer, ImageTreatmentId, TemplateId } from "../schema/index.js";
 import type { FormatId } from "../formats/index.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../templates/image-led-campaign-contract.js";
+import { TEMPLATE_REGISTRY } from "../templates/index.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
-export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.0.0" as const;
+export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.1.0" as const;
 
 export const CAMPAIGN_FAMILY_IDS = Object.freeze(["image-led-campaign"] as const);
 export type CampaignFamilyId = (typeof CAMPAIGN_FAMILY_IDS)[number];
@@ -76,6 +77,14 @@ const imageLedCampaignFamily = {
         version: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version,
       },
       formats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
+      compositionVariants: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
+    },
+    {
+      template: {
+        id: TEMPLATE_REGISTRY["tiktok-carousel-slide"].id,
+        version: TEMPLATE_REGISTRY["tiktok-carousel-slide"].version,
+      },
+      formats: TEMPLATE_REGISTRY["tiktok-carousel-slide"].supportedFormats,
       compositionVariants: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
     },
   ],

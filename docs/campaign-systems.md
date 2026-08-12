@@ -8,7 +8,7 @@ export bundles.
 ## Family metadata
 
 `CAMPAIGN_FAMILY_REGISTRY` is an immutable, browser-safe catalog with metadata
-version `1.0.0`. Its first family, `image-led-campaign`, records:
+version `1.1.0`. Its first family, `image-led-campaign`, records:
 
 - exact member template IDs and versions;
 - compatible output formats;
@@ -17,10 +17,12 @@ version `1.0.0`. Its first family, `image-led-campaign`, records:
 - named composition variants; and
 - safe-area and render-evidence behavior.
 
-The first named variant, `focal-editorial`, describes the existing
-`image-led-campaign@1.0.0` composition. It does not add a document field or
-change pixels. Metadata drift is tested against the authoritative template and
-treatment registries.
+The family coordinates `image-led-campaign@1.0.0` across landscape, square, and
+portrait plus `tiktok-carousel-slide@1.0.3` for exact 3:4 carousel slides. The
+named direction variant, `focal-editorial`, does not add a document field or
+change either template's pixels. Distinct carousel canvas keys produce distinct
+slide seeds while retaining the direction seed. Metadata drift is tested against
+the authoritative template and treatment registries.
 
 The registry is exported from both `@glyphkiln/core` and
 `@glyphkiln/core/browser`. The browser export contains static data only and

@@ -805,6 +805,28 @@ describe("AppWorkflow", () => {
       directionSeed: expectedSeeds.directionSeed,
       canvasSeed: expectedSeeds.canvasSeed,
     });
+    const carouselSeedAdvice = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "carousel-01",
+          templateId: "tiktok-carousel-slide",
+          format: "tiktok-photo-carousel",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(carouselSeedAdvice).toMatchObject({
+      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      format: "tiktok-photo-carousel",
+      directionSeed: seedAdvice.directionSeed,
+    });
+    expect(carouselSeedAdvice.canvasSeed).not.toBe(seedAdvice.canvasSeed);
     const campaignAssets = [
       {
         id: "campaign-image-one",

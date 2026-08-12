@@ -10,3 +10,7 @@ evidence.
 The campaign surface is dark-launched by default and requires the explicit
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` operator assertion after a
 passing real-brief qualification record.
+
+The campaign family includes the existing deterministic 3:4 TikTok carousel
+template so qualification can exercise a fourth format and repeated slide
+canvas streams without changing renderer or template pixels.

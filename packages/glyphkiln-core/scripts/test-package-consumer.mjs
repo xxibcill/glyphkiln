@@ -200,10 +200,20 @@ assert.equal(
   candidates.candidates[0].canonicalDocument,
   canonicalJson(candidates.candidates[0].document),
 );
-assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.1.0");
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
   "1.0.0",
+);
+assert.deepEqual(
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[1],
+  {
+    template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+    formats: ["tiktok-photo-carousel"],
+    compositionVariants:
+      CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0]
+        .compositionVariants,
+  },
 );
 assert.equal(
   deriveCampaignSeeds({
@@ -356,7 +366,8 @@ const campaignFamily: CampaignFamilyDefinition =
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
 if (
   campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
-  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.0.0"
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.1.0" ||
+  campaignFamily.members[1]?.template.id !== "tiktok-carousel-slide"
 ) {
   throw new Error("campaign contract");
 }
