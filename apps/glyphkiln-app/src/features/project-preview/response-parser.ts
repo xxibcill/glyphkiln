@@ -191,17 +191,14 @@ function inspectTrustedManifest(
   );
   const fontsMatchDocument =
     manifest.fonts.length > 0 &&
-    manifest.fonts.every(
-      (font) =>
-        response.document.fonts.some(
-          (declaration) =>
-            declaration.family === font.family &&
-            declaration.weight === font.weight &&
-            declaration.style === font.style &&
-            declaration.sha256 === font.sha256,
-        ) &&
-        font.family === "Inter" &&
-        font.sha256 === catalog.developmentFontSha256,
+    manifest.fonts.every((font) =>
+      response.document.fonts.some(
+        (declaration) =>
+          declaration.family === font.family &&
+          declaration.weight === font.weight &&
+          declaration.style === font.style &&
+          declaration.sha256 === font.sha256,
+      ),
     );
 
   if (
