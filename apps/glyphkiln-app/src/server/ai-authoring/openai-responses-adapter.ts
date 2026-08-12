@@ -91,20 +91,21 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
     }, this.#timeoutMs);
     try {
       const serializedInput = providerInput(input);
+      const requestBody = canonicalJson({
+        model: this.descriptor.modelId,
+        store: false,
+        max_output_tokens: this.#maximumOutputTokens,
+        instructions: providerInstructions(input.candidateCount),
+        input: serializedInput,
+        text: { format: { type: "json_object" } },
+      });
       const response = await this.#fetch(OPENAI_RESPONSES_ENDPOINT, {
         method: "POST",
         headers: {
           authorization: `Bearer ${this.#apiKey}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          model: this.descriptor.modelId,
-          store: false,
-          max_output_tokens: this.#maximumOutputTokens,
-          instructions: providerInstructions(input.candidateCount),
-          input: serializedInput,
-          text: { format: { type: "json_object" } },
-        }),
+        body: requestBody,
         signal: controller.signal,
       });
       const responseText = await readBoundedResponseText(response);
@@ -118,6 +119,7 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
       try {
         return Object.freeze({
           response: parsedResponse,
+          inputHash: hashCanonical(requestBody),
           responseHash: hashCanonical(parsedResponse),
         });
       } catch {

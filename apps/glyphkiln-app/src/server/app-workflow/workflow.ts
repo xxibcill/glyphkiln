@@ -1726,10 +1726,12 @@ class AppWorkflowImplementation implements AppWorkflow {
       locks,
     } as const;
     let providerResponse: unknown;
+    let inputHash: string;
     let responseHash: string;
     try {
       const result = await this.#briefInterpreter.interpret(interpreterInput);
       providerResponse = result.response;
+      inputHash = result.inputHash;
       responseHash = result.responseHash;
     } catch (error) {
       if (error instanceof BriefInterpreterProviderError) {
@@ -1747,7 +1749,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         "The optional proposal provider did not complete the bounded request.",
       );
     }
-    if (!/^[0-9a-f]{64}$/.test(responseHash)) {
+    if (!/^[0-9a-f]{64}$/.test(inputHash) || !/^[0-9a-f]{64}$/.test(responseHash)) {
       throw fault(
         422,
         "AI_PROPOSAL_REJECTED",
@@ -1876,7 +1878,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       baseDesignId: base.designId,
       baseRevisionId: base.revisionId,
       descriptor: { ...this.#briefInterpreter.descriptor },
-      inputHash: hashCanonical(interpreterInput),
+      inputHash,
       responseHash,
       locks: [...locks],
       createdAt: now.toISOString(),

@@ -26,6 +26,7 @@ export type BriefInterpreterDescriptor = {
 
 export type BriefInterpreterResult = {
   readonly response: unknown;
+  readonly inputHash: string;
   readonly responseHash: string;
 };
 

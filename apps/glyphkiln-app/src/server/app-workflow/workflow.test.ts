@@ -682,6 +682,7 @@ describe("AppWorkflow", () => {
       ],
     });
     expect(proposalRun.inputHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(proposalRun.inputHash).toBe(briefInterpreter.lastInputHash);
     expect(proposalRun.responseHash).toMatch(/^[0-9a-f]{64}$/);
     expect(
       proposalRun.candidates.every((candidate) =>
@@ -755,6 +756,7 @@ describe("AppWorkflow", () => {
     });
     briefInterpreter.resultOverride = () => ({
       response: accessorResponse,
+      inputHash: "f".repeat(64),
       responseHash: "0".repeat(64),
     });
     expectFailure(
@@ -3273,6 +3275,7 @@ class TestBriefInterpreter implements BriefInterpreter {
   resultOverride?: (
     input: Parameters<BriefInterpreter["interpret"]>[0],
   ) => BriefInterpreterResult;
+  lastInputHash?: string;
 
   interpret(
     input: Parameters<BriefInterpreter["interpret"]>[0],
@@ -3300,7 +3303,12 @@ class TestBriefInterpreter implements BriefInterpreter {
         };
       }),
     };
-    return Promise.resolve({ response, responseHash: hashCanonical(response) });
+    this.lastInputHash = hashCanonical({ providerRequest: input });
+    return Promise.resolve({
+      response,
+      inputHash: this.lastInputHash,
+      responseHash: hashCanonical(response),
+    });
   }
 }
 
