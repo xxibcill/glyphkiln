@@ -115,6 +115,9 @@ describe("CampaignStudio", () => {
       baseCanvasId: "canvas-1",
       candidateCount: 3,
     });
+
+    await clickButton("Open revision");
+    expect(onOpenDesign).toHaveBeenCalledWith("design-1", "revision-1");
   });
 
   async function clickButton(label: string): Promise<void> {

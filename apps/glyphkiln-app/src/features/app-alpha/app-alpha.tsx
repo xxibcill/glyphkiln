@@ -442,14 +442,14 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
     finishAction();
   }
 
-  async function reopenDesign(designId: string): Promise<void> {
+  async function reopenDesign(designId: string, revisionId?: string): Promise<void> {
     if (selectedWorkspaceId === undefined || busyAction !== undefined) return;
     if (!beginAction("reopen")) return;
     clearAppFailure();
     const revisionResult = await api.revision({
       workspaceId: selectedWorkspaceId,
       designId,
-      revision: "head",
+      revision: revisionId === undefined ? "head" : { revisionId },
     });
     if (!revisionResult.ok) {
       handleReadFailure(revisionResult);

@@ -39,7 +39,7 @@ export function CampaignStudio({
   openRevision?: DesignRevision;
   canCoordinate: boolean;
   onCampaignChanged: () => Promise<void>;
-  onOpenDesign: (designId: string) => Promise<void>;
+  onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
 }) {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>();
   const [board, setBoard] = useState<CampaignBoard>();
@@ -463,7 +463,9 @@ export function CampaignStudio({
                         <button
                           type="button"
                           className="text-action"
-                          onClick={() => void onOpenDesign(canvas.designId)}
+                          onClick={() =>
+                            void onOpenDesign(canvas.designId, canvas.revisionId)
+                          }
                         >
                           Open revision
                         </button>
