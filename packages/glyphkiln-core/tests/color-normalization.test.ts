@@ -1,4 +1,4 @@
-import { deflateSync } from "node:zlib";
+import { deflateSync, inflateSync } from "node:zlib";
 
 import { encode as encodeJpeg } from "jpeg-js";
 import { PNG } from "pngjs";
@@ -267,6 +267,59 @@ describe("canonical sRGB color normalization", () => {
   });
 
   it.each([
+    [
+      "PNG",
+      "trailing bytes",
+      (profile: Uint8Array) => concatenate([profile, Uint8Array.of(1, 2, 3)]),
+    ],
+    ["PNG", "truncated bytes", (profile: Uint8Array) => profile.subarray(0, -1)],
+    [
+      "JPEG",
+      "trailing bytes",
+      (profile: Uint8Array) => concatenate([profile, Uint8Array.of(1, 2, 3)]),
+    ],
+    ["JPEG", "truncated bytes", (profile: Uint8Array) => profile.subarray(0, -1)],
+  ] as const)(
+    "rejects a %s ICC profile containing %s beyond its declared length",
+    async (format, _description, mutateProfile) => {
+      const profile = extractPngProfile(DISPLAY_P3_PNG);
+      const malformedProfile = mutateProfile(profile);
+      const input =
+        format === "PNG"
+          ? {
+              bytes: insertPngChunk(
+                createPng([20, 40, 60, 255], 1, 1),
+                "iCCP",
+                concatenate([
+                  Buffer.from("profile\0\0", "latin1"),
+                  deflateSync(malformedProfile),
+                ]),
+              ),
+              mimeType: "image/png" as const,
+            }
+          : {
+              bytes: insertJpegApp(
+                encodeJpeg(
+                  { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },
+                  90,
+                ).data,
+                0xe2,
+                concatenate([
+                  Buffer.from("ICC_PROFILE\0", "latin1"),
+                  Uint8Array.of(1, 1),
+                  malformedProfile,
+                ]),
+              ),
+              mimeType: "image/jpeg" as const,
+            };
+
+      await expect(normalizeRasterColorInProcess(input)).rejects.toMatchObject({
+        code: "COLOR_PROFILE_INVALID",
+      });
+    },
+  );
+
+  it.each([
     ["a second complete image", (jpeg: Uint8Array) => concatenate([jpeg, jpeg])],
     [
       "trailing bytes",
@@ -383,6 +436,26 @@ function pngChunkTypes(bytes: Uint8Array): string[] {
     offset += 12 + length;
   }
   return types;
+}
+
+function extractPngProfile(bytes: Uint8Array): Uint8Array {
+  let offset = 8;
+  while (offset < bytes.byteLength) {
+    const length = readUint32(bytes, offset);
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    const type = String.fromCharCode(...bytes.subarray(offset + 4, dataStart));
+    if (type === "iCCP") {
+      const data = bytes.subarray(dataStart, dataEnd);
+      const nameEnd = data.indexOf(0);
+      if (nameEnd < 1 || data[nameEnd + 1] !== 0) {
+        throw new Error("invalid test PNG profile");
+      }
+      return new Uint8Array(inflateSync(data.subarray(nameEnd + 2)));
+    }
+    offset = dataEnd + 4;
+  }
+  throw new Error("test PNG has no embedded profile");
 }
 
 function insertPngChunk(bytes: Uint8Array, type: string, data: Uint8Array): Uint8Array {

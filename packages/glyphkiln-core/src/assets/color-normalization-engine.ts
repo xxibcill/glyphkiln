@@ -737,11 +737,18 @@ function assertDimensions(width: number, height: number): void {
 
 function embeddedProfile(bytes: Uint8Array): ColorNormalizationProfile {
   assertProfileLimit(bytes.byteLength);
+  assertProfileDeclaredLength(bytes);
   return {
     kind: "embedded-icc",
     byteLength: bytes.byteLength,
     sha256: sha256(bytes),
   };
+}
+
+function assertProfileDeclaredLength(bytes: Uint8Array): void {
+  if (bytes.byteLength < 4 || readUint32Be(bytes, 0) !== bytes.byteLength) {
+    throwInvalidProfile();
+  }
 }
 
 function assertProfileLimit(actual: number): void {
