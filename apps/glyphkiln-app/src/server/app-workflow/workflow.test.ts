@@ -15,10 +15,7 @@ import {
   type PGliteDatabase,
 } from "@/server/persistence/pglite-database";
 import { migrateDatabase } from "@/server/persistence/migrations";
-import {
-  PostgresRenderQueue,
-  RenderQueueCapacityError,
-} from "@/server/render-queue";
+import { PostgresRenderQueue, RenderQueueCapacityError } from "@/server/render-queue";
 import { RenderResourceResolutionError } from "@/server/render-worker";
 import type {
   ResourceAdmission,
@@ -313,6 +310,63 @@ describe("AppWorkflow", () => {
     expect(serialized).not.toContain("scannerName");
     expect(serialized).not.toContain("private-scanner");
     expect(serialized).not.toContain("createdBy");
+  });
+
+  it("does not disclose selectable resources across workspaces or revoked memberships", async () => {
+    const owner = await bootstrapOwner();
+    const firstWorkspaceId = requireWorkspaceId(owner);
+    const secondWorkspace = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: { type: "workspace.create", name: "Separate Resource Studio" },
+      }),
+      "workspace-created",
+    ).workspace;
+    const viewer = await registerMember(
+      owner,
+      firstWorkspaceId,
+      "resource-viewer@example.com",
+      "viewer",
+    );
+
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: viewer.sessionToken },
+        query: { type: "workspace.resources", workspaceId: secondWorkspace.id },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "workspace.member.revoke",
+          workspaceId: firstWorkspaceId,
+          userId: viewer.user.id,
+        },
+      }),
+      "workspace-member-revoked",
+    );
+    const replacementSession = expectSessionGrant(
+      await workflow.execute({
+        evidence: {},
+        command: {
+          type: "session.login",
+          email: viewer.user.email,
+          password: "correct horse battery staple",
+        },
+      }),
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: replacementSession.sessionToken },
+        query: { type: "workspace.resources", workspaceId: firstWorkspaceId },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
   });
 
   it("coordinates a deterministic campaign board around exact revisions and canonical locks", async () => {
