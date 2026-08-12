@@ -1,11 +1,26 @@
 // @vitest-environment jsdom
 
+import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
+
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  hashCanonical,
+  MANIFEST_VERSION,
+  PRODUCT_CLAIM,
+  RENDERER_NAME,
+  RENDERER_VERSION,
+  TYPOGRAPHY_POLICY,
+} from "@glyphkiln/core";
+import type { RenderManifest } from "@glyphkiln/core";
+
 import type { CampaignSummary } from "@/server/app-workflow";
+import { createPreviewDesign } from "@/test/preview-design";
+import type { PreviewSuccess } from "@/features/project-preview/types";
 
 import { createAppAlphaApi } from "./api-client";
 import { CampaignStudio } from "./campaign-studio";
@@ -121,11 +136,20 @@ describe("CampaignStudio", () => {
   });
 
   it.each([
-    ["matching", "proof-fingerprint", true],
-    ["changed", "changed-fingerprint", false],
+    ["matching", false, true],
+    ["changed", true, false],
   ])(
     "%s persisted proof metadata controls whether decision refresh retains proof bytes",
-    async (_name, refreshedFingerprint, shouldRetainProof) => {
+    async (_name, changeFingerprint, shouldRetainProof) => {
+      const proof = proposalProofFixture();
+      const png = proof.outputs.find((output) => output.format === "png");
+      if (png === undefined) throw new Error("Expected a PNG proposal proof.");
+      const createdRun = proposalRunWithProof(proof, png.fingerprint, true);
+      const refreshedRun = proposalRunWithProof(
+        proof,
+        changeFingerprint ? "f".repeat(64) : png.fingerprint,
+        false,
+      );
       const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
         const body = JSON.parse(requestBody(init?.body)) as { type: string };
         if (body.type === "campaign.board") {
@@ -135,7 +159,7 @@ describe("CampaignStudio", () => {
           return Promise.resolve(
             success(201, {
               kind: "campaign-proposals-created",
-              run: proposalRunWithProof("proof-fingerprint", true),
+              run: createdRun,
             }),
           );
         }
@@ -150,10 +174,11 @@ describe("CampaignStudio", () => {
         if (body.type === "campaign.proposal.run") {
           return Promise.resolve(
             success(200, {
-              ...proposalRunWithProof(refreshedFingerprint, false),
-              candidates: proposalRunWithProof(refreshedFingerprint, false).candidates.map(
-                (candidate, index) =>
-                  index === 0 ? { ...candidate, decision: proposalDecision() } : candidate,
+              ...refreshedRun,
+              candidates: refreshedRun.candidates.map((candidate, index) =>
+                index === 0
+                  ? { ...candidate, decision: proposalDecision() }
+                  : candidate,
               ),
             }),
           );
@@ -275,8 +300,27 @@ function proposalRunFixture() {
   };
 }
 
-function proposalRunWithProof(fingerprint: string, includeBytes: boolean) {
+function proposalRunWithProof(
+  proof: PreviewSuccess,
+  fingerprint: string,
+  includeBytes: boolean,
+) {
   const run = proposalRunFixture();
+  const outputs = proof.outputs.map((output) => {
+    const next = structuredClone(output);
+    if (output.format === "png" && fingerprint !== output.fingerprint) {
+      next.fingerprint = fingerprint;
+      next.manifest.renderFingerprint = fingerprint;
+    }
+    if (!includeBytes) {
+      const metadata = { ...next } as Omit<typeof next, "base64"> & {
+        base64?: string;
+      };
+      delete metadata.base64;
+      return metadata;
+    }
+    return next;
+  });
   return {
     ...run,
     candidates: run.candidates.map((candidate, index) =>
@@ -284,27 +328,100 @@ function proposalRunWithProof(fingerprint: string, includeBytes: boolean) {
         ? {
             ...candidate,
             status: "proved",
-            canonicalHash: "e".repeat(64),
+            document: proof.document,
+            canonicalHash: hashCanonical(proof.document),
             issues: [],
             proof: {
-              qualityIssues: [],
-              evidence: {},
-              outputs: [
-                {
-                  format: "png",
-                  mimeType: "image/png",
-                  ...(includeBytes ? { base64: "AA==" } : {}),
-                  byteSize: 1,
-                  fingerprint,
-                  filename: "proposal.png",
-                  manifest: {},
-                },
-              ],
+              qualityIssues: proof.qualityIssues,
+              evidence: proof.evidence,
+              outputs,
             },
           }
         : candidate,
     ),
   };
+}
+
+function proposalProofFixture(): PreviewSuccess {
+  const document = createPreviewDesign();
+  const fingerprint = "a".repeat(64);
+  const baseManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
+    manifestVersion: MANIFEST_VERSION,
+    renderId: `render_${fingerprint.slice(0, 24)}`,
+    renderFingerprint: fingerprint,
+    designDocumentId: document.id,
+    designDocumentHash: hashCanonical(document),
+    seed: document.seed,
+    template: { ...document.template },
+    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: TYPOGRAPHY_POLICY,
+    proceduralAlgorithmVersions: { "layered-waves": "1.1.0" },
+    assets: [],
+    fonts: document.fonts.map((font) => ({
+      ...font,
+      sha256: font.sha256 ?? "d".repeat(64),
+    })),
+    dimensions: { width: 1_200, height: 627 },
+    creationTimestamp: CAMPAIGN.createdAt,
+    compositionGenerativeImageModelUsed: false,
+    includedGenerativeAssetUsed: false,
+    qualityIssues: [],
+    productClaim: PRODUCT_CLAIM,
+  };
+  const svgBase64 = "PHN2ZyAvPg==";
+  const pngBase64 = "iVBORw0KGgo=";
+  return {
+    ok: true,
+    document,
+    qualityIssues: [],
+    evidence: {
+      version: "1.0.0",
+      safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
+      text: [],
+      crops: [],
+      contrast: [],
+    },
+    outputs: [
+      {
+        format: "svg",
+        mimeType: "image/svg+xml",
+        base64: svgBase64,
+        byteSize: 7,
+        fingerprint,
+        filename: `${document.id}.svg`,
+        manifest: {
+          ...baseManifest,
+          output: {
+            format: "svg",
+            sha256: sha256Base64(svgBase64),
+            byteSize: 7,
+          },
+          renderingMethod: "deterministic-code-rendering/direct-svg",
+        },
+      },
+      {
+        format: "png",
+        mimeType: "image/png",
+        base64: pngBase64,
+        byteSize: 8,
+        fingerprint,
+        filename: `${document.id}.png`,
+        manifest: {
+          ...baseManifest,
+          output: {
+            format: "png",
+            sha256: sha256Base64(pngBase64),
+            byteSize: 8,
+          },
+          renderingMethod: "deterministic-code-rendering/resvg",
+        },
+      },
+    ],
+  };
+}
+
+function sha256Base64(base64: string): string {
+  return createHash("sha256").update(Buffer.from(base64, "base64")).digest("hex");
 }
 
 function proposalDecision() {
@@ -343,5 +460,5 @@ function parseUnknownJson(input: string): unknown {
 }
 
 function flushEffects(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
+  return new Promise((resolve) => setTimeout(resolve, 10));
 }

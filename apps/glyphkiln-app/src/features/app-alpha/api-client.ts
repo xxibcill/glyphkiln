@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schema";
+import { canonicalJson } from "@glyphkiln/core/browser";
 import { z } from "zod";
 
 import type {
@@ -9,6 +10,7 @@ import type {
   AppQuery,
   BrandSnapshotDraft,
   CampaignHandoffProjection,
+  CampaignProposalRunProjection,
   ManualDraft,
 } from "@/server/app-workflow";
 import type {
@@ -18,7 +20,12 @@ import type {
   UserSummary,
   WorkspaceMembershipSummary,
 } from "@/server/app-workflow/contracts";
-import { parsePreviewResponse } from "@/features/project-preview/response-parser";
+import {
+  isRenderProofProjection,
+  MAXIMUM_BROWSER_RENDER_PROOF_BYTES,
+  parsePreviewResponse,
+  type RenderProofProjection,
+} from "@/features/project-preview/response-parser";
 import type { PreviewFailure, PreviewSuccess } from "@/features/project-preview/types";
 
 const WorkspaceRoleSchema = z.enum(["owner", "admin", "editor", "viewer"]);
@@ -82,6 +89,11 @@ const QualityIssueSchema = z
     details: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
+const MAXIMUM_CAMPAIGN_HANDOFF_BYTES = 64 * 1024 * 1024;
+const MAXIMUM_BASE64_HANDOFF_CHARACTERS =
+  Math.ceil(MAXIMUM_CAMPAIGN_HANDOFF_BYTES / 3) * 4;
+const BASE64_PATTERN =
+  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 const FailureSchema = z
   .object({
@@ -414,8 +426,13 @@ const ProposalProofOutputSchema = z
   .object({
     format: z.enum(["svg", "png"]),
     mimeType: z.enum(["image/svg+xml", "image/png"]),
-    base64: z.string().min(1).optional(),
-    byteSize: z.number().int().positive(),
+    base64: z
+      .string()
+      .min(1)
+      .max(Math.ceil(MAXIMUM_BROWSER_RENDER_PROOF_BYTES / 3) * 4)
+      .regex(BASE64_PATTERN)
+      .optional(),
+    byteSize: z.number().int().positive().max(MAXIMUM_BROWSER_RENDER_PROOF_BYTES),
     fingerprint: z.string().min(1),
     filename: z.string().min(1),
     manifest: z.unknown(),
@@ -446,7 +463,49 @@ const ProposalCandidateSchema = z
       .optional(),
     decision: ProposalDecisionSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((candidate, context) => {
+    if (candidate.status === "proved") {
+      if (
+        candidate.document === undefined ||
+        candidate.canonicalHash === undefined ||
+        candidate.proof === undefined ||
+        !isRenderProofProjection(
+          candidate.proof,
+          candidate.document,
+          candidate.canonicalHash,
+        )
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "A proved campaign candidate requires one bounded Core proof.",
+        });
+      }
+    } else if (
+      candidate.proof !== undefined &&
+      (candidate.document === undefined ||
+        candidate.canonicalHash === undefined ||
+        !isRenderProofProjection(
+          candidate.proof,
+          candidate.document,
+          candidate.canonicalHash,
+        ))
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Campaign proposal proof metadata is invalid.",
+      });
+    }
+    if (
+      (candidate.document === undefined) !==
+      (candidate.canonicalHash === undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Campaign proposal document authority is incomplete.",
+      });
+    }
+  });
 const ProposalRunSchema = z
   .object({
     kind: z.literal("campaign-proposal-run"),
@@ -491,14 +550,42 @@ const CampaignHandoffSchema = z
   .object({
     kind: z.literal("campaign-handoff"),
     campaignId: z.string().min(1),
-    filename: z.string().min(1),
+    filename: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,199}$/),
     mediaType: z.literal("application/vnd.glyphkiln.campaign-handoff+json"),
-    byteSize: z.number().int().positive(),
+    byteSize: z.number().int().positive().max(MAXIMUM_CAMPAIGN_HANDOFF_BYTES),
     sha256: z.string().regex(/^[0-9a-f]{64}$/),
-    base64: z.string().min(1),
-    fileCount: z.number().int().nonnegative(),
-    approvedCanvasCount: z.number().int().nonnegative(),
-    unapprovedCanvasCount: z.number().int().nonnegative(),
+    base64: z
+      .string()
+      .min(1)
+      .max(MAXIMUM_BASE64_HANDOFF_CHARACTERS)
+      .regex(BASE64_PATTERN),
+    fileCount: z.number().int().nonnegative().max(512),
+    approvedCanvasCount: z.number().int().nonnegative().max(64),
+    unapprovedCanvasCount: z.number().int().nonnegative().max(64),
+  })
+  .strict();
+
+const CampaignHandoffFileSchema = z
+  .object({
+    path: z.string().min(1).max(512).refine(isSafeArchivePath),
+    mediaType: z.string().min(1).max(128),
+    byteSize: z.number().int().nonnegative().max(MAXIMUM_CAMPAIGN_HANDOFF_BYTES),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/),
+    base64: z.string().max(MAXIMUM_BASE64_HANDOFF_CHARACTERS).regex(BASE64_PATTERN),
+    approvalStatus: z.enum(["approved", "unapproved"]),
+  })
+  .strict();
+const CampaignHandoffArchiveSchema = z
+  .object({
+    version: z.literal("1.0.0"),
+    campaign: CampaignSummarySchema,
+    files: z.array(CampaignHandoffFileSchema).max(512),
+    summary: z
+      .object({
+        approvedCanvasCount: z.number().int().nonnegative().max(64),
+        unapprovedCanvasCount: z.number().int().nonnegative().max(64),
+      })
+      .strict(),
   })
   .strict();
 
@@ -655,8 +742,11 @@ export type RenderJobOutput = z.infer<typeof RenderJobOutputSchema>;
 export type CampaignBoard = z.infer<typeof CampaignBoardSchema>;
 export type CampaignDirection = z.infer<typeof CampaignDirectionSchema>;
 export type CampaignCanvas = z.infer<typeof CampaignCanvasSchema>;
-export type CampaignProposalRun = z.infer<typeof ProposalRunSchema>;
+export type CampaignProposalRun = CampaignProposalRunProjection;
 export type CampaignProposalDecision = z.infer<typeof ProposalDecisionSchema>;
+export type CampaignHandoff = Omit<CampaignHandoffProjection, "base64"> & {
+  bytes: Uint8Array;
+};
 export type RevisionReview = z.infer<typeof RevisionReviewSchema>;
 export type RevisionComparison = {
   left: { revision: DesignRevision; proof: PreviewSuccess };
@@ -807,7 +897,7 @@ export type AppAlphaApi = {
   campaignHandoff: (
     workspaceId: string,
     campaignId: string,
-  ) => Promise<ApiResult<CampaignHandoffProjection>>;
+  ) => Promise<ApiResult<CampaignHandoff>>;
   compareRevisions: (input: {
     workspaceId: string;
     leftDesignId: string;
@@ -1110,14 +1200,14 @@ export function createAppAlphaApi(
       );
     },
     async requestCampaignProposals(input) {
-      return parseValue(
+      return parseProposalRun(
         await command({ type: "campaign.proposals.request", ...input }),
         ProposalCreatedSchema,
         (value) => value.run,
       );
     },
     async campaignProposalRun(input) {
-      return parseValue(
+      return parseProposalRun(
         await query({ type: "campaign.proposal.run", ...input }),
         ProposalRunSchema,
         (value) => value,
@@ -1138,10 +1228,9 @@ export function createAppAlphaApi(
       );
     },
     async campaignHandoff(workspaceId, campaignId) {
-      return parseValue(
+      return parseCampaignHandoff(
         await query({ type: "campaign.handoff", workspaceId, campaignId }),
-        CampaignHandoffSchema,
-        (value) => value,
+        campaignId,
       );
     },
     async compareRevisions(input) {
@@ -1207,6 +1296,152 @@ function parseValue<Schema extends z.ZodType, Output>(
   return parsed.success
     ? { ok: true, value: project(parsed.data) }
     : malformedResponse();
+}
+
+async function parseProposalRun<Schema extends z.ZodType>(
+  result: RawResult,
+  schema: Schema,
+  project: (value: z.output<Schema>) => z.infer<typeof ProposalRunSchema>,
+): Promise<ApiResult<CampaignProposalRun>> {
+  const parsed = parseValue(result, schema, project);
+  if (!parsed.ok) return parsed;
+  const run = parsed.value;
+  for (const candidate of run.candidates) {
+    if (candidate.document !== undefined && candidate.canonicalHash !== undefined) {
+      const documentHash = await sha256Bytes(
+        new TextEncoder().encode(canonicalJson(candidate.document)),
+      );
+      if (documentHash !== candidate.canonicalHash) return malformedResponse();
+    }
+    if (candidate.proof === undefined) continue;
+    const proof = candidate.proof as RenderProofProjection;
+    for (const output of proof.outputs) {
+      if (output.base64 === undefined) continue;
+      const bytes = decodeBase64(output.base64, output.byteSize);
+      if (
+        bytes === undefined ||
+        (await sha256Bytes(bytes)) !== output.manifest.output.sha256
+      ) {
+        return malformedResponse();
+      }
+    }
+  }
+  return { ok: true, value: run as CampaignProposalRun };
+}
+
+async function parseCampaignHandoff(
+  result: RawResult,
+  expectedCampaignId: string,
+): Promise<ApiResult<CampaignHandoff>> {
+  const parsed = parseValue(result, CampaignHandoffSchema, (value) => value);
+  if (!parsed.ok) return parsed;
+  const value = parsed.value;
+  const bytes = decodeBase64(value.base64, value.byteSize);
+  if (
+    bytes === undefined ||
+    value.campaignId !== expectedCampaignId ||
+    value.approvedCanvasCount + value.unapprovedCanvasCount > 64 ||
+    (await sha256Bytes(bytes)) !== value.sha256
+  ) {
+    return malformedResponse();
+  }
+  let archiveInput: unknown;
+  try {
+    archiveInput = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    return malformedResponse();
+  }
+  const archive = CampaignHandoffArchiveSchema.safeParse(archiveInput);
+  const approvalFiles = archive.success
+    ? archive.data.files.filter((file) => file.path.endsWith(".approval.json"))
+    : [];
+  if (
+    !archive.success ||
+    archive.data.campaign.id !== expectedCampaignId ||
+    archive.data.files.length !== value.fileCount ||
+    archive.data.summary.approvedCanvasCount !== value.approvedCanvasCount ||
+    archive.data.summary.unapprovedCanvasCount !== value.unapprovedCanvasCount ||
+    new Set(archive.data.files.map((file) => file.path)).size !==
+      archive.data.files.length ||
+    !hasStrictlyIncreasingPaths(archive.data.files) ||
+    approvalFiles.filter((file) => file.approvalStatus === "approved").length !==
+      value.approvedCanvasCount ||
+    approvalFiles.filter((file) => file.approvalStatus === "unapproved").length !==
+      value.unapprovedCanvasCount
+  ) {
+    return malformedResponse();
+  }
+  for (const file of archive.data.files) {
+    const fileBytes = decodeBase64(file.base64, file.byteSize);
+    if (fileBytes === undefined || (await sha256Bytes(fileBytes)) !== file.sha256) {
+      return malformedResponse();
+    }
+  }
+  return {
+    ok: true,
+    value: {
+      kind: value.kind,
+      campaignId: value.campaignId,
+      filename: value.filename,
+      mediaType: value.mediaType,
+      byteSize: value.byteSize,
+      sha256: value.sha256,
+      fileCount: value.fileCount,
+      approvedCanvasCount: value.approvedCanvasCount,
+      unapprovedCanvasCount: value.unapprovedCanvasCount,
+      bytes,
+    },
+  };
+}
+
+function decodeBase64(base64: string, expectedBytes: number): Uint8Array | undefined {
+  if (
+    expectedBytes > MAXIMUM_CAMPAIGN_HANDOFF_BYTES ||
+    base64.length > Math.ceil(expectedBytes / 3) * 4 ||
+    !BASE64_PATTERN.test(base64)
+  ) {
+    return undefined;
+  }
+  try {
+    const binary = globalThis.atob(base64);
+    if (binary.length !== expectedBytes) return undefined;
+    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  } catch {
+    return undefined;
+  }
+}
+
+async function sha256Bytes(bytes: Uint8Array): Promise<string> {
+  const cryptoValue = Reflect.get(globalThis, "crypto") as Crypto | undefined;
+  const subtle = cryptoValue?.subtle;
+  if (subtle === undefined) return "";
+  const digest = await subtle.digest("SHA-256", Uint8Array.from(bytes).buffer);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function hasStrictlyIncreasingPaths(files: { path: string }[]): boolean {
+  for (let index = 1; index < files.length; index += 1) {
+    const previous = files.at(index - 1);
+    const current = files.at(index);
+    if (
+      previous === undefined ||
+      current === undefined ||
+      previous.path >= current.path
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isSafeArchivePath(path: string): boolean {
+  return (
+    !path.startsWith("/") &&
+    !path.includes("\\") &&
+    path.split("/").every((part) => part !== "" && part !== "." && part !== "..")
+  );
 }
 
 function parseRenderedReceipt(

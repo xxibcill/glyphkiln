@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
 
+import { createHash } from "node:crypto";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import type { CampaignProposalRunProjection } from "@/server/app-workflow";
+import { createPreviewDesign } from "@/test/preview-design";
 
 import { createAppAlphaApi } from "./api-client";
 
@@ -335,6 +340,7 @@ describe("App Alpha API client", () => {
 
   it("keeps proposal requests bounded and parses a deterministic handoff receipt", async () => {
     document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const handoff = campaignHandoffFixture();
     const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
       const body = JSON.parse(requestBody(init?.body)) as { type: string };
       if (body.type === "campaign.proposals.request") {
@@ -357,18 +363,7 @@ describe("App Alpha API client", () => {
           {
             ok: true,
             status: 200,
-            value: {
-              kind: "campaign-handoff",
-              campaignId: "campaign-1",
-              filename: "campaign-1.gk-handoff.json",
-              mediaType: "application/vnd.glyphkiln.campaign-handoff+json",
-              byteSize: 128,
-              sha256: "d".repeat(64),
-              base64: "eyJ2ZXJzaW9uIjoiMS4wLjAifQo=",
-              fileCount: 7,
-              approvedCanvasCount: 0,
-              unapprovedCanvasCount: 1,
-            },
+            value: handoff,
           },
           200,
         ),
@@ -394,12 +389,16 @@ describe("App Alpha API client", () => {
         ],
       },
     });
-    await expect(
-      api.campaignHandoff("workspace-1", "campaign-1"),
-    ).resolves.toMatchObject({
+    const handoffResult = await api.campaignHandoff("workspace-1", "campaign-1");
+    expect(handoffResult).toMatchObject({
       ok: true,
-      value: { fileCount: 7, unapprovedCanvasCount: 1 },
+      value: {
+        fileCount: 1,
+        unapprovedCanvasCount: 1,
+      },
     });
+    if (!handoffResult.ok) throw new Error("Expected a valid handoff.");
+    expect(handoffResult.value.bytes).toBeInstanceOf(Uint8Array);
     expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       type: "campaign.proposals.request",
       workspaceId: "workspace-1",
@@ -414,9 +413,146 @@ describe("App Alpha API client", () => {
       campaignId: "campaign-1",
     });
   });
+
+  it.each([
+    ["campaign", { campaignId: "campaign-other" }],
+    ["byte size", { byteSize: 1 }],
+    ["archive hash", { sha256: "f".repeat(64) }],
+    ["file count", { fileCount: 2 }],
+  ])("rejects a campaign handoff with a mismatched %s", async (_name, overrides) => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: campaignHandoffFixture(overrides),
+          },
+          200,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).campaignHandoff("workspace-1", "campaign-1"),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+  });
+
+  it("rejects a proved proposal whose browser proof is incomplete", async () => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const run = proposalRunFixture();
+    run.candidates[0] = {
+      id: "candidate-0",
+      index: 0,
+      status: "proved",
+      document: createPreviewDesign(),
+      canonicalHash: "c".repeat(64),
+      issues: [],
+      proof: {
+        qualityIssues: [],
+        evidence: {
+          version: "1.0.0",
+          safeArea: { x: 0, y: 0, width: 1, height: 1 },
+          text: [],
+          crops: [],
+          contrast: [],
+        },
+        outputs: [],
+      },
+    };
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 201,
+            value: { kind: "campaign-proposals-created", run },
+          },
+          201,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).requestCampaignProposals({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        baseCanvasId: "canvas-1",
+        candidateCount: 3,
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+  });
 });
 
-function proposalRunFixture() {
+function campaignHandoffFixture(
+  overrides: Partial<{
+    campaignId: string;
+    byteSize: number;
+    sha256: string;
+    fileCount: number;
+  }> = {},
+) {
+  const fileBytes = new TextEncoder().encode("{}\n");
+  const file = {
+    path: "campaign/canvas.approval.json",
+    mediaType: "application/json",
+    byteSize: fileBytes.byteLength,
+    sha256: sha256(fileBytes),
+    base64: bytesToBase64(fileBytes),
+    approvalStatus: "unapproved" as const,
+  };
+  const archiveBytes = new TextEncoder().encode(
+    `${JSON.stringify({
+      version: "1.0.0",
+      campaign: {
+        id: "campaign-1",
+        name: "First firing",
+        brief: "Launch one admitted image across a coordinated campaign family.",
+        campaignSeed: "first-firing-2026",
+        familyId: "image-led-campaign",
+        createdAt: "2026-08-12T01:00:00.000Z",
+        updatedAt: "2026-08-12T01:00:00.000Z",
+      },
+      files: [file],
+      summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 1 },
+    })}\n`,
+  );
+  return {
+    kind: "campaign-handoff" as const,
+    campaignId: "campaign-1",
+    filename: "campaign-1.gk-handoff.json",
+    mediaType: "application/vnd.glyphkiln.campaign-handoff+json" as const,
+    byteSize: archiveBytes.byteLength,
+    sha256: sha256(archiveBytes),
+    base64: bytesToBase64(archiveBytes),
+    fileCount: 1,
+    approvedCanvasCount: 0,
+    unapprovedCanvasCount: 1,
+    ...overrides,
+  };
+}
+
+function sha256(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return globalThis.btoa(binary);
+}
+
+function proposalRunFixture(): CampaignProposalRunProjection {
   return {
     kind: "campaign-proposal-run",
     id: "run-1",

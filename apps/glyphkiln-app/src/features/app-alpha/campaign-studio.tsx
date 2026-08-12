@@ -300,11 +300,7 @@ export function CampaignStudio({
     setFailure(undefined);
     const result = await api.campaignHandoff(workspaceId, board.campaign.id);
     if (result.ok) {
-      downloadBase64(
-        result.value.base64,
-        result.value.mediaType,
-        result.value.filename,
-      );
+      downloadBytes(result.value.bytes, result.value.mediaType, result.value.filename);
       setMessage(
         `${result.value.fileCount.toString()} verified files bundled · ${result.value.approvedCanvasCount.toString()} approved · ${result.value.unapprovedCanvasCount.toString()} unapproved.`,
       );
@@ -729,9 +725,10 @@ function requiredFormText(form: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function downloadBase64(base64: string, mediaType: string, filename: string): void {
-  const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
-  const url = URL.createObjectURL(new Blob([bytes], { type: mediaType }));
+function downloadBytes(bytes: Uint8Array, mediaType: string, filename: string): void {
+  const url = URL.createObjectURL(
+    new Blob([Uint8Array.from(bytes).buffer], { type: mediaType }),
+  );
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
@@ -776,10 +773,16 @@ function mergeProposalProofBytes(
   };
 }
 
-function proofMetadata(proof: NonNullable<CampaignProposalRun["candidates"][number]["proof"]>) {
+function proofMetadata(
+  proof: NonNullable<CampaignProposalRun["candidates"][number]["proof"]>,
+) {
   return {
     qualityIssues: proof.qualityIssues,
     evidence: proof.evidence,
-    outputs: proof.outputs.map(({ base64: _base64, ...output }) => output),
+    outputs: proof.outputs.map((output) => {
+      const metadata = { ...output };
+      delete metadata.base64;
+      return metadata;
+    }),
   };
 }
