@@ -120,6 +120,69 @@ describe("CampaignStudio", () => {
     expect(onOpenDesign).toHaveBeenCalledWith("design-1", "revision-1");
   });
 
+  it.each([
+    ["matching", "proof-fingerprint", true],
+    ["changed", "changed-fingerprint", false],
+  ])(
+    "%s persisted proof metadata controls whether decision refresh retains proof bytes",
+    async (_name, refreshedFingerprint, shouldRetainProof) => {
+      const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+        const body = JSON.parse(requestBody(init?.body)) as { type: string };
+        if (body.type === "campaign.board") {
+          return Promise.resolve(success(200, campaignBoardFixture()));
+        }
+        if (body.type === "campaign.proposals.request") {
+          return Promise.resolve(
+            success(201, {
+              kind: "campaign-proposals-created",
+              run: proposalRunWithProof("proof-fingerprint", true),
+            }),
+          );
+        }
+        if (body.type === "campaign.proposal.reject") {
+          return Promise.resolve(
+            success(201, {
+              kind: "campaign-proposal-rejected",
+              decision: proposalDecision(),
+            }),
+          );
+        }
+        if (body.type === "campaign.proposal.run") {
+          return Promise.resolve(
+            success(200, {
+              ...proposalRunWithProof(refreshedFingerprint, false),
+              candidates: proposalRunWithProof(refreshedFingerprint, false).candidates.map(
+                (candidate, index) =>
+                  index === 0 ? { ...candidate, decision: proposalDecision() } : candidate,
+              ),
+            }),
+          );
+        }
+        throw new Error(`Unexpected campaign API request: ${body.type}`);
+      });
+
+      await act(async () => {
+        root.render(
+          <CampaignStudio
+            api={createAppAlphaApi(fetchMock)}
+            workspaceId="workspace-1"
+            campaigns={[CAMPAIGN]}
+            canCoordinate
+            onCampaignChanged={() => Promise.resolve()}
+            onOpenDesign={() => Promise.resolve()}
+          />,
+        );
+        await flushEffects();
+      });
+
+      await clickButton("Request 3 optional proposals");
+      await waitForProposalImages(1);
+      await clickButton("Reject");
+      await waitForText("REJECTED");
+      await waitForProposalImages(shouldRetainProof ? 1 : 0);
+    },
+  );
+
   async function clickButton(label: string): Promise<void> {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -128,6 +191,20 @@ describe("CampaignStudio", () => {
     await act(async () => {
       button.click();
       await flushEffects();
+    });
+  }
+
+  async function waitForText(text: string): Promise<void> {
+    await vi.waitFor(async () => {
+      await act(flushEffects);
+      expect(container.textContent).toContain(text);
+    });
+  }
+
+  async function waitForProposalImages(count: number): Promise<void> {
+    await vi.waitFor(async () => {
+      await act(flushEffects);
+      expect(container.querySelectorAll(".proposal-board img")).toHaveLength(count);
     });
   }
 });
@@ -195,6 +272,51 @@ function proposalRunFixture() {
         },
       ],
     })),
+  };
+}
+
+function proposalRunWithProof(fingerprint: string, includeBytes: boolean) {
+  const run = proposalRunFixture();
+  return {
+    ...run,
+    candidates: run.candidates.map((candidate, index) =>
+      index === 0
+        ? {
+            ...candidate,
+            status: "proved",
+            canonicalHash: "e".repeat(64),
+            issues: [],
+            proof: {
+              qualityIssues: [],
+              evidence: {},
+              outputs: [
+                {
+                  format: "png",
+                  mimeType: "image/png",
+                  ...(includeBytes ? { base64: "AA==" } : {}),
+                  byteSize: 1,
+                  fingerprint,
+                  filename: "proposal.png",
+                  manifest: {},
+                },
+              ],
+            },
+          }
+        : candidate,
+    ),
+  };
+}
+
+function proposalDecision() {
+  return {
+    id: "decision-1",
+    decision: "rejected",
+    decidedBy: {
+      id: "user-1",
+      email: "reviewer@example.test",
+      displayName: "Reviewer",
+    },
+    createdAt: CAMPAIGN.createdAt,
   };
 }
 

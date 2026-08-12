@@ -1,5 +1,6 @@
 "use client";
 
+import { canonicalJson } from "@glyphkiln/core/browser";
 import { useEffect, useMemo, useState } from "react";
 import type { SyntheticEvent } from "react";
 
@@ -269,7 +270,13 @@ export function CampaignStudio({
         campaignId: board.campaign.id,
         runId: proposalRun.id,
       });
-      if (refreshed.ok) setProposalRun(refreshed.value);
+      if (refreshed.ok) {
+        setProposalRun((current) =>
+          current === undefined
+            ? refreshed.value
+            : mergeProposalProofBytes(current, refreshed.value),
+        );
+      }
       const acceptedDesignId =
         "designId" in result.value ? result.value.designId : undefined;
       if (decision === "accept" && acceptedDesignId !== undefined) {
@@ -730,4 +737,49 @@ function downloadBase64(base64: string, mediaType: string, filename: string): vo
   anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+function mergeProposalProofBytes(
+  current: CampaignProposalRun,
+  refreshed: CampaignProposalRun,
+): CampaignProposalRun {
+  if (current.id !== refreshed.id) return refreshed;
+  return {
+    ...refreshed,
+    candidates: refreshed.candidates.map((candidate) => {
+      const previous = current.candidates.find((entry) => entry.id === candidate.id);
+      if (
+        previous?.canonicalHash === undefined ||
+        previous.canonicalHash !== candidate.canonicalHash ||
+        previous.proof === undefined ||
+        candidate.proof === undefined ||
+        canonicalJson(proofMetadata(previous.proof)) !==
+          canonicalJson(proofMetadata(candidate.proof))
+      ) {
+        return candidate;
+      }
+      return {
+        ...candidate,
+        proof: {
+          ...candidate.proof,
+          outputs: candidate.proof.outputs.map((output) => {
+            const priorOutput = previous.proof?.outputs.find(
+              (entry) => entry.format === output.format,
+            );
+            return priorOutput?.base64 === undefined
+              ? output
+              : { ...output, base64: priorOutput.base64 };
+          }),
+        },
+      };
+    }),
+  };
+}
+
+function proofMetadata(proof: NonNullable<CampaignProposalRun["candidates"][number]["proof"]>) {
+  return {
+    qualityIssues: proof.qualityIssues,
+    evidence: proof.evidence,
+    outputs: proof.outputs.map(({ base64: _base64, ...output }) => output),
+  };
 }
