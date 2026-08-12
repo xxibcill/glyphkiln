@@ -13,6 +13,11 @@ import type {
   CampaignBoardProjection,
   CampaignCanvasProjection,
   CampaignDirectionProjection,
+  CampaignProposalCandidateProjection,
+  CampaignProposalDecisionProjection,
+  CampaignProposalIssueProjection,
+  CampaignProposalProofProjection,
+  CampaignProposalRunProjection,
   CampaignSummary,
   DesignSummary,
   RevisionApprovalOutputEvidence,
@@ -111,6 +116,32 @@ export type StoredCampaignDirection = {
   directionKey: string;
   name: string;
   createdAt: Date;
+};
+
+export type CampaignLockContext = {
+  campaignId: string;
+  directionId: string;
+  locks: AuthoringLockId[];
+  baseDesignId: string;
+  baseRevisionId: string;
+};
+
+export type StoredCampaignProposalCandidate = {
+  id: string;
+  workspaceId: string;
+  runId: string;
+  campaignId: string;
+  directionId: string;
+  baseDesignId: string;
+  baseRevisionId: string;
+  index: number;
+  status: "proved" | "rejected";
+  document?: DesignDocument;
+  canonicalHash?: string;
+  rationale?: string;
+  issues: CampaignProposalIssueProjection[];
+  proof?: CampaignProposalProofProjection;
+  locks: AuthoringLockId[];
 };
 
 export type StoredRevisionReview = {
@@ -1187,6 +1218,34 @@ export class AppState {
         };
   }
 
+  async listCampaigns(workspaceId: string): Promise<CampaignSummary[]> {
+    const rows = await this.#query<{
+      id: string;
+      name: string;
+      brief: string;
+      campaign_seed: string;
+      family_id: CampaignFamilyId;
+      created_at: Date | string;
+      updated_at: Date | string;
+    }>(
+      `SELECT id, name, brief, campaign_seed, family_id, created_at, updated_at
+         FROM campaigns
+        WHERE workspace_id = $1
+          AND archived_at IS NULL
+        ORDER BY updated_at DESC, id`,
+      [workspaceId],
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      brief: row.brief,
+      campaignSeed: row.campaign_seed,
+      familyId: row.family_id,
+      createdAt: asDate(row.created_at).toISOString(),
+      updatedAt: asDate(row.updated_at).toISOString(),
+    }));
+  }
+
   async insertCampaignDirection(input: {
     id: string;
     workspaceId: string;
@@ -1241,6 +1300,40 @@ export class AppState {
         WHERE workspace_id = $1
           AND campaign_id = $2
           AND id = $3`,
+      [input.workspaceId, input.campaignId, input.directionId],
+    );
+    const row = rows.at(0);
+    return row === undefined
+      ? undefined
+      : {
+          id: row.id,
+          workspaceId: row.workspace_id,
+          campaignId: row.campaign_id,
+          directionKey: row.direction_key,
+          name: row.name,
+          createdAt: asDate(row.created_at),
+        };
+  }
+
+  async lockCampaignDirection(input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+  }): Promise<StoredCampaignDirection | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      campaign_id: string;
+      direction_key: string;
+      name: string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, workspace_id, campaign_id, direction_key, name, created_at
+         FROM campaign_directions
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+          AND id = $3
+          FOR UPDATE`,
       [input.workspaceId, input.campaignId, input.directionId],
     );
     const row = rows.at(0);
@@ -1388,6 +1481,434 @@ export class AppState {
         createdAt: asDate(row.created_at).toISOString(),
         canvases: canvasesByDirection.get(row.id) ?? [],
       })),
+    };
+  }
+
+  async readCampaignDirectionLocks(input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+  }): Promise<AuthoringLockId[] | undefined> {
+    const direction = await this.findCampaignDirection(input);
+    if (direction === undefined) return undefined;
+    const rows = await this.#query<{ lock_id: AuthoringLockId }>(
+      `SELECT lock_id
+         FROM campaign_direction_locks
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+          AND direction_id = $3
+        ORDER BY ordinal`,
+      [input.workspaceId, input.campaignId, input.directionId],
+    );
+    return rows.map((row) => row.lock_id);
+  }
+
+  async findCampaignCanvas(input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    canvasId: string;
+  }): Promise<CampaignCanvasProjection | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      direction_id: string;
+      canvas_key: string;
+      design_id: string;
+      revision_id: string;
+      template_id: TemplateId;
+      template_version: string;
+      format_id: FormatId;
+      composition_variant_id: CampaignCompositionVariantId;
+      seed_derivation_version: string;
+      direction_seed: string;
+      canvas_seed: string;
+      ordinal: number | string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, direction_id, canvas_key, design_id, revision_id,
+              template_id, template_version, format_id,
+              composition_variant_id, seed_derivation_version,
+              direction_seed, canvas_seed, ordinal, created_at
+         FROM campaign_canvases
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+          AND direction_id = $3
+          AND id = $4`,
+      [input.workspaceId, input.campaignId, input.directionId, input.canvasId],
+    );
+    const row = rows.at(0);
+    return row === undefined ? undefined : toCampaignCanvasProjection(row);
+  }
+
+  async listCampaignLockContextsForRevision(input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+  }): Promise<CampaignLockContext[]> {
+    const targets = await this.#query<{
+      campaign_id: string;
+      direction_id: string;
+    }>(
+      `SELECT DISTINCT campaign_id, direction_id
+         FROM campaign_canvases
+        WHERE workspace_id = $1
+          AND design_id = $2
+          AND revision_id = $3
+        ORDER BY campaign_id, direction_id`,
+      [input.workspaceId, input.designId, input.revisionId],
+    );
+    const contexts: CampaignLockContext[] = [];
+    for (const target of targets) {
+      const [locks, baseRows] = await Promise.all([
+        this.readCampaignDirectionLocks({
+          workspaceId: input.workspaceId,
+          campaignId: target.campaign_id,
+          directionId: target.direction_id,
+        }),
+        this.#query<{ design_id: string; revision_id: string }>(
+          `SELECT design_id, revision_id
+             FROM campaign_canvases
+            WHERE workspace_id = $1
+              AND campaign_id = $2
+              AND direction_id = $3
+            ORDER BY ordinal, id
+            LIMIT 1`,
+          [input.workspaceId, target.campaign_id, target.direction_id],
+        ),
+      ]);
+      const base = baseRows.at(0);
+      if (locks === undefined || base === undefined) {
+        throw new Error("Stored campaign lock metadata is invalid.");
+      }
+      contexts.push({
+        campaignId: target.campaign_id,
+        directionId: target.direction_id,
+        locks,
+        baseDesignId: base.design_id,
+        baseRevisionId: base.revision_id,
+      });
+    }
+    return contexts;
+  }
+
+  async insertCampaignProposalRun(input: {
+    id: string;
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    baseCanvasId: string;
+    baseDesignId: string;
+    baseRevisionId: string;
+    providerId: string;
+    modelId: string;
+    retentionDisclosure: string;
+    inputHash: string;
+    responseHash: string;
+    locks: readonly AuthoringLockId[];
+    validation: SqlJsonValue;
+    requestedBy: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaign_proposal_runs (
+         id, workspace_id, campaign_id, direction_id, base_canvas_id,
+         base_design_id, base_revision_id, provider_id, model_id,
+         retention_disclosure, input_hash, response_hash, locks, validation,
+         requested_by, created_at
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+         $13::jsonb, $14::jsonb, $15, $16
+       )`,
+      [
+        input.id,
+        input.workspaceId,
+        input.campaignId,
+        input.directionId,
+        input.baseCanvasId,
+        input.baseDesignId,
+        input.baseRevisionId,
+        input.providerId,
+        input.modelId,
+        input.retentionDisclosure,
+        input.inputHash,
+        input.responseHash,
+        [...input.locks],
+        input.validation,
+        input.requestedBy,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async insertCampaignProposalCandidate(input: {
+    id: string;
+    workspaceId: string;
+    runId: string;
+    index: number;
+    status: "proved" | "rejected";
+    document?: DesignDocument;
+    canonicalHash?: string;
+    rationale?: string;
+    issues: readonly CampaignProposalIssueProjection[];
+    proof?: CampaignProposalProofProjection;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaign_proposal_candidates (
+         id, workspace_id, run_id, candidate_index, status, design_document,
+         canonical_hash, rationale, validation, proof, created_at
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9::jsonb, $10::jsonb, $11
+       )`,
+      [
+        input.id,
+        input.workspaceId,
+        input.runId,
+        input.index,
+        input.status,
+        input.document ?? null,
+        input.canonicalHash ?? null,
+        input.rationale ?? null,
+        { issues: [...input.issues] },
+        input.proof === undefined ? null : stripProposalProofBytes(input.proof),
+        input.createdAt,
+      ],
+    );
+  }
+
+  async insertCampaignProposalDecision(input: {
+    id: string;
+    workspaceId: string;
+    runId: string;
+    candidateId: string;
+    decision: "accepted" | "rejected";
+    reason?: string;
+    designId?: string;
+    revisionId?: string;
+    actorUserId: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaign_proposal_decisions (
+         id, workspace_id, run_id, candidate_id, decision, reason,
+         design_id, revision_id, decided_by, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        input.id,
+        input.workspaceId,
+        input.runId,
+        input.candidateId,
+        input.decision,
+        input.reason ?? null,
+        input.designId ?? null,
+        input.revisionId ?? null,
+        input.actorUserId,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async hasCampaignProposalDecision(input: {
+    workspaceId: string;
+    runId: string;
+    candidateId: string;
+  }): Promise<boolean> {
+    const rows = await this.#query<{ decided: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1
+           FROM campaign_proposal_decisions
+          WHERE workspace_id = $1
+            AND run_id = $2
+            AND candidate_id = $3
+       ) AS decided`,
+      [input.workspaceId, input.runId, input.candidateId],
+    );
+    return rows.at(0)?.decided ?? false;
+  }
+
+  async findCampaignProposalCandidate(input: {
+    workspaceId: string;
+    campaignId: string;
+    runId: string;
+    candidateId: string;
+  }): Promise<StoredCampaignProposalCandidate | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      run_id: string;
+      campaign_id: string;
+      direction_id: string;
+      base_design_id: string;
+      base_revision_id: string;
+      candidate_index: number | string;
+      status: "proved" | "rejected";
+      design_document: DesignDocument | string | null;
+      canonical_hash: string | null;
+      rationale: string | null;
+      validation: { issues?: CampaignProposalIssueProjection[] } | string;
+      proof: CampaignProposalProofProjection | string | null;
+      locks: AuthoringLockId[] | string;
+    }>(
+      `SELECT candidate.id, candidate.workspace_id, candidate.run_id,
+              run.campaign_id, run.direction_id, run.base_design_id,
+              run.base_revision_id, candidate.candidate_index, candidate.status,
+              candidate.design_document, candidate.canonical_hash,
+              candidate.rationale, candidate.validation, candidate.proof, run.locks
+         FROM campaign_proposal_candidates candidate
+         JOIN campaign_proposal_runs run
+           ON run.workspace_id = candidate.workspace_id
+          AND run.id = candidate.run_id
+        WHERE candidate.workspace_id = $1
+          AND run.campaign_id = $2
+          AND candidate.run_id = $3
+          AND candidate.id = $4`,
+      [input.workspaceId, input.campaignId, input.runId, input.candidateId],
+    );
+    const row = rows.at(0);
+    if (row === undefined) return undefined;
+    const validation = parseJson<{ issues?: CampaignProposalIssueProjection[] }>(
+      row.validation,
+    );
+    return {
+      id: row.id,
+      workspaceId: row.workspace_id,
+      runId: row.run_id,
+      campaignId: row.campaign_id,
+      directionId: row.direction_id,
+      baseDesignId: row.base_design_id,
+      baseRevisionId: row.base_revision_id,
+      index: Number(row.candidate_index),
+      status: row.status,
+      ...(row.design_document === null
+        ? {}
+        : { document: parseJson<DesignDocument>(row.design_document) }),
+      ...(row.canonical_hash === null ? {} : { canonicalHash: row.canonical_hash }),
+      ...(row.rationale === null ? {} : { rationale: row.rationale }),
+      issues: validation.issues ?? [],
+      ...(row.proof === null
+        ? {}
+        : { proof: parseJson<CampaignProposalProofProjection>(row.proof) }),
+      locks: parseJson<AuthoringLockId[]>(row.locks),
+    };
+  }
+
+  async readCampaignProposalRun(input: {
+    workspaceId: string;
+    campaignId: string;
+    runId: string;
+  }): Promise<CampaignProposalRunProjection | undefined> {
+    const runRows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      campaign_id: string;
+      direction_id: string;
+      base_canvas_id: string;
+      base_design_id: string;
+      base_revision_id: string;
+      provider_id: string;
+      model_id: string;
+      retention_disclosure: string;
+      input_hash: string;
+      response_hash: string;
+      locks: AuthoringLockId[] | string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, workspace_id, campaign_id, direction_id, base_canvas_id,
+              base_design_id, base_revision_id, provider_id, model_id,
+              retention_disclosure, input_hash, response_hash, locks, created_at
+         FROM campaign_proposal_runs
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+          AND id = $3`,
+      [input.workspaceId, input.campaignId, input.runId],
+    );
+    const run = runRows.at(0);
+    if (run === undefined) return undefined;
+    const candidateRows = await this.#query<{
+      id: string;
+      candidate_index: number | string;
+      status: "proved" | "rejected";
+      design_document: DesignDocument | string | null;
+      canonical_hash: string | null;
+      rationale: string | null;
+      validation: { issues?: CampaignProposalIssueProjection[] } | string;
+      proof: CampaignProposalProofProjection | string | null;
+    }>(
+      `SELECT id, candidate_index, status, design_document, canonical_hash,
+              rationale, validation, proof
+         FROM campaign_proposal_candidates
+        WHERE workspace_id = $1
+          AND run_id = $2
+        ORDER BY candidate_index`,
+      [input.workspaceId, input.runId],
+    );
+    const decisionRows = await this.#query<{
+      id: string;
+      candidate_id: string;
+      decision: "accepted" | "rejected";
+      reason: string | null;
+      design_id: string | null;
+      revision_id: string | null;
+      user_id: string;
+      email: string;
+      display_name: string;
+      created_at: Date | string;
+    }>(
+      `SELECT decision.id, decision.candidate_id, decision.decision,
+              decision.reason, decision.design_id, decision.revision_id,
+              user_record.id AS user_id, user_record.email,
+              user_record.display_name, decision.created_at
+         FROM campaign_proposal_decisions decision
+         JOIN users user_record ON user_record.id = decision.decided_by
+        WHERE decision.workspace_id = $1
+          AND decision.run_id = $2
+        ORDER BY decision.created_at, decision.id`,
+      [input.workspaceId, input.runId],
+    );
+    const decisions = new Map(
+      decisionRows.map((row) => [row.candidate_id, toCampaignProposalDecision(row)]),
+    );
+    return {
+      kind: "campaign-proposal-run",
+      id: run.id,
+      workspaceId: run.workspace_id,
+      campaignId: run.campaign_id,
+      directionId: run.direction_id,
+      baseCanvasId: run.base_canvas_id,
+      baseDesignId: run.base_design_id,
+      baseRevisionId: run.base_revision_id,
+      descriptor: {
+        providerId: run.provider_id,
+        modelId: run.model_id,
+        retentionDisclosure: run.retention_disclosure,
+      },
+      inputHash: run.input_hash,
+      responseHash: run.response_hash,
+      locks: parseJson<AuthoringLockId[]>(run.locks),
+      createdAt: asDate(run.created_at).toISOString(),
+      candidates: candidateRows.map((row): CampaignProposalCandidateProjection => {
+        const validation = parseJson<{
+          issues?: CampaignProposalIssueProjection[];
+        }>(row.validation);
+        const decision = decisions.get(row.id);
+        return {
+          id: row.id,
+          index: Number(row.candidate_index),
+          status: row.status,
+          ...(row.rationale === null
+            ? {}
+            : { rationale: { kind: "model-suggestion", text: row.rationale } }),
+          ...(row.design_document === null
+            ? {}
+            : { document: parseJson<DesignDocument>(row.design_document) }),
+          ...(row.canonical_hash === null ? {} : { canonicalHash: row.canonical_hash }),
+          issues: validation.issues ?? [],
+          ...(row.proof === null
+            ? {}
+            : { proof: parseJson<CampaignProposalProofProjection>(row.proof) }),
+          ...(decision === undefined ? {} : { decision }),
+        };
+      }),
     };
   }
 
@@ -1922,6 +2443,50 @@ function toCampaignCanvasProjection(row: {
     directionSeed: row.direction_seed,
     canvasSeed: row.canvas_seed,
     ordinal: Number(row.ordinal),
+    createdAt: asDate(row.created_at).toISOString(),
+  };
+}
+
+function stripProposalProofBytes(proof: CampaignProposalProofProjection): SqlJsonValue {
+  return {
+    qualityIssues: proof.qualityIssues as unknown as SqlJsonValue,
+    evidence: proof.evidence as unknown as SqlJsonValue,
+    outputs: proof.outputs.map(
+      ({ format, mimeType, byteSize, fingerprint, filename, manifest }) =>
+        ({
+          format,
+          mimeType,
+          byteSize,
+          fingerprint,
+          filename,
+          manifest,
+        }) as unknown as SqlJsonValue,
+    ),
+  };
+}
+
+function toCampaignProposalDecision(row: {
+  id: string;
+  decision: "accepted" | "rejected";
+  reason: string | null;
+  design_id: string | null;
+  revision_id: string | null;
+  user_id: string;
+  email: string;
+  display_name: string;
+  created_at: Date | string;
+}): CampaignProposalDecisionProjection {
+  return {
+    id: row.id,
+    decision: row.decision,
+    ...(row.reason === null ? {} : { reason: row.reason }),
+    ...(row.design_id === null ? {} : { designId: row.design_id }),
+    ...(row.revision_id === null ? {} : { revisionId: row.revision_id }),
+    decidedBy: {
+      id: row.user_id,
+      email: row.email,
+      displayName: row.display_name,
+    },
     createdAt: asDate(row.created_at).toISOString(),
   };
 }

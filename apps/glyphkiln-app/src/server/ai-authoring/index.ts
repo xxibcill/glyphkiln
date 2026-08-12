@@ -30,6 +30,7 @@ export type {
   BriefInterpreter,
   BriefInterpreterDescriptor,
   BriefInterpreterInput,
+  BriefInterpreterResult,
 } from "./brief-interpreter";
 
 export {

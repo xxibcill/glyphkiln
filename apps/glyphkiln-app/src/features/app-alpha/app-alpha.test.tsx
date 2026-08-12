@@ -117,6 +117,12 @@ describe("AppAlpha", () => {
     expect(container.textContent).toContain("Edits not rendered");
     clickButton("Preview draft · does not save");
     await waitForText("Draft preview verified");
+
+    expect(api.previewDesign).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        baseRevision: { designId: "design-1", revisionId: "revision-1" },
+      }),
+    );
     clickButton("Save child revision");
     await waitForText("Revision 2 saved and reopened");
 
@@ -410,6 +416,7 @@ function createWorkflowApi(
                     updatedAt: storedRevision.createdAt,
                   },
                 ],
+          campaigns: [],
         },
       }),
     resources: () =>
@@ -427,11 +434,12 @@ function createWorkflowApi(
           snapshot: brand,
         },
       }),
-    previewDesign: (input) =>
+    previewDesign: vi.fn((input: Parameters<AppAlphaApi["previewDesign"]>[0]) =>
       Promise.resolve({
-        ok: true,
+        ok: true as const,
         value: renderDocument(constructDocument("preview-test", input.draft)),
       }),
+    ),
     createDesign,
     reviseDesign,
     revision,
@@ -439,6 +447,22 @@ function createWorkflowApi(
     requestRevisionExport,
     renderJob,
     completedRenderJobs,
+    createCampaign: () => Promise.resolve(missingResource()),
+    campaignBoard: () => Promise.resolve(missingResource()),
+    createCampaignDirection: () => Promise.resolve(missingResource()),
+    branchCampaignDirection: () => Promise.resolve(missingResource()),
+    attachCampaignCanvas: () => Promise.resolve(missingResource()),
+    requestCampaignProposals: () => Promise.resolve(missingResource()),
+    campaignProposalRun: () => Promise.resolve(missingResource()),
+    acceptCampaignProposal: () => Promise.resolve(missingResource()),
+    rejectCampaignProposal: () => Promise.resolve(missingResource()),
+    campaignHandoff: () => Promise.resolve(missingResource()),
+    compareRevisions: () => Promise.resolve(missingResource()),
+    revisionReview: () => Promise.resolve(missingResource()),
+    submitRevisionReview: () => Promise.resolve(missingResource()),
+    commentRevisionReview: () => Promise.resolve(missingResource()),
+    requestRevisionChanges: () => Promise.resolve(missingResource()),
+    approveRevision: () => Promise.resolve(missingResource()),
   };
 }
 

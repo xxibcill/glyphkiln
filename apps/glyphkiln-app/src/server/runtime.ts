@@ -92,6 +92,7 @@ export async function createAppRuntime(
       workflow: createAppWorkflow({
         database,
         ...(bootstrapTokenHash === undefined ? {} : { bootstrapTokenHash }),
+        ...(briefInterpreter === undefined ? {} : { briefInterpreter }),
         renderQueue,
         workspaceCreationLimits: {
           maximumWorkspacesPerInstallation: readBoundedEnvironmentInteger(

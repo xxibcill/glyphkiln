@@ -47,6 +47,7 @@ import {
 } from "./app-alpha-workshop";
 import { BrandPublisher } from "./brand-publisher";
 import type { BrandPublishInput } from "./brand-publisher";
+import { CampaignStudio } from "./campaign-studio";
 import { DurableExportStation } from "./durable-export-station";
 import {
   buildManualDraft,
@@ -56,6 +57,7 @@ import {
   withBrandSnapshot,
 } from "./manual-state";
 import { InvitationStation } from "./invitation-station";
+import { RevisionReviewStation } from "./revision-review-station";
 import { useAppAlphaAccess } from "./use-app-alpha-access";
 
 const DEFAULT_API = createAppAlphaApi();
@@ -135,6 +137,8 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
     (workspace) => workspace.id === selectedWorkspaceId,
   );
   const canEdit = currentWorkspace !== undefined && currentWorkspace.role !== "viewer";
+  const canApprove =
+    currentWorkspace?.role === "owner" || currentWorkspace?.role === "admin";
   const previewCanBeSaved =
     proofKind === "draft-preview" &&
     proof !== null &&
@@ -314,6 +318,14 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
       workspaceId: selectedWorkspaceId,
       brandSnapshotId: activeBrand.snapshotId,
       draft: submittedDraft,
+      ...(openRevision === undefined
+        ? {}
+        : {
+            baseRevision: {
+              designId: openRevision.designId,
+              revisionId: openRevision.revisionId,
+            },
+          }),
     });
     if (!result.ok) {
       setResponse(toPreviewFailure(result));
@@ -697,6 +709,17 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                   void reopenDesign(designId);
                 }}
               />
+              {selectedWorkspaceId === undefined ? null : (
+                <CampaignStudio
+                  api={api}
+                  workspaceId={selectedWorkspaceId}
+                  campaigns={dashboard?.campaigns ?? []}
+                  openRevision={openRevision}
+                  canCoordinate={canEdit}
+                  onCampaignChanged={refreshDashboard}
+                  onOpenDesign={reopenDesign}
+                />
+              )}
               <DesignLifecycle
                 openRevision={openRevision}
                 designName={designName}
@@ -757,6 +780,18 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                 />
               )}
 
+              {openRevision === undefined ||
+              selectedWorkspaceId === undefined ? null : (
+                <RevisionReviewStation
+                  key={openRevision.revisionId}
+                  api={api}
+                  workspaceId={selectedWorkspaceId}
+                  revision={openRevision}
+                  canManage={canEdit}
+                  canApprove={canApprove}
+                />
+              )}
+
               <div className="workshop-grid app-workshop-grid">
                 <EditorControls
                   catalog={catalog}
@@ -798,7 +833,7 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
 
       <footer className="workshop-footer">
         <span>Structured draft → exact brand snapshot → Core render → provenance</span>
-        <span>No LLM · no remote fetch · no active SVG upload</span>
+        <span>Manual-first · optional proposals stay untrusted · no render fetch</span>
       </footer>
     </div>
   );

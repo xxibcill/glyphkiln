@@ -22,6 +22,9 @@ const WORKSPACE_OWNED_TABLES = [
   "campaign_canvases",
   "campaign_direction_locks",
   "campaign_directions",
+  "campaign_proposal_candidates",
+  "campaign_proposal_decisions",
+  "campaign_proposal_runs",
   "campaigns",
   "design_revision_resources",
   "design_revisions",
@@ -60,6 +63,7 @@ const MIGRATION_VERSIONS = [
   "202608120008_campaign_workflow",
   "202608120009_revision_review_approval",
   "202608120010_resource_color_normalization_provenance",
+  "202608120011_campaign_proposals",
 ] as const;
 
 type TableNameRow = {
@@ -703,6 +707,147 @@ describe("App Alpha PostgreSQL migration", () => {
     ).resolves.toEqual([
       { resource_id: "font-legacy", resource_kind: "font", ordinal: 0 },
     ]);
+  });
+
+  it("keeps proposal evidence and human decisions append-only and campaign-scoped", async () => {
+    await migrateDatabase(database);
+    await seedBrandAndDesignState(database);
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-a",
+      documentName: "Proposal base",
+      id: "revision-proposal-base",
+      revisionNumber: 1,
+    });
+    await database.query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id, created_by
+       ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6)`,
+      [
+        "campaign-proposal-a",
+        "workspace-a",
+        "Proposal campaign",
+        "Keep the provider boundary append-only.",
+        "proposal-seed",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        "direction-proposal-a",
+        "workspace-a",
+        "campaign-proposal-a",
+        "direction-a",
+        "Direction A",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_canvases (
+         id, workspace_id, campaign_id, direction_id, canvas_key,
+         design_id, revision_id, template_id, template_version, format_id,
+         composition_variant_id, seed_derivation_version, direction_seed,
+         canvas_seed, ordinal, created_by
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, 'image-led-campaign', '1.0.0',
+         'linkedin-landscape', 'focal-editorial', 'sha256/canonical-scope-v1',
+         $8, $9, 0, $10
+       )`,
+      [
+        "canvas-proposal-a",
+        "workspace-a",
+        "campaign-proposal-a",
+        "direction-proposal-a",
+        "hero-a",
+        "design-a",
+        "revision-proposal-base",
+        HASH_A,
+        HASH_B,
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_proposal_runs (
+         id, workspace_id, campaign_id, direction_id, base_canvas_id,
+         base_design_id, base_revision_id, provider_id, model_id,
+         retention_disclosure, input_hash, response_hash, locks, validation,
+         requested_by
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+         $11, $12, $13::jsonb, $14::jsonb, $15
+       )`,
+      [
+        "run-proposal-a",
+        "workspace-a",
+        "campaign-proposal-a",
+        "direction-proposal-a",
+        "canvas-proposal-a",
+        "design-a",
+        "revision-proposal-base",
+        "provider-a",
+        "model-a",
+        "The provider receives bounded inert campaign data.",
+        HASH_A,
+        HASH_B,
+        [],
+        { version: "1.0.0" },
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_proposal_candidates (
+         id, workspace_id, run_id, candidate_index, status, validation
+       ) VALUES ($1, $2, $3, 0, 'rejected', $4::jsonb)`,
+      [
+        "candidate-proposal-a",
+        "workspace-a",
+        "run-proposal-a",
+        { issues: [{ code: "RESOURCE_BACKED_PROOF_FAILED" }] },
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_proposal_decisions (
+         id, workspace_id, run_id, candidate_id, decision, reason, decided_by
+       ) VALUES ($1, $2, $3, $4, 'rejected', $5, $6)`,
+      [
+        "decision-proposal-a",
+        "workspace-a",
+        "run-proposal-a",
+        "candidate-proposal-a",
+        "Human rejected this bounded suggestion.",
+        "user-a",
+      ],
+    );
+
+    for (const [tableName, id] of [
+      ["campaign_proposal_runs", "run-proposal-a"],
+      ["campaign_proposal_candidates", "candidate-proposal-a"],
+      ["campaign_proposal_decisions", "decision-proposal-a"],
+    ] as const) {
+      await expect(
+        database.query(
+          `UPDATE ${tableName} SET created_at = created_at WHERE id = $1`,
+          [id],
+        ),
+      ).rejects.toHaveProperty("code", "55000");
+    }
+    await expect(
+      database.query(
+        `INSERT INTO campaign_proposal_decisions (
+           id, workspace_id, run_id, candidate_id, decision, decided_by
+         ) VALUES ($1, $2, $3, $4, 'rejected', $5)`,
+        [
+          "decision-proposal-duplicate",
+          "workspace-a",
+          "run-proposal-a",
+          "candidate-proposal-a",
+          "user-a",
+        ],
+      ),
+    ).rejects.toHaveProperty("code", "23505");
   });
 
   it("rejects cross-workspace and cross-design references and keeps history append-only", async () => {

@@ -31,6 +31,29 @@ describe("AppState", () => {
       new Date("2026-07-31T01:00:00.000Z"),
     ]);
   });
+
+  it("locks a workspace-qualified campaign direction before canvas attachment", async () => {
+    const database = new RecordingTransaction();
+    const state = new AppState(database);
+
+    await expect(
+      state.lockCampaignDirection({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(database.statements).toHaveLength(1);
+    expect(database.statements[0]?.statement).toMatch(
+      /WHERE workspace_id = \$1\s+AND campaign_id = \$2\s+AND id = \$3\s+FOR UPDATE/u,
+    );
+    expect(database.statements[0]?.parameters).toEqual([
+      "workspace-1",
+      "campaign-1",
+      "direction-1",
+    ]);
+  });
 });
 
 class RecordingTransaction implements SqlTransaction {

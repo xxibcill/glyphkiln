@@ -8,10 +8,12 @@ import type {
   AppFailure,
   AppQuery,
   BrandSnapshotDraft,
+  CampaignHandoffProjection,
   ManualDraft,
 } from "@/server/app-workflow";
 import type {
   BrandKitSummary,
+  CampaignSummary,
   DesignSummary,
   UserSummary,
   WorkspaceMembershipSummary,
@@ -50,6 +52,17 @@ const DesignSummarySchema = z
     name: z.string().min(1),
     headRevisionId: z.string().min(1),
     revisionNumber: z.number().int().positive(),
+    updatedAt: z.string().min(1),
+  })
+  .strict();
+const CampaignSummarySchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    brief: z.string().min(1),
+    campaignSeed: z.string().min(1),
+    familyId: z.literal("image-led-campaign"),
+    createdAt: z.string().min(1),
     updatedAt: z.string().min(1),
   })
   .strict();
@@ -109,6 +122,67 @@ const DashboardSchema = z
     workspace: WorkspaceSummarySchema,
     brandKits: z.array(BrandKitSummarySchema),
     designs: z.array(DesignSummarySchema),
+    campaigns: z.array(CampaignSummarySchema),
+  })
+  .strict();
+
+const AuthoringLockSchema = z.enum([
+  "copy",
+  "image",
+  "crop",
+  "typography",
+  "palette",
+  "composition",
+]);
+const CampaignCanvasSchema = z
+  .object({
+    id: z.string().min(1),
+    canvasKey: z.string().min(1),
+    designId: z.string().min(1),
+    revisionId: z.string().min(1),
+    template: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
+    format: z.string().min(1),
+    compositionVariantId: z.literal("focal-editorial"),
+    seedDerivationVersion: z.string().min(1),
+    directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
+    canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
+    ordinal: z.number().int().nonnegative(),
+    createdAt: z.string().min(1),
+  })
+  .strict();
+const CampaignDirectionSchema = z
+  .object({
+    id: z.string().min(1),
+    directionKey: z.string().min(1),
+    name: z.string().min(1),
+    locks: z.array(AuthoringLockSchema).max(6),
+    createdAt: z.string().min(1),
+    canvases: z.array(CampaignCanvasSchema),
+  })
+  .strict();
+const CampaignBoardSchema = z
+  .object({
+    kind: z.literal("campaign-board"),
+    campaign: CampaignSummarySchema,
+    directions: z.array(CampaignDirectionSchema),
+  })
+  .strict();
+const CampaignCreatedSchema = z
+  .object({ kind: z.literal("campaign-created"), campaign: CampaignSummarySchema })
+  .strict();
+const CampaignDirectionCreatedSchema = z
+  .object({
+    kind: z.literal("campaign-direction-created"),
+    campaignId: z.string().min(1),
+    direction: CampaignDirectionSchema,
+  })
+  .strict();
+const CampaignCanvasAttachedSchema = z
+  .object({
+    kind: z.literal("campaign-canvas-attached"),
+    campaignId: z.string().min(1),
+    directionId: z.string().min(1),
+    canvas: CampaignCanvasSchema,
   })
   .strict();
 
@@ -317,6 +391,226 @@ const CompletedRenderJobsSchema = z
   })
   .strict();
 
+const ProposalIssueSchema = z
+  .object({
+    code: z.string().min(1),
+    message: z.string().min(1),
+    candidateIndex: z.number().int().nonnegative().optional(),
+    lock: AuthoringLockSchema.optional(),
+  })
+  .strict();
+const ProposalDecisionSchema = z
+  .object({
+    id: z.string().min(1),
+    decision: z.enum(["accepted", "rejected"]),
+    reason: z.string().min(1).optional(),
+    designId: z.string().min(1).optional(),
+    revisionId: z.string().min(1).optional(),
+    decidedBy: UserSummarySchema,
+    createdAt: z.string().min(1),
+  })
+  .strict();
+const ProposalProofOutputSchema = z
+  .object({
+    format: z.enum(["svg", "png"]),
+    mimeType: z.enum(["image/svg+xml", "image/png"]),
+    base64: z.string().min(1).optional(),
+    byteSize: z.number().int().positive(),
+    fingerprint: z.string().min(1),
+    filename: z.string().min(1),
+    manifest: z.unknown(),
+  })
+  .strict();
+const ProposalCandidateSchema = z
+  .object({
+    id: z.string().min(1),
+    index: z.number().int().min(0).max(3),
+    status: z.enum(["proved", "rejected"]),
+    rationale: z
+      .object({ kind: z.literal("model-suggestion"), text: z.string().min(1) })
+      .strict()
+      .optional(),
+    document: DesignDocumentSchema.optional(),
+    canonicalHash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
+    issues: z.array(ProposalIssueSchema),
+    proof: z
+      .object({
+        qualityIssues: z.unknown(),
+        evidence: z.unknown(),
+        outputs: z.array(ProposalProofOutputSchema).max(2),
+      })
+      .strict()
+      .optional(),
+    decision: ProposalDecisionSchema.optional(),
+  })
+  .strict();
+const ProposalRunSchema = z
+  .object({
+    kind: z.literal("campaign-proposal-run"),
+    id: z.string().min(1),
+    workspaceId: z.string().min(1),
+    campaignId: z.string().min(1),
+    directionId: z.string().min(1),
+    baseCanvasId: z.string().min(1),
+    baseDesignId: z.string().min(1),
+    baseRevisionId: z.string().min(1),
+    descriptor: z
+      .object({
+        providerId: z.string().min(1),
+        modelId: z.string().min(1),
+        retentionDisclosure: z.string().min(1),
+      })
+      .strict(),
+    inputHash: z.string().regex(/^[0-9a-f]{64}$/),
+    responseHash: z.string().regex(/^[0-9a-f]{64}$/),
+    locks: z.array(AuthoringLockSchema).max(6),
+    createdAt: z.string().min(1),
+    candidates: z.array(ProposalCandidateSchema).min(3).max(4),
+  })
+  .strict();
+const ProposalCreatedSchema = z
+  .object({ kind: z.literal("campaign-proposals-created"), run: ProposalRunSchema })
+  .strict();
+const ProposalAcceptedSchema = z
+  .object({
+    kind: z.literal("campaign-proposal-accepted"),
+    decision: ProposalDecisionSchema,
+    design: DesignSavedSchema,
+  })
+  .strict();
+const ProposalRejectedSchema = z
+  .object({
+    kind: z.literal("campaign-proposal-rejected"),
+    decision: ProposalDecisionSchema,
+  })
+  .strict();
+const CampaignHandoffSchema = z
+  .object({
+    kind: z.literal("campaign-handoff"),
+    campaignId: z.string().min(1),
+    filename: z.string().min(1),
+    mediaType: z.literal("application/vnd.glyphkiln.campaign-handoff+json"),
+    byteSize: z.number().int().positive(),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/),
+    base64: z.string().min(1),
+    fileCount: z.number().int().nonnegative(),
+    approvedCanvasCount: z.number().int().nonnegative(),
+    unapprovedCanvasCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
+const ReviewCommentSchema = z
+  .object({
+    id: z.string().min(1),
+    body: z.string().min(1),
+    anchor: z
+      .object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) })
+      .strict()
+      .optional(),
+    createdBy: UserSummarySchema,
+    createdAt: z.string().min(1),
+  })
+  .strict();
+const ReviewTransitionSchema = z
+  .object({
+    id: z.string().min(1),
+    fromState: z.enum(["in-review", "changes-requested", "approved"]).optional(),
+    toState: z.enum(["in-review", "changes-requested", "approved"]),
+    reason: z.string().min(1).optional(),
+    createdBy: UserSummarySchema,
+    createdAt: z.string().min(1),
+  })
+  .strict();
+const ApprovalSchema = z
+  .object({
+    id: z.string().min(1),
+    renderJobId: z.string().min(1),
+    revisionCanonicalHash: z.string().regex(/^[0-9a-f]{64}$/),
+    resourcePins: z.array(
+      z
+        .object({
+          resourceId: z.string().min(1),
+          resourceKind: z.enum(["raster-asset", "font"]),
+          ordinal: z.number().int().nonnegative(),
+          contentHash: z.string().regex(/^[0-9a-f]{64}$/),
+        })
+        .strict(),
+    ),
+    outputEvidence: z.array(
+      z
+        .object({
+          format: z.enum(["svg", "png"]),
+          artifactSha256: z.string().regex(/^[0-9a-f]{64}$/),
+          manifestSha256: z.string().regex(/^[0-9a-f]{64}$/),
+          fingerprint: z.string().min(1),
+        })
+        .strict(),
+    ),
+    approvedBy: UserSummarySchema,
+    approvedAt: z.string().min(1),
+  })
+  .strict();
+const RevisionReviewSchema = z
+  .object({
+    kind: z.literal("revision-review"),
+    id: z.string().min(1),
+    workspaceId: z.string().min(1),
+    designId: z.string().min(1),
+    revisionId: z.string().min(1),
+    state: z.enum(["in-review", "changes-requested", "approved"]),
+    startedBy: UserSummarySchema,
+    startedAt: z.string().min(1),
+    updatedBy: UserSummarySchema,
+    updatedAt: z.string().min(1),
+    comments: z.array(ReviewCommentSchema),
+    transitions: z.array(ReviewTransitionSchema),
+    approval: ApprovalSchema.optional(),
+  })
+  .strict();
+const ReviewReceiptSchema = z
+  .object({
+    kind: z.enum([
+      "revision-review-submitted",
+      "revision-changes-requested",
+      "revision-approved",
+    ]),
+    review: RevisionReviewSchema,
+    approval: ApprovalSchema.optional(),
+  })
+  .strict();
+const ReviewCommentReceiptSchema = z
+  .object({
+    kind: z.literal("revision-review-commented"),
+    reviewId: z.string().min(1),
+    comment: ReviewCommentSchema,
+  })
+  .strict();
+
+const RevisionComparisonSchema = z
+  .object({
+    kind: z.literal("revision-comparison"),
+    left: z
+      .object({
+        revision: DesignRevisionSchema,
+        qualityIssues: z.unknown(),
+        evidence: z.unknown(),
+        outputs: z.unknown(),
+      })
+      .strict(),
+    right: z
+      .object({
+        revision: DesignRevisionSchema,
+        qualityIssues: z.unknown(),
+        evidence: z.unknown(),
+        outputs: z.unknown(),
+      })
+      .strict(),
+  })
+  .strict();
+
 export type ApiFailure = {
   ok: false;
   status: number;
@@ -341,6 +635,7 @@ export type WorkspaceDashboard = {
   workspace: WorkspaceMembershipSummary;
   brandKits: BrandKitSummary[];
   designs: DesignSummary[];
+  campaigns: CampaignSummary[];
 };
 
 export type SelectableResource = z.infer<typeof SelectableResourceSchema>;
@@ -357,6 +652,16 @@ export type CreatedInvitation = z.infer<typeof InvitationCreatedSchema>;
 export type QueuedRenderJob = z.infer<typeof RenderJobQueuedSchema>;
 export type RenderJob = z.infer<typeof RenderJobSchema>;
 export type RenderJobOutput = z.infer<typeof RenderJobOutputSchema>;
+export type CampaignBoard = z.infer<typeof CampaignBoardSchema>;
+export type CampaignDirection = z.infer<typeof CampaignDirectionSchema>;
+export type CampaignCanvas = z.infer<typeof CampaignCanvasSchema>;
+export type CampaignProposalRun = z.infer<typeof ProposalRunSchema>;
+export type CampaignProposalDecision = z.infer<typeof ProposalDecisionSchema>;
+export type RevisionReview = z.infer<typeof RevisionReviewSchema>;
+export type RevisionComparison = {
+  left: { revision: DesignRevision; proof: PreviewSuccess };
+  right: { revision: DesignRevision; proof: PreviewSuccess };
+};
 
 export type AppAlphaApi = {
   currentSession: () => Promise<ApiResult<CurrentSession>>;
@@ -403,6 +708,7 @@ export type AppAlphaApi = {
     workspaceId: string;
     brandSnapshotId: string;
     draft: ManualDraft;
+    baseRevision?: { designId: string; revisionId: string };
   }) => Promise<ApiResult<PreviewSuccess>>;
   createDesign: (input: {
     workspaceId: string;
@@ -439,6 +745,104 @@ export type AppAlphaApi = {
     workspaceId: string,
     revisionId: string,
   ) => Promise<ApiResult<RenderJob[]>>;
+  createCampaign: (input: {
+    workspaceId: string;
+    name: string;
+    brief: string;
+    campaignSeed: string;
+  }) => Promise<ApiResult<CampaignSummary>>;
+  campaignBoard: (
+    workspaceId: string,
+    campaignId: string,
+  ) => Promise<ApiResult<CampaignBoard>>;
+  createCampaignDirection: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionKey: string;
+    name: string;
+    locks: z.infer<typeof AuthoringLockSchema>[];
+  }) => Promise<ApiResult<CampaignDirection>>;
+  branchCampaignDirection: (input: {
+    workspaceId: string;
+    campaignId: string;
+    sourceDirectionId: string;
+    directionKey: string;
+    name: string;
+  }) => Promise<ApiResult<CampaignDirection>>;
+  attachCampaignCanvas: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    canvasKey: string;
+    designId: string;
+    revisionId: string;
+    ordinal: number;
+  }) => Promise<ApiResult<CampaignCanvas>>;
+  requestCampaignProposals: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    baseCanvasId: string;
+    candidateCount: 3 | 4;
+  }) => Promise<ApiResult<CampaignProposalRun>>;
+  campaignProposalRun: (input: {
+    workspaceId: string;
+    campaignId: string;
+    runId: string;
+  }) => Promise<ApiResult<CampaignProposalRun>>;
+  acceptCampaignProposal: (input: {
+    workspaceId: string;
+    campaignId: string;
+    runId: string;
+    candidateId: string;
+    designName: string;
+  }) => Promise<ApiResult<SavedDesign>>;
+  rejectCampaignProposal: (input: {
+    workspaceId: string;
+    campaignId: string;
+    runId: string;
+    candidateId: string;
+    reason?: string;
+  }) => Promise<ApiResult<CampaignProposalDecision>>;
+  campaignHandoff: (
+    workspaceId: string,
+    campaignId: string,
+  ) => Promise<ApiResult<CampaignHandoffProjection>>;
+  compareRevisions: (input: {
+    workspaceId: string;
+    leftDesignId: string;
+    leftRevisionId: string;
+    rightDesignId: string;
+    rightRevisionId: string;
+  }) => Promise<ApiResult<RevisionComparison>>;
+  revisionReview: (input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+  }) => Promise<ApiResult<RevisionReview>>;
+  submitRevisionReview: (input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+  }) => Promise<ApiResult<RevisionReview>>;
+  commentRevisionReview: (input: {
+    workspaceId: string;
+    reviewId: string;
+    body: string;
+    anchor?: { x: number; y: number };
+  }) => Promise<ApiResult<z.infer<typeof ReviewCommentSchema>>>;
+  requestRevisionChanges: (input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+    reason: string;
+  }) => Promise<ApiResult<RevisionReview>>;
+  approveRevision: (input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+    renderJobId: string;
+  }) => Promise<ApiResult<RevisionReview>>;
 };
 
 type FetchImplementation = (
@@ -572,6 +976,7 @@ export function createAppAlphaApi(
           workspace: value.workspace,
           brandKits: value.brandKits,
           designs: value.designs,
+          campaigns: value.campaigns,
         }),
       );
     },
@@ -661,6 +1066,124 @@ export function createAppAlphaApi(
         (value) => value.jobs,
       );
     },
+    async createCampaign(input) {
+      return parseValue(
+        await command({
+          type: "campaign.create",
+          ...input,
+          familyId: "image-led-campaign",
+        }),
+        CampaignCreatedSchema,
+        (value) => value.campaign,
+      );
+    },
+    async campaignBoard(workspaceId, campaignId) {
+      return parseValue(
+        await query({ type: "campaign.board", workspaceId, campaignId }),
+        CampaignBoardSchema,
+        (value) => value,
+      );
+    },
+    async createCampaignDirection(input) {
+      return parseValue(
+        await command({ type: "campaign.direction.create", ...input }),
+        CampaignDirectionCreatedSchema,
+        (value) => value.direction,
+      );
+    },
+    async branchCampaignDirection(input) {
+      return parseValue(
+        await command({ type: "campaign.direction.branch", ...input }),
+        CampaignDirectionCreatedSchema,
+        (value) => value.direction,
+      );
+    },
+    async attachCampaignCanvas(input) {
+      return parseValue(
+        await command({
+          type: "campaign.canvas.attach",
+          ...input,
+          compositionVariantId: "focal-editorial",
+        }),
+        CampaignCanvasAttachedSchema,
+        (value) => value.canvas,
+      );
+    },
+    async requestCampaignProposals(input) {
+      return parseValue(
+        await command({ type: "campaign.proposals.request", ...input }),
+        ProposalCreatedSchema,
+        (value) => value.run,
+      );
+    },
+    async campaignProposalRun(input) {
+      return parseValue(
+        await query({ type: "campaign.proposal.run", ...input }),
+        ProposalRunSchema,
+        (value) => value,
+      );
+    },
+    async acceptCampaignProposal(input) {
+      return parseValue(
+        await command({ type: "campaign.proposal.accept", ...input }),
+        ProposalAcceptedSchema,
+        (value) => value.design,
+      );
+    },
+    async rejectCampaignProposal(input) {
+      return parseValue(
+        await command({ type: "campaign.proposal.reject", ...input }),
+        ProposalRejectedSchema,
+        (value) => value.decision,
+      );
+    },
+    async campaignHandoff(workspaceId, campaignId) {
+      return parseValue(
+        await query({ type: "campaign.handoff", workspaceId, campaignId }),
+        CampaignHandoffSchema,
+        (value) => value,
+      );
+    },
+    async compareRevisions(input) {
+      return parseRevisionComparison(
+        await query({ type: "revision.compare", ...input }),
+      );
+    },
+    async revisionReview(input) {
+      return parseValue(
+        await query({ type: "revision.review", ...input }),
+        RevisionReviewSchema,
+        (value) => value,
+      );
+    },
+    async submitRevisionReview(input) {
+      return parseValue(
+        await command({ type: "revision.review.submit", ...input }),
+        ReviewReceiptSchema,
+        (value) => value.review,
+      );
+    },
+    async commentRevisionReview(input) {
+      return parseValue(
+        await command({ type: "revision.review.comment", ...input }),
+        ReviewCommentReceiptSchema,
+        (value) => value.comment,
+      );
+    },
+    async requestRevisionChanges(input) {
+      return parseValue(
+        await command({ type: "revision.review.request-changes", ...input }),
+        ReviewReceiptSchema,
+        (value) => value.review,
+      );
+    },
+    async approveRevision(input) {
+      return parseValue(
+        await command({ type: "revision.review.approve", ...input }),
+        ReviewReceiptSchema,
+        (value) => value.review,
+      );
+    },
   };
 }
 
@@ -720,6 +1243,40 @@ function parseRenderedReceipt(
             : { qualityIssues: preview.qualityIssues }),
         },
       };
+}
+
+function parseRevisionComparison(result: RawResult): ApiResult<RevisionComparison> {
+  if (!result.ok) return result;
+  const parsed = RevisionComparisonSchema.safeParse(result.value);
+  if (!parsed.success) return malformedResponse();
+  const left = parsePreviewResponse(
+    {
+      ok: true,
+      document: parsed.data.left.revision.document,
+      qualityIssues: parsed.data.left.qualityIssues,
+      evidence: parsed.data.left.evidence,
+      outputs: parsed.data.left.outputs,
+    },
+    200,
+  );
+  const right = parsePreviewResponse(
+    {
+      ok: true,
+      document: parsed.data.right.revision.document,
+      qualityIssues: parsed.data.right.qualityIssues,
+      evidence: parsed.data.right.evidence,
+      outputs: parsed.data.right.outputs,
+    },
+    200,
+  );
+  if (!left.ok || !right.ok) return malformedResponse();
+  return {
+    ok: true,
+    value: {
+      left: { revision: parsed.data.left.revision, proof: left },
+      right: { revision: parsed.data.right.revision, proof: right },
+    },
+  };
 }
 
 function malformedResponse(): ApiFailure {

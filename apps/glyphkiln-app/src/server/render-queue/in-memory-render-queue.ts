@@ -18,7 +18,6 @@ import {
 
 type MemoryJob = Omit<RenderJobView, "outputs"> & {
   readonly idempotencyKey: string;
-  readonly manifestCreationTimestamp: Date;
   readonly outputs: RenderOutputMetadata[];
   readonly claimed?: ClaimedRenderJob;
 };
@@ -274,6 +273,7 @@ function cloneView(job: MemoryJob): RenderJobView {
     maxAttempts: job.maxAttempts,
     availableAt: copyDate(job.availableAt),
     createdAt: copyDate(job.createdAt),
+    manifestCreationTimestamp: copyDate(job.manifestCreationTimestamp),
     updatedAt: copyDate(job.updatedAt),
     ...(job.finishedAt === undefined ? {} : { finishedAt: copyDate(job.finishedAt) }),
     ...(job.lastError === undefined ? {} : { lastError: { ...job.lastError } }),

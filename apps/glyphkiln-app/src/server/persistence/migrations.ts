@@ -104,6 +104,14 @@ const MIGRATION_FILES = [
     ),
     version: "202608120010_resource_color_normalization_provenance",
   },
+  {
+    down: new URL(
+      "./migrations/202608120011_campaign_proposals.down.sql",
+      import.meta.url,
+    ),
+    up: new URL("./migrations/202608120011_campaign_proposals.up.sql", import.meta.url),
+    version: "202608120011_campaign_proposals",
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

@@ -1,15 +1,21 @@
+import { readFile } from "node:fs/promises";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  canonicalJson,
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
+  hashCanonical,
   renderGraphic,
   sha256,
 } from "@glyphkiln/core";
 import type { DesignLayer } from "@glyphkiln/core";
 
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
+import type { BriefInterpreter } from "@/server/ai-authoring";
+import type { BriefInterpreterResult } from "@/server/ai-authoring";
 import {
   createPGliteDatabase,
   type PGliteDatabase,
@@ -58,6 +64,7 @@ describe("AppWorkflow", () => {
   let clock: MutableTestClock;
   let renderQueue: PostgresRenderQueue;
   let resourceStore: TestResourceStore;
+  let briefInterpreter: TestBriefInterpreter;
 
   beforeEach(async () => {
     database = await createPGliteDatabase();
@@ -66,6 +73,7 @@ describe("AppWorkflow", () => {
     clock = new MutableTestClock(NOW);
     renderQueue = new PostgresRenderQueue(database);
     resourceStore = new TestResourceStore();
+    briefInterpreter = new TestBriefInterpreter();
     workflow = createAppWorkflow({
       database,
       bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
@@ -74,12 +82,18 @@ describe("AppWorkflow", () => {
       clock,
       renderQueue,
       resourceStore,
-      render: async (document) =>
+      briefInterpreter,
+      render: async (document, resources, creationTimestamp) =>
         (
-          await createProjectPreview(document, {
-            render: async (input, options) => renderGraphic(input, options),
-            now: () => NOW,
-          })
+          await createProjectPreview(
+            document,
+            {
+              render: async (input, options) => renderGraphic(input, options),
+              now: () => NOW,
+            },
+            resources,
+            creationTimestamp,
+          )
         ).body,
     });
   });
@@ -411,12 +425,38 @@ describe("AppWorkflow", () => {
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
-    const assetBytes = Uint8Array.from([1, 2, 3, 4]);
-    const assetHash = sha256(assetBytes);
-    for (const [id, sourceName] of [
-      ["campaign-image-one", "Campaign image"],
-      ["campaign-logo-one", "Campaign logo"],
-    ] as const) {
+    const campaignAssets = [
+      {
+        id: "campaign-image-one",
+        sourceName: "Campaign image",
+        width: 1536,
+        height: 1024,
+        bytes: new Uint8Array(
+          await readFile(
+            new URL(
+              "../../../../../packages/glyphkiln-core/examples/assets/kilnform-lamp-campaign.png",
+              import.meta.url,
+            ),
+          ),
+        ),
+      },
+      {
+        id: "campaign-logo-one",
+        sourceName: "Campaign logo",
+        width: 1024,
+        height: 1024,
+        bytes: new Uint8Array(
+          await readFile(
+            new URL(
+              "../../../../../packages/glyphkiln-core/examples/assets/kilnform-mark.png",
+              import.meta.url,
+            ),
+          ),
+        ),
+      },
+    ] as const;
+    for (const { id, sourceName, width, height, bytes } of campaignAssets) {
+      const assetHash = sha256(bytes);
       resourceStore.add({
         resource: {
           id,
@@ -425,9 +465,9 @@ describe("AppWorkflow", () => {
           contentHash: assetHash,
           storageKey: `internal-${id}`,
           mediaType: "image/png",
-          byteSize: assetBytes.byteLength,
-          width: 1200,
-          height: 800,
+          byteSize: bytes.byteLength,
+          width,
+          height,
           origin: { kind: "user-upload", sourceName },
           license: { status: "owned" },
           scan: {
@@ -439,7 +479,7 @@ describe("AppWorkflow", () => {
           createdBy: owner.user.id,
           createdAt: NOW,
         },
-        bytes: assetBytes,
+        bytes,
       });
       await seedResourceVersion({
         id,
@@ -449,9 +489,9 @@ describe("AppWorkflow", () => {
         contentHash: assetHash,
         storageKey: `internal-${id}`,
         mediaType: "image/png",
-        byteSize: assetBytes.byteLength,
-        width: 1200,
-        height: 800,
+        byteSize: bytes.byteLength,
+        width,
+        height,
         originKind: "user-upload",
         originSourceName: sourceName,
         licenseStatus: "owned",
@@ -533,6 +573,658 @@ describe("AppWorkflow", () => {
         },
       ],
     });
+
+    const branched = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.branch",
+          workspaceId,
+          campaignId: campaign.id,
+          sourceDirectionId: direction.id,
+          directionKey: "editorial-b",
+          name: "Editorial B",
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expect(branched).toMatchObject({
+      directionKey: "editorial-b",
+      locks: ["copy", "image", "palette"],
+      canvases: [],
+    });
+
+    const copyViolation = imageLedCampaignDraft(seeds.canvasSeed);
+    const lockedHeadline = copyViolation.layers.find(
+      (layer) => layer.type === "headline",
+    );
+    if (lockedHeadline?.type !== "headline") {
+      throw new Error("Campaign headline missing.");
+    }
+    lockedHeadline.text = "A model or editor must not move locked copy.";
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.preview",
+          workspaceId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          baseRevision: {
+            designId: revision.designId,
+            revisionId: revision.revisionId,
+          },
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.preview",
+          workspaceId,
+          brandSnapshotId: brand.snapshotId,
+          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          baseRevision: {
+            designId: revision.designId,
+            revisionId: revision.revisionId,
+          },
+        },
+      }),
+      "design-previewed",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: revision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          changeNote: "Attempt to alter a locked campaign field.",
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
+
+    const proposalRun = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      "campaign-proposals-created",
+    ).run;
+    expect(proposalRun).toMatchObject({
+      descriptor: {
+        providerId: "test-proposal-provider",
+        modelId: "bounded-test-model",
+      },
+      locks: ["copy", "image", "palette"],
+      candidates: [
+        { index: 0, status: "proved", issues: [] },
+        { index: 1, status: "proved", issues: [] },
+        { index: 2, status: "proved", issues: [] },
+      ],
+    });
+    expect(proposalRun.inputHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(proposalRun.responseHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(
+      proposalRun.candidates.every((candidate) =>
+        candidate.proof?.outputs.every((output) => output.base64 !== undefined),
+      ),
+    ).toBe(true);
+
+    briefInterpreter.responseOverride = (input) => ({
+      contractVersion: "1.0.0",
+      candidates: Array.from({ length: input.candidateCount }, (_, index) => ({
+        document: structuredClone(input.baseDocument),
+        rationale: `Duplicate proposal ${(index + 1).toString()}.`,
+      })),
+    });
+    const duplicateRun = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      "campaign-proposals-created",
+    ).run;
+    expect(duplicateRun.candidates).toMatchObject([
+      { index: 0, status: "proved", issues: [] },
+      {
+        index: 1,
+        status: "rejected",
+        issues: [{ code: "DUPLICATE_NORMALIZED_DOCUMENT", candidateIndex: 1 }],
+      },
+      {
+        index: 2,
+        status: "rejected",
+        issues: [{ code: "DUPLICATE_NORMALIZED_DOCUMENT", candidateIndex: 2 }],
+      },
+    ]);
+
+    briefInterpreter.responseOverride = () => ({
+      contractVersion: "1.0.0",
+      candidates: [],
+    });
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      422,
+      "AI_PROPOSAL_REJECTED",
+    );
+
+    let accessorReads = 0;
+    const accessorResponse = {};
+    Object.defineProperty(accessorResponse, "contractVersion", {
+      enumerable: true,
+      get() {
+        accessorReads += 1;
+        throw new Error("Provider response accessors must not run.");
+      },
+    });
+    briefInterpreter.resultOverride = () => ({
+      response: accessorResponse,
+      responseHash: "0".repeat(64),
+    });
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      422,
+      "AI_PROPOSAL_REJECTED",
+    );
+    expect(accessorReads).toBe(0);
+
+    const storedRun = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+        },
+      }),
+      "campaign-proposal-run",
+    );
+    expect(JSON.stringify(storedRun)).not.toContain('"base64"');
+
+    const firstCandidate = proposalRun.candidates.at(0);
+    const secondCandidate = proposalRun.candidates.at(1);
+    const thirdCandidate = proposalRun.candidates.at(2);
+    if (
+      firstCandidate === undefined ||
+      secondCandidate === undefined ||
+      thirdCandidate === undefined
+    ) {
+      throw new Error("Expected three bounded proposal candidates.");
+    }
+    const accepted = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.accept",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: firstCandidate.id,
+          designName: "Accepted crop direction",
+        },
+      }),
+      "campaign-proposal-accepted",
+    );
+    expect(accepted).toMatchObject({
+      decision: { decision: "accepted" },
+      design: { revisionNumber: 1 },
+    });
+    expect(accepted.design.designId).not.toBe(revision.designId);
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: secondCandidate.id,
+          reason: "The first crop has the clearer focal point.",
+        },
+      }),
+      "campaign-proposal-rejected",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: secondCandidate.id,
+        },
+      }),
+      409,
+      "AI_PROPOSAL_REJECTED",
+    );
+    const concurrentDecisions = await Promise.all([
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: thirdCandidate.id,
+          reason: "First concurrent human decision.",
+        },
+      }),
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: thirdCandidate.id,
+          reason: "Second concurrent human decision.",
+        },
+      }),
+    ]);
+    expect(concurrentDecisions.filter((result) => result.ok)).toHaveLength(1);
+    const rejectedConcurrentDecision = concurrentDecisions.find((result) => !result.ok);
+    if (rejectedConcurrentDecision === undefined) {
+      throw new Error("Expected one immutable proposal-decision conflict.");
+    }
+    expectFailure(rejectedConcurrentDecision, 409, "AI_PROPOSAL_REJECTED");
+
+    const comparison = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "revision.compare",
+          workspaceId,
+          leftDesignId: revision.designId,
+          leftRevisionId: revision.revisionId,
+          rightDesignId: accepted.design.designId,
+          rightRevisionId: accepted.design.revisionId,
+        },
+      }),
+      "revision-comparison",
+    );
+    expect(comparison.left.revision.revisionId).toBe(revision.revisionId);
+    expect(comparison.right.revision.revisionId).toBe(accepted.design.revisionId);
+    expect(comparison.left.outputs.map((output) => output.format)).toEqual([
+      "svg",
+      "png",
+    ]);
+
+    const handoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-handoff",
+    );
+    const repeatedHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-handoff",
+    );
+    expect(repeatedHandoff).toMatchObject({
+      sha256: handoff.sha256,
+      base64: handoff.base64,
+      fileCount: 7,
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: 1,
+    });
+    const handoffArchive = parseTestJson(
+      Buffer.from(handoff.base64, "base64").toString("utf8"),
+    ) as { files: { path: string; approvalStatus: string }[] };
+    expect(handoffArchive.files.map((file) => file.path)).toEqual(
+      [...handoffArchive.files]
+        .map((file) => file.path)
+        .sort((left, right) => left.localeCompare(right)),
+    );
+    expect(
+      handoffArchive.files.some(
+        (file) =>
+          file.path.endsWith(".approval.json") && file.approvalStatus === "unapproved",
+      ),
+    ).toBe(true);
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    );
+    const queuedApprovalProof = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          idempotencyKey: "campaign-handoff-approval-proof",
+        },
+      }),
+      "render-job-queued",
+    );
+    const approvalClaim = await renderQueue.claim({
+      workerId: "campaign-approval-worker",
+      now: NOW,
+    });
+    if (approvalClaim === undefined) {
+      throw new Error("Expected a campaign approval render claim.");
+    }
+    await renderQueue.complete(
+      approvalClaim,
+      completedRenderOutputs(),
+      new Date(NOW.getTime() + 1),
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          renderJobId: queuedApprovalProof.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    const mismatchedApprovalHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-handoff",
+    );
+    expect(mismatchedApprovalHandoff).toMatchObject({
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: 1,
+    });
+    const mismatchedArchive = parseTestJson(
+      Buffer.from(mismatchedApprovalHandoff.base64, "base64").toString("utf8"),
+    ) as { files: { path: string; base64: string }[] };
+    const approvalFile = mismatchedArchive.files.find((file) =>
+      file.path.endsWith(".approval.json"),
+    );
+    if (approvalFile === undefined) throw new Error("Approval file missing.");
+    expect(
+      parseTestJson(Buffer.from(approvalFile.base64, "base64").toString("utf8")),
+    ).toMatchObject({
+      status: "unapproved",
+      reason: "included-proofs-do-not-match-approval-receipt",
+      receipt: { renderJobId: queuedApprovalProof.jobId },
+    });
+
+    const approvedCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Approved first firing",
+          brief: "Reproduce the exact approved render evidence in the handoff.",
+          campaignSeed: campaign.campaignSeed,
+          familyId: campaign.familyId,
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const approvedDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+          directionKey: direction.directionKey,
+          name: "Approved Editorial A",
+          locks: direction.locks,
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+          directionId: approvedDirection.id,
+          canvasKey: attached.canvasKey,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          compositionVariantId: attached.compositionVariantId,
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    );
+    const exactApprovalProof = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          idempotencyKey: "campaign-handoff-exact-approval-proof",
+        },
+      }),
+      "render-job-queued",
+    );
+    const exactApprovalClaim = await renderQueue.claim({
+      workerId: "campaign-exact-approval-worker",
+      now: NOW,
+    });
+    if (exactApprovalClaim === undefined) {
+      throw new Error("Expected an exact campaign approval render claim.");
+    }
+    await renderQueue.complete(
+      exactApprovalClaim,
+      completedRenderEvidence(comparison.right.outputs),
+      new Date(NOW.getTime() + 1),
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          renderJobId: exactApprovalProof.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    const exactApprovalHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expect(exactApprovalHandoff).toMatchObject({
+      approvedCanvasCount: 1,
+      unapprovedCanvasCount: 0,
+    });
+
+    const concurrentCanvasSeeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("concurrent-copy-variant"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    const competingDraft = imageLedCampaignDraft(concurrentCanvasSeeds.canvasSeed);
+    const competingHeadline = competingDraft.layers.find(
+      (layer) => layer.type === "headline",
+    );
+    if (competingHeadline?.type !== "headline") {
+      throw new Error("Competing campaign headline missing.");
+    }
+    competingHeadline.text = "A conflicting first-canvas copy baseline.";
+    const competingRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Competing campaign baseline",
+          brandSnapshotId: brand.snapshotId,
+          draft: competingDraft,
+        },
+      }),
+      "design-saved",
+    );
+    const concurrentCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Serialized direction baseline",
+          brief: "Only one concurrent first attachment may establish the locks.",
+          campaignSeed: campaign.campaignSeed,
+          familyId: campaign.familyId,
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const concurrentDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionKey: direction.directionKey,
+          name: "Serialized Editorial A",
+          locks: ["copy"],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const concurrentAttachments = await Promise.all([
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionId: concurrentDirection.id,
+          canvasKey: attached.canvasKey,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          compositionVariantId: attached.compositionVariantId,
+          ordinal: 0,
+        },
+      }),
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionId: concurrentDirection.id,
+          canvasKey: "concurrent-copy-variant",
+          designId: competingRevision.designId,
+          revisionId: competingRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          ordinal: 1,
+        },
+      }),
+    ]);
+    expect(concurrentAttachments.filter((result) => result.ok)).toHaveLength(1);
+    const rejectedAttachment = concurrentAttachments.find((result) => !result.ok);
+    if (rejectedAttachment === undefined) {
+      throw new Error("Expected one concurrent lock conflict.");
+    }
+    expectFailure(rejectedAttachment, 422, "CAMPAIGN_LOCK_VIOLATION");
+    const serializedBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.board",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+        },
+      }),
+      "campaign-board",
+    );
+    expect(serializedBoard.directions[0]?.canvases).toHaveLength(1);
+
     await expect(
       database.query(
         `UPDATE campaign_direction_locks
@@ -585,7 +1277,7 @@ describe("AppWorkflow", () => {
       403,
       "ROLE_FORBIDDEN",
     );
-  });
+  }, 15_000);
 
   it("requires a session-bound mutation proof and revokes logout immediately", async () => {
     const owner = await bootstrapOwner();
@@ -2534,6 +3226,48 @@ describe("AppWorkflow", () => {
   }
 });
 
+class TestBriefInterpreter implements BriefInterpreter {
+  readonly descriptor = {
+    providerId: "test-proposal-provider",
+    modelId: "bounded-test-model",
+    retentionDisclosure: "Test provider receives the bounded campaign brief.",
+  };
+
+  responseOverride?: (input: Parameters<BriefInterpreter["interpret"]>[0]) => unknown;
+  resultOverride?: (
+    input: Parameters<BriefInterpreter["interpret"]>[0],
+  ) => BriefInterpreterResult;
+
+  interpret(
+    input: Parameters<BriefInterpreter["interpret"]>[0],
+  ): Promise<BriefInterpreterResult> {
+    if (this.resultOverride !== undefined) {
+      return Promise.resolve(this.resultOverride(input));
+    }
+    const response = this.responseOverride?.(input) ?? {
+      contractVersion: "1.0.0",
+      candidates: Array.from({ length: input.candidateCount }, (_, index) => {
+        const document = structuredClone(input.baseDocument);
+        const image = document.layers.find((layer) => layer.type === "image");
+        if (image?.type !== "image") {
+          throw new Error("Campaign fixture image missing.");
+        }
+        Object.assign(image, {
+          focalPoint: {
+            x: 0.22 + index * 0.2,
+            y: 0.42 + index * 0.05,
+          },
+        });
+        return {
+          document,
+          rationale: `Proposal ${(index + 1).toString()} varies only the unlocked crop.`,
+        };
+      }),
+    };
+    return Promise.resolve({ response, responseHash: hashCanonical(response) });
+  }
+}
+
 class TestPasswordHasher implements PasswordHasher {
   hash(password: string): Promise<string> {
     return Promise.resolve(
@@ -2838,11 +3572,47 @@ function completedRenderOutputs() {
   ];
 }
 
+function completedRenderEvidence(
+  outputs: readonly {
+    format: "png" | "svg";
+    mimeType: "image/png" | "image/svg+xml";
+    base64: string;
+    fingerprint: string;
+    manifest: unknown;
+  }[],
+) {
+  return outputs.map((output) => {
+    const artifactBytes = Buffer.from(output.base64, "base64");
+    const manifestBytes = new TextEncoder().encode(
+      `${canonicalJson(output.manifest)}\n`,
+    );
+    const artifactSha256 = sha256(artifactBytes);
+    const manifestSha256 = sha256(manifestBytes);
+    return {
+      format: output.format,
+      mimeType: output.mimeType,
+      artifactKey: `workspaces/a/render-output/sha256/${artifactSha256}/${output.format}`,
+      artifactSha256,
+      artifactByteSize: artifactBytes.byteLength,
+      manifestKey: `workspaces/a/render-manifest/sha256/${manifestSha256}/${output.format}`,
+      manifestSha256,
+      manifestByteSize: manifestBytes.byteLength,
+      fingerprint: output.fingerprint,
+    };
+  });
+}
+
+function parseTestJson(input: string): unknown {
+  return JSON.parse(input) as unknown;
+}
+
 function expectSuccess<T>(result: AppResult<T>): T {
-  expect(result.ok).toBe(true);
   if (!result.ok) {
-    throw new Error(`Expected success, received ${result.error.code}.`);
+    throw new Error(
+      `Expected success, received ${result.error.code}: ${result.error.detail}`,
+    );
   }
+  expect(result.ok).toBe(true);
   return result.value;
 }
 

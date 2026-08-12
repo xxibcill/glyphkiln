@@ -68,8 +68,36 @@ Campaign-family metadata and seed derivation have independent version labels.
 This contract slice does not change the design schema, templates, renderer,
 procedural algorithms, manifest, fingerprints, SVG, or PNG output.
 
-Content-length profiles, additional composition variants, comparison helpers,
-and App campaign persistence remain gated on a reviewed brief requiring at
-least four formats and a multi-slide series. Locks, grouping, ordering, review
-state, and revision identity remain App metadata and must not enter Core pixel
-fingerprints.
+Content-length profiles and additional composition variants remain gated on a
+reviewed brief requiring at least four formats and a multi-slide series. Locks,
+grouping, ordering, review state, and revision identity remain App metadata and
+must not enter Core pixel fingerprints.
+
+## App campaign workflow
+
+The App persists workspace-qualified campaigns, directions, immutable lock
+rows, and exact revision canvases. A direction branch copies its closed lock
+selection but no canvases or hidden creative state. Attach, revision, preview,
+queued render, proposal acceptance, comparison, and handoff paths reload the
+stored revisions and fail closed when a selected lock no longer matches the
+direction baseline.
+
+The option board compares two exact immutable revisions by rendering them
+sequentially through the normal bounded admission and resource resolver. It
+does not compare browser screenshots or recompute Core evidence.
+
+`campaign.handoff` creates a canonical JSON archive with stable sorted paths.
+Each canvas contributes its exact design document, immutable resource pins,
+SVG and PNG bytes, both render manifests, and an approval record. The record is
+an exact approval receipt only when the included artifact hashes, manifest
+hashes, fingerprints, revision hash, and resource pins match that receipt. A
+missing or mismatched receipt produces an explicit `unapproved` record. The
+archive includes per-file hashes, byte sizes, media types, and approval status;
+its own SHA-256 covers the canonical archive bytes. A synchronous verified
+handoff is bounded to 64 exact canvases and 64 MiB of canonical archive bytes.
+
+Optional proposals are separate append-only App records. Provider/model
+identity, retention disclosure, canonical input/response hashes, validation,
+proof metadata, and the human accept/reject decision never enter the Core
+document or manifest. A human acceptance creates a new immutable design and
+revision; it does not silently replace or attach a campaign canvas.

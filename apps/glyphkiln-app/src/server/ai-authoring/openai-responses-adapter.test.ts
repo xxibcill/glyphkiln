@@ -36,7 +36,9 @@ describe("OpenAI Responses BriefInterpreter adapter", () => {
       fetch: providerFetch,
     });
 
-    await expect(interpreter.interpret(authoringInput())).resolves.toEqual(proposal);
+    const interpreted = await interpreter.interpret(authoringInput());
+    expect(interpreted.response).toEqual(proposal);
+    expect(interpreted.responseHash).toMatch(/^[0-9a-f]{64}$/);
     expect(interpreter.descriptor).toEqual({
       providerId: "openai-responses",
       modelId: "gpt-5.6-terra",

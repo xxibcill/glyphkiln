@@ -4,6 +4,7 @@ import {
   AUTHORING_TEMPLATE_REGISTRY,
   canonicalJson,
   getDesignDocumentJsonSchema,
+  hashCanonical,
   validateDesignDocument,
 } from "@glyphkiln/core";
 
@@ -19,6 +20,7 @@ import {
   type BriefInterpreter,
   type BriefInterpreterDescriptor,
   type BriefInterpreterInput,
+  type BriefInterpreterResult,
 } from "./brief-interpreter";
 
 const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
@@ -82,7 +84,7 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
     });
   }
 
-  async interpret(input: BriefInterpreterInput): Promise<unknown> {
+  async interpret(input: BriefInterpreterInput): Promise<BriefInterpreterResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
@@ -112,7 +114,15 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
           "The configured authoring provider rejected the proposal request.",
         );
       }
-      return parseProviderEnvelope(responseText);
+      const parsedResponse = parseProviderEnvelope(responseText);
+      try {
+        return Object.freeze({
+          response: parsedResponse,
+          responseHash: hashCanonical(parsedResponse),
+        });
+      } catch {
+        throw invalidProviderResponse();
+      }
     } catch (error) {
       if (error instanceof BriefInterpreterProviderError) throw error;
       if (controller.signal.aborted || isAbortError(error)) {

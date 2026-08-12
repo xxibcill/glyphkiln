@@ -332,7 +332,123 @@ describe("App Alpha API client", () => {
       },
     });
   });
+
+  it("keeps proposal requests bounded and parses a deterministic handoff receipt", async () => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.proposals.request") {
+        return Promise.resolve(
+          jsonResponse(
+            {
+              ok: true,
+              status: 201,
+              value: {
+                kind: "campaign-proposals-created",
+                run: proposalRunFixture(),
+              },
+            },
+            201,
+          ),
+        );
+      }
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: {
+              kind: "campaign-handoff",
+              campaignId: "campaign-1",
+              filename: "campaign-1.gk-handoff.json",
+              mediaType: "application/vnd.glyphkiln.campaign-handoff+json",
+              byteSize: 128,
+              sha256: "d".repeat(64),
+              base64: "eyJ2ZXJzaW9uIjoiMS4wLjAifQo=",
+              fileCount: 7,
+              approvedCanvasCount: 0,
+              unapprovedCanvasCount: 1,
+            },
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.requestCampaignProposals({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        baseCanvasId: "canvas-1",
+        candidateCount: 3,
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        candidates: [
+          { index: 0, status: "rejected" },
+          { index: 1, status: "rejected" },
+          { index: 2, status: "rejected" },
+        ],
+      },
+    });
+    await expect(
+      api.campaignHandoff("workspace-1", "campaign-1"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { fileCount: 7, unapprovedCanvasCount: 1 },
+    });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      type: "campaign.proposals.request",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      baseCanvasId: "canvas-1",
+      candidateCount: 3,
+    });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      type: "campaign.handoff",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+    });
+  });
 });
+
+function proposalRunFixture() {
+  return {
+    kind: "campaign-proposal-run",
+    id: "run-1",
+    workspaceId: "workspace-1",
+    campaignId: "campaign-1",
+    directionId: "direction-1",
+    baseCanvasId: "canvas-1",
+    baseDesignId: "design-1",
+    baseRevisionId: "revision-1",
+    descriptor: {
+      providerId: "provider-1",
+      modelId: "model-1",
+      retentionDisclosure: "Bounded provider disclosure.",
+    },
+    inputHash: "a".repeat(64),
+    responseHash: "b".repeat(64),
+    locks: ["copy"],
+    createdAt: "2026-08-12T01:00:00.000Z",
+    candidates: Array.from({ length: 3 }, (_, index) => ({
+      id: `candidate-${index.toString()}`,
+      index,
+      status: "rejected",
+      issues: [
+        {
+          code: "RESOURCE_BACKED_PROOF_FAILED",
+          message: "The candidate did not cross the Core proof boundary.",
+          candidateIndex: index,
+        },
+      ],
+    })),
+  };
+}
 
 function jsonResponse(value: unknown, status: number): Response {
   return new Response(JSON.stringify(value), {

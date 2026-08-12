@@ -8,6 +8,11 @@ import {
 import type { SqlDatabase } from "../persistence/database";
 import type { ClaimedRenderJob } from "../render-queue";
 import {
+  AUTHORING_LOCK_IDS,
+  validateAuthoringLocks,
+  type AuthoringLockId,
+} from "../ai-authoring";
+import {
   REVISION_RESOURCE_REFERENCE_COLUMNS,
   mapRevisionResourceReference,
   resourceReferencesMatchDocument,
@@ -27,6 +32,7 @@ export class RenderRevisionError extends Error {
   constructor(
     public readonly code:
       | "RENDER_AUTHORIZATION_REVOKED"
+      | "RENDER_CAMPAIGN_LOCK_VIOLATION"
       | "RENDER_REVISION_CORRUPTED"
       | "RENDER_REVISION_NOT_FOUND",
     message: string,
@@ -133,7 +139,90 @@ export async function loadAuthorizedRenderRevision(
   if (!resourceReferencesMatchDocument(validation.data, references)) {
     throw corruptedRevision();
   }
+  await assertCampaignLocks(database, claim, validation.data);
   return validation.data;
+}
+
+async function assertCampaignLocks(
+  database: SqlDatabase,
+  claim: ClaimedRenderJob,
+  candidate: DesignDocument,
+): Promise<void> {
+  const rows = await database.query<{
+    campaign_id: string;
+    direction_id: string;
+    lock_id: string;
+    lock_ordinal: number | string;
+    base_document: DesignDocument | string;
+    base_hash: string;
+  }>(
+    `SELECT target.campaign_id,
+            target.direction_id,
+            lock_record.lock_id,
+            lock_record.ordinal AS lock_ordinal,
+            base_revision.design_document AS base_document,
+            base_revision.canonical_hash AS base_hash
+       FROM campaign_canvases target
+       JOIN campaign_direction_locks lock_record
+         ON lock_record.workspace_id = target.workspace_id
+        AND lock_record.campaign_id = target.campaign_id
+        AND lock_record.direction_id = target.direction_id
+       JOIN LATERAL (
+         SELECT design_id, revision_id
+           FROM campaign_canvases candidate_base
+          WHERE candidate_base.workspace_id = target.workspace_id
+            AND candidate_base.campaign_id = target.campaign_id
+            AND candidate_base.direction_id = target.direction_id
+          ORDER BY candidate_base.ordinal, candidate_base.id
+          LIMIT 1
+       ) base_canvas ON TRUE
+       JOIN design_revisions base_revision
+         ON base_revision.workspace_id = target.workspace_id
+        AND base_revision.design_id = base_canvas.design_id
+        AND base_revision.id = base_canvas.revision_id
+      WHERE target.workspace_id = $1
+        AND target.design_id = $2
+        AND target.revision_id = $3
+      ORDER BY target.campaign_id, target.direction_id, lock_record.ordinal`,
+    [claim.workspaceId, claim.designId, claim.revisionId],
+  );
+  const contexts = new Map<
+    string,
+    { base: DesignDocument; baseHash: string; locks: AuthoringLockId[] }
+  >();
+  for (const row of rows) {
+    if (!AUTHORING_LOCK_IDS.includes(row.lock_id as AuthoringLockId)) {
+      throw corruptedRevision();
+    }
+    const key = `${row.campaign_id}\u0000${row.direction_id}`;
+    const existing = contexts.get(key);
+    if (existing === undefined) {
+      contexts.set(key, {
+        base: parseJson(row.base_document) as DesignDocument,
+        baseHash: row.base_hash,
+        locks: [row.lock_id as AuthoringLockId],
+      });
+    } else {
+      existing.locks.push(row.lock_id as AuthoringLockId);
+    }
+  }
+  for (const context of contexts.values()) {
+    const baseValidation = validateDesignDocument(context.base);
+    if (
+      !baseValidation.success ||
+      hashCanonical(baseValidation.data) !== context.baseHash
+    ) {
+      throw corruptedRevision();
+    }
+    if (
+      !validateAuthoringLocks(baseValidation.data, candidate, context.locks).success
+    ) {
+      throw new RenderRevisionError(
+        "RENDER_CAMPAIGN_LOCK_VIOLATION",
+        "The stored campaign revision no longer preserves its server-owned locks.",
+      );
+    }
+  }
 }
 
 function corruptedRevision(): RenderRevisionError {
