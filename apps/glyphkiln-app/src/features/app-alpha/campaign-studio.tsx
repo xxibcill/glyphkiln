@@ -17,6 +17,7 @@ import type {
   DesignRevision,
   RevisionComparison,
 } from "./api-client";
+import { RevisionProofFigure } from "./revision-proof-figure";
 
 const LOCKS = [
   "copy",
@@ -784,8 +785,38 @@ export function CampaignStudio({
               </header>
               {comparison === undefined ? null : (
                 <div className="comparison-spread">
-                  <ProofFigure side={comparison.left} label="A" />
-                  <ProofFigure side={comparison.right} label="B" />
+                  <RevisionProofFigure
+                    side={comparison.left}
+                    caption={
+                      <>
+                        <span>A</span>
+                        <strong>{comparison.left.revision.designName}</strong>
+                        <small>
+                          REV{" "}
+                          {comparison.left.revision.revisionNumber
+                            .toString()
+                            .padStart(3, "0")}
+                        </small>
+                      </>
+                    }
+                    alt={`${comparison.left.revision.designName} exact rendered revision`}
+                  />
+                  <RevisionProofFigure
+                    side={comparison.right}
+                    caption={
+                      <>
+                        <span>B</span>
+                        <strong>{comparison.right.revision.designName}</strong>
+                        <small>
+                          REV{" "}
+                          {comparison.right.revision.revisionNumber
+                            .toString()
+                            .padStart(3, "0")}
+                        </small>
+                      </>
+                    }
+                    alt={`${comparison.right.revision.designName} exact rendered revision`}
+                  />
                 </div>
               )}
             </section>
@@ -876,32 +907,6 @@ export function CampaignStudio({
           : "Working through the bounded campaign workflow…"}
       </p>
     </section>
-  );
-}
-
-function ProofFigure({
-  side,
-  label,
-}: {
-  side: RevisionComparison["left"];
-  label: string;
-}) {
-  const png = side.proof.outputs.find((output) => output.format === "png");
-  return (
-    <figure>
-      <figcaption>
-        <span>{label}</span>
-        <strong>{side.revision.designName}</strong>
-        <small>REV {side.revision.revisionNumber.toString().padStart(3, "0")}</small>
-      </figcaption>
-      {png === undefined ? null : (
-        // eslint-disable-next-line @next/next/no-img-element -- bounded in-memory Core proof, not a network image.
-        <img
-          src={`data:${png.mimeType};base64,${png.base64}`}
-          alt={`${side.revision.designName} exact rendered revision`}
-        />
-      )}
-    </figure>
   );
 }
 

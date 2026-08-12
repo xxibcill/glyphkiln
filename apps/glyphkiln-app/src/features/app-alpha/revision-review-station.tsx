@@ -11,6 +11,7 @@ import type {
   RevisionComparison,
   RevisionReview,
 } from "./api-client";
+import { RevisionProofFigure } from "./revision-proof-figure";
 
 export function RevisionReviewStation({
   api,
@@ -209,8 +210,32 @@ export function RevisionReviewStation({
 
       {comparison === undefined ? null : (
         <div className="revision-comparison-strip">
-          <ReviewProof side={comparison.left} label="PARENT" />
-          <ReviewProof side={comparison.right} label="HEAD" />
+          <RevisionProofFigure
+            side={comparison.left}
+            caption={
+              <>
+                <span>PARENT</span>
+                <strong>
+                  REV{" "}
+                  {comparison.left.revision.revisionNumber.toString().padStart(3, "0")}
+                </strong>
+              </>
+            }
+            alt="parent revision proof"
+          />
+          <RevisionProofFigure
+            side={comparison.right}
+            caption={
+              <>
+                <span>HEAD</span>
+                <strong>
+                  REV{" "}
+                  {comparison.right.revision.revisionNumber.toString().padStart(3, "0")}
+                </strong>
+              </>
+            }
+            alt="head revision proof"
+          />
         </div>
       )}
 
@@ -302,31 +327,6 @@ export function RevisionReviewStation({
         {busy ? "Checking exact state…" : message}
       </p>
     </section>
-  );
-}
-
-function ReviewProof({
-  side,
-  label,
-}: {
-  side: RevisionComparison["left"];
-  label: string;
-}) {
-  const png = side.proof.outputs.find((output) => output.format === "png");
-  return (
-    <figure>
-      <figcaption>
-        <span>{label}</span>
-        <strong>REV {side.revision.revisionNumber.toString().padStart(3, "0")}</strong>
-      </figcaption>
-      {png === undefined ? null : (
-        // eslint-disable-next-line @next/next/no-img-element -- bounded in-memory Core proof, not a network image.
-        <img
-          src={`data:${png.mimeType};base64,${png.base64}`}
-          alt={`${label.toLowerCase()} revision proof`}
-        />
-      )}
-    </figure>
   );
 }
 
