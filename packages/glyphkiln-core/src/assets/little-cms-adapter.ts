@@ -1,3 +1,8 @@
+import { createRequire } from "node:module";
+import { dirname, resolve } from "node:path";
+
+import createLittleCmsModule from "../../vendor/little-cms/lcms.node.js";
+
 type LittleCmsModule = {
   HEAPU8: Uint8Array;
   _malloc: (size: number) => number;
@@ -22,10 +27,6 @@ type LittleCmsModule = {
   ) => void;
   _cmsDeleteTransform: (transform: number) => void;
 };
-
-type LittleCmsFactory = (options?: {
-  locateFile: () => string;
-}) => Promise<LittleCmsModule>;
 
 export type LittleCmsProfile = {
   handle: number;
@@ -145,26 +146,12 @@ async function getModule(): Promise<LittleCmsModule> {
 }
 
 async function loadModule(): Promise<LittleCmsModule> {
-  const imported: unknown = await import("../../vendor/little-cms/lcms.node.js");
-  const factory = readFactory(imported);
   const require = createRequire(import.meta.url);
   const dependencyEntryDirectory = dirname(require.resolve("@kittl/little-cms"));
   const wasmPath = resolve(dependencyEntryDirectory, "lcms.wasm");
-  const module = await factory({ locateFile: () => wasmPath });
+  const module = await createLittleCmsModule({ locateFile: () => wasmPath });
   assertModule(module);
   return module;
-}
-
-function readFactory(imported: unknown): LittleCmsFactory {
-  if (
-    typeof imported !== "object" ||
-    imported === null ||
-    !("default" in imported) ||
-    typeof imported.default !== "function"
-  ) {
-    throw new Error("The pinned LittleCMS WASM factory is unavailable.");
-  }
-  return imported.default as LittleCmsFactory;
 }
 
 function assertModule(module: unknown): asserts module is LittleCmsModule {
@@ -190,5 +177,3 @@ function assertModule(module: unknown): asserts module is LittleCmsModule {
     throw new Error("The pinned LittleCMS WASM module has an invalid interface.");
   }
 }
-import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
