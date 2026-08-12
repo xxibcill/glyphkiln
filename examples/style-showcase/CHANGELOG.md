@@ -7,6 +7,7 @@
 - Updated dependencies [1cc1561]
 - Updated dependencies [7aff2b9]
 - Updated dependencies [fc3c5b8]
+- Updated dependencies [dcac628]
   - @glyphkiln/core@0.6.0
 
 ## 0.0.2

@@ -4,6 +4,9 @@
 
 ### Minor Changes
 
+- dcac628: Add an explicit bounded canonical-sRGB PNG normalizer that returns source and
+  output hashes, dimensions, profile evidence, and orientation evidence without
+  changing render-time asset bytes or existing pixels.
 - 1cc1561: Publish immutable browser-safe campaign-family metadata and distinct validated
   art-direction/canvas scope keys with deterministic seed derivation, without
   changing render pixels or embedded renderer contracts.
