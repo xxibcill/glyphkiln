@@ -298,6 +298,7 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
   let sawExif = false;
   let reachedImageData = false;
   let sawEnd = false;
+  let restartInterval = 0;
   const profileChunks = new Map<number, Uint8Array>();
   let expectedProfileChunks: number | undefined;
   let totalProfileBytes = 0;
@@ -357,11 +358,14 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
       totalProfileBytes += chunk.byteLength;
       assertProfileLimit(totalProfileBytes);
       profileChunks.set(index, new Uint8Array(chunk));
+    } else if (marker === 0xdd) {
+      if (data.byteLength !== 2) throwInvalidRaster("JPEG restart interval");
+      restartInterval = readUint16Be(data, 0);
     }
     offset += segmentLength;
     if (marker === 0xda) {
       reachedImageData = true;
-      offset = findJpegScanEnd(bytes, offset);
+      offset = findJpegScanEnd(bytes, offset, restartInterval);
     }
   }
 
@@ -406,8 +410,13 @@ function inspectJpeg(bytes: Uint8Array): SourceInspection {
   };
 }
 
-function findJpegScanEnd(bytes: Uint8Array, start: number): number {
+function findJpegScanEnd(
+  bytes: Uint8Array,
+  start: number,
+  restartInterval: number,
+): number {
   let offset = start;
+  let expectedRestartMarker = 0xd0;
   while (offset < bytes.byteLength) {
     if (bytes[offset] !== 0xff) {
       offset += 1;
@@ -418,7 +427,15 @@ function findJpegScanEnd(bytes: Uint8Array, start: number): number {
     while (offset < bytes.byteLength && bytes[offset] === 0xff) offset += 1;
     if (offset >= bytes.byteLength) throwInvalidRaster("JPEG scan marker");
     const marker = bytes[offset]!;
-    if (marker === 0x00 || (marker >= 0xd0 && marker <= 0xd7)) {
+    if (marker === 0x00) {
+      offset += 1;
+      continue;
+    }
+    if (marker >= 0xd0 && marker <= 0xd7) {
+      if (restartInterval === 0 || marker !== expectedRestartMarker) {
+        throwInvalidRaster("JPEG restart marker");
+      }
+      expectedRestartMarker = 0xd0 + ((marker - 0xd0 + 1) % 8);
       offset += 1;
       continue;
     }

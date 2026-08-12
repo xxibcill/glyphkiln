@@ -339,6 +339,47 @@ describe("canonical sRGB color normalization", () => {
     ).rejects.toMatchObject({ code: "COLOR_NORMALIZATION_RASTER_INVALID" });
   });
 
+  it.each([
+    [
+      "without a restart interval",
+      (jpeg: Uint8Array) => insertJpegScanMarker(jpeg, 0xd0),
+    ],
+    [
+      "outside the modulo sequence",
+      (jpeg: Uint8Array) =>
+        insertJpegScanMarker(insertJpegRestartInterval(jpeg, 1), 0xd1),
+    ],
+  ])("rejects a JPEG restart marker %s", async (_description, mutateJpeg) => {
+    const jpeg = encodeJpeg(
+      { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },
+      90,
+    ).data;
+
+    await expect(
+      normalizeRasterColorInProcess({
+        bytes: mutateJpeg(jpeg),
+        mimeType: "image/jpeg",
+      }),
+    ).rejects.toMatchObject({ code: "COLOR_NORMALIZATION_RASTER_INVALID" });
+  });
+
+  it("accepts an in-sequence restart marker with an active interval", async () => {
+    const jpeg = encodeJpeg(
+      { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },
+      90,
+    ).data;
+    const source = insertJpegScanMarker(insertJpegRestartInterval(jpeg, 1), 0xd0);
+
+    await expect(
+      normalizeRasterColorInProcess({ bytes: source, mimeType: "image/jpeg" }),
+    ).resolves.toMatchObject({
+      report: {
+        source: { mimeType: "image/jpeg", width: 1, height: 1 },
+        output: { mimeType: "image/png", width: 1, height: 1 },
+      },
+    });
+  });
+
   it("rejects CMYK sample data until raw CMYK decoding is available", async () => {
     const jpeg = encodeJpeg(
       { width: 1, height: 1, data: Uint8Array.of(20, 40, 60, 255) },
@@ -482,6 +523,24 @@ function insertJpegApp(
   writeUint16(segment, 2, data.byteLength + 2);
   segment.set(data, 4);
   return concatenate([bytes.subarray(0, 2), segment, bytes.subarray(2)]);
+}
+
+function insertJpegRestartInterval(bytes: Uint8Array, interval: number): Uint8Array {
+  const data = new Uint8Array(2);
+  writeUint16(data, 0, interval);
+  return insertJpegApp(bytes, 0xdd, data);
+}
+
+function insertJpegScanMarker(bytes: Uint8Array, marker: number): Uint8Array {
+  const end = bytes.byteLength - 2;
+  if (bytes[end] !== 0xff || bytes[end + 1] !== 0xd9) {
+    throw new Error("test JPEG has no terminal EOI marker");
+  }
+  return concatenate([
+    bytes.subarray(0, end),
+    Uint8Array.of(0xff, marker),
+    bytes.subarray(end),
+  ]);
 }
 
 function mutateJpegComponentCount(bytes: Uint8Array, count: number): Uint8Array {
