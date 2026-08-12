@@ -240,6 +240,20 @@ describe("AppAlpha", () => {
     expect(api.attachCampaignCanvas).not.toHaveBeenCalled();
   });
 
+  it("hides stored campaign controls while the product gate is closed", async () => {
+    const api = createWorkflowApi({
+      withCampaign: true,
+      campaignWorkflowEnabled: false,
+    });
+    act(() => {
+      root.render(<AppAlpha catalog={catalog} api={api} />);
+    });
+
+    await waitForText("Brand snapshot 1.0.0 loaded");
+    expect(container.textContent).not.toContain("Campaign coordination");
+    expect(container.textContent).not.toContain("Editorial A");
+  });
+
   function clickButton(label: string): void {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -303,6 +317,7 @@ function createWorkflowApi(
     role?: "owner" | "admin" | "editor" | "viewer";
     hydrateCompletedExport?: boolean;
     withCampaign?: boolean;
+    campaignWorkflowEnabled?: boolean;
   } = {},
 ): AppAlphaApi & {
   createDesign: ReturnType<typeof vi.fn<AppAlphaApi["createDesign"]>>;
@@ -507,6 +522,10 @@ function createWorkflowApi(
                   },
                 ],
           campaigns: options.withCampaign === true ? [campaignSummary()] : [],
+          features: {
+            campaignWorkflow:
+              options.campaignWorkflowEnabled ?? options.withCampaign === true,
+          },
         },
       }),
     resources: () =>

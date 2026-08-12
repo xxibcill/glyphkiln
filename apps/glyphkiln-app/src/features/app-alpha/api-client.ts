@@ -135,6 +135,7 @@ const DashboardSchema = z
     brandKits: z.array(BrandKitSummarySchema),
     designs: z.array(DesignSummarySchema),
     campaigns: z.array(CampaignSummarySchema),
+    features: z.object({ campaignWorkflow: z.boolean() }).strict(),
   })
   .strict();
 
@@ -738,6 +739,7 @@ export type WorkspaceDashboard = {
   brandKits: BrandKitSummary[];
   designs: DesignSummary[];
   campaigns: CampaignSummary[];
+  features: { campaignWorkflow: boolean };
 };
 
 export type SelectableResource = z.infer<typeof SelectableResourceSchema>;
@@ -1090,6 +1092,7 @@ export function createAppAlphaApi(
           brandKits: value.brandKits,
           designs: value.designs,
           campaigns: value.campaigns,
+          features: value.features,
         }),
       );
     },

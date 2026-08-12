@@ -98,7 +98,8 @@ produce approved landscape, square, and portrait outputs without Figma repair.
 
 ## Slice 3: manual campaign workflow
 
-Status: implementation complete; product gate pending
+Status: implementation complete; runtime and product gates closed pending a
+reviewed qualification record
 
 - [ ] Approve one campaign brief requiring at least four formats and a
       multi-slide series.

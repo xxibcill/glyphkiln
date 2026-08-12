@@ -122,6 +122,7 @@ its migration state, queue schema, and storage directory.
 | `GLYPHKILN_POSTGRES_WORKER_PASSWORD`                | postgres, worker                 | Required distinct long URL-safe secret for the queue-limited worker role                                |
 | `GLYPHKILN_BOOTSTRAP_TOKEN`                         | app                              | Secret of 32–256 characters required only to claim a fresh installation; clear it after setup           |
 | `GLYPHKILN_PUBLIC_ORIGIN`                           | app                              | Required exact HTTPS origin, without path or trailing slash                                             |
+| `GLYPHKILN_CAMPAIGN_WORKFLOW`                       | app                              | `disabled` by default; exact `product-qualified` only after a passing reviewed campaign qualification   |
 | `GLYPHKILN_PROXY_BIND_ADDRESS`                      | proxy                            | Host address for Caddy; production default `0.0.0.0`, use `127.0.0.1` only for a controlled local drill |
 | `GLYPHKILN_PROXY_HTTP_PORT`                         | proxy                            | Caddy HTTP/ACME and redirect port; supported production value `80`                                      |
 | `GLYPHKILN_PROXY_HTTPS_PORT`                        | proxy                            | Caddy HTTPS port; supported production value `443`                                                      |

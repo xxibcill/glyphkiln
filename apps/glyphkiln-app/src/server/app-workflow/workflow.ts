@@ -183,6 +183,7 @@ export type AppWorkflowDependencies = {
   resourceStore?: ResourceStore;
   resourceResolver?: RenderResourceResolver;
   briefInterpreter?: BriefInterpreter;
+  campaignWorkflowEnabled?: boolean;
   workspaceCreationLimits?: WorkspaceCreationLimits;
 };
 
@@ -224,6 +225,7 @@ class AppWorkflowImplementation implements AppWorkflow {
   readonly #resourceStore: ResourceStore | undefined;
   readonly #resourceResolver: RenderResourceResolver;
   readonly #briefInterpreter: BriefInterpreter | undefined;
+  readonly #campaignWorkflowEnabled: boolean;
   readonly #workspaceCreationLimits: WorkspaceCreationLimits;
 
   constructor(dependencies: AppWorkflowDependencies) {
@@ -247,6 +249,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         ? new BuiltInRenderResourceResolver()
         : new AdmittedRenderResourceResolver(dependencies.resourceStore));
     this.#briefInterpreter = dependencies.briefInterpreter;
+    this.#campaignWorkflowEnabled = dependencies.campaignWorkflowEnabled ?? false;
     this.#workspaceCreationLimits = validateWorkspaceCreationLimits(
       dependencies.workspaceCreationLimits ?? DEFAULT_WORKSPACE_CREATION_LIMITS,
     );
@@ -394,6 +397,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           brandKits,
           designs,
           campaigns,
+          features: { campaignWorkflow: this.#campaignWorkflowEnabled },
         });
       }
       case "workspace.members": {
@@ -446,6 +450,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           query.workspaceId,
           "coordinate_campaigns",
         );
+        this.#requireCampaignWorkflow();
         const [campaign, direction] = await Promise.all([
           context.state.findCampaign(query.workspaceId, query.campaignId),
           context.state.findCampaignDirection({
@@ -470,6 +475,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       }
       case "campaign.handoff": {
         await this.#authorizeWorkspace(context, query.workspaceId, "request_export");
+        this.#requireCampaignWorkflow();
         return success(await this.#buildCampaignHandoff(context.state, query));
       }
       case "revision.compare": {
@@ -1385,6 +1391,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const campaignId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const campaign = await context.state.transaction(async (state) => {
@@ -1433,6 +1440,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const directionId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const locks = AUTHORING_LOCK_IDS.filter((lock) => command.locks.includes(lock));
@@ -1495,6 +1503,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const directionId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const direction = await context.state.transaction(async (state) => {
@@ -1568,6 +1577,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const canvasId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const canvas = await context.state.transaction(async (state) => {
@@ -1700,6 +1710,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     if (this.#briefInterpreter === undefined) throw aiAuthoringDisabled();
     const [campaign, direction, locks, baseCanvas] = await Promise.all([
       context.state.findCampaign(command.workspaceId, command.campaignId),
@@ -1979,6 +1990,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const candidate = await context.state.findCampaignProposalCandidate(command);
     if (
       candidate?.status !== "proved" ||
@@ -2130,6 +2142,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const candidate = await context.state.findCampaignProposalCandidate(command);
     if (candidate === undefined) throw resourceNotFound();
     if (await context.state.hasCampaignProposalDecision(command)) {
@@ -3178,6 +3191,10 @@ class AppWorkflowImplementation implements AppWorkflow {
       ...input,
     });
   }
+
+  #requireCampaignWorkflow(): void {
+    if (!this.#campaignWorkflowEnabled) throw campaignWorkflowDisabled();
+  }
 }
 
 function handoffJsonFile(
@@ -3561,6 +3578,15 @@ function invalidCampaignCanvas(
     "INVALID_CAMPAIGN_CANVAS",
     "Campaign canvas needs attention",
     detail,
+  );
+}
+
+function campaignWorkflowDisabled(): WorkflowFault {
+  return fault(
+    503,
+    "CAMPAIGN_WORKFLOW_DISABLED",
+    "Campaign workflow is disabled",
+    "An operator must record a passing campaign qualification before enabling campaign changes or handoffs.",
   );
 }
 

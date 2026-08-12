@@ -13,6 +13,7 @@ import {
   type PostgresDatabase,
 } from "@/server/persistence/postgres-database";
 import { assertDatabaseMigrationsCurrent } from "@/server/persistence/migrations";
+import { readProductFeaturePolicy } from "@/server/product-feature-policy";
 import { PostgresRenderQueue, type RenderQueue } from "@/server/render-queue";
 import {
   createResourceServicesFromEnvironment,
@@ -62,6 +63,7 @@ export async function createAppRuntime(
   try {
     await assertDatabaseMigrationsCurrent(database);
     const bootstrapTokenHash = readBootstrapTokenHash(environment);
+    const productFeatures = readProductFeaturePolicy(environment);
     const briefInterpreter = createBriefInterpreterFromEnvironment(environment);
     const resourceServices = createResourceServicesFromEnvironment(
       database,
@@ -91,6 +93,7 @@ export async function createAppRuntime(
           }),
       workflow: createAppWorkflow({
         database,
+        ...(productFeatures.campaignWorkflow ? { campaignWorkflowEnabled: true } : {}),
         ...(bootstrapTokenHash === undefined ? {} : { bootstrapTokenHash }),
         ...(briefInterpreter === undefined ? {} : { briefInterpreter }),
         renderQueue,

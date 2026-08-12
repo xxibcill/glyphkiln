@@ -69,6 +69,9 @@ describe("supported self-hosting boundary", () => {
       'GLYPHKILN_BOOTSTRAP_TOKEN: "${GLYPHKILN_BOOTSTRAP_TOKEN:-}"',
     );
     expect(app).toContain(
+      'GLYPHKILN_CAMPAIGN_WORKFLOW: "${GLYPHKILN_CAMPAIGN_WORKFLOW:-disabled}"',
+    );
+    expect(app).toContain(
       'GLYPHKILN_WORKSPACE_MAX_PER_INSTALLATION: "${GLYPHKILN_WORKSPACE_MAX_PER_INSTALLATION:-100}"',
     );
     expect(app).toContain(

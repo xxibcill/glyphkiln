@@ -39,8 +39,10 @@ and [Responses text generation](https://developers.openai.com/api/docs/guides/te
 ## Authority flow
 
 1. After the production gates below are approved, an operator explicitly sets
-   `GLYPHKILN_AI_PROPOSALS=production-approved` and configures an App-owned
-   provider adapter. Provider configuration alone remains inert.
+   `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` and
+   `GLYPHKILN_AI_PROPOSALS=production-approved`, then configures an App-owned
+   provider adapter. Provider configuration alone remains inert, and AI
+   approval cannot bypass the campaign product gate.
 2. The adapter sends only operator-approved brief fields under a disclosed
    provider policy.
 3. Its parsed JSON response remains `unknown` and enters
@@ -168,6 +170,8 @@ Implemented now:
 
 - provider-neutral `BriefInterpreter` and strict response/lock validators;
 - one operator-configured OpenAI Responses adapter, disabled by default;
+- an independent fail-closed campaign product gate that AI enablement depends
+  on;
 - bounded runtime configuration, request input, response streaming, failure
   handling, and retention disclosure; and
 - capability-protected campaign proposal commands and option-board UI;

@@ -437,6 +437,9 @@ export type QueryProjection =
       brandKits: BrandKitSummary[];
       designs: DesignSummary[];
       campaigns: CampaignSummary[];
+      features: {
+        campaignWorkflow: boolean;
+      };
     }
   | {
       kind: "workspace-members";
@@ -793,6 +796,7 @@ export type AppFailureCode =
   | "INVALID_DESIGN_DOCUMENT"
   | "INVALID_CAMPAIGN_CANVAS"
   | "CAMPAIGN_LOCK_VIOLATION"
+  | "CAMPAIGN_WORKFLOW_DISABLED"
   | "AI_AUTHORING_DISABLED"
   | "AI_PROPOSAL_REJECTED"
   | "REVIEW_CONFLICT"

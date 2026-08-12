@@ -127,6 +127,7 @@ approval value together with every provider value:
 
 ```bash
 export GLYPHKILN_AI_PROPOSALS="production-approved"
+export GLYPHKILN_CAMPAIGN_WORKFLOW="product-qualified"
 export GLYPHKILN_AI_PROVIDER="openai-responses"
 export GLYPHKILN_OPENAI_API_KEY="operator-secret"
 export GLYPHKILN_AI_MODEL="operator-approved-model-snapshot"
@@ -145,7 +146,9 @@ paths, hashes, provenance, and resource identities have no authority. See the
 [AI authoring threat model](../../docs/ai-authoring-threat-model.md) for the
 implemented boundary and remaining product gates. Leave
 `GLYPHKILN_AI_PROPOSALS` absent or set it to `disabled` to keep the adapter off;
-in that state, provider variables are inert.
+in that state, provider variables are inert. AI approval is accepted only with
+`GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified`; campaign persistence is
+otherwise dark-launched and hidden from the workshop.
 
 ### 5. Prepare the database and worker
 

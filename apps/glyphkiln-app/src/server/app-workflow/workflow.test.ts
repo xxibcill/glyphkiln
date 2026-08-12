@@ -85,6 +85,7 @@ describe("AppWorkflow", () => {
       renderQueue,
       resourceStore,
       briefInterpreter,
+      campaignWorkflowEnabled: true,
       render: async (document, resources, creationTimestamp) => {
         renderedDocumentIds.push(document.id);
         return (
@@ -567,6 +568,176 @@ describe("AppWorkflow", () => {
       }),
       403,
       "ROLE_FORBIDDEN",
+    );
+  });
+
+  it("keeps campaign persistence dark while preserving authenticated recovery reads", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Gated campaign",
+          brief: "Persist history before closing the product gate.",
+          campaignSeed: "gated-campaign-seed",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "gated-direction",
+          name: "Gated direction",
+          locks: ["copy"],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+
+    workflow = createAppWorkflow({
+      database,
+      bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
+      passwordHasher: new TestPasswordHasher(),
+      secretFactory: secrets,
+      clock,
+      renderQueue,
+      resourceStore,
+      briefInterpreter,
+    });
+
+    const dashboard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "workspace.dashboard", workspaceId },
+      }),
+      "workspace-dashboard",
+    );
+    expect(dashboard.features).toEqual({ campaignWorkflow: false });
+    expect(dashboard.campaigns).toContainEqual(campaign);
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+
+    const gatedCommands: AppCommand[] = [
+      {
+        type: "campaign.create",
+        workspaceId,
+        name: "Blocked campaign",
+        brief: "The gate must run before persistence.",
+        campaignSeed: "blocked-campaign-seed",
+        familyId: "image-led-campaign",
+      },
+      {
+        type: "campaign.direction.create",
+        workspaceId,
+        campaignId: campaign.id,
+        directionKey: "blocked-direction",
+        name: "Blocked direction",
+        locks: [],
+      },
+      {
+        type: "campaign.direction.branch",
+        workspaceId,
+        campaignId: campaign.id,
+        sourceDirectionId: direction.id,
+        directionKey: "blocked-branch",
+        name: "Blocked branch",
+      },
+      {
+        type: "campaign.canvas.attach",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+        canvasKey: "blocked-canvas",
+        designId: "blocked-design",
+        revisionId: "blocked-revision",
+        compositionVariantId: "focal-editorial",
+        ordinal: 0,
+      },
+      {
+        type: "campaign.proposals.request",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+        baseCanvasId: "blocked-canvas",
+        candidateCount: 3,
+      },
+      {
+        type: "campaign.proposal.accept",
+        workspaceId,
+        campaignId: campaign.id,
+        runId: "blocked-run",
+        candidateId: "blocked-candidate",
+        designName: "Blocked accepted proposal",
+      },
+      {
+        type: "campaign.proposal.reject",
+        workspaceId,
+        campaignId: campaign.id,
+        runId: "blocked-run",
+        candidateId: "blocked-candidate",
+        reason: "Product gate closed.",
+      },
+    ];
+    for (const command of gatedCommands) {
+      expectFailure(
+        await workflow.execute({ evidence: ownerEvidence(owner), command }),
+        503,
+        "CAMPAIGN_WORKFLOW_DISABLED",
+      );
+    }
+    expect(briefInterpreter.lastInputHash).toBeUndefined();
+
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "blocked-canvas",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      503,
+      "CAMPAIGN_WORKFLOW_DISABLED",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+      }),
+      503,
+      "CAMPAIGN_WORKFLOW_DISABLED",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: "missing-history",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
     );
   });
 

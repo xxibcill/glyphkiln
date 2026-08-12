@@ -53,6 +53,7 @@ describe("App Alpha manual HTTP workflow", () => {
       clock: fixedClock,
       passwordHasher: new TestPasswordHasher(),
       secretFactory: new DeterministicSecretFactory(),
+      campaignWorkflowEnabled: true,
       render: async (document) =>
         (
           await createProjectPreview(document, {

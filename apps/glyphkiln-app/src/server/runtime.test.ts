@@ -157,6 +157,38 @@ describe("application runtime composition", () => {
     });
   });
 
+  it("passes only an explicitly qualified campaign workflow into the application", async () => {
+    const { createAppRuntime } = await importRuntime();
+
+    await createAppRuntime(
+      testEnvironment({
+        DATABASE_URL: "postgresql://runtime@database/glyphkiln",
+        GLYPHKILN_CAMPAIGN_WORKFLOW: "product-qualified",
+      }),
+    );
+
+    expect(runtimeMocks.createAppWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({ campaignWorkflowEnabled: true }),
+    );
+  });
+
+  it("closes the database when AI proposals bypass the campaign qualification", async () => {
+    const { createAppRuntime } = await importRuntime();
+
+    await expect(
+      createAppRuntime(
+        testEnvironment({
+          DATABASE_URL: "postgresql://runtime@database/glyphkiln",
+          GLYPHKILN_AI_PROPOSALS: "production-approved",
+        }),
+      ),
+    ).rejects.toThrow(
+      "GLYPHKILN_AI_PROPOSALS requires GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified",
+    );
+    expect(runtimeMocks.createBriefInterpreterFromEnvironment).not.toHaveBeenCalled();
+    expect(runtimeMocks.database.close).toHaveBeenCalledOnce();
+  });
+
   it("wires explicit capacity, storage, resource, TLS, and bootstrap policy", async () => {
     const { createAppRuntime } = await importRuntime();
     runtimeMocks.createResourceServicesFromEnvironment.mockReturnValue(

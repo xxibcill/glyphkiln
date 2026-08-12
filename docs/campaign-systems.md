@@ -95,6 +95,16 @@ immutable revision carry the planned seed, exact template version, and format.
 The server recomputes the seed from the persisted campaign and direction at
 attachment, so the browser plan is never authoritative.
 
+Campaign persistence is dark-launched until a reviewed real-brief
+qualification passes the four-format and multi-slide gate below. The runtime
+defaults to disabled; only the exact operator assertion
+`GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` enables seed preparation,
+campaign mutations, handoffs, and Campaign Studio. Stored board and proposal
+history remains readable for recovery, and locks already attached to revisions
+continue to constrain ordinary preview, revise, render, comparison, and export
+paths while the product gate is closed. Optional AI approval cannot bypass this
+campaign gate.
+
 `campaign.handoff` creates a canonical JSON archive with stable sorted paths.
 Each canvas contributes its exact design document, immutable resource pins,
 SVG and PNG bytes, both render manifests, and an approval record. The record is

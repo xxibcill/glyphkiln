@@ -722,11 +722,12 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                   void reopenDesign(designId);
                 }}
               />
-              {selectedWorkspaceId === undefined ? null : (
+              {selectedWorkspaceId === undefined ||
+              dashboard?.features.campaignWorkflow !== true ? null : (
                 <CampaignStudio
                   api={api}
                   workspaceId={selectedWorkspaceId}
-                  campaigns={dashboard?.campaigns ?? []}
+                  campaigns={dashboard.campaigns}
                   draftCanvas={{
                     templateId: formState.composition.templateId,
                     format: formState.composition.formatId,

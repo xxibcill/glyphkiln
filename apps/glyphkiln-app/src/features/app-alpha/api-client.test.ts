@@ -70,6 +70,46 @@ describe("App Alpha API client", () => {
     });
   });
 
+  it("parses the server-owned campaign feature flag on workspace dashboards", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: dashboardFixture({ campaignWorkflow: false }),
+          },
+          200,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).dashboard("workspace-1"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { features: { campaignWorkflow: false } },
+    });
+  });
+
+  it("rejects a dashboard that omits the server-owned feature policy", async () => {
+    const { features: _features, ...dashboard } = dashboardFixture({
+      campaignWorkflow: false,
+    });
+    void _features;
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(jsonResponse({ ok: true, status: 200, value: dashboard }, 200)),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).dashboard("workspace-1"),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+  });
+
   it("sends the operator bootstrap token only in the first-run command", async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       void input;
@@ -626,6 +666,22 @@ function campaignHandoffFixture(
     approvedCanvasCount: 0,
     unapprovedCanvasCount: 1,
     ...overrides,
+  };
+}
+
+function dashboardFixture(features: { campaignWorkflow: boolean }) {
+  return {
+    kind: "workspace-dashboard" as const,
+    workspace: {
+      id: "workspace-1",
+      name: "Foundry Studio",
+      slug: "foundry-studio",
+      role: "owner" as const,
+    },
+    brandKits: [],
+    designs: [],
+    campaigns: [],
+    features,
   };
 }
 
