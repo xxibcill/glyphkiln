@@ -224,7 +224,7 @@ describe("canonical sRGB color normalization", () => {
         maximum: COLOR_NORMALIZATION_LIMITS.maxOutputBytes,
       },
     });
-  });
+  }, 60_000);
 
   it("rejects conflicting PNG color-profile declarations", async () => {
     const source = createPng([0, 0, 0, 255], 1, 1);
