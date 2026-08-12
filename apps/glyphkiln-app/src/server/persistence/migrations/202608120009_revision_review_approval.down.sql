@@ -20,3 +20,7 @@ DROP TABLE revision_review_comments;
 -- glyphkiln:statement-break
 
 DROP TABLE revision_reviews;
+-- glyphkiln:statement-break
+
+ALTER TABLE render_jobs
+  DROP CONSTRAINT render_jobs_approval_revision_key;

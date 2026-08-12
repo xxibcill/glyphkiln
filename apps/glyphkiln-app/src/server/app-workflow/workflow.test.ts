@@ -15,7 +15,10 @@ import {
   type PGliteDatabase,
 } from "@/server/persistence/pglite-database";
 import { migrateDatabase } from "@/server/persistence/migrations";
-import { InMemoryRenderQueue, RenderQueueCapacityError } from "@/server/render-queue";
+import {
+  PostgresRenderQueue,
+  RenderQueueCapacityError,
+} from "@/server/render-queue";
 import { RenderResourceResolutionError } from "@/server/render-worker";
 import type {
   ResourceAdmission,
@@ -56,7 +59,7 @@ describe("AppWorkflow", () => {
   let workflow: AppWorkflow;
   let secrets: DeterministicSecretFactory;
   let clock: MutableTestClock;
-  let renderQueue: InMemoryRenderQueue;
+  let renderQueue: PostgresRenderQueue;
   let resourceStore: TestResourceStore;
 
   beforeEach(async () => {
@@ -64,7 +67,7 @@ describe("AppWorkflow", () => {
     await migrateDatabase(database);
     secrets = new DeterministicSecretFactory();
     clock = new MutableTestClock(NOW);
-    renderQueue = new InMemoryRenderQueue();
+    renderQueue = new PostgresRenderQueue(database);
     resourceStore = new TestResourceStore();
     workflow = createAppWorkflow({
       database,

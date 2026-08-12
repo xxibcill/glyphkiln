@@ -16,6 +16,7 @@ CREATE TABLE revision_reviews (
   updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (workspace_id, id),
   UNIQUE (workspace_id, design_id, revision_id),
+  UNIQUE (workspace_id, id, design_id, revision_id),
   CONSTRAINT revision_reviews_revision_fk
     FOREIGN KEY (workspace_id, design_id, revision_id)
     REFERENCES design_revisions (workspace_id, design_id, id)
@@ -30,6 +31,11 @@ CREATE TABLE revision_reviews (
     ON DELETE RESTRICT,
   CONSTRAINT revision_reviews_updated_at_check CHECK (updated_at >= started_at)
 );
+-- glyphkiln:statement-break
+
+ALTER TABLE render_jobs
+  ADD CONSTRAINT render_jobs_approval_revision_key
+  UNIQUE (workspace_id, id, design_id, revision_id);
 -- glyphkiln:statement-break
 
 CREATE TABLE revision_review_comments (
@@ -136,12 +142,16 @@ CREATE TABLE revision_approval_receipts (
   UNIQUE (workspace_id, id),
   UNIQUE (workspace_id, review_id),
   CONSTRAINT revision_approval_receipts_review_fk
-    FOREIGN KEY (workspace_id, review_id)
-    REFERENCES revision_reviews (workspace_id, id)
+    FOREIGN KEY (workspace_id, review_id, design_id, revision_id)
+    REFERENCES revision_reviews (workspace_id, id, design_id, revision_id)
     ON DELETE RESTRICT,
   CONSTRAINT revision_approval_receipts_revision_fk
     FOREIGN KEY (workspace_id, design_id, revision_id)
     REFERENCES design_revisions (workspace_id, design_id, id)
+    ON DELETE RESTRICT,
+  CONSTRAINT revision_approval_receipts_render_job_fk
+    FOREIGN KEY (workspace_id, render_job_id, design_id, revision_id)
+    REFERENCES render_jobs (workspace_id, id, design_id, revision_id)
     ON DELETE RESTRICT,
   CONSTRAINT revision_approval_receipts_approver_fk
     FOREIGN KEY (workspace_id, approved_by)
