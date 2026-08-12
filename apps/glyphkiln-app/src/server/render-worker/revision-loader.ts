@@ -156,13 +156,34 @@ async function assertCampaignLocks(
     base_document: DesignDocument | string;
     base_hash: string;
   }>(
-    `SELECT target.campaign_id,
+    `WITH RECURSIVE revision_ancestry AS (
+       SELECT id, parent_revision_id
+         FROM design_revisions
+        WHERE workspace_id = $1
+          AND design_id = $2
+          AND id = $3
+       UNION ALL
+       SELECT parent.id, parent.parent_revision_id
+         FROM design_revisions parent
+         JOIN revision_ancestry child
+           ON parent.id = child.parent_revision_id
+          AND parent.workspace_id = $1
+          AND parent.design_id = $2
+     ), target_contexts AS (
+       SELECT DISTINCT canvas.workspace_id, canvas.campaign_id, canvas.direction_id
+         FROM campaign_canvases canvas
+         JOIN revision_ancestry ancestor
+           ON ancestor.id = canvas.revision_id
+        WHERE canvas.workspace_id = $1
+          AND canvas.design_id = $2
+     )
+     SELECT target.campaign_id,
             target.direction_id,
             lock_record.lock_id,
             lock_record.ordinal AS lock_ordinal,
             base_revision.design_document AS base_document,
             base_revision.canonical_hash AS base_hash
-       FROM campaign_canvases target
+       FROM target_contexts target
        JOIN campaign_direction_locks lock_record
          ON lock_record.workspace_id = target.workspace_id
         AND lock_record.campaign_id = target.campaign_id
@@ -181,8 +202,6 @@ async function assertCampaignLocks(
         AND base_revision.design_id = base_canvas.design_id
         AND base_revision.id = base_canvas.revision_id
       WHERE target.workspace_id = $1
-        AND target.design_id = $2
-        AND target.revision_id = $3
       ORDER BY target.campaign_id, target.direction_id, lock_record.ordinal`,
     [claim.workspaceId, claim.designId, claim.revisionId],
   );

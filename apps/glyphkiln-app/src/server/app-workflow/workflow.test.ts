@@ -651,7 +651,6 @@ describe("AppWorkflow", () => {
       422,
       "CAMPAIGN_LOCK_VIOLATION",
     );
-
     const proposalRun = expectReceipt(
       await workflow.execute({
         evidence: ownerEvidence(owner),
@@ -1224,6 +1223,38 @@ describe("AppWorkflow", () => {
       "campaign-board",
     );
     expect(serializedBoard.directions[0]?.canvases).toHaveLength(1);
+
+    const compliantRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: revision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          changeNote: "Preserve the campaign locks in an intermediate revision.",
+        },
+      }),
+      "design-saved",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: compliantRevision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          changeNote: "Attempt to bypass locks through a compliant descendant.",
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
 
     await expect(
       database.query(

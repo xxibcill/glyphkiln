@@ -1549,11 +1549,26 @@ export class AppState {
       campaign_id: string;
       direction_id: string;
     }>(
-      `SELECT DISTINCT campaign_id, direction_id
-         FROM campaign_canvases
-        WHERE workspace_id = $1
-          AND design_id = $2
-          AND revision_id = $3
+      `WITH RECURSIVE revision_ancestry AS (
+         SELECT id, parent_revision_id
+           FROM design_revisions
+          WHERE workspace_id = $1
+            AND design_id = $2
+            AND id = $3
+         UNION ALL
+         SELECT parent.id, parent.parent_revision_id
+           FROM design_revisions parent
+           JOIN revision_ancestry child
+             ON parent.id = child.parent_revision_id
+            AND parent.workspace_id = $1
+            AND parent.design_id = $2
+       )
+       SELECT DISTINCT canvas.campaign_id, canvas.direction_id
+         FROM campaign_canvases canvas
+         JOIN revision_ancestry ancestor
+           ON ancestor.id = canvas.revision_id
+        WHERE canvas.workspace_id = $1
+          AND canvas.design_id = $2
         ORDER BY campaign_id, direction_id`,
       [input.workspaceId, input.designId, input.revisionId],
     );

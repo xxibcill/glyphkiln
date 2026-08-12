@@ -159,9 +159,11 @@ describe("RenderWorker", () => {
   it("rejects a canonically valid queued revision that violates campaign locks", async () => {
     const fixture = await seedRenderJobFixture(database, "worker-campaign-lock");
     const targetDesignId = "design-worker-campaign-target";
+    const targetAncestorRevisionId = "revision-worker-campaign-ancestor";
     const targetRevisionId = "revision-worker-campaign-target";
-    const target = structuredClone(fixture.document);
-    target.id = targetDesignId;
+    const targetAncestor = structuredClone(fixture.document);
+    targetAncestor.id = targetDesignId;
+    const target = structuredClone(targetAncestor);
     const headline = target.layers.find((layer) => layer.type === "headline");
     if (headline?.type !== "headline") throw new Error("Headline fixture missing.");
     headline.text = "Changed after the campaign copy lock was established.";
@@ -183,9 +185,27 @@ describe("RenderWorker", () => {
          design_document, canonical_hash, source, created_by, created_at
        ) VALUES ($1, $2, $3, 1, $4, $5::jsonb, $6, 'manual', $7, $8)`,
       [
+        targetAncestorRevisionId,
+        fixture.workspaceId,
+        targetDesignId,
+        fixture.brandSnapshotId,
+        targetAncestor,
+        hashCanonical(targetAncestor),
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `INSERT INTO design_revisions (
+         id, workspace_id, design_id, revision_number, parent_revision_id,
+         brand_snapshot_id, design_document, canonical_hash, source,
+         created_by, created_at
+       ) VALUES ($1, $2, $3, 2, $4, $5, $6::jsonb, $7, 'manual', $8, $9)`,
+      [
         targetRevisionId,
         fixture.workspaceId,
         targetDesignId,
+        targetAncestorRevisionId,
         fixture.brandSnapshotId,
         target,
         hashCanonical(target),
@@ -242,7 +262,7 @@ describe("RenderWorker", () => {
     );
     for (const [id, designId, revisionId, ordinal] of [
       ["canvas-worker-base", fixture.designId, fixture.revisionId, 0],
-      ["canvas-worker-target", targetDesignId, targetRevisionId, 1],
+      ["canvas-worker-target", targetDesignId, targetAncestorRevisionId, 1],
     ] as const) {
       await database.query(
         `INSERT INTO campaign_canvases (

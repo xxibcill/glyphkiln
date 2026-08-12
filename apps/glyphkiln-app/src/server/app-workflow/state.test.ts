@@ -54,6 +54,29 @@ describe("AppState", () => {
       "direction-1",
     ]);
   });
+
+  it("resolves campaign lock contexts through revision ancestry", async () => {
+    const database = new RecordingTransaction();
+    const state = new AppState(database);
+
+    await expect(
+      state.listCampaignLockContextsForRevision({
+        workspaceId: "workspace-1",
+        designId: "design-1",
+        revisionId: "revision-3",
+      }),
+    ).resolves.toEqual([]);
+
+    expect(database.statements).toHaveLength(1);
+    expect(database.statements[0]?.statement).toMatch(
+      /WITH RECURSIVE revision_ancestry[\s\S]+parent\.id = child\.parent_revision_id[\s\S]+ancestor\.id = canvas\.revision_id/u,
+    );
+    expect(database.statements[0]?.parameters).toEqual([
+      "workspace-1",
+      "design-1",
+      "revision-3",
+    ]);
+  });
 });
 
 class RecordingTransaction implements SqlTransaction {
