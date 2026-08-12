@@ -1999,7 +1999,11 @@ class AppWorkflowImplementation implements AppWorkflow {
     if (!resourceReferencesMatchDocument(validation.data, base.resourceReferences)) {
       throw aiProposalRejected();
     }
-    await this.#renderDocument(command.workspaceId, validation.data, campaign.createdAt);
+    await this.#renderDocument(
+      command.workspaceId,
+      validation.data,
+      campaign.createdAt,
+    );
     const documentHash = hashCanonical(validation.data);
     const decision: CampaignProposalDecisionProjection = {
       id: decisionId,
@@ -3170,24 +3174,21 @@ function addCampaignHandoffFiles(
   archive: CampaignHandoffArchive,
   ...files: readonly CampaignHandoffFile[]
 ): void {
-  try {
+  withCampaignHandoffArchiveLimit(() => {
     archive.add(...files);
-  } catch (error) {
-    if (error instanceof CampaignHandoffArchiveLimitError) {
-      throw invalidCampaignCanvas(
-        `A verified handoff must be ${MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES.toString()} bytes or smaller.`,
-      );
-    }
-    throw error;
-  }
+  });
 }
 
 function encodeCampaignHandoffArchive(
   archive: CampaignHandoffArchive,
   input: Parameters<CampaignHandoffArchive["encode"]>[0],
 ): ReturnType<CampaignHandoffArchive["encode"]> {
+  return withCampaignHandoffArchiveLimit(() => archive.encode(input));
+}
+
+function withCampaignHandoffArchiveLimit<Result>(operation: () => Result): Result {
   try {
-    return archive.encode(input);
+    return operation();
   } catch (error) {
     if (error instanceof CampaignHandoffArchiveLimitError) {
       throw invalidCampaignCanvas(
