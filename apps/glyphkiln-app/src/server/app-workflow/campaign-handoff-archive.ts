@@ -1,5 +1,7 @@
 import { canonicalJson } from "@glyphkiln/core";
 
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
+
 export const MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES = 64 * 1024 * 1024;
 
 export type CampaignHandoffFile = {
@@ -71,9 +73,4 @@ export class CampaignHandoffArchive {
     }
     return { files, bytes };
   }
-}
-
-function compareCanonicalStrings(left: string, right: string): number {
-  if (left === right) return 0;
-  return left < right ? -1 : 1;
 }
