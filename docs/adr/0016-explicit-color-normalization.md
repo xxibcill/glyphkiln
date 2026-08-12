@@ -87,8 +87,10 @@ untrusted values.
 embed the exact bytes whose SHA-256 appears in the document. An App ingestion
 flow may scan the source, call the normalizer under its existing expensive-work
 admission bounds, validate the returned PNG through Core, and create a new
-immutable resource admission linking source and normalized hashes. Existing
-admissions and saved revisions are never rewritten.
+immutable resource admission linking source and normalized hashes. The App
+binary-upload route implements that flow only when raster metadata explicitly
+sets `normalizeColor: true`; existing admissions and saved revisions are never
+rewritten.
 
 This policy does not change the design schema, renderer, templates, procedural
 algorithms, manifest, fingerprint payload, SVG, PNG render output, or legacy
@@ -111,6 +113,6 @@ Before acceptance, run the exact normalization vectors on supported Node 22 and
 24 environments for every supported platform in the release matrix. Review
 tagged sRGB, Display P3, alpha PNG, EXIF orientations, malformed ICC,
 decompression-bomb, high-entropy output-limit, and stable CMYK-rejection
-fixtures. App integration must retain both hashes and must never replace an
-existing admission in place. A positive CMYK vector is deferred until the raw
+fixtures. App integration retains both hashes and never replaces an existing
+admission in place. A positive CMYK vector is deferred until the raw
 sample-decoder gate above is satisfied.

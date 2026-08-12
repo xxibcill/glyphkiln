@@ -27,8 +27,12 @@ Admission is then ordered deliberately:
 5. Require a clean receipt from the host malware scanner.
 6. Fully validate rasters through Core's pinned structural checks and decoders,
    or parse the complete font through Core's pinned font registry.
-7. Publish an immutable workspace-partitioned content-addressed blob.
-8. In one installation- and workspace-serialized PostgreSQL transaction,
+7. When raster metadata explicitly sets `normalizeColor: true`, call Core's
+   isolated `canonical-srgb-png-v1` normalizer, verify its source and output
+   evidence, and fully validate the returned PNG. Font uploads and raster
+   uploads without that exact opt-in never enter this path.
+8. Publish an immutable workspace-partitioned content-addressed blob.
+9. In one installation- and workspace-serialized PostgreSQL transaction,
    enforce durable quotas and commit a new immutable resource admission plus
    its ingestion event.
 
@@ -71,6 +75,15 @@ uses content hash. Font duplicate matching additionally requires the same
 family, weight, and style; different declared faces may share a blob without
 being the same admission. A separate workspace receives its own database
 identity and blob key even when the bytes match.
+
+An opted-in raster normalization also creates a new admission; it never updates
+the uploaded source admission or a saved revision. The normalized admission's
+`content_hash` is the canonical PNG output hash. Immutable provenance alongside
+that row records the normalization policy, source MIME and source hash, while
+the ingestion event retains the originally declared MIME. The clean scanner
+receipt applies to the source bytes; the canonical output is produced in Core's
+permission-limited normalizer and then independently revalidated before
+publication.
 
 This distinction lets the workflow select a later admission with corrected
 origin or license metadata. Saving a design appends immutable,

@@ -77,6 +77,8 @@ Status: started
 
 ### App
 
+- [x] Add explicit raster-upload normalization that retains source and output
+      hashes in a new immutable admission without rewriting prior resources.
 - [x] Query selectable immutable font, logo, and image admissions without
       exposing storage paths or bytes.
 - [x] Add explicit resource selectors to the manual draft.

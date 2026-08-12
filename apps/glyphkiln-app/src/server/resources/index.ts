@@ -46,6 +46,7 @@ export type {
   FontResourceVersion,
   FontStyle,
   RasterIngestionInput,
+  RasterColorNormalizationProvenance,
   RasterMediaType,
   RasterResourceVersion,
   ResourceAdmission,

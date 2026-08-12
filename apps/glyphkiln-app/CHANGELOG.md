@@ -4,6 +4,8 @@
 
 ### Patch Changes
 
+- Add explicit admission-time raster color normalization with immutable source
+  and canonical-output hash provenance.
 - dcac628: Add workspace-qualified campaign coordination, an optional provider-neutral AI
   proposal adapter, Core-owned proof overlays, immutable typography-role binding,
   and exact-revision review, comments, and approval evidence.

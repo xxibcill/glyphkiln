@@ -89,6 +89,12 @@ describe("POST /api/app/resources", () => {
             byteSize: 8,
             width: 1,
             height: 1,
+            colorNormalization: {
+              policyVersion: "canonical-srgb-png-v1",
+              sourceContentHash: "b".repeat(64),
+              sourceMediaType: "image/png",
+              outputContentHash: "a".repeat(64),
+            },
             origin: { kind: "user-upload" },
             license: { status: "owned" },
             scan: {
@@ -129,7 +135,9 @@ describe("POST /api/app/resources", () => {
       environment: { NODE_ENV: "test" },
     });
 
-    const request = uploadRequest({ metadata: rasterMetadata() });
+    const request = uploadRequest({
+      metadata: { ...rasterMetadata(), normalizeColor: true },
+    });
     const requestBody = request.body;
     Object.defineProperty(request, "body", {
       configurable: true,
@@ -148,6 +156,7 @@ describe("POST /api/app/resources", () => {
         workspaceId: "workspace-one",
         actorUserId: "actor-one",
         declaredMediaType: "image/png",
+        normalizeColor: true,
         bytes: expect.any(Uint8Array) as unknown,
       }),
     );
@@ -161,6 +170,12 @@ describe("POST /api/app/resources", () => {
         resourceKind: "raster-asset",
         width: 1,
         height: 1,
+        colorNormalization: {
+          policyVersion: "canonical-srgb-png-v1",
+          sourceContentHash: "b".repeat(64),
+          sourceMediaType: "image/png",
+          outputContentHash: "a".repeat(64),
+        },
       },
     });
   });
@@ -198,6 +213,35 @@ describe("POST /api/app/resources", () => {
     await expect(mismatch.json()).resolves.toMatchObject({
       error: { code: "UNSUPPORTED_RESOURCE_MEDIA_TYPE" },
     });
+  });
+
+  it("rejects raster-only normalization intent on a font upload", async () => {
+    const authorize = vi.fn<typeof authorized>();
+    const route = createResourceRoute({
+      authorize,
+      getIngestion: vi.fn(),
+      environment: { NODE_ENV: "test" },
+    });
+
+    const response = await route(
+      uploadRequest({
+        metadata: {
+          kind: "font",
+          workspaceId: "workspace-one",
+          originalFilename: "font.ttf",
+          origin: { kind: "user-upload" },
+          license: { status: "owned" },
+          family: "Fixture Sans",
+          weight: 400,
+          style: "normal",
+          normalizeColor: true,
+        },
+        mediaType: "font/ttf",
+      }),
+    );
+
+    expect(response.status).toBe(422);
+    expect(authorize).not.toHaveBeenCalled();
   });
 
   it("fails closed when the host scanner is unavailable", async () => {

@@ -59,6 +59,7 @@ const MIGRATION_VERSIONS = [
   "202607310007_revision_resource_provenance",
   "202608120008_campaign_workflow",
   "202608120009_revision_review_approval",
+  "202608120010_resource_color_normalization_provenance",
 ] as const;
 
 type TableNameRow = {

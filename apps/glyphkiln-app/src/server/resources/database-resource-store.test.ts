@@ -1,4 +1,8 @@
-import { createDevelopmentFont, sha256 } from "@glyphkiln/core";
+import {
+  COLOR_NORMALIZATION_POLICY_VERSION,
+  createDevelopmentFont,
+  sha256,
+} from "@glyphkiln/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { SqlDatabase } from "../persistence/database";
@@ -233,6 +237,131 @@ describe("database resource store", () => {
         admission_semantics_version: 2,
       },
     ]);
+  });
+
+  it("persists normalized raster lineage without replacing the source admission", async () => {
+    const blobs = new MemoryBlobStorage();
+    const store = new DatabaseResourceStore(database, blobs);
+    const ids = [
+      "resource-source",
+      "ingestion-source",
+      "resource-normalized",
+      "ingestion-normalized",
+    ];
+    const service = new ResourceIngestionService({
+      store,
+      scanner: new TestOnlyCleanMalwareScanner(),
+      createId: () => ids.shift() ?? "unexpected-id",
+    });
+
+    const source = await service.ingestRaster(input("workspace-a", "user-a"));
+    const normalized = await service.ingestRaster({
+      ...input("workspace-a", "user-a"),
+      normalizeColor: true,
+    });
+
+    expect(source.resource).toMatchObject({
+      id: "resource-source",
+      contentHash: sha256(PNG),
+    });
+    expect(normalized.resource).toMatchObject({
+      id: "resource-normalized",
+      mediaType: "image/png",
+      colorNormalization: {
+        policyVersion: COLOR_NORMALIZATION_POLICY_VERSION,
+        sourceContentHash: sha256(PNG),
+        sourceMediaType: "image/png",
+        outputContentHash: normalized.resource.contentHash,
+      },
+    });
+    expect(normalized.resource.contentHash).not.toBe(source.resource.contentHash);
+    expect(blobs.blobs).toHaveLength(2);
+    await expect(
+      store.readById("workspace-a", "resource-source"),
+    ).resolves.toMatchObject({
+      resource: { contentHash: sha256(PNG) },
+      bytes: PNG,
+    });
+    await expect(
+      store.readById("workspace-a", "resource-normalized"),
+    ).resolves.toMatchObject({
+      resource: {
+        colorNormalization: {
+          sourceContentHash: sha256(PNG),
+          outputContentHash: normalized.resource.contentHash,
+        },
+      },
+    });
+    await expect(
+      database.query<{
+        color_normalization_policy_version: string | null;
+        color_normalization_source_hash: string | null;
+        color_normalization_source_media_type: string | null;
+        content_hash: string;
+        id: string;
+      }>(
+        `SELECT
+           id,
+           content_hash,
+           color_normalization_policy_version,
+           color_normalization_source_hash,
+           color_normalization_source_media_type
+         FROM resource_versions
+         WHERE workspace_id = $1
+         ORDER BY id`,
+        ["workspace-a"],
+      ),
+    ).resolves.toEqual([
+      {
+        id: "resource-normalized",
+        content_hash: normalized.resource.contentHash,
+        color_normalization_policy_version: COLOR_NORMALIZATION_POLICY_VERSION,
+        color_normalization_source_hash: sha256(PNG),
+        color_normalization_source_media_type: "image/png",
+      },
+      {
+        id: "resource-source",
+        content_hash: sha256(PNG),
+        color_normalization_policy_version: null,
+        color_normalization_source_hash: null,
+        color_normalization_source_media_type: null,
+      },
+    ]);
+  });
+
+  it("rejects inconsistent normalized provenance before blob publication", async () => {
+    const blobs = new MemoryBlobStorage();
+    const store = new DatabaseResourceStore(database, blobs);
+
+    await expect(
+      store.admit({
+        id: "resource-invalid-normalization",
+        ingestionId: "ingestion-invalid-normalization",
+        workspaceId: "workspace-a",
+        actorUserId: "user-a",
+        kind: "raster-asset",
+        contentHash: sha256(PNG),
+        mediaType: "image/png",
+        bytes: PNG,
+        origin: { kind: "user-upload" },
+        license: { status: "owned" },
+        scan: {
+          status: "clean",
+          scannerName: "test-scanner",
+          scannerVersion: "1",
+          scannedAt: new Date("2029-01-01T00:00:00.000Z"),
+        },
+        width: 1,
+        height: 1,
+        colorNormalization: {
+          policyVersion: COLOR_NORMALIZATION_POLICY_VERSION,
+          sourceContentHash: "b".repeat(64),
+          sourceMediaType: "image/jpeg",
+          outputContentHash: "c".repeat(64),
+        },
+      }),
+    ).rejects.toMatchObject({ code: "RESOURCE_STORAGE_INTEGRITY_ERROR" });
+    expect(blobs.blobs).toHaveLength(0);
   });
 
   it("keeps distinct immutable identities for font weights sharing bytes", async () => {
