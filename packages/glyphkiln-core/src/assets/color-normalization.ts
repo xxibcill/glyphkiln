@@ -228,8 +228,13 @@ function readInput(input: unknown): ColorNormalizationInput {
   const prototype = Object.getPrototypeOf(input) as unknown;
   if (prototype !== Object.prototype && prototype !== null) throwInvalidInput();
   const descriptors = Object.getOwnPropertyDescriptors(input);
-  const keys = Object.keys(descriptors).sort();
-  if (keys.length !== 2 || keys[0] !== "bytes" || keys[1] !== "mimeType") {
+  const keys = Reflect.ownKeys(descriptors);
+  if (
+    keys.length !== 2 ||
+    keys.some(
+      (key) => typeof key !== "string" || (key !== "bytes" && key !== "mimeType"),
+    )
+  ) {
     throwInvalidInput();
   }
   const bytesDescriptor = descriptors["bytes"];

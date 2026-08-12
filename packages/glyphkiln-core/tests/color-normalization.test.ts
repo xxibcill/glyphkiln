@@ -320,6 +320,13 @@ describe("canonical sRGB color normalization", () => {
       }),
     ).toThrow(expect.objectContaining({ code: "INVALID_COLOR_NORMALIZATION_INPUT" }));
     expect(() =>
+      normalizeRasterColor({
+        bytes: source,
+        mimeType: "image/png",
+        [Symbol("authority")]: "filesystem:/untrusted/path",
+      }),
+    ).toThrow(expect.objectContaining({ code: "INVALID_COLOR_NORMALIZATION_INPUT" }));
+    expect(() =>
       normalizeRasterColor({ bytes: source, mimeType: "image/jpeg" }),
     ).toThrow(expect.objectContaining({ code: "COLOR_NORMALIZATION_MIME_MISMATCH" }));
   });
