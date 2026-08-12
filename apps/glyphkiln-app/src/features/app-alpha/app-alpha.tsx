@@ -29,6 +29,7 @@ import type {
   BrandSnapshotProjection,
   DesignRevision,
   PublishedBrand,
+  SelectableResource,
   WorkspaceDashboard,
 } from "./api-client";
 import { AuthScreen } from "./auth-screen";
@@ -66,6 +67,10 @@ export type AppAlphaProps = {
 
 export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
   const [dashboard, setDashboard] = useState<WorkspaceDashboard>();
+  const [workspaceResources, setWorkspaceResources] = useState<SelectableResource[]>(
+    [],
+  );
+  const [resourceCatalogTruncated, setResourceCatalogTruncated] = useState(false);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [activeBrand, setActiveBrand] = useState<ActiveBrand>();
   const [showBrandPublisher, setShowBrandPublisher] = useState(false);
@@ -117,8 +122,8 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
   );
   const currentDraftKey = useMemo(() => manualDraftKey(draft), [draft]);
   const preflightDocument = useMemo(
-    () => buildPreviewDocument(formState, catalog),
-    [catalog, formState],
+    () => buildPreviewDocument(formState, catalog, workspaceResources),
+    [catalog, formState, workspaceResources],
   );
   const hasUnrenderedEdits =
     proof !== null && proofDraftKey !== undefined && proofDraftKey !== currentDraftKey;
@@ -154,12 +159,23 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
     clearCreatedInvitation();
 
     void (async () => {
-      const dashboardResult = await api.dashboard(selectedWorkspaceId);
+      const [dashboardResult, resourcesResult] = await Promise.all([
+        api.dashboard(selectedWorkspaceId),
+        api.resources(selectedWorkspaceId),
+      ]);
       if (loadSequence !== workspaceLoadSequence.current) return;
       if (!dashboardResult.ok) {
         handleReadFailure(dashboardResult);
         setIsDashboardLoading(false);
         return;
+      }
+      if (resourcesResult.ok) {
+        setWorkspaceResources(resourcesResult.value.resources);
+        setResourceCatalogTruncated(resourcesResult.value.truncated);
+      } else {
+        setWorkspaceResources([]);
+        setResourceCatalogTruncated(false);
+        handleReadFailure(resourcesResult);
       }
       setDashboard(dashboardResult.value);
       const latestBrand = dashboardResult.value.brandKits.at(0);
@@ -535,6 +551,8 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
   function resetWorkspaceState(): void {
     workspaceLoadSequence.current += 1;
     setDashboard(undefined);
+    setWorkspaceResources([]);
+    setResourceCatalogTruncated(false);
     setIsDashboardLoading(false);
     setActiveBrand(undefined);
     setShowBrandPublisher(false);
@@ -656,6 +674,7 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                 initialState={formState}
                 fixedName={activeBrand?.snapshot.name}
                 isPublishing={busyAction === "brand"}
+                resources={workspaceResources}
                 onCancel={
                   activeBrand === undefined
                     ? undefined
@@ -749,6 +768,8 @@ export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
                   brandControls="sealed"
                   submitLabel="Preview draft · does not save"
                   isReadOnly={!canEdit}
+                  resources={workspaceResources}
+                  resourceCatalogTruncated={resourceCatalogTruncated}
                   onStateChange={setFormState}
                   onRender={() => {
                     void previewDesign();

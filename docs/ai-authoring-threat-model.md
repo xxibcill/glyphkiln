@@ -1,22 +1,44 @@
 # AI-assisted authoring threat model
 
+Status: implemented infrastructure boundary; product acceptance remains pending
+
+Last reviewed: 2026-08-12
+
 ## Status and scope
 
-This is the draft security gate for Glyphkiln `0.7.0`. The implemented slice
-contains no model SDK, provider call, prompt transport, persistence, resource
-resolution, render request, or publication action. It defines the
-provider-neutral response boundary that every future `BriefInterpreter`
-adapter must cross and a pure server-owned lock comparison that later
-selective-regeneration workflows must use.
+This is the security gate for the post-Alpha AI-assisted authoring milestone.
+Glyphkiln may use an operator-configured model to propose three or four bounded
+design directions. The model is never a renderer, resource authority, approval
+authority, or source of executable instructions. The complete manual workflow
+continues to work when the adapter is disabled.
 
-The contract does not approve a provider or the complete interaction. The open
-decisions at the end of this document still require operator and product
-review with real briefs.
+The implemented slice includes the provider-neutral response and lock
+boundaries plus one disabled-by-default OpenAI Responses adapter. It does not
+include the capability-protected campaign workflow, option-board interaction,
+immutable AI decision records, automatic resource resolution, or any path from
+a proposal to rendering, export, approval, or publication.
+
+The concrete adapter targets the OpenAI Responses API through a fixed
+server-owned endpoint. It uses `store: false`, an operator-selected model, and
+the Responses API `text.format` field. Provider behavior and account retention
+remain governed by the operator's provider agreement and account settings; the
+operator must publish an accurate disclosure in
+`GLYPHKILN_AI_RETENTION_DISCLOSURE`. See the official OpenAI guidance for
+[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+and [Responses text generation](https://developers.openai.com/api/docs/guides/text).
+
+## Protected assets
+
+- operator API credentials and provider configuration;
+- workspace briefs, brand snapshots, copy, and admitted-resource metadata;
+- immutable resource identities, hashes, provenance, and storage authority;
+- human locks, acceptance decisions, review state, and approval evidence; and
+- the deterministic Core document, renderer, and output contracts.
 
 ## Authority flow
 
-1. An operator will explicitly configure a future App-owned provider adapter.
-2. The adapter will send only operator-approved brief fields under a disclosed
+1. An operator explicitly configures and enables an App-owned provider adapter.
+2. The adapter sends only operator-approved brief fields under a disclosed
    provider policy.
 3. Its parsed JSON response remains `unknown` and enters
    `validateBriefInterpreterResponse`.
@@ -25,16 +47,17 @@ review with real briefs.
 5. Every well-shaped document passes through Core's normal candidate validator.
 6. The result has `authority: "proposal-only"`. A human may inspect it, but it
    cannot authorize resources, persistence, rendering, export, or publication.
-7. Later App workflow code must load authenticated server-owned locks and pass
-   the stored base plus proposal through `validateAuthoringLocks`.
+7. A future selective-regeneration workflow must load authenticated
+   server-owned locks and pass the stored base plus proposal through
+   `validateAuthoringLocks`.
 8. That workflow must still resolve exact workspace-owned resources, revalidate
-   the final document, and record the human decision.
+   the final document, and record the human decision before a save or render.
 
 Provider identity, model identity, prompt construction, response hashes,
 retention disclosures, workspace identity, resource hashes, and provenance are
 trusted App/operator context. The model response cannot supply any of them.
 
-## Implemented controls
+## Implemented response and lock controls
 
 - The response object permits only `contractVersion` and `candidates`.
 - Each candidate permits only `document` and `rationale`; extra URL, path,
@@ -59,8 +82,8 @@ trusted App/operator context. The model response cannot supply any of them.
 - Copy and image locks retain visibility, and text color overlaps typography
   and palette, so changing an unselected category cannot conceal a selected
   choice.
-- The boundary performs no network, filesystem, dynamic import, code
-  execution, resource lookup, rendering, persistence, or logging.
+- The validation boundary performs no network, filesystem, dynamic import,
+  code execution, resource lookup, rendering, persistence, or logging.
 
 Core validation proves document shape and document-level quality only. It does
 not prove that a model-selected asset ID, font declaration, hash, origin, or
@@ -68,20 +91,44 @@ license belongs to a workspace. A proposal containing resource claims remains
 untrusted until a later server workflow replaces or verifies those claims
 against exact immutable workspace records.
 
+## Implemented adapter controls
+
+1. The operator owns credentials, model selection, timeout, output-token limit,
+   and retention disclosure. Credentials never enter browser state or proposal
+   data.
+2. The adapter accepts only input contract `1.0.0`, a non-empty brief of at most
+   4,000 characters, candidate count three or four, unique exact template keys,
+   unique closed lock IDs, a Core-valid base document, and an exactly matching
+   brand snapshot.
+3. The canonical provider input is capped at 1 MiB. Brief and document values
+   are serialized as inert JSON data alongside fixed server instructions and
+   the published Core authoring contract.
+4. The provider request uses a fixed HTTPS endpoint, `store: false`, a bounded
+   1–120 second timeout, and a bounded 1,000–50,000 output-token setting. Model
+   output cannot choose another URL or credential.
+5. Provider responses are streamed through a 4 MiB byte cap, decoded as strict
+   UTF-8, and parsed from completed message output. Refusals, incomplete
+   envelopes, invalid JSON, timeouts, oversized bodies, and provider errors
+   fail closed without echoing provider details.
+6. Parsed output remains `unknown` and crosses the same response and Core
+   validation boundaries described above.
+7. Tests prove that invalid input does not reach the provider and that provider
+   details are not retained in public errors.
+
 ## Threats and required treatment
 
-| Threat                                                                   | Current treatment                                                                              | Required before provider enablement                                                               |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Prompt injection asks for tools, code, URLs, paths, or publication       | Output has no tool authority; strict envelopes and Core reject active document fields          | Keep adapters tool-free and never execute or linkify response text                                |
-| Oversized or deeply nested output consumes resources                     | Candidate/rationale counts and Core document limits are bounded                                | Add provider timeout and raw response-byte limits before JSON parsing                             |
-| Model spoofs provider, model, workspace, provenance, or retention policy | Extra authority fields are rejected; output is `proposal-only`                                 | Derive and store these values from operator configuration and server state                        |
-| Model forges asset/font hashes, origins, or licenses                     | Candidate validation grants no resource authority                                              | Resolve exact workspace-qualified immutable versions and revalidate before save/render            |
-| Rationale is presented as fact or provenance                             | Rationale is explicitly typed as a model suggestion and excluded from Core documents/manifests | Preserve the label in every option-board and audit view                                           |
-| Duplicate options create an illusion of choice                           | Exact normalized duplicates are rejected deterministically                                     | Human review with real briefs must assess meaningful visual distinctness                          |
-| Selective regeneration changes a human lock                              | A pure closed lock contract compares Core-normalized proposals against a validated base        | Load locks/base from authorized immutable server state and block save/render on any lock issue    |
-| Sensitive brief data is retained or used for training                    | No provider call exists                                                                        | Require explicit field selection and provider retention/training disclosure before submission     |
-| Invalid output is logged or reflected                                    | Fixed issues do not echo rejected values; no logging is added                                  | Logs may contain only request IDs, trusted adapter identity, timing, hashes, and stable codes     |
-| Valid proposal is saved, rendered, exported, or published automatically  | No workflow command consumes the result                                                        | Keep human acceptance explicit and re-run authorization, resource resolution, and Core validation |
+| Threat                                                                            | Current treatment                                                                         | Required before user-facing enablement                                                              |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Prompt injection asks for tools, code, URLs, paths, or publication                | Fixed instructions, inert JSON input, no tool authority, and strict output/Core contracts | Keep adapters tool-free and never execute or linkify response text                                  |
+| Oversized or deeply nested input/output consumes resources                        | Brief, request, response, candidate, rationale, timeout, and token limits are bounded     | Retain limits at every workflow and persistence boundary; monitor trusted timing/code metadata      |
+| Model spoofs provider, model, workspace, provenance, or retention policy          | Extra authority fields are rejected; output is `proposal-only`                            | Derive and immutably record these values from operator configuration and server state               |
+| Model forges asset/font hashes, origins, or licenses                              | Candidate validation grants no resource authority                                         | Resolve exact workspace-qualified immutable versions and revalidate before save/render              |
+| Rationale is presented as fact or provenance                                      | Rationale is typed as a model suggestion and excluded from Core documents/manifests       | Preserve that label in every option-board and audit view                                            |
+| Duplicate options create an illusion of choice                                    | Exact normalized duplicates are rejected deterministically                                | Human review with real briefs must assess meaningful visual distinctness                            |
+| Selective regeneration changes a human lock                                       | A pure closed lock contract compares Core-normalized proposals against a validated base   | Load locks/base from authorized immutable state and block regeneration/save/render/export on issues |
+| Sensitive brief data is retained or used for training                             | Adapter is disabled by default, uses `store: false`, and requires a disclosure            | Approve exact outbound fields and provider/account retention and training policy before submission  |
+| Invalid output is logged or reflected                                             | Fixed public issues do not echo rejected values or provider details                       | Logs may contain only request IDs, trusted adapter identity, timing, hashes, and stable codes       |
+| Valid proposal is saved, rendered, exported, approved, or published automatically | No workflow command consumes the result                                                   | Keep acceptance explicit and re-run authorization, resource resolution, Core validation, and locks  |
 
 ## Stable response and lock issues
 
@@ -91,7 +138,7 @@ The response boundary returns only:
 - `RESPONSE_VERSION_UNSUPPORTED`;
 - `CANDIDATE_COUNT_INVALID`;
 - `CANDIDATE_SHAPE_INVALID`;
-- `CANDIDATE_RATIONALE_INVALID`;
+- `CANDIDATE_RATIONALE_INVALID`; and
 - `DUPLICATE_NORMALIZED_DOCUMENT`.
 
 A response-level failure returns one issue and no candidates. A well-shaped
@@ -103,27 +150,53 @@ Lock validation additionally returns only:
 
 - `LOCK_SELECTION_INVALID`;
 - `BASE_DOCUMENT_INVALID`;
-- `CANDIDATE_DOCUMENT_INVALID`;
+- `CANDIDATE_DOCUMENT_INVALID`; and
 - one `*_LOCK_VIOLATED` code for each of copy, image, crop, typography,
   palette, and composition.
 
 At most six fixed lock issues are retained. Core document reports remain
 independently bounded and never expose a normalized document for invalid input.
 
+## Current implementation boundary
+
+Implemented now:
+
+- provider-neutral `BriefInterpreter` and strict response/lock validators;
+- one operator-configured OpenAI Responses adapter, disabled by default;
+- bounded runtime configuration, request input, response streaming, failure
+  handling, and retention disclosure; and
+- campaign, exact-revision review, immutable resource, deterministic rendering,
+  and approval foundations that the later workflow can compose.
+
+Still required before enabling a user-facing AI workflow:
+
+- a capability-protected campaign command and option-board interaction;
+- immutable persistence for provider/model IDs, canonical request/response
+  hashes, validation results, human decisions, and selected locks;
+- human selection of admitted resources and resource-backed Core proofs;
+- lock checks at regeneration, save, queued-render, approval, and export
+  boundaries;
+- audit and retention controls for stored AI metadata; and
+- acceptance against a real approved brief with at least three visibly distinct
+  valid directions.
+
 ## Open decision gate
 
-Before enabling any adapter, approve:
+Before enabling any adapter for users, approve:
 
 - the exact brief fields permitted to leave the App;
-- provider/model allowlisting, timeouts, raw byte limits, retry policy, and
-  retention/training disclosure;
+- provider/model allowlisting, retries, retention/training disclosure, and
+  operational monitoring;
 - interaction approval of the implemented lock projections and overlap rules
   using real selective-regeneration attempts;
 - authenticated immutable storage for the base revision and server-owned lock
-  selection, with save/render commands blocked on any lock issue;
+  selection, with commands blocked on any lock issue;
 - workspace resource pinning and replacement of model resource claims;
 - prompt/response hashing and append-only decision records;
 - rationale labeling, rejected-candidate recovery, and manual-only behavior in
-  the option-board interaction;
+  the option-board interaction; and
 - acceptance tests using real briefs that establish meaningful—not merely
   byte-distinct—directions.
+
+Until these gates pass, the adapter is infrastructure only and must not be
+described as an autonomous design or approval feature.

@@ -1,4 +1,10 @@
-import type { DesignDocument, QualityIssue, RenderManifest } from "@glyphkiln/core";
+import type {
+  Bounds,
+  DesignDocument,
+  QualityIssue,
+  RenderEvidence,
+  RenderManifest,
+} from "@glyphkiln/core";
 import { canonicalJson, createRenderFingerprintPayload } from "@glyphkiln/core/browser";
 
 import type {
@@ -185,17 +191,14 @@ function inspectTrustedManifest(
   );
   const fontsMatchDocument =
     manifest.fonts.length > 0 &&
-    manifest.fonts.every(
-      (font) =>
-        response.document.fonts.some(
-          (declaration) =>
-            declaration.family === font.family &&
-            declaration.weight === font.weight &&
-            declaration.style === font.style &&
-            declaration.sha256 === font.sha256,
-        ) &&
-        font.family === "Inter" &&
-        font.sha256 === catalog.developmentFontSha256,
+    manifest.fonts.every((font) =>
+      response.document.fonts.some(
+        (declaration) =>
+          declaration.family === font.family &&
+          declaration.weight === font.weight &&
+          declaration.style === font.style &&
+          declaration.sha256 === font.sha256,
+      ),
     );
 
   if (
@@ -248,6 +251,7 @@ function isPreviewSuccess(input: unknown): input is PreviewSuccess {
   const document = input.document;
   if (!isDesignDocument(document)) return false;
   if (!isQualityIssueArray(input.qualityIssues)) return false;
+  if (!isRenderEvidence(input.evidence)) return false;
   if (!Array.isArray(input.outputs) || input.outputs.length !== 2) return false;
   if (!input.outputs.every(isPreviewOutput)) return false;
 
@@ -259,6 +263,122 @@ function isPreviewSuccess(input: unknown): input is PreviewSuccess {
       output.manifest.designDocumentId === document.id &&
       output.manifest.renderFingerprint === output.fingerprint,
   );
+}
+
+function isRenderEvidence(input: unknown): input is RenderEvidence {
+  if (
+    !isRecord(input) ||
+    input.version !== "1.0.0" ||
+    !isBounds(input.safeArea) ||
+    !Array.isArray(input.text) ||
+    input.text.length > 100 ||
+    !input.text.every(isTextBoundsEvidence) ||
+    !Array.isArray(input.crops) ||
+    input.crops.length > 100 ||
+    !input.crops.every(isImageCropEvidence) ||
+    !Array.isArray(input.contrast) ||
+    input.contrast.length > 100 ||
+    !input.contrast.every(isContrastEvidence)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function isTextBoundsEvidence(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    typeof input.layerId === "string" &&
+    input.layerId.length > 0 &&
+    isBounds(input.bounds) &&
+    isNonNegativeInteger(input.lineCount) &&
+    isPositiveInteger(input.maximumLines) &&
+    typeof input.overflow === "boolean"
+  );
+}
+
+function isImageCropEvidence(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    typeof input.layerId === "string" &&
+    input.layerId.length > 0 &&
+    typeof input.assetId === "string" &&
+    input.assetId.length > 0 &&
+    (input.treatment === "none" ||
+      input.treatment === "dark-scrim" ||
+      input.treatment === "light-scrim") &&
+    isNormalizedPoint(input.focalPoint) &&
+    typeof input.policyVersion === "string" &&
+    input.policyVersion.length > 0 &&
+    isBounds(input.destinationBounds) &&
+    isBounds(input.sourceBounds) &&
+    isBounds(input.renderedBounds)
+  );
+}
+
+function isContrastEvidence(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    typeof input.layerId === "string" &&
+    input.layerId.length > 0 &&
+    typeof input.policyVersion === "string" &&
+    input.policyVersion.length > 0 &&
+    typeof input.foreground === "string" &&
+    input.foreground.length > 0 &&
+    isFiniteNonNegativeNumber(input.minimumRequired) &&
+    isFiniteNonNegativeNumber(input.minimumRatio) &&
+    isFiniteNonNegativeNumber(input.maximumRatio) &&
+    Array.isArray(input.samples) &&
+    input.samples.length <= 25 &&
+    input.samples.every(isContrastSampleEvidence)
+  );
+}
+
+function isContrastSampleEvidence(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    isFinitePoint(input.canvasPoint) &&
+    isFinitePoint(input.sourcePixel) &&
+    typeof input.background === "string" &&
+    input.background.length > 0 &&
+    isFiniteNonNegativeNumber(input.ratio)
+  );
+}
+
+function isBounds(input: unknown): input is Bounds {
+  return (
+    isRecord(input) &&
+    isFiniteCoordinate(input.x) &&
+    isFiniteCoordinate(input.y) &&
+    isFiniteNonNegativeNumber(input.width) &&
+    isFiniteNonNegativeNumber(input.height)
+  );
+}
+
+function isNormalizedPoint(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    isFiniteNonNegativeNumber(input.x) &&
+    input.x <= 1 &&
+    isFiniteNonNegativeNumber(input.y) &&
+    input.y <= 1
+  );
+}
+
+function isFinitePoint(input: unknown): boolean {
+  return isRecord(input) && isFiniteCoordinate(input.x) && isFiniteCoordinate(input.y);
+}
+
+function isFiniteCoordinate(input: unknown): input is number {
+  return typeof input === "number" && Number.isFinite(input) && Math.abs(input) <= 1e9;
+}
+
+function isFiniteNonNegativeNumber(input: unknown): input is number {
+  return isFiniteCoordinate(input) && input >= 0;
+}
+
+function isNonNegativeInteger(input: unknown): input is number {
+  return Number.isSafeInteger(input) && typeof input === "number" && input >= 0;
 }
 
 function isPreviewFailure(input: unknown, httpStatus: number): input is PreviewFailure {

@@ -10,6 +10,7 @@ import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 
 import { BrandPublisher } from "./brand-publisher";
 import type { BrandPublishInput } from "./brand-publisher";
+import type { EditorSelectableResource } from "@/features/project-preview/types";
 
 describe("BrandPublisher", () => {
   let container: HTMLDivElement;
@@ -57,6 +58,57 @@ describe("BrandPublisher", () => {
     expect(submitted.snapshot).not.toHaveProperty("version");
   });
 
+  it("binds admitted families and bounded roles into the immutable snapshot", () => {
+    const onPublish = vi.fn<(input: BrandPublishInput) => Promise<void>>(() =>
+      Promise.resolve(),
+    );
+    const resources: EditorSelectableResource[] = [
+      {
+        id: "font-kiln-sans-700",
+        kind: "font",
+        mediaType: "font/ttf",
+        contentHash: "a".repeat(64),
+        family: "Kiln Sans",
+        weight: 700,
+        style: "normal",
+        origin: { kind: "user-upload" },
+        license: { status: "owned" },
+      },
+    ];
+    act(() => {
+      root.render(
+        <BrandPublisher
+          initialState={createInitialPreviewForm(createPreviewCatalog())}
+          isPublishing={false}
+          resources={resources}
+          onPublish={onPublish}
+        />,
+      );
+    });
+
+    setSelect("#publish-headline-family", "Kiln Sans");
+    const roleToggle = container.querySelector<HTMLInputElement>(
+      ".brand-role-toggle input",
+    );
+    if (roleToggle === null) throw new Error("Role toggle was not found.");
+    act(() => {
+      roleToggle.click();
+    });
+    setSelect("#publish-display-weight", "700");
+    clickButton("Publish immutable snapshot");
+
+    const typography = onPublish.mock.calls[0]?.[0].snapshot.typography;
+    expect(typography).toMatchObject({
+      headlineFamily: "Kiln Sans",
+      bodyFamily: "Inter",
+      roles: {
+        display: { family: "Kiln Sans", weight: 700 },
+        body: { family: "Inter" },
+        label: { family: "Inter" },
+      },
+    });
+  });
+
   function clickButton(label: string): void {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -81,6 +133,20 @@ describe("BrandPublisher", () => {
       Reflect.apply(setter, input, [value]);
       input.dispatchEvent(new Event("input", { bubbles: true }));
       input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  function setSelect(selector: string, value: string): void {
+    const select = container.querySelector<HTMLSelectElement>(selector);
+    if (select === null) throw new Error(`Select “${selector}” was not found.`);
+    const setter = Reflect.getOwnPropertyDescriptor(
+      HTMLSelectElement.prototype,
+      "value",
+    )?.set;
+    if (setter === undefined) throw new Error("Select value setter was not found.");
+    act(() => {
+      Reflect.apply(setter, select, [value]);
+      select.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 });

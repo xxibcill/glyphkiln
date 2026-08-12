@@ -1,4 +1,8 @@
-import type { DesignDocument } from "@glyphkiln/core";
+"use client";
+
+import { useState } from "react";
+
+import type { DesignDocument, RenderEvidence } from "@glyphkiln/core";
 
 import type {
   PreviewCatalog,
@@ -22,6 +26,7 @@ export function PreviewStage({
   isRendering,
   hasUnrenderedEdits,
 }: PreviewStageProps) {
+  const [showEvidence, setShowEvidence] = useState(true);
   const previewOutput =
     proof?.outputs.find((output) => output.format === "svg") ??
     proof?.outputs.find((output) => output.format === "png");
@@ -40,11 +45,25 @@ export function PreviewStage({
           <p className="section-kicker">Proofing table</p>
           <h2 id="canvas-title">Rendered artifact</h2>
         </div>
-        <ProofStatus
-          hasProof={proof !== null}
-          isRendering={isRendering}
-          hasUnrenderedEdits={hasUnrenderedEdits}
-        />
+        <div className="preview-heading-actions">
+          {proof === null ? null : (
+            <button
+              className="evidence-toggle"
+              type="button"
+              aria-pressed={showEvidence}
+              onClick={() => {
+                setShowEvidence((current) => !current);
+              }}
+            >
+              {showEvidence ? "Hide Core evidence" : "Show Core evidence"}
+            </button>
+          )}
+          <ProofStatus
+            hasProof={proof !== null}
+            isRendering={isRendering}
+            hasUnrenderedEdits={hasUnrenderedEdits}
+          />
+        </div>
       </header>
 
       <div className="proof-registration" aria-hidden="true">
@@ -71,6 +90,8 @@ export function PreviewStage({
             output={previewOutput}
             templateLabel={template?.label ?? previewDocument.template.id}
             isStale={hasUnrenderedEdits}
+            evidence={proof?.evidence}
+            showEvidence={showEvidence}
           />
         )}
 
@@ -124,26 +145,47 @@ function RenderedProof({
   output,
   templateLabel,
   isStale,
+  evidence,
+  showEvidence,
 }: {
   document: DesignDocument;
   format: PreviewCatalogFormat | undefined;
   output: PreviewOutput;
   templateLabel: string;
   isStale: boolean;
+  evidence: RenderEvidence | undefined;
+  showEvidence: boolean;
 }) {
   const source = `data:${output.mimeType};base64,${output.base64}`;
-  const aspectRatio =
-    format === undefined
-      ? undefined
-      : `${format.width.toString()} / ${format.height.toString()}`;
+  const dimensions = output.manifest.dimensions;
+  const aspectRatio = `${dimensions.width.toString()} / ${dimensions.height.toString()}`;
+  const maximumWidthInViewportHeight = (72 * dimensions.width) / dimensions.height;
   return (
     <figure className="rendered-proof">
-      {/* eslint-disable-next-line @next/next/no-img-element -- Core SVG must remain a data URL and never enter the DOM as markup. */}
-      <img
-        src={source}
-        alt={`${templateLabel} proof in ${format?.label ?? document.format} format`}
-        style={{ aspectRatio }}
-      />
+      <div
+        className="proof-artifact-frame"
+        style={{
+          aspectRatio,
+          width: `min(100%, ${maximumWidthInViewportHeight.toFixed(3)}vh)`,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- Core SVG must remain a data URL and never enter the DOM as markup. */}
+        <img
+          src={source}
+          alt={`${templateLabel} proof in ${format?.label ?? document.format} format`}
+        />
+        {showEvidence && evidence !== undefined ? (
+          <EvidenceOverlay evidence={evidence} dimensions={dimensions} />
+        ) : null}
+      </div>
+      {showEvidence && evidence !== undefined ? (
+        <ul className="proof-overlay-legend" aria-label="Core render evidence legend">
+          <li data-evidence="safe-area">Safe area</li>
+          <li data-evidence="text">Text bounds</li>
+          <li data-evidence="crop">Crop destination</li>
+          <li data-evidence="contrast">Contrast samples</li>
+        </ul>
+      ) : null}
       <figcaption>
         <span>
           {isStale ? "Last rendered " : ""}
@@ -152,6 +194,73 @@ function RenderedProof({
         <span title={output.fingerprint}>{shortHash(output.fingerprint)}</span>
       </figcaption>
     </figure>
+  );
+}
+
+function EvidenceOverlay({
+  evidence,
+  dimensions,
+}: {
+  evidence: RenderEvidence;
+  dimensions: { width: number; height: number };
+}) {
+  return (
+    <svg
+      className="proof-evidence-overlay"
+      viewBox={`0 0 ${dimensions.width.toString()} ${dimensions.height.toString()}`}
+      aria-hidden="true"
+    >
+      <rect
+        className="evidence-safe-area"
+        x={evidence.safeArea.x}
+        y={evidence.safeArea.y}
+        width={evidence.safeArea.width}
+        height={evidence.safeArea.height}
+      />
+      {evidence.crops.map((crop) => (
+        <rect
+          className="evidence-crop-bounds"
+          key={`crop-${crop.layerId}`}
+          x={crop.destinationBounds.x}
+          y={crop.destinationBounds.y}
+          width={crop.destinationBounds.width}
+          height={crop.destinationBounds.height}
+        />
+      ))}
+      {evidence.text.map((text) => (
+        <g key={`text-${text.layerId}`}>
+          <rect
+            className={
+              text.overflow
+                ? "evidence-text-bounds has-overflow"
+                : "evidence-text-bounds"
+            }
+            x={text.bounds.x}
+            y={text.bounds.y}
+            width={text.bounds.width}
+            height={text.bounds.height}
+          />
+          <text x={text.bounds.x + 4} y={text.bounds.y + 14}>
+            {text.layerId}
+          </text>
+        </g>
+      ))}
+      {evidence.contrast.flatMap((contrast) =>
+        contrast.samples.map((sample, index) => (
+          <circle
+            className={
+              sample.ratio < contrast.minimumRequired
+                ? "evidence-contrast-sample is-low"
+                : "evidence-contrast-sample"
+            }
+            key={`contrast-${contrast.layerId}-${index.toString()}`}
+            cx={sample.canvasPoint.x}
+            cy={sample.canvasPoint.y}
+            r={Math.max(3, Math.min(dimensions.width, dimensions.height) * 0.004)}
+          />
+        )),
+      )}
+    </svg>
   );
 }
 

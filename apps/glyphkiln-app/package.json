@@ -1,12 +1,12 @@
 {
   "name": "@glyphkiln/app",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "description": "The self-hostable Glyphkiln application.",
   "license": "Apache-2.0",
   "type": "module",
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.22.2 || >=24.0.0"
   },
   "scripts": {
     "dev": "node scripts/start-development.mjs",
@@ -22,7 +22,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@glyphkiln/core": "^0.5.0",
+    "@glyphkiln/core": "^0.6.0",
     "@node-rs/argon2": "^2.0.2",
     "next": "16.3.0",
     "postgres": "^3.4.9",

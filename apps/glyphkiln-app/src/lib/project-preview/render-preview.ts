@@ -93,6 +93,7 @@ export async function createProjectPreview(
         ok: true,
         document: result.document,
         qualityIssues: result.qualityIssues,
+        evidence: result.evidence,
         outputs: result.outputs.map(serializeOutput),
       },
     };

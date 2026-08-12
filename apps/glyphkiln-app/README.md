@@ -33,7 +33,7 @@ unless a malware scanner is configured.
 You need:
 
 - Git
-- Node.js 22.13 or newer in the Node 22 line, or Node.js 24 or newer
+- Node.js 22.22.2 or newer in the Node 22 line, or Node.js 24 or newer
 - npm 10.9.8
 - Docker Engine or Docker Desktop with the Docker daemon running
 - OpenSSL, used once to create the first-owner token
@@ -118,6 +118,32 @@ printf 'First-owner token: %s\n' "$GLYPHKILN_BOOTSTRAP_TOKEN"
 
 Keep the printed token private. You will enter it once in the browser. The
 token must contain 32–256 characters.
+
+Optional AI proposal infrastructure is disabled by default and is not required
+for any manual workflow. The current adapter foundation does not expose an AI
+command or automatically send workspace data. To make the configured adapter
+available to a future capability-protected server workflow, the operator must
+set every required value explicitly:
+
+```bash
+export GLYPHKILN_AI_PROVIDER="openai-responses"
+export GLYPHKILN_OPENAI_API_KEY="operator-secret"
+export GLYPHKILN_AI_MODEL="operator-approved-model-snapshot"
+export GLYPHKILN_AI_RETENTION_DISCLOSURE="Accurate operator-reviewed provider and account retention disclosure."
+
+# Optional bounded overrides:
+export GLYPHKILN_AI_TIMEOUT_MS="45000"
+export GLYPHKILN_AI_MAX_OUTPUT_TOKENS="20000"
+```
+
+The adapter uses the fixed OpenAI Responses endpoint with `store: false`, but
+that setting is not a substitute for reviewing the provider agreement and
+account-level retention controls. The model is an untrusted proposal producer:
+responses remain unknown until strict App and Core validation, and model URLs,
+paths, hashes, provenance, and resource identities have no authority. See the
+[AI authoring threat model](../../docs/ai-authoring-threat-model.md) for the
+implemented boundary and remaining product gates. Leave
+`GLYPHKILN_AI_PROVIDER` absent or set it to `disabled` to keep the adapter off.
 
 ### 5. Prepare the database and worker
 
@@ -231,6 +257,14 @@ The application APIs are same-origin, cookie-authenticated interfaces under
 `/api/app`. They enforce bounded bodies, CSRF protection for commands, and
 workspace authorization. The legacy caller-authored `/api/preview` endpoint is
 retired and returns `410 Gone`.
+
+Campaign and review foundations use the same command/query boundary. Campaign
+canvases refer to exact immutable design revisions and Core-derived seeds.
+Review comments and state transitions are revision-bound; approval is restricted
+to owner/admin capability and snapshots the exact revision hash, resource pins,
+and completed-render output hashes/fingerprints. The current browser workshop
+does not yet expose option boards, visual revision comparison, or campaign
+handoff bundles.
 
 ## Production build
 

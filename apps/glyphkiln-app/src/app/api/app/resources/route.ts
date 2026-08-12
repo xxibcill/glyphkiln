@@ -196,6 +196,7 @@ async function ingest(
     return service.ingestRaster({
       ...common,
       declaredMediaType: mediaType,
+      ...(metadata.normalizeColor === true ? { normalizeColor: true } : {}),
     });
   }
   if (mediaType !== "font/ttf" && mediaType !== "font/otf") {
@@ -229,7 +230,14 @@ function publicAdmission(admission: ResourceAdmission): Record<string, unknown> 
     createdAt: resource.createdAt.toISOString(),
   };
   return resource.kind === "raster-asset"
-    ? { ...common, width: resource.width, height: resource.height }
+    ? {
+        ...common,
+        width: resource.width,
+        height: resource.height,
+        ...(resource.colorNormalization === undefined
+          ? {}
+          : { colorNormalization: { ...resource.colorNormalization } }),
+      }
     : {
         ...common,
         family: resource.family,

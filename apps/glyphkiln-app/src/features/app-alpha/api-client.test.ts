@@ -286,6 +286,52 @@ describe("App Alpha API client", () => {
       value: [{ jobId: "job-1", state: "completed" }],
     });
   });
+
+  it("parses selectable workspace resources without accepting storage fields", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      expect(JSON.parse(requestBody(init?.body))).toEqual({
+        type: "workspace.resources",
+        workspaceId: "workspace-1",
+      });
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: {
+              kind: "workspace-resources",
+              workspaceId: "workspace-1",
+              truncated: false,
+              resources: [
+                {
+                  id: "image-1",
+                  kind: "raster-asset",
+                  mediaType: "image/png",
+                  contentHash: "a".repeat(64),
+                  byteSize: 42,
+                  width: 1_200,
+                  height: 800,
+                  origin: { kind: "user-upload" },
+                  license: { status: "owned" },
+                  createdAt: "2026-08-12T01:00:00.000Z",
+                },
+              ],
+            },
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(api.resources("workspace-1")).resolves.toMatchObject({
+      ok: true,
+      value: {
+        truncated: false,
+        resources: [{ id: "image-1", width: 1_200, height: 800 }],
+      },
+    });
+  });
 });
 
 function jsonResponse(value: unknown, status: number): Response {

@@ -1,6 +1,12 @@
-import { FORMAT_IDS } from "@glyphkiln/core";
+import {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_IDS,
+  FORMAT_IDS,
+} from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
 import { z } from "zod";
+
+import { AUTHORING_LOCK_IDS } from "@/server/ai-authoring";
 
 const identifier = z
   .string()
@@ -12,6 +18,9 @@ const displayName = z.string().trim().min(1).max(120);
 const workspaceName = z.string().trim().min(1).max(120);
 const designName = z.string().trim().min(1).max(160);
 const changeNote = z.string().trim().min(1).max(500);
+const campaignBrief = z.string().trim().min(1).max(4000);
+const reviewComment = z.string().trim().min(1).max(2000);
+const reviewReason = z.string().trim().min(1).max(1000);
 const email = z.string().trim().min(3).max(320);
 const password = z.string().min(12).max(128);
 const secretToken = z.string().min(32).max(256);
@@ -163,6 +172,92 @@ const ReviseDesignSchema = z
   })
   .strict();
 
+const CreateCampaignSchema = z
+  .object({
+    type: z.literal("campaign.create"),
+    workspaceId: identifier,
+    name: designName,
+    brief: campaignBrief,
+    campaignSeed: z.string().trim().min(1).max(256),
+    familyId: z.enum(CAMPAIGN_FAMILY_IDS),
+  })
+  .strict();
+
+const CreateCampaignDirectionSchema = z
+  .object({
+    type: z.literal("campaign.direction.create"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    directionKey: identifier,
+    name: designName,
+    locks: z
+      .array(z.enum(AUTHORING_LOCK_IDS))
+      .max(AUTHORING_LOCK_IDS.length)
+      .refine((values) => new Set(values).size === values.length, {
+        message: "Authoring locks must be unique.",
+      }),
+  })
+  .strict();
+
+const AttachCampaignCanvasSchema = z
+  .object({
+    type: z.literal("campaign.canvas.attach"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    directionId: identifier,
+    canvasKey: identifier,
+    designId: identifier,
+    revisionId: identifier,
+    compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    ordinal: z.number().int().min(0).max(999),
+  })
+  .strict();
+
+const SubmitRevisionReviewSchema = z
+  .object({
+    type: z.literal("revision.review.submit"),
+    workspaceId: identifier,
+    designId: identifier,
+    revisionId: identifier,
+  })
+  .strict();
+
+const CommentRevisionReviewSchema = z
+  .object({
+    type: z.literal("revision.review.comment"),
+    workspaceId: identifier,
+    reviewId: identifier,
+    body: reviewComment,
+    anchor: z
+      .object({
+        x: z.number().min(0).max(1),
+        y: z.number().min(0).max(1),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+const RequestRevisionChangesSchema = z
+  .object({
+    type: z.literal("revision.review.request-changes"),
+    workspaceId: identifier,
+    designId: identifier,
+    revisionId: identifier,
+    reason: reviewReason,
+  })
+  .strict();
+
+const ApproveRevisionSchema = z
+  .object({
+    type: z.literal("revision.review.approve"),
+    workspaceId: identifier,
+    designId: identifier,
+    revisionId: identifier,
+    renderJobId: identifier,
+  })
+  .strict();
+
 const RenderRevisionSchema = z
   .object({
     type: z.literal("revision.render"),
@@ -196,6 +291,13 @@ export const AppCommandSchema = z.discriminatedUnion("type", [
   PreviewDesignSchema,
   CreateDesignSchema,
   ReviseDesignSchema,
+  CreateCampaignSchema,
+  CreateCampaignDirectionSchema,
+  AttachCampaignCanvasSchema,
+  SubmitRevisionReviewSchema,
+  CommentRevisionReviewSchema,
+  RequestRevisionChangesSchema,
+  ApproveRevisionSchema,
   RenderRevisionSchema,
   RequestRevisionExportSchema,
 ]);
@@ -212,6 +314,27 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("workspace.members"),
       workspaceId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("workspace.resources"),
+      workspaceId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("campaign.board"),
+      workspaceId: identifier,
+      campaignId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("revision.review"),
+      workspaceId: identifier,
+      designId: identifier,
+      revisionId: identifier,
     })
     .strict(),
   z

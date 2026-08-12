@@ -77,3 +77,13 @@ IDs compare fixed projections of two Core-normalized documents and return only
 bounded actionable issues. This App coordination contract has no effect on the
 design schema, templates, renderer, procedural algorithms, manifest,
 fingerprints, SVG, PNG, or legacy validation/render behavior.
+
+Color-normalization policy `canonical-srgb-png-v1` pins the accepted byte,
+profile, orientation, color-runtime, and canonical PNG encoding behavior. It is
+an explicit pre-document utility, not part of rendering. Its source and output
+hashes identify different immutable resources. Adding the utility does not
+change the design schema, templates, renderer, procedural algorithms, manifest,
+fingerprints, SVG, PNG render output, or legacy validation behavior. The first
+implementation pins `@kittl/little-cms@1.0.3`, Glyphkiln raw-WASM adapter `v1`,
+pngjs `7.0.0`, and jpeg-js `0.4.4`; it supports embedded RGB and grayscale ICC
+profiles and rejects CMYK/other spaces with a stable error.

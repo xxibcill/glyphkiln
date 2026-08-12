@@ -25,9 +25,22 @@ The image-led template reports exact source/render/destination bounds and
 filter graph, or freeform mask.
 
 Rendering embeds the exact verified source bytes. Core does not silently
-normalize or rewrite an asset, so the source and render-input hashes are equal
-in this release. A future pure color normalizer must return new bytes, source
-and output hashes, dimensions, and a report before document creation.
+normalize or rewrite an asset, so the selected admission hash and render-input
+hash remain equal.
+
+Callers may explicitly invoke `normalizeRasterColor` before document creation.
+Policy `canonical-srgb-png-v1` accepts only bounded explicit PNG/JPEG bytes,
+preflights embedded profile declarations, applies the pinned sRGB conversion
+and EXIF orientation, strips metadata, and returns canonical RGBA PNG bytes plus
+source/output hashes, dimensions, and a bounded report. The output must receive
+its own immutable admission and normal Core validation; the helper never
+rewrites an existing resource or render input. See
+[ADR 0016](adr/0016-explicit-color-normalization.md).
+
+The first policy implementation converts embedded RGB and grayscale ICC
+profiles in a bounded Node child process. CMYK and other profile/sample spaces
+fail with `COLOR_PROFILE_COLOR_SPACE_UNSUPPORTED`; they are never silently
+treated as RGB.
 
 The CLI can turn files beneath one operator-selected local directory into those
 same explicit bytes through a validated
@@ -36,6 +49,7 @@ exactly equal the design declaration, and Core still performs its complete
 raster validation after the bundle loader verifies the file hash.
 
 Glyphkiln App or an ingestion service remains responsible for malware scanning,
-color normalization, metadata stripping where appropriate, and license policy.
-For hostile bytes, call `renderGraphicIsolated`; full decoding then occurs
-inside Core's bounded child-process lifecycle.
+choosing whether to normalize, retaining source/normalized provenance, bounding
+expensive admission work, and license policy. For hostile render bytes, call
+`renderGraphicIsolated`; full rendering decode then occurs inside Core's bounded
+child-process lifecycle.

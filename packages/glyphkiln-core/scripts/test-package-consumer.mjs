@@ -130,12 +130,14 @@ import { readFile } from "node:fs/promises";
 import {
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
+  COLOR_NORMALIZATION_POLICY_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
   inspectDesignDocument,
+  normalizeRasterColor,
   renderGraphic,
   renderGraphicIsolated,
   validateCandidateDocuments,
@@ -230,6 +232,23 @@ assert.equal(
   analyzeTextLayoutSupport("Latin").version,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
 );
+const rasterSource = Uint8Array.from(Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4AWP4DwQACfsD/c8LaHIAAAAASUVORK5CYII=",
+  "base64",
+));
+const normalizedRaster = await normalizeRasterColor({
+  bytes: rasterSource,
+  mimeType: "image/png",
+});
+assert.equal(
+  normalizedRaster.report.policyVersion,
+  COLOR_NORMALIZATION_POLICY_VERSION,
+);
+assert.equal(normalizedRaster.report.output.mimeType, "image/png");
+assert.notEqual(
+  normalizedRaster.report.source.sha256,
+  normalizedRaster.report.output.sha256,
+);
 const direct = await renderGraphic(document, { formats: ["svg"] });
 const isolated = await renderGraphicIsolated(document, { formats: ["png"] });
 assert.ok(direct.outputs[0].bytes.length > 0);
@@ -258,12 +277,14 @@ await assert.rejects(
     `import {
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
+  COLOR_NORMALIZATION_POLICY_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createDesignDocument,
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
+  normalizeRasterColor,
   validateCandidateDocuments,
   type CandidateDocumentSetValidation,
   type CampaignCanvasKey,
@@ -272,6 +293,7 @@ await assert.rejects(
   type DerivedCampaignSeeds,
   type DesignTextLayoutDiagnostic,
   type DesignTextLayoutInspection,
+  type NormalizedRasterColor,
   type TextLayoutAnalysis,
   type TextLayoutDiagnostic,
   type TextLayoutDiagnosticCode,
@@ -361,6 +383,12 @@ if (
 ) {
   throw new Error("authoring contract");
 }
+
+const normalizedRaster: Promise<NormalizedRasterColor> = normalizeRasterColor({
+  bytes: new Uint8Array(),
+  mimeType: "image/png",
+});
+void [normalizedRaster, COLOR_NORMALIZATION_POLICY_VERSION];
 
 const carousel = createDesignDocument({
   template: { id: "tiktok-carousel-slide", version: "1.0.3" },

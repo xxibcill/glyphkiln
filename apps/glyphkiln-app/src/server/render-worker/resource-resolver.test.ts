@@ -308,6 +308,15 @@ class MemoryResourceStore implements ResourceStore {
     );
   }
 
+  listByWorkspace(workspaceId: string, maximum: number): Promise<ResourceVersion[]> {
+    return Promise.resolve(
+      [...this.#resources.values()]
+        .map((stored) => stored.resource)
+        .filter((resource) => resource.workspaceId === workspaceId)
+        .slice(0, maximum),
+    );
+  }
+
   readById(workspaceId: string, resourceId: string): Promise<ResourceWithBytes | null> {
     this.reads.push(["asset", workspaceId, resourceId]);
     return Promise.resolve(

@@ -13,7 +13,7 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This package is a production-quality vertical slice (`0.5.0`).
+This package is a production-quality vertical slice (`0.6.0`).
 Schema and templates are versioned, but the package itself is pre-1.0 and may
 make documented breaking changes.
 
@@ -114,6 +114,16 @@ one exact image/logo campaign across landscape, square, and portrait and returns
 bounded safe-area, text, crop, overflow, and composited-contrast proof in
 `result.evidence`. Core embeds the exact supplied raster bytes and never runs a
 silent color normalizer.
+
+For a deliberate admission-time conversion, `normalizeRasterColor` accepts only
+explicit bounded PNG/JPEG bytes and returns new canonical sRGB PNG bytes plus a
+report containing source/output hashes, dimensions, profile evidence, and
+orientation evidence. The caller must store and admit the output as a new
+immutable resource before putting its hash in a document. The helper never
+fetches, accepts a path or URL, mutates the source, or runs inside
+`renderGraphic`. Embedded RGB and grayscale ICC profiles are supported; CMYK
+and other color spaces fail explicitly until a bounded decoder can expose raw
+samples safely.
 
 The reviewed Kilnform fixture uses the selected Kilnmaker Seal identity. Run
 `npm run identity:update --workspace @glyphkiln/core` to reproduce its outlined

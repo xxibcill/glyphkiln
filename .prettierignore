@@ -2,6 +2,7 @@
 **/coverage
 **/.next
 packages/glyphkiln-core/examples/generated
+packages/glyphkiln-core/vendor/little-cms
 examples/style-showcase/generated
 package-lock.json
 LICENSE

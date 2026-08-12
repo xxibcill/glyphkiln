@@ -1,4 +1,9 @@
-import { createDevelopmentFont, RENDER_RESOURCE_LIMITS, sha256 } from "@glyphkiln/core";
+import {
+  COLOR_NORMALIZATION_POLICY_VERSION,
+  createDevelopmentFont,
+  RENDER_RESOURCE_LIMITS,
+  sha256,
+} from "@glyphkiln/core";
 import { describe, expect, it, vi } from "vitest";
 
 import { ResourceIngestionError } from "./errors";
@@ -19,6 +24,12 @@ import type {
 const PNG = Uint8Array.from(
   Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4AWP4DwQACfsD/c8LaHIAAAAASUVORK5CYII=",
+    "base64",
+  ),
+);
+const NORMALIZED_PNG = Uint8Array.from(
+  Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4AWP5DwQACg8EAViTNP4AAAAASUVORK5CYII=",
     "base64",
   ),
 );
@@ -50,6 +61,7 @@ function mapAdmittedResource(resource: AdmittedResource): ResourceVersion {
         mediaType: resource.mediaType,
         width: resource.width,
         height: resource.height,
+        colorNormalization: resource.colorNormalization,
       }
     : {
         ...common,
@@ -75,6 +87,10 @@ class CapturingResourceStore implements ResourceStore {
 
   public findById(): Promise<ResourceVersion | null> {
     return Promise.resolve(null);
+  }
+
+  public listByWorkspace(): Promise<ResourceVersion[]> {
+    return Promise.resolve([]);
   }
 
   public readById(): Promise<ResourceWithBytes | null> {
@@ -240,6 +256,47 @@ describe("safe resource ingestion", () => {
     expect(result.ingestionId).toBe("ingestion-a");
     expect(store.admitted?.bytes).toEqual(PNG);
     expect(scan).toHaveBeenCalledOnce();
+  });
+
+  it("explicitly normalizes a scanned raster into a new immutable identity", async () => {
+    const store = new CapturingResourceStore();
+    const scan = vi.fn<MalwareScanner["scan"]>().mockResolvedValue(CLEAN_RECEIPT);
+    const service = new ResourceIngestionService({
+      store,
+      scanner: cleanScanner(scan),
+      createId: createIds(),
+    });
+
+    const result = await service.ingestRaster({
+      ...rasterInput(),
+      normalizeColor: true,
+    });
+
+    expect(scan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contentHash: sha256(PNG),
+        mediaType: "image/png",
+        bytes: PNG,
+      }),
+    );
+    expect(result.resource).toMatchObject({
+      contentHash: sha256(NORMALIZED_PNG),
+      mediaType: "image/png",
+      byteSize: NORMALIZED_PNG.byteLength,
+      colorNormalization: {
+        policyVersion: COLOR_NORMALIZATION_POLICY_VERSION,
+        sourceContentHash: sha256(PNG),
+        sourceMediaType: "image/png",
+        outputContentHash: sha256(NORMALIZED_PNG),
+      },
+    });
+    expect(store.admitted).toMatchObject({
+      bytes: NORMALIZED_PNG,
+      colorNormalization: {
+        sourceContentHash: sha256(PNG),
+        outputContentHash: sha256(NORMALIZED_PNG),
+      },
+    });
   });
 
   it("holds one workspace admission across body loading, scan, decode, and store", async () => {

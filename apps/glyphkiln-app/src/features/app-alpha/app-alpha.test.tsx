@@ -34,7 +34,7 @@ vi.mock("@/features/project-preview/response-parser", async (importOriginal) => 
   };
 });
 
-const catalog = createPreviewCatalog();
+const catalog = createPreviewCatalog({ resourceBacked: true });
 const brand = createPublishedBrand();
 
 describe("AppAlpha", () => {
@@ -412,6 +412,8 @@ function createWorkflowApi(
                 ],
         },
       }),
+    resources: () =>
+      Promise.resolve({ ok: true, value: { resources: [], truncated: false } }),
     publishBrand: () => Promise.resolve(missingResource()),
     brandSnapshot: () =>
       Promise.resolve({
@@ -522,6 +524,13 @@ function renderDocument(document: DesignDocument): PreviewSuccess {
     ok: true,
     document,
     qualityIssues: [],
+    evidence: {
+      version: "1.0.0",
+      safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
+      text: [],
+      crops: [],
+      contrast: [],
+    },
     outputs: [
       {
         format: "svg",

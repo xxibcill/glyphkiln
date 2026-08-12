@@ -24,6 +24,21 @@ export {
   AUTHORING_LOCK_VALIDATION_VERSION,
   validateAuthoringLocks,
 } from "./lock-validation";
+
+export { BRIEF_INTERPRETER_INPUT_CONTRACT_VERSION } from "./brief-interpreter";
+export type {
+  BriefInterpreter,
+  BriefInterpreterDescriptor,
+  BriefInterpreterInput,
+} from "./brief-interpreter";
+
+export {
+  BriefInterpreterProviderError,
+  OpenAIResponsesBriefInterpreter,
+} from "./openai-responses-adapter";
+export type { OpenAIResponsesBriefInterpreterConfiguration } from "./openai-responses-adapter";
+
+export { createBriefInterpreterFromEnvironment } from "./configured-brief-interpreter";
 export type {
   AuthoringLockId,
   AuthoringLockIssue,

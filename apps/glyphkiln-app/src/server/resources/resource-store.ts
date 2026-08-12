@@ -22,6 +22,8 @@ export type ResourceStore = {
 
   findById(workspaceId: string, resourceId: string): Promise<ResourceVersion | null>;
 
+  listByWorkspace(workspaceId: string, maximum: number): Promise<ResourceVersion[]>;
+
   readById(workspaceId: string, resourceId: string): Promise<ResourceWithBytes | null>;
 
   findFontVersion(

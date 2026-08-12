@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { createDevelopmentFont, IMAGE_CONTRAST_POLICY_VERSION } from "@glyphkiln/core";
+
 import { createPreviewDesign } from "@/test/preview-design";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
@@ -38,6 +40,61 @@ describe("parsePreviewResponse", () => {
     ).resolves.toBeNull();
   });
 
+  it("accepts a manifest that uses an exact declared custom font", async () => {
+    const document = createPreviewDesign();
+    const developmentFont = createDevelopmentFont();
+    const customFonts = [700, 800].map((weight) => ({
+      ...developmentFont,
+      family: "Kiln Sans",
+      weight,
+    }));
+    document.brand.typography = {
+      ...document.brand.typography,
+      headlineFamily: "Kiln Sans",
+      roles: {
+        display: {
+          family: "Kiln Sans",
+          weight: 800,
+          lineHeight: 0.94,
+          tracking: -0.02,
+        },
+        body: { family: "Inter", weight: 400, lineHeight: 1.35, tracking: 0 },
+        label: { family: "Inter", weight: 700, lineHeight: 1.1, tracking: 0.05 },
+      },
+    };
+    document.fonts.push(
+      ...customFonts.map((font) => ({
+        family: font.family,
+        weight: font.weight,
+        style: font.style,
+        sha256: font.sha256,
+      })),
+    );
+    const result = await createProjectPreview(
+      document,
+      {
+        render: async (input, options) => {
+          const { renderGraphic } = await import("@glyphkiln/core");
+          return renderGraphic(input, options);
+        },
+        now: () => FIXED_NOW,
+      },
+      { fonts: [developmentFont, ...customFonts] },
+    );
+
+    if (!result.body.ok) {
+      throw new Error(`Expected a custom-font preview: ${JSON.stringify(result.body)}`);
+    }
+    expect(
+      result.body.outputs.every((output) =>
+        output.manifest.fonts.some((font) => font.family === "Kiln Sans"),
+      ),
+    ).toBe(true);
+    await expect(
+      verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
+    ).resolves.toBeNull();
+  });
+
   it("accepts a status-aligned problem response", () => {
     const failure = {
       ok: false,
@@ -49,6 +106,30 @@ describe("parsePreviewResponse", () => {
     } as const;
 
     expect(parsePreviewResponse(failure, 422)).toEqual(failure);
+  });
+
+  it("rejects malformed or unbounded render evidence", async () => {
+    const malformed = structuredClone(await renderSuccess());
+    malformed.evidence.safeArea.width = -1;
+    expect(parsePreviewResponse(malformed, 200)).toMatchObject({
+      ok: false,
+      code: "INVALID_PREVIEW_RESPONSE",
+    });
+
+    const unbounded = structuredClone(await renderSuccess());
+    unbounded.evidence.contrast = Array.from({ length: 101 }, () => ({
+      layerId: "headline",
+      policyVersion: IMAGE_CONTRAST_POLICY_VERSION,
+      foreground: "#000000",
+      minimumRequired: 4.5,
+      minimumRatio: 7,
+      maximumRatio: 7,
+      samples: [],
+    }));
+    expect(parsePreviewResponse(unbounded, 200)).toMatchObject({
+      ok: false,
+      code: "INVALID_PREVIEW_RESPONSE",
+    });
   });
 
   it("rejects success-shaped, status-mismatched, and incomplete responses", () => {

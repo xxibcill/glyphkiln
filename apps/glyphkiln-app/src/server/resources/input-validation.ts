@@ -74,6 +74,7 @@ export const ResourceUploadMetadataSchema = z.discriminatedUnion("kind", [
     .object({
       ...resourceUploadMetadataShape,
       kind: z.literal("raster-asset"),
+      normalizeColor: z.boolean().optional(),
     })
     .strict(),
   z
@@ -93,6 +94,7 @@ const rasterInputSchema = z
   .object({
     ...commonShape,
     declaredMediaType: z.enum(["image/png", "image/jpeg"]),
+    normalizeColor: z.boolean().optional(),
   })
   .strict();
 

@@ -19,6 +19,10 @@ const WORKSPACE_OWNED_TABLES = [
   "audit_events",
   "brand_kits",
   "brand_snapshots",
+  "campaign_canvases",
+  "campaign_direction_locks",
+  "campaign_directions",
+  "campaigns",
   "design_revision_resources",
   "design_revisions",
   "designs",
@@ -28,6 +32,10 @@ const WORKSPACE_OWNED_TABLES = [
   "render_workspace_queue_schedules",
   "resource_ingestions",
   "resource_versions",
+  "revision_approval_receipts",
+  "revision_review_comments",
+  "revision_review_transitions",
+  "revision_reviews",
   "workspace_invitations",
   "workspace_memberships",
 ] as const;
@@ -37,7 +45,8 @@ const WORKSPACE_ENTITY_TABLES = WORKSPACE_OWNED_TABLES.filter(
     tableName !== "render_attempts" &&
     tableName !== "render_outputs" &&
     tableName !== "render_workspace_queue_schedules" &&
-    tableName !== "design_revision_resources",
+    tableName !== "design_revision_resources" &&
+    tableName !== "campaign_direction_locks",
 );
 
 const MIGRATION_VERSIONS = [
@@ -48,6 +57,9 @@ const MIGRATION_VERSIONS = [
   "202607310005_resource_admission_identity",
   "202607310006_render_queue_capacity_fairness",
   "202607310007_revision_resource_provenance",
+  "202608120008_campaign_workflow",
+  "202608120009_revision_review_approval",
+  "202608120010_resource_color_normalization_provenance",
 ] as const;
 
 type TableNameRow = {
@@ -232,6 +244,36 @@ async function insertRevision(
       { name: input.documentName, schemaVersion: "1.0.0" },
       HASH_C,
       "test revision",
+      "user-a",
+    ],
+  );
+}
+
+async function insertApprovalReceipt(
+  database: SqlDatabase,
+  input: {
+    designId: string;
+    id: string;
+    renderJobId: string;
+    reviewId: string;
+    revisionId: string;
+  },
+): Promise<void> {
+  await database.query(
+    `INSERT INTO revision_approval_receipts (
+       id, workspace_id, review_id, design_id, revision_id, render_job_id,
+       revision_canonical_hash, resource_pins, output_evidence, approved_by
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)`,
+    [
+      input.id,
+      "workspace-a",
+      input.reviewId,
+      input.designId,
+      input.revisionId,
+      input.renderJobId,
+      HASH_C,
+      [],
+      [{ format: "svg" }],
       "user-a",
     ],
   );
@@ -776,5 +818,70 @@ describe("App Alpha PostgreSQL migration", () => {
         head_revision_id: "revision-a",
       },
     ]);
+  });
+
+  it("binds approval receipts to the reviewed revision and its render job", async () => {
+    await migrateDatabase(database);
+    await seedBrandAndDesignState(database);
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-a",
+      documentName: "Reviewed revision",
+      id: "revision-a",
+      revisionNumber: 1,
+    });
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-b",
+      documentName: "Other revision",
+      id: "revision-b",
+      revisionNumber: 1,
+    });
+    await database.query(
+      `INSERT INTO revision_reviews (
+         id, workspace_id, design_id, revision_id, state, started_by, updated_by
+       ) VALUES ($1, $2, $3, $4, 'in-review', $5, $5)`,
+      ["review-a", "workspace-a", "design-a", "revision-a", "user-a"],
+    );
+    for (const [jobId, designId, revisionId] of [
+      ["job-a", "design-a", "revision-a"],
+      ["job-b", "design-b", "revision-b"],
+    ] as const) {
+      await database.query(
+        `INSERT INTO render_jobs (
+           id, workspace_id, design_id, revision_id, requested_by,
+           idempotency_key, available_at, manifest_creation_timestamp
+         ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [jobId, "workspace-a", designId, revisionId, "user-a", `approval-${jobId}`],
+      );
+    }
+
+    await expect(
+      insertApprovalReceipt(database, {
+        id: "approval-wrong-review",
+        reviewId: "review-a",
+        designId: "design-b",
+        revisionId: "revision-b",
+        renderJobId: "job-b",
+      }),
+    ).rejects.toHaveProperty("code", "23503");
+    await expect(
+      insertApprovalReceipt(database, {
+        id: "approval-wrong-job",
+        reviewId: "review-a",
+        designId: "design-a",
+        revisionId: "revision-a",
+        renderJobId: "job-b",
+      }),
+    ).rejects.toHaveProperty("code", "23503");
+    await expect(
+      insertApprovalReceipt(database, {
+        id: "approval-a",
+        reviewId: "review-a",
+        designId: "design-a",
+        revisionId: "revision-a",
+        renderJobId: "job-a",
+      }),
+    ).resolves.toBeUndefined();
   });
 });

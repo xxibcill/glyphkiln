@@ -147,6 +147,18 @@ export {
   createDevelopmentFont,
 } from "./fonts/index.js";
 export { AssetRegistry } from "./assets/index.js";
+export {
+  COLOR_NORMALIZATION_IMPLEMENTATION,
+  COLOR_NORMALIZATION_LIMITS,
+  COLOR_NORMALIZATION_POLICY_VERSION,
+  normalizeRasterColor,
+} from "./assets/color-normalization.js";
+export type {
+  ColorNormalizationInput,
+  ColorNormalizationProfile,
+  ColorNormalizationReport,
+  NormalizedRasterColor,
+} from "./assets/color-normalization.js";
 export { FOCAL_CROP_POLICY_VERSION, calculateFocalCrop } from "./assets/focal-crop.js";
 export type { FocalCropGeometry } from "./assets/focal-crop.js";
 export {

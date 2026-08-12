@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import { sha256 } from "@glyphkiln/core";
+import {
+  GlyphkilnError,
+  normalizeRasterColor,
+  sha256,
+  type NormalizedRasterColor,
+} from "@glyphkiln/core";
 
 import { ResourceIngestionError } from "./errors";
 import { inspectFontEnvelope, validateFontBytes } from "./font-validation";
@@ -29,6 +34,8 @@ import type {
   ResourceAdmission,
   ResourceKind,
   ResourceMediaType,
+  RasterColorNormalizationProvenance,
+  RasterMediaType,
 } from "./types";
 
 export type ResourceIngestionServiceOptions = {
@@ -41,6 +48,15 @@ export type ResourceIngestionServiceOptions = {
 export type AdmittedResourceIngestion = {
   ingestRaster(input: unknown): Promise<ResourceAdmission>;
   ingestFont(input: unknown): Promise<ResourceAdmission>;
+};
+
+type PreparedRasterAdmission = {
+  bytes: Uint8Array;
+  colorNormalization?: RasterColorNormalizationProvenance | undefined;
+  contentHash: string;
+  height: number;
+  mediaType: RasterMediaType;
+  width: number;
 };
 
 function scannerField(value: string, maximum: number): boolean {
@@ -158,34 +174,101 @@ export class ResourceIngestionService {
   }
 
   async #ingestRaster(parsed: RasterIngestionInput): Promise<ResourceAdmission> {
-    const bytes = new Uint8Array(parsed.bytes);
-    const dimensions = inspectRasterEnvelope(bytes, parsed.declaredMediaType);
-    const contentHash = sha256(bytes);
+    const sourceBytes = new Uint8Array(parsed.bytes);
+    const sourceDimensions = inspectRasterEnvelope(
+      sourceBytes,
+      parsed.declaredMediaType,
+    );
+    const sourceContentHash = sha256(sourceBytes);
     const scan = await this.#scan(
       "raster-asset",
       parsed.declaredMediaType,
-      contentHash,
-      bytes,
+      sourceContentHash,
+      sourceBytes,
     );
     validateRasterBytes({
-      bytes,
-      contentHash,
+      bytes: sourceBytes,
+      contentHash: sourceContentHash,
       mediaType: parsed.declaredMediaType,
       origin: parsed.origin,
-      ...dimensions,
+      ...sourceDimensions,
     });
+    const admitted: PreparedRasterAdmission =
+      parsed.normalizeColor === true
+        ? await this.#normalizeRaster(parsed, sourceBytes, sourceContentHash)
+        : {
+            bytes: sourceBytes,
+            contentHash: sourceContentHash,
+            mediaType: parsed.declaredMediaType,
+            ...sourceDimensions,
+          };
 
     return this.#store.admit({
       ...this.#resourceIdentity(parsed),
       kind: "raster-asset",
-      contentHash,
-      mediaType: parsed.declaredMediaType,
-      bytes: new Uint8Array(bytes),
+      contentHash: admitted.contentHash,
+      mediaType: admitted.mediaType,
+      bytes: new Uint8Array(admitted.bytes),
       origin: { ...parsed.origin },
       license: copyLicense(parsed.license),
       scan,
+      width: admitted.width,
+      height: admitted.height,
+      ...(admitted.colorNormalization === undefined
+        ? {}
+        : { colorNormalization: { ...admitted.colorNormalization } }),
+    });
+  }
+
+  async #normalizeRaster(
+    parsed: RasterIngestionInput,
+    sourceBytes: Uint8Array,
+    sourceContentHash: string,
+  ): Promise<
+    PreparedRasterAdmission & {
+      colorNormalization: RasterColorNormalizationProvenance;
+      mediaType: "image/png";
+    }
+  > {
+    let normalized: NormalizedRasterColor;
+    try {
+      normalized = await normalizeRasterColor({
+        bytes: sourceBytes,
+        mimeType: parsed.declaredMediaType,
+      });
+    } catch (cause) {
+      throw normalizationFailure(cause);
+    }
+    const bytes = new Uint8Array(normalized.bytes);
+    const contentHash = sha256(bytes);
+    const dimensions = inspectRasterEnvelope(bytes, "image/png");
+    validateRasterBytes({
+      bytes,
+      contentHash,
+      mediaType: "image/png",
+      origin: parsed.origin,
       ...dimensions,
     });
+    assertNormalizationEvidence(
+      normalized,
+      parsed.declaredMediaType,
+      sourceBytes,
+      sourceContentHash,
+      contentHash,
+      dimensions,
+    );
+    return {
+      bytes,
+      contentHash,
+      mediaType: "image/png",
+      ...dimensions,
+      colorNormalization: {
+        policyVersion: normalized.report.policyVersion,
+        sourceContentHash,
+        sourceMediaType: parsed.declaredMediaType,
+        outputContentHash: contentHash,
+      },
+    };
   }
 
   async #ingestFont(parsed: FontIngestionInput): Promise<ResourceAdmission> {
@@ -255,6 +338,57 @@ export class ResourceIngestionService {
       actorUserId: input.actorUserId,
       originalFilename: input.originalFilename,
     };
+  }
+}
+
+function normalizationFailure(cause: unknown): ResourceIngestionError {
+  if (cause instanceof GlyphkilnError) {
+    const unavailable = new Set([
+      "COLOR_NORMALIZATION_TIMEOUT",
+      "COLOR_NORMALIZATION_PROCESS_FAILED",
+      "COLOR_NORMALIZATION_PROCESS_EXITED",
+      "COLOR_NORMALIZATION_PROCESS_IPC_FAILED",
+      "COLOR_NORMALIZATION_PROCESS_NOT_BUILT",
+      "INVALID_COLOR_NORMALIZATION_PROCESS_RESPONSE",
+    ]).has(cause.code);
+    return new ResourceIngestionError(
+      unavailable
+        ? "The configured color normalizer is unavailable."
+        : "The raster could not be normalized safely.",
+      unavailable ? "RESOURCE_STORAGE_INTEGRITY_ERROR" : "RESOURCE_BYTES_INVALID",
+      { validationCode: cause.code },
+      { cause },
+    );
+  }
+  return new ResourceIngestionError(
+    "The configured color normalizer is unavailable.",
+    "RESOURCE_STORAGE_INTEGRITY_ERROR",
+    undefined,
+    { cause },
+  );
+}
+
+function assertNormalizationEvidence(
+  normalized: NormalizedRasterColor,
+  sourceMediaType: RasterMediaType,
+  sourceBytes: Uint8Array,
+  sourceContentHash: string,
+  outputContentHash: string,
+  outputDimensions: { width: number; height: number },
+): void {
+  if (
+    normalized.report.source.mimeType !== sourceMediaType ||
+    normalized.report.source.byteLength !== sourceBytes.byteLength ||
+    normalized.report.source.sha256 !== sourceContentHash ||
+    normalized.report.output.byteLength !== normalized.bytes.byteLength ||
+    normalized.report.output.sha256 !== outputContentHash ||
+    normalized.report.output.width !== outputDimensions.width ||
+    normalized.report.output.height !== outputDimensions.height
+  ) {
+    throw new ResourceIngestionError(
+      "The color normalizer returned inconsistent immutable evidence.",
+      "RESOURCE_STORAGE_INTEGRITY_ERROR",
+    );
   }
 }
 

@@ -1,7 +1,15 @@
-import type { DesignDocument, DesignLayer } from "@glyphkiln/core";
+import type { AssetOrigin, DesignDocument, DesignLayer } from "@glyphkiln/core";
+
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
 
 import { assertUnreachable } from "./assert-unreachable";
-import type { PreviewCatalog, PreviewCatalogTemplate, PreviewFormState } from "./types";
+import { buildBrandTypography, createInitialBrandTypography } from "./brand-typography";
+import type {
+  EditorSelectableResource,
+  PreviewCatalog,
+  PreviewCatalogTemplate,
+  PreviewFormState,
+} from "./types";
 
 const FONT_WEIGHTS = [400, 500, 600, 700, 800] as const;
 
@@ -38,6 +46,7 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
       darkText: "#F4EEDF",
       darkMutedText: "#C8BCAA",
       safeArea: 0.07,
+      typography: createInitialBrandTypography(),
     },
     composition: {
       templateId: template.id,
@@ -54,6 +63,8 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
         width: 0.72,
         height: 0.62,
       },
+      imageFocalPoint: { x: 0.5, y: 0.5 },
+      imageTreatment: "dark-scrim",
     },
     copy: {
       productAnnouncement: {
@@ -91,6 +102,13 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
         cta: "SWIPE FOR THE PROOF →",
         footer: "@glyphkiln · typography-first series",
       },
+      imageLedCampaign: {
+        eyebrow: "CAMPAIGN / SERIES 01",
+        headline: "Put the product in the frame.",
+        subtitle:
+          "Use one admitted campaign image, one admitted logo, and a deterministic treatment across formats.",
+        cta: "DISCOVER THE COLLECTION →",
+      },
     },
     resources: {
       assetIds: [],
@@ -102,6 +120,7 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
 export function buildPreviewDocument(
   state: PreviewFormState,
   catalog: PreviewCatalog,
+  selectableResources: readonly EditorSelectableResource[] = [],
 ): DesignDocument {
   const template = findTemplate(catalog, state.composition.templateId);
   const safeArea = state.brand.safeArea;
@@ -141,11 +160,7 @@ export function buildPreviewDocument(
           mutedText: state.brand.darkMutedText,
         },
       },
-      typography: {
-        headlineFamily: "Inter",
-        bodyFamily: "Inter",
-        monospaceFamily: "Inter",
-      },
+      typography: buildBrandTypography(state.brand.typography),
       spacingScale: [4, 8, 12, 16, 24, 32, 48, 64],
       borderRadii: [0, 12, 24],
       visualDensity: state.brand.visualDensity,
@@ -159,13 +174,8 @@ export function buildPreviewDocument(
       prohibitedColors: [],
       prohibitedStyles: [],
     },
-    assets: [],
-    fonts: FONT_WEIGHTS.map((weight) => ({
-      family: "Inter",
-      weight,
-      style: "normal" as const,
-      sha256: catalog.developmentFontSha256,
-    })),
+    assets: selectedAssets(state, selectableResources),
+    fonts: selectedFonts(state, selectableResources, catalog),
     layers,
     metadata: {
       source: "glyphkiln-app-local-preview",
@@ -182,7 +192,10 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
     },
   ];
 
-  if (state.composition.templateId !== "tiktok-carousel-slide") {
+  if (
+    state.composition.templateId !== "tiktok-carousel-slide" &&
+    state.composition.templateId !== "image-led-campaign"
+  ) {
     layers.push({
       id: "procedure",
       type: "procedural-decoration",
@@ -259,11 +272,109 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       addTextLayer(layers, "footer", "footer", copy.footer);
       break;
     }
+    case "image-led-campaign": {
+      const copy = state.copy.imageLedCampaign;
+      layers.push({
+        id: "campaign-image",
+        type: "image",
+        visible: true,
+        assetId: state.resources.imageAssetId ?? "missing-campaign-image",
+        alt: "Selected campaign image.",
+        fit: "cover",
+        focalPoint: { ...state.composition.imageFocalPoint },
+        treatment: state.composition.imageTreatment,
+      });
+      layers.push({
+        id: "brand-mark",
+        type: "logo",
+        visible: true,
+        assetId: state.resources.logoAssetId ?? "missing-brand-logo",
+        alt: "Selected brand logo.",
+        fit: "contain",
+      });
+      addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
+      addTextLayer(layers, "headline", "headline", copy.headline, true);
+      addTextLayer(layers, "subtitle", "subtitle", copy.subtitle);
+      addTextLayer(layers, "cta", "cta", copy.cta);
+      break;
+    }
     default:
       return assertUnreachable(templateId, "preview template");
   }
 
   return layers;
+}
+
+function selectedAssets(
+  state: PreviewFormState,
+  resources: readonly EditorSelectableResource[],
+): DesignDocument["assets"] {
+  const selected = new Set(state.resources.assetIds);
+  return resources
+    .filter(
+      (
+        resource,
+      ): resource is Extract<EditorSelectableResource, { kind: "raster-asset" }> =>
+        resource.kind === "raster-asset" && selected.has(resource.id),
+    )
+    .map((resource) => ({
+      id: resource.id,
+      mimeType: resource.mediaType,
+      sha256: resource.contentHash,
+      width: resource.width,
+      height: resource.height,
+      origin: {
+        kind: normalizeOriginKind(resource.origin.kind),
+        ...(resource.origin.sourceName === undefined
+          ? {}
+          : { sourceName: resource.origin.sourceName }),
+      },
+    }))
+    .sort((left, right) => compareCanonicalStrings(left.id, right.id));
+}
+
+function normalizeOriginKind(value: string): AssetOrigin["kind"] {
+  return value === "user-upload" ||
+    value === "licensed-library" ||
+    value === "generated" ||
+    value === "unknown"
+    ? value
+    : "unknown";
+}
+
+function selectedFonts(
+  state: PreviewFormState,
+  resources: readonly EditorSelectableResource[],
+  catalog: PreviewCatalog,
+): DesignDocument["fonts"] {
+  const selected = new Set(state.resources.fontIds);
+  const custom = resources
+    .filter(
+      (resource): resource is Extract<EditorSelectableResource, { kind: "font" }> =>
+        resource.kind === "font" && selected.has(resource.id),
+    )
+    .map((resource) => ({
+      family: resource.family,
+      weight: resource.weight,
+      style: resource.style,
+      sha256: resource.contentHash,
+    }));
+  const customFaces = new Set(
+    custom.map(
+      (font) => `${font.family}\u0000${String(font.weight)}\u0000${font.style}`,
+    ),
+  );
+  return [
+    ...FONT_WEIGHTS.filter(
+      (weight) => !customFaces.has(`Inter\u0000${String(weight)}\u0000normal`),
+    ).map((weight) => ({
+      family: "Inter",
+      weight,
+      style: "normal" as const,
+      sha256: catalog.developmentFontSha256,
+    })),
+    ...custom,
+  ];
 }
 
 function addTextLayer(

@@ -1,5 +1,21 @@
 # @glyphkiln/core
 
+## 0.6.0
+
+### Minor Changes
+
+- dcac628: Add an explicit bounded canonical-sRGB PNG normalizer that returns source and
+  output hashes, dimensions, profile evidence, and orientation evidence without
+  changing render-time asset bytes or existing pixels.
+- 1cc1561: Publish immutable browser-safe campaign-family metadata and distinct validated
+  art-direction/canvas scope keys with deterministic seed derivation, without
+  changing render pixels or embedded renderer contracts.
+- 7aff2b9: Map bounded Core quality evidence to fixed browser-safe authoring actions and
+  surface the guidance with truncation disclosure in the App Proof Ledger.
+- fc3c5b8: Publish browser-safe exact-template authoring and actionable issue metadata,
+  descriptor-safe inert-data readers, plus bounded deterministic candidate-document
+  validation without changing render pixels or embedded renderer contracts.
+
 ## 0.5.0
 
 ### Minor Changes

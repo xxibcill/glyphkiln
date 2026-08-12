@@ -1,10 +1,17 @@
-import type { AssetOrigin } from "@glyphkiln/core";
+import type { AssetOrigin, ColorNormalizationReport } from "@glyphkiln/core";
 
 export type ResourceKind = "raster-asset" | "font";
 export type RasterMediaType = "image/png" | "image/jpeg";
 export type FontMediaType = "font/ttf" | "font/otf";
 export type ResourceMediaType = RasterMediaType | FontMediaType;
 export type FontStyle = "normal" | "italic";
+
+export type RasterColorNormalizationProvenance = {
+  policyVersion: ColorNormalizationReport["policyVersion"];
+  sourceContentHash: string;
+  sourceMediaType: RasterMediaType;
+  outputContentHash: string;
+};
 
 export type ResourceLicense = {
   status: "owned" | "licensed" | "public-domain" | "unknown";
@@ -42,6 +49,7 @@ export type RasterResourceVersion = ResourceVersionBase & {
   mediaType: RasterMediaType;
   width: number;
   height: number;
+  colorNormalization?: RasterColorNormalizationProvenance | undefined;
 };
 
 export type FontResourceVersion = ResourceVersionBase & {
@@ -70,6 +78,7 @@ export type RasterIngestionInput = {
   actorUserId: string;
   declaredMediaType: RasterMediaType;
   bytes: Uint8Array;
+  normalizeColor?: boolean | undefined;
   originalFilename?: string | undefined;
   origin: AssetOrigin;
   license: ResourceLicense;
@@ -103,6 +112,7 @@ export type AdmittedRasterResource = {
   scan: CleanScanReceipt;
   width: number;
   height: number;
+  colorNormalization?: RasterColorNormalizationProvenance | undefined;
 };
 
 export type AdmittedFontResource = {

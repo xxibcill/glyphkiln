@@ -64,8 +64,10 @@ data and already-resolved bytes.
 
 ## Deferred Core 0.5 work
 
-- A pure color-profile normalizer that emits canonical sRGB bytes plus
-  source/output hashes and rejects malformed or oversized profiles.
+- A pure color-profile normalizer was intentionally deferred from `0.5.0`; the
+  post-`0.6.0` candidate is tracked in
+  [ADR 0016](../adr/0016-explicit-color-normalization.md) and still requires its
+  cross-platform/product review gate.
 - More real multi-weight brand fonts and two additional, visually distinct
   brand acceptance campaigns.
 - More masks/treatments only when real briefs justify them.

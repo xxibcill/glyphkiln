@@ -1,4 +1,4 @@
-import { sha256 } from "@glyphkiln/core";
+import { COLOR_NORMALIZATION_POLICY_VERSION, sha256 } from "@glyphkiln/core";
 
 import type { SqlDatabase, SqlRow, SqlTransaction } from "../persistence/database";
 import type { ResourceBlobStorage } from "./blob-storage";
@@ -6,6 +6,7 @@ import { ResourceIngestionError } from "./errors";
 import type { FontResourceReference, ResourceStore } from "./resource-store";
 import type {
   AdmittedResource,
+  RasterColorNormalizationProvenance,
   ResourceAdmission,
   ResourceVersion,
   ResourceWithBytes,
@@ -16,6 +17,9 @@ type ResourceRow = SqlRow & {
   workspaceId: string;
   kind: "raster-asset" | "font";
   contentHash: string;
+  colorNormalizationPolicyVersion: string | null;
+  colorNormalizationSourceHash: string | null;
+  colorNormalizationSourceMediaType: string | null;
   storageKey: string;
   mediaType: "image/png" | "image/jpeg" | "font/ttf" | "font/otf";
   byteSize: number;
@@ -68,6 +72,9 @@ const RESOURCE_COLUMNS = `
   workspace_id AS "workspaceId",
   kind,
   content_hash AS "contentHash",
+  color_normalization_policy_version AS "colorNormalizationPolicyVersion",
+  color_normalization_source_hash AS "colorNormalizationSourceHash",
+  color_normalization_source_media_type AS "colorNormalizationSourceMediaType",
   storage_key AS "storageKey",
   media_type AS "mediaType",
   byte_size AS "byteSize",
@@ -95,6 +102,38 @@ const RESOURCE_COLUMNS = `
 
 function optionalValue(value: string | null): string | undefined {
   return value ?? undefined;
+}
+
+function mapColorNormalization(
+  row: ResourceRow,
+): RasterColorNormalizationProvenance | undefined {
+  const values = [
+    row.colorNormalizationPolicyVersion,
+    row.colorNormalizationSourceHash,
+    row.colorNormalizationSourceMediaType,
+  ];
+  if (values.every((value) => value === null)) return undefined;
+  if (
+    values.some((value) => value === null) ||
+    row.kind !== "raster-asset" ||
+    row.mediaType !== "image/png" ||
+    row.colorNormalizationPolicyVersion !== COLOR_NORMALIZATION_POLICY_VERSION ||
+    row.colorNormalizationSourceHash === null ||
+    !/^[0-9a-f]{64}$/u.test(row.colorNormalizationSourceHash) ||
+    (row.colorNormalizationSourceMediaType !== "image/png" &&
+      row.colorNormalizationSourceMediaType !== "image/jpeg")
+  ) {
+    throw new ResourceIngestionError(
+      "Stored raster color-normalization provenance is invalid.",
+      "RESOURCE_STORAGE_INTEGRITY_ERROR",
+    );
+  }
+  return {
+    policyVersion: COLOR_NORMALIZATION_POLICY_VERSION,
+    sourceContentHash: row.colorNormalizationSourceHash,
+    sourceMediaType: row.colorNormalizationSourceMediaType,
+    outputContentHash: row.contentHash,
+  };
 }
 
 function mapResourceRow(row: ResourceRow): ResourceVersion {
@@ -127,6 +166,7 @@ function mapResourceRow(row: ResourceRow): ResourceVersion {
     createdBy: row.createdBy,
     createdAt: new Date(row.createdAt),
   };
+  const colorNormalization = mapColorNormalization(row);
 
   if (
     row.kind === "raster-asset" &&
@@ -140,6 +180,7 @@ function mapResourceRow(row: ResourceRow): ResourceVersion {
       mediaType: row.mediaType,
       width: row.width,
       height: row.height,
+      ...(colorNormalization === undefined ? {} : { colorNormalization }),
     };
   }
   if (
@@ -386,12 +427,15 @@ async function insertResource(
         scanner_version,
         scanner_reference,
         scanned_at,
+        color_normalization_policy_version,
+        color_normalization_source_hash,
+        color_normalization_source_media_type,
         created_by
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
         $14, $15, $16, $17, $18, $19, $20, $21, 'clean', $22, $23,
-        $24, $25, $26
+        $24, $25, $26, $27, $28, $29
       )
       RETURNING ${RESOURCE_COLUMNS}
     `,
@@ -421,6 +465,15 @@ async function insertResource(
       resource.scan.scannerVersion,
       resource.scan.reference ?? null,
       resource.scan.scannedAt,
+      resource.kind === "raster-asset"
+        ? (resource.colorNormalization?.policyVersion ?? null)
+        : null,
+      resource.kind === "raster-asset"
+        ? (resource.colorNormalization?.sourceContentHash ?? null)
+        : null,
+      resource.kind === "raster-asset"
+        ? (resource.colorNormalization?.sourceMediaType ?? null)
+        : null,
       resource.actorUserId,
     ],
   );
@@ -477,7 +530,9 @@ async function recordIngestion(
       storedResourceId,
       duplicateOfResourceId,
       resource.originalFilename ?? null,
-      resource.mediaType,
+      resource.kind === "raster-asset"
+        ? (resource.colorNormalization?.sourceMediaType ?? resource.mediaType)
+        : resource.mediaType,
       resource.origin.kind,
       resource.origin.sourceName ?? null,
       resource.origin.sourceReference ?? null,
@@ -524,6 +579,7 @@ export class DatabaseResourceStore implements ResourceStore {
   }
 
   public async admit(resource: AdmittedResource): Promise<ResourceAdmission> {
+    assertAdmittedColorNormalization(resource);
     const storageKey = storageKeyFor(resource);
 
     return this.#database.transaction(async (transaction) => {
@@ -559,6 +615,26 @@ export class DatabaseResourceStore implements ResourceStore {
     );
     const row = rows.at(0);
     return row === undefined ? null : mapResourceRow(row);
+  }
+
+  public async listByWorkspace(
+    workspaceId: string,
+    maximum: number,
+  ): Promise<ResourceVersion[]> {
+    if (!Number.isSafeInteger(maximum) || maximum < 1 || maximum > 1_001) {
+      throw new Error("Resource catalog maximum must be between 1 and 1001.");
+    }
+    const rows = await this.#database.query<ResourceRow>(
+      `
+        SELECT ${RESOURCE_COLUMNS}
+        FROM resource_versions
+        WHERE workspace_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT $2
+      `,
+      [workspaceId, maximum],
+    );
+    return rows.map(mapResourceRow);
   }
 
   public async readById(
@@ -627,6 +703,23 @@ export class DatabaseResourceStore implements ResourceStore {
       );
     }
     return { resource, bytes };
+  }
+}
+
+function assertAdmittedColorNormalization(resource: AdmittedResource): void {
+  if (resource.kind !== "raster-asset" || resource.colorNormalization === undefined) {
+    return;
+  }
+  const provenance = resource.colorNormalization;
+  if (
+    resource.mediaType !== "image/png" ||
+    provenance.outputContentHash !== resource.contentHash ||
+    !/^[0-9a-f]{64}$/u.test(provenance.sourceContentHash)
+  ) {
+    throw new ResourceIngestionError(
+      "Raster color-normalization provenance is inconsistent with admitted bytes.",
+      "RESOURCE_STORAGE_INTEGRITY_ERROR",
+    );
   }
 }
 

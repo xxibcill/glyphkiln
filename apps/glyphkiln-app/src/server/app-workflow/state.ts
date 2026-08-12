@@ -1,8 +1,24 @@
-import type { BrandSnapshot, DesignDocument } from "@glyphkiln/core";
+import type {
+  BrandSnapshot,
+  CampaignCompositionVariantId,
+  CampaignFamilyId,
+  DesignDocument,
+  FormatId,
+  TemplateId,
+} from "@glyphkiln/core";
 
+import type { AuthoringLockId } from "@/server/ai-authoring";
 import type {
   BrandKitSummary,
+  CampaignBoardProjection,
+  CampaignCanvasProjection,
+  CampaignDirectionProjection,
+  CampaignSummary,
   DesignSummary,
+  RevisionApprovalOutputEvidence,
+  RevisionApprovalProjection,
+  RevisionReviewProjection,
+  RevisionReviewState,
   UserSummary,
   WorkspaceMemberSummary,
   WorkspaceMembershipSummary,
@@ -75,6 +91,34 @@ export type StoredDesignRevision = {
   resourceReferences: RevisionResourceReference[];
   createdAt: Date;
   changeNote?: string;
+};
+
+export type StoredCampaign = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  brief: string;
+  campaignSeed: string;
+  familyId: CampaignFamilyId;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type StoredCampaignDirection = {
+  id: string;
+  workspaceId: string;
+  campaignId: string;
+  directionKey: string;
+  name: string;
+  createdAt: Date;
+};
+
+export type StoredRevisionReview = {
+  id: string;
+  workspaceId: string;
+  designId: string;
+  revisionId: string;
+  state: RevisionReviewState;
 };
 
 export type NewUserRecord = UserSummary & {
@@ -1077,6 +1121,635 @@ export class AppState {
     };
   }
 
+  async insertCampaign(input: {
+    id: string;
+    workspaceId: string;
+    name: string;
+    brief: string;
+    campaignSeed: string;
+    familyId: CampaignFamilyId;
+    createdBy: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id,
+         created_by, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.name,
+        input.brief,
+        input.campaignSeed,
+        input.familyId,
+        input.createdBy,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async findCampaign(
+    workspaceId: string,
+    campaignId: string,
+  ): Promise<StoredCampaign | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      name: string;
+      brief: string;
+      campaign_seed: string;
+      family_id: CampaignFamilyId;
+      created_at: Date | string;
+      updated_at: Date | string;
+    }>(
+      `SELECT id, workspace_id, name, brief, campaign_seed, family_id,
+              created_at, updated_at
+         FROM campaigns
+        WHERE workspace_id = $1
+          AND id = $2
+          AND archived_at IS NULL`,
+      [workspaceId, campaignId],
+    );
+    const row = rows.at(0);
+    return row === undefined
+      ? undefined
+      : {
+          id: row.id,
+          workspaceId: row.workspace_id,
+          name: row.name,
+          brief: row.brief,
+          campaignSeed: row.campaign_seed,
+          familyId: row.family_id,
+          createdAt: asDate(row.created_at),
+          updatedAt: asDate(row.updated_at),
+        };
+  }
+
+  async insertCampaignDirection(input: {
+    id: string;
+    workspaceId: string;
+    campaignId: string;
+    directionKey: string;
+    name: string;
+    locks: readonly AuthoringLockId[];
+    createdBy: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.campaignId,
+        input.directionKey,
+        input.name,
+        input.createdBy,
+        input.createdAt,
+      ],
+    );
+    for (const [ordinal, lock] of input.locks.entries()) {
+      await this.#query(
+        `INSERT INTO campaign_direction_locks (
+           workspace_id, campaign_id, direction_id, lock_id, ordinal, created_at
+         ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [input.workspaceId, input.campaignId, input.id, lock, ordinal, input.createdAt],
+      );
+    }
+    await this.#touchCampaign(input.workspaceId, input.campaignId, input.createdAt);
+  }
+
+  async findCampaignDirection(input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+  }): Promise<StoredCampaignDirection | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      campaign_id: string;
+      direction_key: string;
+      name: string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, workspace_id, campaign_id, direction_key, name, created_at
+         FROM campaign_directions
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+          AND id = $3`,
+      [input.workspaceId, input.campaignId, input.directionId],
+    );
+    const row = rows.at(0);
+    return row === undefined
+      ? undefined
+      : {
+          id: row.id,
+          workspaceId: row.workspace_id,
+          campaignId: row.campaign_id,
+          directionKey: row.direction_key,
+          name: row.name,
+          createdAt: asDate(row.created_at),
+        };
+  }
+
+  async insertCampaignCanvas(input: {
+    id: string;
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    canvasKey: string;
+    designId: string;
+    revisionId: string;
+    templateId: TemplateId;
+    templateVersion: string;
+    format: FormatId;
+    compositionVariantId: CampaignCompositionVariantId;
+    seedDerivationVersion: string;
+    directionSeed: string;
+    canvasSeed: string;
+    ordinal: number;
+    createdBy: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO campaign_canvases (
+         id, workspace_id, campaign_id, direction_id, canvas_key,
+         design_id, revision_id, template_id, template_version, format_id,
+         composition_variant_id, seed_derivation_version, direction_seed,
+         canvas_seed, ordinal, created_by, created_at
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+         $14, $15, $16, $17
+       )
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.campaignId,
+        input.directionId,
+        input.canvasKey,
+        input.designId,
+        input.revisionId,
+        input.templateId,
+        input.templateVersion,
+        input.format,
+        input.compositionVariantId,
+        input.seedDerivationVersion,
+        input.directionSeed,
+        input.canvasSeed,
+        input.ordinal,
+        input.createdBy,
+        input.createdAt,
+      ],
+    );
+    await this.#touchCampaign(input.workspaceId, input.campaignId, input.createdAt);
+  }
+
+  async readCampaignBoard(
+    workspaceId: string,
+    campaignId: string,
+  ): Promise<CampaignBoardProjection | undefined> {
+    const campaign = await this.findCampaign(workspaceId, campaignId);
+    if (campaign === undefined) return undefined;
+    const directionRows = await this.#query<{
+      id: string;
+      direction_key: string;
+      name: string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, direction_key, name, created_at
+         FROM campaign_directions
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+        ORDER BY created_at, id`,
+      [workspaceId, campaignId],
+    );
+    const lockRows = await this.#query<{
+      direction_id: string;
+      lock_id: AuthoringLockId;
+    }>(
+      `SELECT direction_id, lock_id
+         FROM campaign_direction_locks
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+        ORDER BY direction_id, ordinal`,
+      [workspaceId, campaignId],
+    );
+    const canvasRows = await this.#query<{
+      id: string;
+      direction_id: string;
+      canvas_key: string;
+      design_id: string;
+      revision_id: string;
+      template_id: TemplateId;
+      template_version: string;
+      format_id: FormatId;
+      composition_variant_id: CampaignCompositionVariantId;
+      seed_derivation_version: string;
+      direction_seed: string;
+      canvas_seed: string;
+      ordinal: number | string;
+      created_at: Date | string;
+    }>(
+      `SELECT id, direction_id, canvas_key, design_id, revision_id,
+              template_id, template_version, format_id,
+              composition_variant_id, seed_derivation_version,
+              direction_seed, canvas_seed, ordinal, created_at
+         FROM campaign_canvases
+        WHERE workspace_id = $1
+          AND campaign_id = $2
+        ORDER BY direction_id, ordinal, id`,
+      [workspaceId, campaignId],
+    );
+    const locksByDirection = new Map<string, AuthoringLockId[]>();
+    for (const row of lockRows) {
+      const locks = locksByDirection.get(row.direction_id) ?? [];
+      locks.push(row.lock_id);
+      locksByDirection.set(row.direction_id, locks);
+    }
+    const canvasesByDirection = new Map<string, CampaignCanvasProjection[]>();
+    for (const row of canvasRows) {
+      const canvases = canvasesByDirection.get(row.direction_id) ?? [];
+      canvases.push(toCampaignCanvasProjection(row));
+      canvasesByDirection.set(row.direction_id, canvases);
+    }
+    return {
+      kind: "campaign-board",
+      campaign: toCampaignSummary(campaign),
+      directions: directionRows.map((row): CampaignDirectionProjection => ({
+        id: row.id,
+        directionKey: row.direction_key,
+        name: row.name,
+        locks: locksByDirection.get(row.id) ?? [],
+        createdAt: asDate(row.created_at).toISOString(),
+        canvases: canvasesByDirection.get(row.id) ?? [],
+      })),
+    };
+  }
+
+  async lockRevisionReview(input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+  }): Promise<StoredRevisionReview | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      design_id: string;
+      revision_id: string;
+      state: RevisionReviewState;
+    }>(
+      `SELECT id, workspace_id, design_id, revision_id, state
+         FROM revision_reviews
+        WHERE workspace_id = $1
+          AND design_id = $2
+          AND revision_id = $3
+          FOR UPDATE`,
+      [input.workspaceId, input.designId, input.revisionId],
+    );
+    const row = rows.at(0);
+    return row === undefined
+      ? undefined
+      : {
+          id: row.id,
+          workspaceId: row.workspace_id,
+          designId: row.design_id,
+          revisionId: row.revision_id,
+          state: row.state,
+        };
+  }
+
+  async findRevisionReviewById(
+    workspaceId: string,
+    reviewId: string,
+  ): Promise<StoredRevisionReview | undefined> {
+    const rows = await this.#query<{
+      id: string;
+      workspace_id: string;
+      design_id: string;
+      revision_id: string;
+      state: RevisionReviewState;
+    }>(
+      `SELECT id, workspace_id, design_id, revision_id, state
+         FROM revision_reviews
+        WHERE workspace_id = $1
+          AND id = $2`,
+      [workspaceId, reviewId],
+    );
+    const row = rows.at(0);
+    return row === undefined
+      ? undefined
+      : {
+          id: row.id,
+          workspaceId: row.workspace_id,
+          designId: row.design_id,
+          revisionId: row.revision_id,
+          state: row.state,
+        };
+  }
+
+  async insertRevisionReview(input: {
+    id: string;
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+    actorUserId: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO revision_reviews (
+         id, workspace_id, design_id, revision_id, state,
+         started_by, started_at, updated_by, updated_at
+       ) VALUES ($1, $2, $3, $4, 'in-review', $5, $6, $5, $6)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.designId,
+        input.revisionId,
+        input.actorUserId,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async setRevisionReviewState(input: {
+    workspaceId: string;
+    reviewId: string;
+    expectedState: RevisionReviewState;
+    state: RevisionReviewState;
+    actorUserId: string;
+    updatedAt: Date;
+  }): Promise<boolean> {
+    const rows = await this.#query<{ id: string }>(
+      `UPDATE revision_reviews
+          SET state = $4,
+              updated_by = $5,
+              updated_at = $6
+        WHERE workspace_id = $1
+          AND id = $2
+          AND state = $3
+      RETURNING id`,
+      [
+        input.workspaceId,
+        input.reviewId,
+        input.expectedState,
+        input.state,
+        input.actorUserId,
+        input.updatedAt,
+      ],
+    );
+    return rows.length === 1;
+  }
+
+  async insertRevisionReviewTransition(input: {
+    id: string;
+    workspaceId: string;
+    reviewId: string;
+    fromState?: RevisionReviewState;
+    toState: RevisionReviewState;
+    reason?: string;
+    actorUserId: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO revision_review_transitions (
+         id, workspace_id, review_id, from_state, to_state, reason,
+         created_by, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.reviewId,
+        input.fromState ?? null,
+        input.toState,
+        input.reason ?? null,
+        input.actorUserId,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async insertRevisionReviewComment(input: {
+    id: string;
+    workspaceId: string;
+    reviewId: string;
+    body: string;
+    anchor?: { x: number; y: number };
+    actorUserId: string;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO revision_review_comments (
+         id, workspace_id, review_id, body, anchor_x, anchor_y,
+         created_by, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.reviewId,
+        input.body,
+        input.anchor?.x ?? null,
+        input.anchor?.y ?? null,
+        input.actorUserId,
+        input.createdAt,
+      ],
+    );
+  }
+
+  async insertRevisionApproval(input: {
+    id: string;
+    workspaceId: string;
+    reviewId: string;
+    designId: string;
+    revisionId: string;
+    renderJobId: string;
+    revisionCanonicalHash: string;
+    resourcePins: RevisionApprovalProjection["resourcePins"];
+    outputEvidence: readonly RevisionApprovalOutputEvidence[];
+    actorUserId: string;
+    approvedAt: Date;
+  }): Promise<void> {
+    await this.#query(
+      `INSERT INTO revision_approval_receipts (
+         id, workspace_id, review_id, design_id, revision_id, render_job_id,
+         revision_canonical_hash, resource_pins, output_evidence,
+         approved_by, approved_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10, $11)
+       RETURNING id`,
+      [
+        input.id,
+        input.workspaceId,
+        input.reviewId,
+        input.designId,
+        input.revisionId,
+        input.renderJobId,
+        input.revisionCanonicalHash,
+        input.resourcePins,
+        input.outputEvidence,
+        input.actorUserId,
+        input.approvedAt,
+      ],
+    );
+  }
+
+  async readRevisionReview(input: {
+    workspaceId: string;
+    designId: string;
+    revisionId: string;
+  }): Promise<RevisionReviewProjection | undefined> {
+    const reviewRows = await this.#query<{
+      id: string;
+      state: RevisionReviewState;
+      started_at: Date | string;
+      started_by_id: string;
+      started_by_email: string;
+      started_by_name: string;
+      updated_at: Date | string;
+      updated_by_id: string;
+      updated_by_email: string;
+      updated_by_name: string;
+    }>(
+      `SELECT review.id,
+              review.state,
+              review.started_at,
+              starter.id AS started_by_id,
+              starter.email AS started_by_email,
+              starter.display_name AS started_by_name,
+              review.updated_at,
+              updater.id AS updated_by_id,
+              updater.email AS updated_by_email,
+              updater.display_name AS updated_by_name
+         FROM revision_reviews AS review
+         JOIN users AS starter ON starter.id = review.started_by
+         JOIN users AS updater ON updater.id = review.updated_by
+        WHERE review.workspace_id = $1
+          AND review.design_id = $2
+          AND review.revision_id = $3`,
+      [input.workspaceId, input.designId, input.revisionId],
+    );
+    const review = reviewRows.at(0);
+    if (review === undefined) return undefined;
+    const [commentRows, transitionRows, approvalRows] = await Promise.all([
+      this.#query<{
+        id: string;
+        body: string;
+        anchor_x: number | string | null;
+        anchor_y: number | string | null;
+        created_at: Date | string;
+        created_by_id: string;
+        created_by_email: string;
+        created_by_name: string;
+      }>(
+        `SELECT comment.id, comment.body, comment.anchor_x, comment.anchor_y,
+                comment.created_at,
+                author.id AS created_by_id,
+                author.email AS created_by_email,
+                author.display_name AS created_by_name
+           FROM revision_review_comments AS comment
+           JOIN users AS author ON author.id = comment.created_by
+          WHERE comment.workspace_id = $1
+            AND comment.review_id = $2
+          ORDER BY comment.created_at, comment.id`,
+        [input.workspaceId, review.id],
+      ),
+      this.#query<{
+        id: string;
+        from_state: RevisionReviewState | null;
+        to_state: RevisionReviewState;
+        reason: string | null;
+        created_at: Date | string;
+        created_by_id: string;
+        created_by_email: string;
+        created_by_name: string;
+      }>(
+        `SELECT transition.id, transition.from_state, transition.to_state,
+                transition.reason, transition.created_at,
+                actor.id AS created_by_id,
+                actor.email AS created_by_email,
+                actor.display_name AS created_by_name
+           FROM revision_review_transitions AS transition
+           JOIN users AS actor ON actor.id = transition.created_by
+          WHERE transition.workspace_id = $1
+            AND transition.review_id = $2
+          ORDER BY transition.created_at, transition.id`,
+        [input.workspaceId, review.id],
+      ),
+      this.#query<{
+        id: string;
+        render_job_id: string;
+        revision_canonical_hash: string;
+        resource_pins: RevisionApprovalProjection["resourcePins"] | string;
+        output_evidence: RevisionApprovalOutputEvidence[] | string;
+        approved_at: Date | string;
+        approved_by_id: string;
+        approved_by_email: string;
+        approved_by_name: string;
+      }>(
+        `SELECT approval.id, approval.render_job_id,
+                approval.revision_canonical_hash, approval.resource_pins,
+                approval.output_evidence, approval.approved_at,
+                approver.id AS approved_by_id,
+                approver.email AS approved_by_email,
+                approver.display_name AS approved_by_name
+           FROM revision_approval_receipts AS approval
+           JOIN users AS approver ON approver.id = approval.approved_by
+          WHERE approval.workspace_id = $1
+            AND approval.review_id = $2`,
+        [input.workspaceId, review.id],
+      ),
+    ]);
+    const approvalRow = approvalRows.at(0);
+    return {
+      kind: "revision-review",
+      id: review.id,
+      workspaceId: input.workspaceId,
+      designId: input.designId,
+      revisionId: input.revisionId,
+      state: review.state,
+      startedBy: userFromJoinedRow(review, "started_by"),
+      startedAt: asDate(review.started_at).toISOString(),
+      updatedBy: userFromJoinedRow(review, "updated_by"),
+      updatedAt: asDate(review.updated_at).toISOString(),
+      comments: commentRows.map((row) => ({
+        id: row.id,
+        body: row.body,
+        ...(row.anchor_x === null || row.anchor_y === null
+          ? {}
+          : { anchor: { x: Number(row.anchor_x), y: Number(row.anchor_y) } }),
+        createdBy: userFromJoinedRow(row, "created_by"),
+        createdAt: asDate(row.created_at).toISOString(),
+      })),
+      transitions: transitionRows.map((row) => ({
+        id: row.id,
+        ...(row.from_state === null ? {} : { fromState: row.from_state }),
+        toState: row.to_state,
+        ...(row.reason === null ? {} : { reason: row.reason }),
+        createdBy: userFromJoinedRow(row, "created_by"),
+        createdAt: asDate(row.created_at).toISOString(),
+      })),
+      ...(approvalRow === undefined
+        ? {}
+        : {
+            approval: {
+              id: approvalRow.id,
+              renderJobId: approvalRow.render_job_id,
+              revisionCanonicalHash: approvalRow.revision_canonical_hash,
+              resourcePins: parseJson(approvalRow.resource_pins),
+              outputEvidence: parseJson(approvalRow.output_evidence),
+              approvedBy: userFromJoinedRow(approvalRow, "approved_by"),
+              approvedAt: asDate(approvalRow.approved_at).toISOString(),
+            },
+          }),
+    };
+  }
+
   async listBrandKits(workspaceId: string): Promise<BrandKitSummary[]> {
     const rows = await this.#query<{
       id: string;
@@ -1170,6 +1843,22 @@ export class AppState {
     );
   }
 
+  async #touchCampaign(
+    workspaceId: string,
+    campaignId: string,
+    updatedAt: Date,
+  ): Promise<void> {
+    await this.#query(
+      `UPDATE campaigns
+          SET updated_at = GREATEST(updated_at, $3)
+        WHERE workspace_id = $1
+          AND id = $2
+          AND archived_at IS NULL
+      RETURNING id`,
+      [workspaceId, campaignId, updatedAt],
+    );
+  }
+
   #query<Row extends Record<string, unknown> = Record<string, unknown>>(
     statement: string,
     parameters: SqlParameters = [],
@@ -1194,6 +1883,49 @@ function asDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
+function toCampaignSummary(campaign: StoredCampaign): CampaignSummary {
+  return {
+    id: campaign.id,
+    name: campaign.name,
+    brief: campaign.brief,
+    campaignSeed: campaign.campaignSeed,
+    familyId: campaign.familyId,
+    createdAt: campaign.createdAt.toISOString(),
+    updatedAt: campaign.updatedAt.toISOString(),
+  };
+}
+
+function toCampaignCanvasProjection(row: {
+  id: string;
+  canvas_key: string;
+  design_id: string;
+  revision_id: string;
+  template_id: TemplateId;
+  template_version: string;
+  format_id: FormatId;
+  composition_variant_id: CampaignCompositionVariantId;
+  seed_derivation_version: string;
+  direction_seed: string;
+  canvas_seed: string;
+  ordinal: number | string;
+  created_at: Date | string;
+}): CampaignCanvasProjection {
+  return {
+    id: row.id,
+    canvasKey: row.canvas_key,
+    designId: row.design_id,
+    revisionId: row.revision_id,
+    template: { id: row.template_id, version: row.template_version },
+    format: row.format_id,
+    compositionVariantId: row.composition_variant_id,
+    seedDerivationVersion: row.seed_derivation_version,
+    directionSeed: row.direction_seed,
+    canvasSeed: row.canvas_seed,
+    ordinal: Number(row.ordinal),
+    createdAt: asDate(row.created_at).toISOString(),
+  };
+}
+
 function toWorkspaceMemberSummary(row: {
   user_id: string;
   email: string;
@@ -1210,6 +1942,23 @@ function toWorkspaceMemberSummary(row: {
     role: row.role,
     createdAt: asDate(row.created_at).toISOString(),
   };
+}
+
+function userFromJoinedRow(
+  row: Record<string, unknown>,
+  prefix: "approved_by" | "created_by" | "started_by" | "updated_by",
+): UserSummary {
+  const id = row[`${prefix}_id`];
+  const email = row[`${prefix}_email`];
+  const displayName = row[`${prefix}_name`];
+  if (
+    typeof id !== "string" ||
+    typeof email !== "string" ||
+    typeof displayName !== "string"
+  ) {
+    throw new Error("Stored revision-review actor metadata is invalid.");
+  }
+  return { id, email, displayName };
 }
 
 function isDatabase(value: DatabaseHandle): value is SqlDatabase {

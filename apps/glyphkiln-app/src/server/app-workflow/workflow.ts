@@ -1,5 +1,13 @@
 import { BrandSnapshotSchema } from "@glyphkiln/core/schema";
-import { canonicalJson, hashCanonical, validateDesignDocument } from "@glyphkiln/core";
+import {
+  CAMPAIGN_FAMILY_REGISTRY,
+  canonicalJson,
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+  hashCanonical,
+  validateDesignDocument,
+} from "@glyphkiln/core";
 import type {
   AssetDeclaration,
   DesignDocument,
@@ -8,9 +16,10 @@ import type {
   ValidationProblem,
 } from "@glyphkiln/core";
 
-import type { PreviewResponse } from "@/features/project-preview/types";
+import { AUTHORING_LOCK_IDS } from "@/server/ai-authoring";
+import type { PreviewResponse, PreviewSuccess } from "@/features/project-preview/types";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
-import { compareCanonicalStrings } from "@/server/deterministic-order";
+import { compareCanonicalStrings } from "@/lib/deterministic-order";
 import type { SqlDatabase } from "@/server/persistence/database";
 import {
   RenderQueueError,
@@ -29,6 +38,7 @@ import {
   type RenderAdmissionController,
 } from "@/server/render-worker/render-admission";
 import type { ResourceStore } from "@/server/resources";
+import type { ResourceVersion } from "@/server/resources";
 import {
   resourceReferencesMatchDocument,
   type RevisionResourcePin,
@@ -68,11 +78,16 @@ import type {
   AppQuery,
   AppResult,
   AppWorkflow,
+  CampaignCanvasProjection,
+  CampaignDirectionProjection,
+  CampaignSummary,
   CommandEnvelope,
   CommandReceipt,
   ManualDraft,
   QueryEnvelope,
   QueryProjection,
+  RevisionApprovalOutputEvidence,
+  RevisionReviewCommentProjection,
   RenderJobProjection,
   RenderedArtifact,
   RequestEvidence,
@@ -96,6 +111,7 @@ type ManualRenderer = (
 const LOGIN_FAILURE_THRESHOLD = 5;
 const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_BLOCK_DURATION_MS = 15 * 60 * 1000;
+const MAX_SELECTABLE_WORKSPACE_RESOURCES = 500;
 
 export type WorkspaceCreationLimits = {
   readonly maximumWorkspacesPerInstallation: number;
@@ -279,6 +295,20 @@ class AppWorkflowImplementation implements AppWorkflow {
         return this.#createDesign(command, evidence);
       case "design.revise":
         return this.#reviseDesign(command, evidence);
+      case "campaign.create":
+        return this.#createCampaign(command, evidence);
+      case "campaign.direction.create":
+        return this.#createCampaignDirection(command, evidence);
+      case "campaign.canvas.attach":
+        return this.#attachCampaignCanvas(command, evidence);
+      case "revision.review.submit":
+        return this.#submitRevisionReview(command, evidence);
+      case "revision.review.comment":
+        return this.#commentOnRevisionReview(command, evidence);
+      case "revision.review.request-changes":
+        return this.#requestRevisionChanges(command, evidence);
+      case "revision.review.approve":
+        return this.#approveRevision(command, evidence);
       case "revision.render":
         return this.#renderRevision(command, evidence);
       case "revision.export.request":
@@ -330,6 +360,44 @@ class AppWorkflowImplementation implements AppWorkflow {
           workspaceId: query.workspaceId,
           members: await context.state.listWorkspaceMembers(query.workspaceId),
         });
+      }
+      case "workspace.resources": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_workspace");
+        if (this.#resourceStore === undefined) {
+          return success({
+            kind: "workspace-resources",
+            workspaceId: query.workspaceId,
+            resources: [],
+            truncated: false,
+          });
+        }
+        const resources = await this.#resourceStore.listByWorkspace(
+          query.workspaceId,
+          MAX_SELECTABLE_WORKSPACE_RESOURCES + 1,
+        );
+        return success({
+          kind: "workspace-resources",
+          workspaceId: query.workspaceId,
+          resources: resources
+            .slice(0, MAX_SELECTABLE_WORKSPACE_RESOURCES)
+            .map(toSelectableResourceProjection),
+          truncated: resources.length > MAX_SELECTABLE_WORKSPACE_RESOURCES,
+        });
+      }
+      case "campaign.board": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_campaigns");
+        const board = await context.state.readCampaignBoard(
+          query.workspaceId,
+          query.campaignId,
+        );
+        if (board === undefined) throw resourceNotFound();
+        return success(board);
+      }
+      case "revision.review": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_reviews");
+        const review = await context.state.readRevisionReview(query);
+        if (review === undefined) throw resourceNotFound();
+        return success(review);
       }
       case "brand.snapshot": {
         await this.#authorizeWorkspace(context, query.workspaceId, "read_brands");
@@ -1039,6 +1107,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       kind: "design-previewed",
       document: rendered.document,
       qualityIssues: rendered.qualityIssues,
+      evidence: rendered.evidence,
       outputs: rendered.outputs,
     });
   }
@@ -1202,6 +1271,515 @@ class AppWorkflowImplementation implements AppWorkflow {
     return success({ kind: "design-saved", ...saved }, 201);
   }
 
+  async #createCampaign(
+    command: Extract<AppCommand, { type: "campaign.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    const campaignId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const campaign = await context.state.transaction(async (state) => {
+      await state.insertCampaign({
+        id: campaignId,
+        workspaceId: command.workspaceId,
+        name: command.name,
+        brief: command.brief,
+        campaignSeed: command.campaignSeed,
+        familyId: command.familyId,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "campaign.created",
+        targetType: "campaign",
+        targetId: campaignId,
+        metadata: {
+          familyId: command.familyId,
+          campaignSeed: command.campaignSeed,
+        },
+        createdAt: now,
+      });
+      return {
+        id: campaignId,
+        name: command.name,
+        brief: command.brief,
+        campaignSeed: command.campaignSeed,
+        familyId: command.familyId,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+      } satisfies CampaignSummary;
+    });
+    return success({ kind: "campaign-created", campaign }, 201);
+  }
+
+  async #createCampaignDirection(
+    command: Extract<AppCommand, { type: "campaign.direction.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    const directionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const locks = AUTHORING_LOCK_IDS.filter((lock) => command.locks.includes(lock));
+    const direction = await context.state.transaction(async (state) => {
+      const campaign = await state.findCampaign(
+        command.workspaceId,
+        command.campaignId,
+      );
+      if (campaign === undefined) throw resourceNotFound();
+      createCampaignDirectionKey(command.directionKey);
+      await state.insertCampaignDirection({
+        id: directionId,
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionKey: command.directionKey,
+        name: command.name,
+        locks,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "campaign.direction.created",
+        targetType: "campaign_direction",
+        targetId: directionId,
+        metadata: {
+          campaignId: command.campaignId,
+          directionKey: command.directionKey,
+          locks,
+        },
+        createdAt: now,
+      });
+      return {
+        id: directionId,
+        directionKey: command.directionKey,
+        name: command.name,
+        locks: [...locks],
+        createdAt: now.toISOString(),
+        canvases: [],
+      } satisfies CampaignDirectionProjection;
+    });
+    return success(
+      {
+        kind: "campaign-direction-created",
+        campaignId: command.campaignId,
+        direction,
+      },
+      201,
+    );
+  }
+
+  async #attachCampaignCanvas(
+    command: Extract<AppCommand, { type: "campaign.canvas.attach" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    const canvasId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const canvas = await context.state.transaction(async (state) => {
+      const [campaign, direction, revision] = await Promise.all([
+        state.findCampaign(command.workspaceId, command.campaignId),
+        state.findCampaignDirection({
+          workspaceId: command.workspaceId,
+          campaignId: command.campaignId,
+          directionId: command.directionId,
+        }),
+        this.#loadTrustedRevision(
+          state,
+          command.workspaceId,
+          command.designId,
+          command.revisionId,
+        ),
+      ]);
+      if (campaign === undefined || direction === undefined) {
+        throw resourceNotFound();
+      }
+      const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
+      const familyMember = family.members.find(
+        (member) =>
+          member.template.id === revision.document.template.id &&
+          member.template.version === revision.document.template.version &&
+          member.formats.some((format) => format === revision.document.format),
+      );
+      if (familyMember === undefined) throw invalidCampaignCanvas();
+      const seeds = deriveCampaignSeeds({
+        campaignSeed: campaign.campaignSeed,
+        familyId: campaign.familyId,
+        directionKey: createCampaignDirectionKey(direction.directionKey),
+        canvasKey: createCampaignCanvasKey(command.canvasKey),
+        template: familyMember.template,
+        format: revision.document.format,
+        compositionVariantId: command.compositionVariantId,
+      });
+      if (revision.document.seed !== seeds.canvasSeed) {
+        throw invalidCampaignCanvas(
+          "Create the exact revision with the campaign-derived canvas seed before attaching it to the board.",
+        );
+      }
+      await state.insertCampaignCanvas({
+        id: canvasId,
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+        canvasKey: command.canvasKey,
+        designId: command.designId,
+        revisionId: command.revisionId,
+        templateId: revision.document.template.id,
+        templateVersion: revision.document.template.version,
+        format: revision.document.format,
+        compositionVariantId: command.compositionVariantId,
+        seedDerivationVersion: seeds.version,
+        directionSeed: seeds.directionSeed,
+        canvasSeed: seeds.canvasSeed,
+        ordinal: command.ordinal,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "campaign.canvas.attached",
+        targetType: "campaign_canvas",
+        targetId: canvasId,
+        metadata: {
+          campaignId: command.campaignId,
+          directionId: command.directionId,
+          canvasKey: command.canvasKey,
+          designId: command.designId,
+          revisionId: command.revisionId,
+          seedDerivationVersion: seeds.version,
+          directionSeed: seeds.directionSeed,
+          canvasSeed: seeds.canvasSeed,
+        },
+        createdAt: now,
+      });
+      return {
+        id: canvasId,
+        canvasKey: command.canvasKey,
+        designId: command.designId,
+        revisionId: command.revisionId,
+        template: { ...revision.document.template },
+        format: revision.document.format,
+        compositionVariantId: command.compositionVariantId,
+        seedDerivationVersion: seeds.version,
+        directionSeed: seeds.directionSeed,
+        canvasSeed: seeds.canvasSeed,
+        ordinal: command.ordinal,
+        createdAt: now.toISOString(),
+      } satisfies CampaignCanvasProjection;
+    });
+    return success(
+      {
+        kind: "campaign-canvas-attached",
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+        canvas,
+      },
+      201,
+    );
+  }
+
+  async #submitRevisionReview(
+    command: Extract<AppCommand, { type: "revision.review.submit" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "manage_reviews");
+    const now = this.#clock.now();
+    await context.state.transaction(async (state) => {
+      await requireCurrentDesignHead(
+        state,
+        command.workspaceId,
+        command.designId,
+        command.revisionId,
+      );
+      await this.#loadTrustedRevision(
+        state,
+        command.workspaceId,
+        command.designId,
+        command.revisionId,
+      );
+      const existing = await state.lockRevisionReview(command);
+      let reviewId: string;
+      let fromState: "changes-requested" | undefined;
+      if (existing === undefined) {
+        reviewId = this.#secretFactory.createId();
+        await state.insertRevisionReview({
+          id: reviewId,
+          workspaceId: command.workspaceId,
+          designId: command.designId,
+          revisionId: command.revisionId,
+          actorUserId: context.session.user.id,
+          createdAt: now,
+        });
+      } else {
+        reviewId = existing.id;
+        if (existing.state === "approved") throw reviewConflict();
+        if (existing.state === "in-review") return;
+        fromState = "changes-requested";
+        if (
+          !(await state.setRevisionReviewState({
+            workspaceId: command.workspaceId,
+            reviewId,
+            expectedState: existing.state,
+            state: "in-review",
+            actorUserId: context.session.user.id,
+            updatedAt: now,
+          }))
+        ) {
+          throw reviewConflict();
+        }
+      }
+      await state.insertRevisionReviewTransition({
+        id: this.#secretFactory.createId(),
+        workspaceId: command.workspaceId,
+        reviewId,
+        ...(fromState === undefined ? {} : { fromState }),
+        toState: "in-review",
+        actorUserId: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "revision.review.submitted",
+        targetType: "revision_review",
+        targetId: reviewId,
+        metadata: {
+          designId: command.designId,
+          revisionId: command.revisionId,
+        },
+        createdAt: now,
+      });
+    });
+    const review = await context.state.readRevisionReview(command);
+    if (review === undefined) throw storeUnavailable();
+    return success({ kind: "revision-review-submitted", review }, 201);
+  }
+
+  async #commentOnRevisionReview(
+    command: Extract<AppCommand, { type: "revision.review.comment" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "comment_reviews");
+    const review = await context.state.findRevisionReviewById(
+      command.workspaceId,
+      command.reviewId,
+    );
+    if (review === undefined) throw resourceNotFound();
+    const commentId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    await context.state.transaction(async (state) => {
+      await state.insertRevisionReviewComment({
+        id: commentId,
+        workspaceId: command.workspaceId,
+        reviewId: command.reviewId,
+        body: command.body,
+        ...(command.anchor === undefined ? {} : { anchor: command.anchor }),
+        actorUserId: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "revision.review.commented",
+        targetType: "revision_review_comment",
+        targetId: commentId,
+        metadata: { reviewId: command.reviewId, revisionId: review.revisionId },
+        createdAt: now,
+      });
+    });
+    const comment: RevisionReviewCommentProjection = {
+      id: commentId,
+      body: command.body,
+      ...(command.anchor === undefined ? {} : { anchor: { ...command.anchor } }),
+      createdBy: context.session.user,
+      createdAt: now.toISOString(),
+    };
+    return success(
+      { kind: "revision-review-commented", reviewId: command.reviewId, comment },
+      201,
+    );
+  }
+
+  async #requestRevisionChanges(
+    command: Extract<AppCommand, { type: "revision.review.request-changes" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "manage_reviews");
+    const now = this.#clock.now();
+    await context.state.transaction(async (state) => {
+      await requireCurrentDesignHead(
+        state,
+        command.workspaceId,
+        command.designId,
+        command.revisionId,
+      );
+      const review = await state.lockRevisionReview(command);
+      if (review?.state !== "in-review") throw reviewConflict();
+      if (
+        !(await state.setRevisionReviewState({
+          workspaceId: command.workspaceId,
+          reviewId: review.id,
+          expectedState: "in-review",
+          state: "changes-requested",
+          actorUserId: context.session.user.id,
+          updatedAt: now,
+        }))
+      ) {
+        throw reviewConflict();
+      }
+      await state.insertRevisionReviewTransition({
+        id: this.#secretFactory.createId(),
+        workspaceId: command.workspaceId,
+        reviewId: review.id,
+        fromState: "in-review",
+        toState: "changes-requested",
+        reason: command.reason,
+        actorUserId: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "revision.review.changes-requested",
+        targetType: "revision_review",
+        targetId: review.id,
+        metadata: {
+          designId: command.designId,
+          revisionId: command.revisionId,
+        },
+        createdAt: now,
+      });
+    });
+    const review = await context.state.readRevisionReview(command);
+    if (review === undefined) throw storeUnavailable();
+    return success({ kind: "revision-changes-requested", review });
+  }
+
+  async #approveRevision(
+    command: Extract<AppCommand, { type: "revision.review.approve" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(context, command.workspaceId, "approve_revisions");
+    if (this.#renderQueue === undefined) throw renderQueueUnavailable();
+    const renderJob = await this.#renderQueue.inspect(
+      command.workspaceId,
+      command.renderJobId,
+    );
+    if (
+      renderJob?.state !== "completed" ||
+      renderJob.designId !== command.designId ||
+      renderJob.revisionId !== command.revisionId ||
+      renderJob.outputs.length === 0
+    ) {
+      throw reviewConflict();
+    }
+    const outputEvidence = renderJob.outputs
+      .map((output): RevisionApprovalOutputEvidence => ({
+        format: output.format,
+        artifactSha256: output.artifactSha256,
+        manifestSha256: output.manifestSha256,
+        fingerprint: output.fingerprint,
+      }))
+      .sort((left, right) => compareCanonicalStrings(left.format, right.format));
+    const now = this.#clock.now();
+    await context.state.transaction(async (state) => {
+      await requireCurrentDesignHead(
+        state,
+        command.workspaceId,
+        command.designId,
+        command.revisionId,
+      );
+      const revision = await this.#loadTrustedRevision(
+        state,
+        command.workspaceId,
+        command.designId,
+        command.revisionId,
+      );
+      const review = await state.lockRevisionReview(command);
+      if (review?.state !== "in-review") throw reviewConflict();
+      const approvalId = this.#secretFactory.createId();
+      await state.insertRevisionApproval({
+        id: approvalId,
+        workspaceId: command.workspaceId,
+        reviewId: review.id,
+        designId: command.designId,
+        revisionId: command.revisionId,
+        renderJobId: command.renderJobId,
+        revisionCanonicalHash: revision.canonicalHash,
+        resourcePins: revision.resourceReferences.map((reference) => ({
+          resourceId: reference.resourceId,
+          resourceKind: reference.resourceKind,
+          ordinal: reference.ordinal,
+          contentHash: reference.contentHash,
+        })),
+        outputEvidence,
+        actorUserId: context.session.user.id,
+        approvedAt: now,
+      });
+      if (
+        !(await state.setRevisionReviewState({
+          workspaceId: command.workspaceId,
+          reviewId: review.id,
+          expectedState: "in-review",
+          state: "approved",
+          actorUserId: context.session.user.id,
+          updatedAt: now,
+        }))
+      ) {
+        throw reviewConflict();
+      }
+      await state.insertRevisionReviewTransition({
+        id: this.#secretFactory.createId(),
+        workspaceId: command.workspaceId,
+        reviewId: review.id,
+        fromState: "in-review",
+        toState: "approved",
+        actorUserId: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "revision.review.approved",
+        targetType: "revision_approval_receipt",
+        targetId: approvalId,
+        metadata: {
+          reviewId: review.id,
+          designId: command.designId,
+          revisionId: command.revisionId,
+          renderJobId: command.renderJobId,
+          revisionCanonicalHash: revision.canonicalHash,
+        },
+        createdAt: now,
+      });
+    });
+    const review = await context.state.readRevisionReview(command);
+    if (review?.approval === undefined) throw storeUnavailable();
+    return success({ kind: "revision-approved", review, approval: review.approval });
+  }
+
   async #renderRevision(
     command: Extract<AppCommand, { type: "revision.render" }>,
     evidence: RequestEvidence,
@@ -1221,6 +1799,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       revisionId: revision.revisionId,
       document: rendered.document,
       qualityIssues: rendered.qualityIssues,
+      evidence: rendered.evidence,
       outputs: rendered.outputs,
     });
   }
@@ -1550,6 +2129,7 @@ class AppWorkflowImplementation implements AppWorkflow {
   ): Promise<{
     document: DesignDocument;
     qualityIssues: QualityIssue[];
+    evidence: PreviewSuccess["evidence"];
     outputs: RenderedArtifact[];
   }> {
     let admitted:
@@ -1621,6 +2201,7 @@ class AppWorkflowImplementation implements AppWorkflow {
     return {
       document: response.document,
       qualityIssues: response.qualityIssues,
+      evidence: response.evidence,
       outputs: response.outputs,
     };
   }
@@ -1683,6 +2264,17 @@ function createWorkspaceRecord(
     createdBy,
     createdAt,
   };
+}
+
+async function requireCurrentDesignHead(
+  state: AppState,
+  workspaceId: string,
+  designId: string,
+  revisionId: string,
+): Promise<void> {
+  const design = await state.lockDesignHead(workspaceId, designId);
+  if (design === undefined) throw resourceNotFound();
+  if (design.headRevisionId !== revisionId) throw revisionConflict();
 }
 
 function slugBase(name: string): string {
@@ -1804,6 +2396,17 @@ function invalidDocument(problems: ValidationProblem[]): WorkflowFault {
   );
 }
 
+function invalidCampaignCanvas(
+  detail = "Use a template, version, format, and composition variant from the campaign family.",
+): WorkflowFault {
+  return fault(
+    422,
+    "INVALID_CAMPAIGN_CANVAS",
+    "Campaign canvas needs attention",
+    detail,
+  );
+}
+
 function invalidInvitation(): WorkflowFault {
   return fault(
     404,
@@ -1882,6 +2485,15 @@ function revisionConflict(): WorkflowFault {
     "REVISION_CONFLICT",
     "A newer revision already exists",
     "Reopen the latest revision, review the changes, and revise it again.",
+  );
+}
+
+function reviewConflict(): WorkflowFault {
+  return fault(
+    409,
+    "REVIEW_CONFLICT",
+    "Review state changed",
+    "Reload the exact head revision and its current review state before continuing.",
   );
 }
 
@@ -1965,6 +2577,33 @@ function isUniqueViolation(error: unknown): boolean {
     "code" in error &&
     error.code === "23505"
   );
+}
+
+function toSelectableResourceProjection(resource: ResourceVersion) {
+  const common = {
+    id: resource.id,
+    contentHash: resource.contentHash,
+    byteSize: resource.byteSize,
+    origin: { ...resource.origin },
+    license: { ...resource.license },
+    createdAt: resource.createdAt.toISOString(),
+  };
+  return resource.kind === "raster-asset"
+    ? {
+        ...common,
+        kind: resource.kind,
+        mediaType: resource.mediaType,
+        width: resource.width,
+        height: resource.height,
+      }
+    : {
+        ...common,
+        kind: resource.kind,
+        mediaType: resource.mediaType,
+        family: resource.family,
+        weight: resource.weight,
+        style: resource.style,
+      };
 }
 
 function validateWorkspaceCreationLimits(
