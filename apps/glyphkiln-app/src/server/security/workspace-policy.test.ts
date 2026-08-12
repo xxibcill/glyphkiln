@@ -16,7 +16,10 @@ const VIEWER_ACTIONS = [
   "read_brands",
   "read_designs",
   "read_revisions",
+  "read_campaigns",
+  "read_reviews",
   "read_completed_exports",
+  "comment_reviews",
 ] as const satisfies readonly WorkspaceAction[];
 
 const EDITOR_ACTIONS = [
@@ -25,12 +28,15 @@ const EDITOR_ACTIONS = [
   "publish_brand_snapshot",
   "create_design",
   "revise_design",
+  "coordinate_campaigns",
+  "manage_reviews",
   "ingest_resources",
   "request_export",
 ] as const satisfies readonly WorkspaceAction[];
 
 const ADMIN_ACTIONS = [
   ...EDITOR_ACTIONS,
+  "approve_revisions",
   "invite_admin",
   "invite_editor",
   "invite_viewer",
@@ -51,11 +57,17 @@ describe("workspace capability policy", () => {
       "read_brands",
       "read_designs",
       "read_revisions",
+      "read_campaigns",
+      "read_reviews",
       "read_completed_exports",
       "preview_design",
       "publish_brand_snapshot",
       "create_design",
       "revise_design",
+      "coordinate_campaigns",
+      "comment_reviews",
+      "manage_reviews",
+      "approve_revisions",
       "ingest_resources",
       "request_export",
       "invite_admin",

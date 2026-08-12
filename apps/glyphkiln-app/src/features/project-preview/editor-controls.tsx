@@ -6,6 +6,7 @@ import type {
   BrandFormState,
   CompositionFormState,
   CopyFormState,
+  EditorSelectableResource,
   PreviewCatalog,
   PreviewFailure,
   PreviewFormState,
@@ -22,6 +23,8 @@ type EditorControlsProps = {
   brandControls?: "editable" | "sealed";
   submitLabel?: string;
   isReadOnly?: boolean;
+  resources?: readonly EditorSelectableResource[];
+  resourceCatalogTruncated?: boolean;
   onStateChange: (state: PreviewFormState) => void;
   onRender: () => void;
 };
@@ -82,6 +85,8 @@ export function EditorControls({
   brandControls = "editable",
   submitLabel = "Render deterministic proof",
   isReadOnly = false,
+  resources,
+  resourceCatalogTruncated = false,
   onStateChange,
   onRender,
 }: EditorControlsProps) {
@@ -92,6 +97,19 @@ export function EditorControls({
     template?.supportedFormats.includes(format.id),
   );
   const isTiktokCarousel = state.composition.templateId === "tiktok-carousel-slide";
+  const isImageLedCampaign = state.composition.templateId === "image-led-campaign";
+  const rasterResources =
+    resources?.filter(
+      (
+        resource,
+      ): resource is Extract<EditorSelectableResource, { kind: "raster-asset" }> =>
+        resource.kind === "raster-asset",
+    ) ?? [];
+  const fontResources =
+    resources?.filter(
+      (resource): resource is Extract<EditorSelectableResource, { kind: "font" }> =>
+        resource.kind === "font",
+    ) ?? [];
   const failure = !validationIsStale && response?.ok === false ? response : null;
   const failureSummaryRef = useRef<HTMLDivElement>(null);
 
@@ -128,7 +146,49 @@ export function EditorControls({
     const formatId = nextTemplate.supportedFormats.includes(state.composition.formatId)
       ? state.composition.formatId
       : (nextTemplate.supportedFormats[0] ?? state.composition.formatId);
-    updateComposition({ templateId, formatId });
+    if (templateId === "image-led-campaign") {
+      updateComposition({ templateId, formatId });
+      return;
+    }
+    onStateChange({
+      ...state,
+      composition: { ...state.composition, templateId, formatId },
+      resources: {
+        ...resourceSelectionWithoutAssetRoles(state.resources),
+        assetIds: [],
+      },
+    });
+  }
+
+  function updateAssetRole(
+    role: "imageAssetId" | "logoAssetId",
+    resourceId: string,
+  ): void {
+    const imageAssetId =
+      role === "imageAssetId" ? resourceId : (state.resources.imageAssetId ?? "");
+    const logoAssetId =
+      role === "logoAssetId" ? resourceId : (state.resources.logoAssetId ?? "");
+    const assetIds = [...new Set([imageAssetId, logoAssetId].filter(Boolean))];
+    const resourcesWithoutRoles = resourceSelectionWithoutAssetRoles(state.resources);
+    onStateChange({
+      ...state,
+      resources: {
+        ...resourcesWithoutRoles,
+        assetIds,
+        ...(imageAssetId === "" ? {} : { imageAssetId }),
+        ...(logoAssetId === "" ? {} : { logoAssetId }),
+      },
+    });
+  }
+
+  function toggleFont(resourceId: string, selected: boolean): void {
+    const fontIds = selected
+      ? [...new Set([...state.resources.fontIds, resourceId])].sort()
+      : state.resources.fontIds.filter((id) => id !== resourceId);
+    onStateChange({
+      ...state,
+      resources: { ...state.resources, fontIds },
+    });
   }
 
   function updateQuietRegion(
@@ -184,11 +244,16 @@ export function EditorControls({
                   );
                 }}
               >
-                {catalog.templates.map((candidate) => (
-                  <option key={candidate.id} value={candidate.id}>
-                    {candidate.label}
-                  </option>
-                ))}
+                {catalog.templates
+                  .filter(
+                    (candidate) =>
+                      candidate.id !== "image-led-campaign" || resources !== undefined,
+                  )
+                  .map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.label}
+                    </option>
+                  ))}
               </select>
             </FieldShell>
 
@@ -470,9 +535,14 @@ export function EditorControls({
                   F
                 </span>
                 <div>
-                  <strong>Inter Variable · registered</strong>
+                  <strong>
+                    {state.brand.typography.headlineFamily} /{" "}
+                    {state.brand.typography.bodyFamily}
+                  </strong>
                   <span title={catalog.developmentFontSha256}>
-                    SHA-256 {shortHash(catalog.developmentFontSha256)}
+                    {state.brand.typography.rolesEnabled
+                      ? "Bounded display, body, and label roles"
+                      : `Inter fallback · SHA-256 ${shortHash(catalog.developmentFontSha256)}`}
                   </span>
                 </div>
               </div>
@@ -500,6 +570,144 @@ export function EditorControls({
                 AI-assisted starters prioritize semantic typography and renderer-native
                 structural rules. They do not add generated illustration or SVG assets.
               </p>
+            </div>
+          </section>
+        ) : isImageLedCampaign ? (
+          <section className="form-section" aria-labelledby="campaign-assets-title">
+            <SectionHeading
+              number="04"
+              title="Campaign resources"
+              id="campaign-assets-title"
+              note="Immutable admissions"
+            />
+            <div className="field-stack">
+              <FieldShell
+                id="campaign-image-resource"
+                label="Campaign image"
+                hint="Rendered full bleed with the focal point and treatment below."
+              >
+                <select
+                  id="campaign-image-resource"
+                  required
+                  value={state.resources.imageAssetId ?? ""}
+                  onChange={(event) => {
+                    updateAssetRole("imageAssetId", event.currentTarget.value);
+                  }}
+                >
+                  <option value="">Select an admitted image</option>
+                  {rasterResources.map((resource) => (
+                    <option key={resource.id} value={resource.id}>
+                      {rasterResourceLabel(resource)}
+                    </option>
+                  ))}
+                </select>
+              </FieldShell>
+              <FieldShell
+                id="campaign-logo-resource"
+                label="Brand logo"
+                hint="Placed inside the safe area with contain fit."
+              >
+                <select
+                  id="campaign-logo-resource"
+                  required
+                  value={state.resources.logoAssetId ?? ""}
+                  onChange={(event) => {
+                    updateAssetRole("logoAssetId", event.currentTarget.value);
+                  }}
+                >
+                  <option value="">Select an admitted logo</option>
+                  {rasterResources.map((resource) => (
+                    <option key={resource.id} value={resource.id}>
+                      {rasterResourceLabel(resource)}
+                    </option>
+                  ))}
+                </select>
+              </FieldShell>
+
+              {rasterResources.length === 0 ? (
+                <p className="field-hint">
+                  No clean raster admissions are selectable in this workspace yet.
+                </p>
+              ) : null}
+              {resourceCatalogTruncated ? (
+                <p className="field-hint" role="status">
+                  Showing the 500 most recent immutable resource admissions.
+                </p>
+              ) : null}
+
+              <div className="field-pair">
+                <RangeField
+                  id="campaign-focal-x"
+                  label="Focal point · horizontal"
+                  value={state.composition.imageFocalPoint.x}
+                  step={0.01}
+                  onChange={(x) => {
+                    updateComposition({
+                      imageFocalPoint: {
+                        ...state.composition.imageFocalPoint,
+                        x,
+                      },
+                    });
+                  }}
+                />
+                <RangeField
+                  id="campaign-focal-y"
+                  label="Focal point · vertical"
+                  value={state.composition.imageFocalPoint.y}
+                  step={0.01}
+                  onChange={(y) => {
+                    updateComposition({
+                      imageFocalPoint: {
+                        ...state.composition.imageFocalPoint,
+                        y,
+                      },
+                    });
+                  }}
+                />
+              </div>
+
+              <FieldShell
+                id="campaign-treatment"
+                label="Image treatment"
+                hint="Closed renderer-owned treatments only."
+              >
+                <select
+                  id="campaign-treatment"
+                  value={state.composition.imageTreatment}
+                  onChange={(event) => {
+                    updateComposition({
+                      imageTreatment: event.currentTarget
+                        .value as CompositionFormState["imageTreatment"],
+                    });
+                  }}
+                >
+                  <option value="none">None</option>
+                  <option value="dark-scrim">Dark scrim</option>
+                  <option value="light-scrim">Light scrim</option>
+                </select>
+              </FieldShell>
+
+              <fieldset className="resource-font-fieldset">
+                <legend>Additional immutable font faces</legend>
+                {fontResources.length === 0 ? (
+                  <p className="field-hint">No admitted font faces are available.</p>
+                ) : (
+                  <div className="resource-choice-list">
+                    {fontResources.map((resource) => (
+                      <label key={resource.id}>
+                        <input
+                          type="checkbox"
+                          checked={state.resources.fontIds.includes(resource.id)}
+                          onChange={(event) => {
+                            toggleFont(resource.id, event.currentTarget.checked);
+                          }}
+                        />
+                        <span>{fontResourceLabel(resource)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
             </div>
           </section>
         ) : (
@@ -1017,9 +1225,88 @@ function TemplateCopyFields({
         </div>
       );
     }
+    case "image-led-campaign": {
+      const copy = state.copy.imageLedCampaign;
+      const update = (next: Partial<CopyFormState["imageLedCampaign"]>): void => {
+        updateCopy({ imageLedCampaign: { ...copy, ...next } });
+      };
+      return (
+        <div className="field-stack">
+          <TextField
+            id="campaign-eyebrow"
+            label="Campaign label"
+            value={copy.eyebrow}
+            onChange={(eyebrow) => {
+              update({ eyebrow });
+            }}
+            maxLength={2_000}
+            error={copyIssueMessage(failure, "eyebrow", "text", copy.eyebrow)}
+          />
+          <TextAreaField
+            id="campaign-headline"
+            label="Headline"
+            value={copy.headline}
+            onChange={(headline) => {
+              update({ headline });
+            }}
+            required
+            maxLength={2_000}
+            rows={4}
+            error={copyIssueMessage(failure, "headline", "text", copy.headline)}
+          />
+          <TextAreaField
+            id="campaign-subtitle"
+            label="Supporting copy"
+            value={copy.subtitle}
+            onChange={(subtitle) => {
+              update({ subtitle });
+            }}
+            maxLength={2_000}
+            rows={3}
+            error={copyIssueMessage(failure, "subtitle", "text", copy.subtitle)}
+          />
+          <TextField
+            id="campaign-cta"
+            label="Call to action"
+            value={copy.cta}
+            onChange={(cta) => {
+              update({ cta });
+            }}
+            maxLength={2_000}
+            error={copyIssueMessage(failure, "cta", "text", copy.cta)}
+          />
+        </div>
+      );
+    }
     default:
       return assertUnreachable(templateId, "preview template");
   }
+}
+
+function resourceSelectionWithoutAssetRoles(
+  resources: PreviewFormState["resources"],
+): Pick<PreviewFormState["resources"], "assetIds" | "fontIds"> {
+  return {
+    assetIds: [...resources.assetIds],
+    fontIds: [...resources.fontIds],
+  };
+}
+
+function rasterResourceLabel(
+  resource: Extract<EditorSelectableResource, { kind: "raster-asset" }>,
+): string {
+  const name = resource.origin.sourceName ?? resource.id;
+  return `${name} · ${String(resource.width)}×${String(
+    resource.height,
+  )} · ${shortHash(resource.contentHash)}`;
+}
+
+function fontResourceLabel(
+  resource: Extract<EditorSelectableResource, { kind: "font" }>,
+): string {
+  return `${resource.family} · ${String(resource.weight)} ${
+    resource.style
+  } · ${shortHash(resource.contentHash)}`;
 }
 
 function SectionHeading({

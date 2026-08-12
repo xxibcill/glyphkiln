@@ -6,6 +6,7 @@ import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createInitialPreviewForm } from "./document-builder";
 import { EditorControls } from "./editor-controls";
 import type { PreviewFailure } from "./types";
+import type { EditorSelectableResource } from "./types";
 
 const FAILURE: PreviewFailure = {
   ok: false,
@@ -109,6 +110,70 @@ describe("EditorControls", () => {
     const markup = renderTiktokControls("metric", metricFailure);
     expect(markup).toContain("The metric value is too long.");
     expect(markup).toContain('aria-describedby="tiktok-statistic-value-error"');
+  });
+
+  it("exposes immutable image, logo, focal, treatment, and font controls", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "image-led-campaign";
+    const resources: EditorSelectableResource[] = [
+      {
+        id: "campaign-image",
+        kind: "raster-asset",
+        mediaType: "image/png",
+        contentHash: "a".repeat(64),
+        width: 1_536,
+        height: 1_024,
+        origin: { kind: "user-upload", sourceName: "Campaign still" },
+        license: { status: "owned" },
+      },
+      {
+        id: "brand-logo",
+        kind: "raster-asset",
+        mediaType: "image/png",
+        contentHash: "b".repeat(64),
+        width: 1_024,
+        height: 1_024,
+        origin: { kind: "user-upload", sourceName: "Primary mark" },
+        license: { status: "owned" },
+      },
+      {
+        id: "font-face",
+        kind: "font",
+        mediaType: "font/ttf",
+        contentHash: "c".repeat(64),
+        family: "Kiln Sans",
+        weight: 700,
+        style: "normal",
+        origin: { kind: "licensed-library" },
+        license: { status: "licensed" },
+      },
+    ];
+
+    const markup = renderToStaticMarkup(
+      <EditorControls
+        catalog={catalog}
+        state={state}
+        response={null}
+        resources={resources}
+        resourceCatalogTruncated
+        isRendering={false}
+        hasUnrenderedEdits={false}
+        validationIsStale={false}
+        onStateChange={() => undefined}
+        onRender={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain('id="campaign-image-resource"');
+    expect(markup).toContain("Campaign still · 1536×1024");
+    expect(markup).toContain('id="campaign-logo-resource"');
+    expect(markup).toContain('id="campaign-focal-x"');
+    expect(markup).toContain('id="campaign-focal-y"');
+    expect(markup).toContain('id="campaign-treatment"');
+    expect(markup).toContain("Kiln Sans · 700 normal");
+    expect(markup).toContain("500 most recent immutable resource admissions");
+    expect(markup).not.toContain('id="procedural-style"');
   });
 });
 

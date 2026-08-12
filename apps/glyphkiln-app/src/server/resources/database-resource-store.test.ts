@@ -183,6 +183,18 @@ describe("database resource store", () => {
       resource: { contentHash: sha256(PNG) },
       bytes: PNG,
     });
+    await expect(store.listByWorkspace("workspace-a", 10)).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "resource-a", workspaceId: "workspace-a" }),
+        expect.objectContaining({
+          id: "resource-duplicate",
+          workspaceId: "workspace-a",
+        }),
+      ]),
+    );
+    const boundedCatalog = await store.listByWorkspace("workspace-a", 1);
+    expect(boundedCatalog).toHaveLength(1);
+    expect(boundedCatalog[0]?.workspaceId).toBe("workspace-a");
 
     await expect(
       database.query<{

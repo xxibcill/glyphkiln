@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { IMAGE_CONTRAST_POLICY_VERSION } from "@glyphkiln/core";
+
 import { createPreviewDesign } from "@/test/preview-design";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
@@ -49,6 +51,30 @@ describe("parsePreviewResponse", () => {
     } as const;
 
     expect(parsePreviewResponse(failure, 422)).toEqual(failure);
+  });
+
+  it("rejects malformed or unbounded render evidence", async () => {
+    const malformed = structuredClone(await renderSuccess());
+    malformed.evidence.safeArea.width = -1;
+    expect(parsePreviewResponse(malformed, 200)).toMatchObject({
+      ok: false,
+      code: "INVALID_PREVIEW_RESPONSE",
+    });
+
+    const unbounded = structuredClone(await renderSuccess());
+    unbounded.evidence.contrast = Array.from({ length: 101 }, () => ({
+      layerId: "headline",
+      policyVersion: IMAGE_CONTRAST_POLICY_VERSION,
+      foreground: "#000000",
+      minimumRequired: 4.5,
+      minimumRatio: 7,
+      maximumRatio: 7,
+      samples: [],
+    }));
+    expect(parsePreviewResponse(unbounded, 200)).toMatchObject({
+      ok: false,
+      code: "INVALID_PREVIEW_RESPONSE",
+    });
   });
 
   it("rejects success-shaped, status-mismatched, and incomplete responses", () => {

@@ -77,6 +77,10 @@ class CapturingResourceStore implements ResourceStore {
     return Promise.resolve(null);
   }
 
+  public listByWorkspace(): Promise<ResourceVersion[]> {
+    return Promise.resolve([]);
+  }
+
   public readById(): Promise<ResourceWithBytes | null> {
     return Promise.resolve(null);
   }

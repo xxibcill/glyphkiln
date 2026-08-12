@@ -30,12 +30,16 @@ glyphkiln-core
 
 Do not begin cloud-specific work until the public Core API and design-document contract have stabilized.
 
-**Current execution status (2026-07-31):** signed Core `v0.3.0` and the bounded
-offline resource-bundle milestone are complete. App Alpha feature code is
-substantially complete in the existing Next.js workspace. Its remaining gate is
-integrated release qualification against real PostgreSQL and the documented
-Compose topology, including migration, scanner, TLS, and backup/restore drills.
-See [the App Alpha execution plan](plans/app-alpha.md).
+**Current execution status (2026-08-12):** Core `v0.5.0` and App
+`v0.1.0-alpha` are released. App Alpha is qualified for the documented
+single-host PostgreSQL/shared-filesystem/ClamAV topology. The merged campaign
+coordination and AI-ready authoring contract foundations are being prepared as
+Core `0.6.0`; they do not complete the designer-facing campaign or AI workflow.
+The active App branch also implements campaign persistence, optional provider
+adapter configuration, Core-owned evidence overlays, and exact-revision review
+and approval foundations; full product and release gates remain open.
+Execution now follows the
+[post-Alpha milestone plan](plans/post-alpha-next-milestones.md).
 
 ---
 
@@ -679,6 +683,10 @@ Workspace
 │   └── Content-addressed blobs
 ├── Designs
 │   └── Immutable revisions + exact resource-admission pins
+│       └── Review state, comments, transitions, and approval receipts
+├── Campaigns
+│   └── Directions + canonical locks
+│       └── Exact-revision canvases
 └── Render jobs
     ├── Attempts
     └── Immutable outputs + manifests
@@ -1292,8 +1300,8 @@ Controls:
 
 ### Optional LLM adapter
 
-Deferred until after Alpha qualification. If later implemented, retain this
-contract:
+The provider-neutral adapter foundation is implemented after Alpha
+qualification. It retains this contract:
 
 ```ts
 interface BriefInterpreter {
@@ -1309,6 +1317,12 @@ Rules:
 - Never execute generated code
 - Store input, provider, model, response hash, validation result, and accepted normalized document
 - Manual mode remains first-class
+
+The concrete adapter is disabled by default, uses operator-owned configuration,
+and returns `unknown`. User-facing proposal commands, persisted decisions,
+resource-backed option proofs, and complete cross-boundary lock enforcement
+remain post-Alpha product work. See the
+[AI authoring threat model](ai-authoring-threat-model.md).
 
 ### Current result
 

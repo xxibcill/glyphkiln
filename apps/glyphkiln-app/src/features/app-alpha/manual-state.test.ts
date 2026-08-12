@@ -48,6 +48,36 @@ describe("manual App Alpha state", () => {
     expect(snapshot).not.toHaveProperty("name");
   });
 
+  it("round-trips immutable typography families and bounded roles", () => {
+    const state = createInitialPreviewForm(catalog);
+    state.brand.typography = {
+      ...state.brand.typography,
+      headlineFamily: "Kiln Sans",
+      bodyFamily: "Kiln Serif",
+      rolesEnabled: true,
+      display: { weight: 700, lineHeight: 0.9, tracking: -0.01 },
+      body: { weight: 400, lineHeight: 1.4, tracking: 0.01 },
+      label: { weight: 600, lineHeight: 1.1, tracking: 0.08 },
+    };
+
+    const snapshot: BrandSnapshot = {
+      snapshotId: "brand-typography",
+      version: "1.0.0",
+      name: "Typography brand",
+      ...buildBrandSnapshotDraft(state),
+    };
+    const reopened = withBrandSnapshot(createInitialPreviewForm(catalog), snapshot);
+
+    expect(snapshot.typography).toMatchObject({
+      roles: {
+        display: { family: "Kiln Sans", weight: 700 },
+        body: { family: "Kiln Serif", weight: 400 },
+        label: { family: "Kiln Serif", weight: 600 },
+      },
+    });
+    expect(reopened.brand.typography).toEqual(state.brand.typography);
+  });
+
   it("reopens stored structured copy and exact immutable brand values", () => {
     const initial = createInitialPreviewForm(catalog);
     const brand = createPublishedBrand();

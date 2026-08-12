@@ -1,5 +1,20 @@
 # @glyphkiln/app
 
+## 0.0.5
+
+### Patch Changes
+
+- 71a6bde: Validate server-owned creative locks against Core-normalized base and candidate
+  documents with a closed vocabulary and fixed bounded proposal-only issues.
+- dc64098: Validate strict, bounded BriefInterpreter responses as proposal-only data and
+  evaluate every well-shaped candidate through the public Core contract.
+- 7aff2b9: Map bounded Core quality evidence to fixed browser-safe authoring actions and
+  surface the guidance with truncation disclosure in the App Proof Ledger.
+- Updated dependencies [1cc1561]
+- Updated dependencies [7aff2b9]
+- Updated dependencies [fc3c5b8]
+  - @glyphkiln/core@0.6.0
+
 ## 0.0.4
 
 ### Patch Changes

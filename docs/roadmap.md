@@ -1,5 +1,38 @@
 # Roadmap
 
+## Current execution status
+
+As of 2026-08-12, signed Core `v0.5.0` and App `v0.1.0-alpha` are released and
+the supported App Alpha topology is qualified. Core `0.6.0` release preparation
+is in progress for the merged, non-pixel-affecting campaign coordination and
+AI-ready authoring contracts. The package version and changelog are prepared;
+qualification, signing, and any owner-approved npm publication remain release
+gates.
+
+On the active milestone branch, the App now has focused-test-passing foundations
+for immutable resource selectors, image-led focal/treatment controls, admitted
+font-family and typography-role binding, Core-owned proof overlays,
+workspace-qualified campaigns/directions/canvases/locks, a disabled-by-default
+provider-neutral AI proposal adapter, and exact-revision review/comments/
+approval receipts. These foundations are not yet release-qualified product
+acceptance: option boards, visual revision comparison, campaign bundles, stored
+AI decisions, cross-boundary lock enforcement, and real-brief gates remain.
+
+The 2026-08-12 Node 24/npm 10 qualification passes build, typecheck,
+lint/security, tests, standalone packaging, coverage, generated-artifact
+verification, packed consumption, license inventory, and a zero-vulnerability
+npm audit. Minimum-Node clean-install qualification, the opt-in real PostgreSQL
+destructive matrix, source signing, and owner-approved publication remain
+release gates; exact evidence is recorded in the
+[post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
+
+The active product sequence is tracked in the
+[post-Alpha execution plan](plans/post-alpha-next-milestones.md): close the
+designer-control and remaining brand-fidelity foundation, complete one manual
+campaign workflow, enable optional AI proposals only through that proven
+workflow, then add exact-revision review and approval. Multilingual work starts
+only after a real market brief selects the first horizontal script slice.
+
 ## Core `0.5.0`
 
 Core `0.5.0` advances the signed `v0.4.0` baseline with the first brand and
@@ -77,17 +110,23 @@ limitations remain tracked in [the App Alpha plan](plans/app-alpha.md).
 
 1. Designer-control foundation: make admitted fonts, logos, images, crop intent,
    typography roles, template variants, and proof overlays practical in the
-   manual workflow.
+   manual workflow. Resource selectors, focal/treatment controls, immutable
+   typography-role binding, and evidence overlays are implemented; multi-brand
+   acceptance remains.
 2. Campaign systems: option boards, duplicate/branch, side-by-side comparison,
    lock/vary controls, coordinated format/carousel packs, and batch proof/export
-   bundles while retaining one immutable design revision per canvas.
+   bundles while retaining one immutable design revision per canvas. The
+   workspace-qualified persistence and exact-revision canvas foundation is
+   implemented; the interaction and bundle layers remain.
 3. Optional LLM brief interpretation as an untrusted producer of several
    structured candidate directions. Manual mode remains first-class; every
    candidate passes Core validation, and selective regeneration preserves human
    locks independently of model claims.
 4. Review and approval: comments or annotations, exact visual revision
    comparison, approval state tied to a fingerprinted revision, and an approval
-   receipt in the campaign handoff.
+   receipt in the campaign handoff. Exact-revision comments, transitions, and
+   immutable approval evidence are implemented; visual comparison and campaign
+   handoff inclusion remain.
 5. Operator administration and retention controls for completed jobs, artifacts,
    resource admissions, and audit export.
 6. A multi-host object-storage adapter only when a supported deployment needs

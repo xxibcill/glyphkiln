@@ -1,6 +1,8 @@
 # Core next-feature release plan
 
-**Status:** Updated on 2026-08-09. Package-version targets after `0.5.0` are
+**Status:** Updated on 2026-08-12. Core `0.6.0` release preparation contains
+the completed dependency-safe campaign and authoring contract slices described
+below. Package-version targets after `0.6.0` are
 planning labels, not release commitments. A milestone may move only at its
 decision gate; deterministic-output, compatibility, and security gates do not
 move with it.

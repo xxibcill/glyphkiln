@@ -4,6 +4,10 @@ import {
 } from "@/server/app-workflow";
 import type { AppWorkflow } from "@/server/app-workflow";
 import {
+  createBriefInterpreterFromEnvironment,
+  type BriefInterpreter,
+} from "@/server/ai-authoring";
+import {
   createPostgresDatabase,
   type PostgresDatabase,
 } from "@/server/persistence/postgres-database";
@@ -19,6 +23,7 @@ import { createRenderBlobStorageFromEnvironment } from "@/server/storage/configu
 import { hashSecret } from "@/server/security";
 
 export type AppRuntime = {
+  briefInterpreter?: BriefInterpreter;
   database: PostgresDatabase;
   renderQueue: RenderQueue;
   renderStorage?: RenderBlobStorage;
@@ -50,6 +55,7 @@ export async function createAppRuntime(
   try {
     await assertDatabaseMigrationsCurrent(database);
     const bootstrapTokenHash = readBootstrapTokenHash(environment);
+    const briefInterpreter = createBriefInterpreterFromEnvironment(environment);
     const resourceServices = createResourceServicesFromEnvironment(
       database,
       environment,
@@ -66,6 +72,7 @@ export async function createAppRuntime(
         ? undefined
         : createRenderBlobStorageFromEnvironment(environment);
     return {
+      ...(briefInterpreter === undefined ? {} : { briefInterpreter }),
       database,
       renderQueue,
       ...(renderStorage === undefined ? {} : { renderStorage }),

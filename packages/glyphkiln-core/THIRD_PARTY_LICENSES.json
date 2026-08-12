@@ -11,6 +11,12 @@
   ],
   "packages": [
     {
+      "name": "@kittl/little-cms",
+      "version": "1.0.3",
+      "license": "MIT",
+      "optional": false
+    },
+    {
       "name": "@resvg/resvg-js",
       "version": "2.6.2",
       "license": "MPL-2.0",

@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { renderGraphic, sha256 } from "@glyphkiln/core";
+import {
+  createCampaignCanvasKey,
+  createCampaignDirectionKey,
+  deriveCampaignSeeds,
+  renderGraphic,
+  sha256,
+} from "@glyphkiln/core";
 import type { DesignLayer } from "@glyphkiln/core";
 
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
@@ -237,6 +243,291 @@ describe("AppWorkflow", () => {
       "INVITATION_INVALID_OR_EXPIRED",
     );
     expect(passwordHasher.hashCalls).toBe(baseline + 1);
+  });
+
+  it("lists workspace-qualified selectable resource metadata without storage authority", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const common = {
+      workspaceId,
+      contentHash: "a".repeat(64),
+      storageKey: "/internal/workspace/blob",
+      byteSize: 4,
+      origin: { kind: "user-upload" as const, sourceName: "Owner upload" },
+      license: { status: "owned" as const },
+      scan: {
+        status: "clean" as const,
+        scannerName: "private-scanner",
+        scannerVersion: "1",
+        scannedAt: NOW,
+      },
+      createdBy: owner.user.id,
+      createdAt: NOW,
+    };
+    resourceStore.add({
+      resource: {
+        ...common,
+        id: "image-selectable",
+        kind: "raster-asset",
+        mediaType: "image/png",
+        width: 1_200,
+        height: 800,
+      },
+      bytes: Uint8Array.of(1, 2, 3, 4),
+    });
+    resourceStore.add({
+      resource: {
+        ...common,
+        id: "font-selectable",
+        kind: "font",
+        mediaType: "font/ttf",
+        family: "Kiln Sans",
+        weight: 700,
+        style: "normal",
+      },
+      bytes: Uint8Array.of(1, 2, 3, 4),
+    });
+
+    const catalog = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "workspace.resources", workspaceId },
+      }),
+      "workspace-resources",
+    );
+
+    expect(catalog).toMatchObject({
+      workspaceId,
+      truncated: false,
+      resources: [
+        { id: "image-selectable", width: 1_200, height: 800 },
+        { id: "font-selectable", family: "Kiln Sans", weight: 700 },
+      ],
+    });
+    const serialized = JSON.stringify(catalog);
+    expect(serialized).not.toContain("storageKey");
+    expect(serialized).not.toContain("internal/workspace");
+    expect(serialized).not.toContain("scannerName");
+    expect(serialized).not.toContain("private-scanner");
+    expect(serialized).not.toContain("createdBy");
+  });
+
+  it("coordinates a deterministic campaign board around exact revisions and canonical locks", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "First firing",
+          brief: "Launch one image-led product story across the campaign family.",
+          campaignSeed: "first-firing-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "editorial-a",
+          name: "Editorial A",
+          locks: ["palette", "copy", "image"],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expect(direction.locks).toEqual(["copy", "image", "palette"]);
+
+    const seeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-landscape"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    const assetBytes = Uint8Array.from([1, 2, 3, 4]);
+    const assetHash = sha256(assetBytes);
+    for (const [id, sourceName] of [
+      ["campaign-image-one", "Campaign image"],
+      ["campaign-logo-one", "Campaign logo"],
+    ] as const) {
+      resourceStore.add({
+        resource: {
+          id,
+          workspaceId,
+          kind: "raster-asset",
+          contentHash: assetHash,
+          storageKey: `internal-${id}`,
+          mediaType: "image/png",
+          byteSize: assetBytes.byteLength,
+          width: 1200,
+          height: 800,
+          origin: { kind: "user-upload", sourceName },
+          license: { status: "owned" },
+          scan: {
+            status: "clean",
+            scannerName: "test-scanner",
+            scannerVersion: "1",
+            scannedAt: NOW,
+          },
+          createdBy: owner.user.id,
+          createdAt: NOW,
+        },
+        bytes: assetBytes,
+      });
+      await seedResourceVersion({
+        id,
+        workspaceId,
+        actorUserId: owner.user.id,
+        kind: "raster-asset",
+        contentHash: assetHash,
+        storageKey: `internal-${id}`,
+        mediaType: "image/png",
+        byteSize: assetBytes.byteLength,
+        width: 1200,
+        height: 800,
+        originKind: "user-upload",
+        originSourceName: sourceName,
+        licenseStatus: "owned",
+      });
+    }
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Campaign brand",
+          snapshot: brandDraft("#0D3B9C"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const revision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Campaign hero",
+          brandSnapshotId: brand.snapshotId,
+          draft: imageLedCampaignDraft(seeds.canvasSeed),
+        },
+      }),
+      "design-saved",
+    );
+    const attached = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "hero-landscape",
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          compositionVariantId: "focal-editorial",
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    ).canvas;
+    expect(attached).toMatchObject({
+      revisionId: revision.revisionId,
+      seedDerivationVersion: seeds.version,
+      directionSeed: seeds.directionSeed,
+      canvasSeed: seeds.canvasSeed,
+    });
+
+    const board = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.board",
+          workspaceId,
+          campaignId: campaign.id,
+        },
+      }),
+      "campaign-board",
+    );
+    expect(board).toMatchObject({
+      campaign: { id: campaign.id, familyId: "image-led-campaign" },
+      directions: [
+        {
+          id: direction.id,
+          locks: ["copy", "image", "palette"],
+          canvases: [
+            {
+              id: attached.id,
+              designId: revision.designId,
+              revisionId: revision.revisionId,
+            },
+          ],
+        },
+      ],
+    });
+    await expect(
+      database.query(
+        `UPDATE campaign_direction_locks
+            SET lock_id = 'crop'
+          WHERE workspace_id = $1
+            AND direction_id = $2
+            AND lock_id = 'copy'`,
+        [workspaceId, direction.id],
+      ),
+    ).rejects.toHaveProperty("code", "55000");
+    await expect(
+      database.query(
+        `UPDATE campaign_canvases
+            SET revision_id = $3
+          WHERE workspace_id = $1
+            AND id = $2`,
+        [workspaceId, attached.id, revision.revisionId],
+      ),
+    ).rejects.toHaveProperty("code", "55000");
+
+    const viewer = await registerMember(
+      owner,
+      workspaceId,
+      "campaign-viewer@example.com",
+      "viewer",
+    );
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: viewer.sessionToken },
+        query: {
+          type: "campaign.board",
+          workspaceId,
+          campaignId: campaign.id,
+        },
+      }),
+      "campaign-board",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(viewer),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Viewer campaign",
+          brief: "This mutation must be denied.",
+          campaignSeed: "viewer-seed",
+          familyId: "image-led-campaign",
+        },
+      }),
+      403,
+      "ROLE_FORBIDDEN",
+    );
   });
 
   it("requires a session-bound mutation proof and revokes logout immediately", async () => {
@@ -1826,6 +2117,235 @@ describe("AppWorkflow", () => {
     ]);
   });
 
+  it("binds review transitions, comments, and approval evidence to the exact head revision", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Review Brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const design = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Reviewed Design",
+          brandSnapshotId: brand.snapshotId,
+          draft: quoteDraft("Exact review proof"),
+        },
+      }),
+      "design-saved",
+    );
+    const submitted = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    ).review;
+    expect(submitted).toMatchObject({
+      state: "in-review",
+      transitions: [{ toState: "in-review" }],
+    });
+
+    const viewer = await registerMember(
+      owner,
+      workspaceId,
+      "review-viewer@example.com",
+      "viewer",
+    );
+    const comment = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(viewer),
+        command: {
+          type: "revision.review.comment",
+          workspaceId,
+          reviewId: submitted.id,
+          body: "Move the proof point closer to the visual center.",
+          anchor: { x: 0.45, y: 0.6 },
+        },
+      }),
+      "revision-review-commented",
+    ).comment;
+    expect(comment).toMatchObject({
+      anchor: { x: 0.45, y: 0.6 },
+      createdBy: { id: viewer.user.id },
+    });
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.request-changes",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          reason: "Address the anchored proof note.",
+        },
+      }),
+      "revision-changes-requested",
+    );
+    const resubmitted = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    ).review;
+    expect(resubmitted.transitions.map((transition) => transition.toState)).toEqual([
+      "in-review",
+      "changes-requested",
+      "in-review",
+    ]);
+
+    const queued = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          idempotencyKey: "review-approval-proof",
+        },
+      }),
+      "render-job-queued",
+    );
+    const claim = await renderQueue.claim({ workerId: "review-worker", now: NOW });
+    if (claim === undefined) throw new Error("Expected approval proof render claim.");
+    await renderQueue.complete(
+      claim,
+      completedRenderOutputs(),
+      new Date(NOW.getTime() + 1),
+    );
+    const editor = await registerMember(
+      owner,
+      workspaceId,
+      "review-editor@example.com",
+      "editor",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(editor),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          renderJobId: queued.jobId,
+        },
+      }),
+      403,
+      "ROLE_FORBIDDEN",
+    );
+    const approved = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          renderJobId: queued.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    expect(approved.review).toMatchObject({
+      state: "approved",
+      comments: [{ id: comment.id }],
+      approval: {
+        renderJobId: queued.jobId,
+        revisionCanonicalHash: design.documentHash,
+        resourcePins: [],
+        outputEvidence: [
+          {
+            format: "png",
+            artifactSha256: "c".repeat(64),
+            manifestSha256: "d".repeat(64),
+            fingerprint: "png-fingerprint",
+          },
+          {
+            format: "svg",
+            artifactSha256: "a".repeat(64),
+            manifestSha256: "b".repeat(64),
+            fingerprint: "svg-fingerprint",
+          },
+        ],
+      },
+    });
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: viewer.sessionToken },
+        query: {
+          type: "revision.review",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+        },
+      }),
+      "revision-review",
+    );
+    await expect(
+      database.query(
+        `UPDATE revision_approval_receipts
+            SET revision_canonical_hash = $3
+          WHERE workspace_id = $1
+            AND review_id = $2`,
+        [workspaceId, submitted.id, "0".repeat(64)],
+      ),
+    ).rejects.toHaveProperty("code", "55000");
+
+    const revised = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: design.designId,
+          baseRevisionId: design.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: quoteDraft("New head revision"),
+        },
+      }),
+      "design-saved",
+    );
+    expect(revised.revisionId).not.toBe(design.revisionId);
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.request-changes",
+          workspaceId,
+          designId: design.designId,
+          revisionId: design.revisionId,
+          reason: "This review is now stale.",
+        },
+      }),
+      409,
+      "REVISION_CONFLICT",
+    );
+  });
+
   async function bootstrapOwner(): Promise<SessionGrant> {
     return expectSessionGrant(
       await workflow.execute({
@@ -2031,6 +2551,20 @@ class TestResourceStore implements ResourceStore {
     );
   }
 
+  listByWorkspace(workspaceId: string, maximum: number): Promise<ResourceVersion[]> {
+    return Promise.resolve(
+      [...this.#resources.values()]
+        .map((stored) => stored.resource)
+        .filter((resource) => resource.workspaceId === workspaceId)
+        .sort(
+          (left, right) =>
+            right.createdAt.getTime() - left.createdAt.getTime() ||
+            right.id.localeCompare(left.id),
+        )
+        .slice(0, maximum),
+    );
+  }
+
   readById(workspaceId: string, resourceId: string): Promise<ResourceWithBytes | null> {
     return Promise.resolve(
       this.#resources.get(this.#key(workspaceId, resourceId)) ?? null,
@@ -2136,6 +2670,63 @@ function quoteDraft(text: string): ManualDraft {
     seed: "stored-seed",
     mode: "light",
     layers: quoteLayers(text),
+  };
+}
+
+function imageLedCampaignDraft(seed: string): ManualDraft {
+  return {
+    templateId: "image-led-campaign",
+    format: "linkedin-landscape",
+    seed,
+    mode: "dark",
+    resources: {
+      assetIds: ["campaign-image-one", "campaign-logo-one"],
+      fontIds: [],
+    },
+    layers: [
+      {
+        id: "campaign-image",
+        type: "image",
+        visible: true,
+        assetId: "campaign-image-one",
+        alt: "Campaign product photograph.",
+        fit: "cover",
+        focalPoint: { x: 0.68, y: 0.48 },
+        treatment: "dark-scrim",
+      },
+      {
+        id: "brand-mark",
+        type: "logo",
+        visible: true,
+        assetId: "campaign-logo-one",
+        alt: "Campaign brand mark.",
+        fit: "contain",
+      },
+      {
+        id: "eyebrow",
+        type: "eyebrow",
+        visible: true,
+        text: "CAMPAIGN / SERIES 01",
+      },
+      {
+        id: "headline",
+        type: "headline",
+        visible: true,
+        text: "Put the product in the frame.",
+      },
+      {
+        id: "subtitle",
+        type: "subtitle",
+        visible: true,
+        text: "One admitted image and one deterministic direction.",
+      },
+      {
+        id: "cta",
+        type: "cta",
+        visible: true,
+        text: "DISCOVER THE COLLECTION →",
+      },
+    ],
   };
 }
 

@@ -89,6 +89,12 @@ describe("ProjectPreview", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(container.textContent).toContain("Deliberate downloads");
     expect(container.textContent).toContain("Download SVG");
+    expect(container.textContent).toContain("Hide Core evidence");
+    expect(container.querySelector(".proof-evidence-overlay")).not.toBeNull();
+
+    clickButton("Hide Core evidence");
+    expect(container.textContent).toContain("Show Core evidence");
+    expect(container.querySelector(".proof-evidence-overlay")).toBeNull();
 
     setSeed("workshop-proof-02");
 
@@ -170,6 +176,16 @@ describe("ProjectPreview", () => {
   function clickRender(): void {
     const button = container.querySelector<HTMLButtonElement>("button[type='submit']");
     if (button === null) throw new Error("Render button was not found.");
+    act(() => {
+      button.click();
+    });
+  }
+
+  function clickButton(label: string): void {
+    const button = [...container.querySelectorAll("button")].find(
+      (candidate) => candidate.textContent.trim() === label,
+    );
+    if (button === undefined) throw new Error(`Button “${label}” was not found.`);
     act(() => {
       button.click();
     });
@@ -257,6 +273,21 @@ function createPreviewSuccess(document: PreviewSuccess["document"]): PreviewSucc
     ok: true,
     document,
     qualityIssues: [],
+    evidence: {
+      version: "1.0.0",
+      safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
+      text: [
+        {
+          layerId: "headline",
+          bounds: { x: 120, y: 140, width: 620, height: 180 },
+          lineCount: 2,
+          maximumLines: 3,
+          overflow: false,
+        },
+      ],
+      crops: [],
+      contrast: [],
+    },
     outputs: [
       {
         format: "svg",

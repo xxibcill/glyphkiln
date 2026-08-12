@@ -5,6 +5,7 @@ import type {
   OutputFormat,
   ProceduralStyleId,
   QualityIssue,
+  RenderEvidence,
   RenderManifest,
   TemplateId,
 } from "@glyphkiln/core";
@@ -16,12 +17,7 @@ export type PreviewCatalogFormat = {
   height: number;
 };
 
-/**
- * Templates the browser-only local preview can construct without admitted
- * workspace resources. Resource-backed templates remain available through the
- * App workflow once the App has selected exact asset versions.
- */
-export type PreviewTemplateId = Exclude<TemplateId, "image-led-campaign">;
+export type PreviewTemplateId = TemplateId;
 
 export type PreviewCatalogTemplate = {
   id: PreviewTemplateId;
@@ -74,6 +70,7 @@ export type PreviewSuccess = {
   ok: true;
   document: DesignDocument;
   qualityIssues: QualityIssue[];
+  evidence: RenderEvidence;
   outputs: PreviewOutput[];
 };
 
@@ -107,6 +104,23 @@ export type BrandFormState = {
   darkText: string;
   darkMutedText: string;
   safeArea: number;
+  typography: BrandTypographyFormState;
+};
+
+export type BrandTypographyRoleFormState = {
+  weight: number;
+  lineHeight: number;
+  tracking: number;
+};
+
+export type BrandTypographyFormState = {
+  headlineFamily: string;
+  bodyFamily: string;
+  monospaceFamily: string;
+  rolesEnabled: boolean;
+  display: BrandTypographyRoleFormState;
+  body: BrandTypographyRoleFormState;
+  label: BrandTypographyRoleFormState;
 };
 
 export type CompositionFormState = {
@@ -124,6 +138,8 @@ export type CompositionFormState = {
     width: number;
     height: number;
   };
+  imageFocalPoint: { x: number; y: number };
+  imageTreatment: "none" | "dark-scrim" | "light-scrim";
 };
 
 export type CopyFormState = {
@@ -160,7 +176,36 @@ export type CopyFormState = {
     cta: string;
     footer: string;
   };
+  imageLedCampaign: {
+    eyebrow: string;
+    headline: string;
+    subtitle: string;
+    cta: string;
+  };
 };
+
+export type EditorSelectableResource =
+  | {
+      id: string;
+      kind: "raster-asset";
+      mediaType: "image/png" | "image/jpeg";
+      contentHash: string;
+      width: number;
+      height: number;
+      origin: { kind: string; sourceName?: string };
+      license: { status: string };
+    }
+  | {
+      id: string;
+      kind: "font";
+      mediaType: "font/ttf" | "font/otf";
+      contentHash: string;
+      family: string;
+      weight: number;
+      style: "normal" | "italic";
+      origin: { kind: string; sourceName?: string };
+      license: { status: string };
+    };
 
 export type PreviewFormState = {
   brand: BrandFormState;
@@ -169,5 +214,7 @@ export type PreviewFormState = {
   resources: {
     assetIds: string[];
     fontIds: string[];
+    imageAssetId?: string;
+    logoAssetId?: string;
   };
 };

@@ -25,12 +25,17 @@ export const PREVIEW_TEMPLATE_IDS = [
   "tiktok-carousel-slide",
 ] as const satisfies readonly PreviewTemplateId[];
 
+const RESOURCE_BACKED_TEMPLATE_IDS = [
+  "image-led-campaign",
+] as const satisfies readonly PreviewTemplateId[];
+
 const TEMPLATE_LABELS = {
   "product-announcement": "Product announcement",
   "statistic-card": "Statistic card",
   "quote-card": "Quote card",
   "article-cover": "Article cover",
   "tiktok-carousel-slide": "TikTok carousel slide",
+  "image-led-campaign": "Image-led campaign",
 } satisfies Record<PreviewTemplateId, string>;
 
 const PROCEDURAL_STYLE_LABELS = {
@@ -40,7 +45,13 @@ const PROCEDURAL_STYLE_LABELS = {
   "recursive-subdivision": "Recursive subdivision",
 } satisfies Record<ProceduralStyleId, string>;
 
-export function createPreviewCatalog(): PreviewCatalog {
+export function createPreviewCatalog(
+  options: { resourceBacked?: boolean } = {},
+): PreviewCatalog {
+  const templateIds: readonly PreviewTemplateId[] =
+    options.resourceBacked === true
+      ? [...PREVIEW_TEMPLATE_IDS, ...RESOURCE_BACKED_TEMPLATE_IDS]
+      : PREVIEW_TEMPLATE_IDS;
   return {
     schemaVersion: DESIGN_DOCUMENT_VERSION,
     manifestVersion: MANIFEST_VERSION,
@@ -56,7 +67,7 @@ export function createPreviewCatalog(): PreviewCatalog {
       id,
       ...FORMAT_REGISTRY[id],
     })),
-    templates: PREVIEW_TEMPLATE_IDS.map((id) => {
+    templates: templateIds.map((id) => {
       const template = TEMPLATE_REGISTRY[id];
       return {
         id,

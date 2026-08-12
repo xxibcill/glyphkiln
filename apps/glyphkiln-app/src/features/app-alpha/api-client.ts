@@ -112,6 +112,61 @@ const DashboardSchema = z
   })
   .strict();
 
+const ResourceOriginSchema = z
+  .object({
+    kind: z.enum(["user-upload", "licensed-library", "generated", "unknown"]),
+    sourceName: z.string().optional(),
+    sourceReference: z.string().optional(),
+    generativeImageModel: z.string().optional(),
+  })
+  .strict();
+const ResourceLicenseSchema = z
+  .object({
+    status: z.enum(["owned", "licensed", "public-domain", "unknown"]),
+    identifier: z.string().optional(),
+    name: z.string().optional(),
+    reference: z.string().optional(),
+    notes: z.string().optional(),
+  })
+  .strict();
+const ResourceBaseShape = {
+  id: z.string().min(1),
+  contentHash: z.string().regex(/^[0-9a-f]{64}$/),
+  byteSize: z.number().int().positive(),
+  origin: ResourceOriginSchema,
+  license: ResourceLicenseSchema,
+  createdAt: z.string().min(1),
+};
+const SelectableResourceSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      ...ResourceBaseShape,
+      kind: z.literal("raster-asset"),
+      mediaType: z.enum(["image/png", "image/jpeg"]),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      ...ResourceBaseShape,
+      kind: z.literal("font"),
+      mediaType: z.enum(["font/ttf", "font/otf"]),
+      family: z.string().min(1),
+      weight: z.number().int().min(1).max(1_000),
+      style: z.enum(["normal", "italic"]),
+    })
+    .strict(),
+]);
+const WorkspaceResourcesSchema = z
+  .object({
+    kind: z.literal("workspace-resources"),
+    workspaceId: z.string().min(1),
+    resources: z.array(SelectableResourceSchema).max(500),
+    truncated: z.boolean(),
+  })
+  .strict();
+
 const PublishedBrandSchema = z
   .object({
     kind: z.literal("brand-snapshot-published"),
@@ -193,6 +248,7 @@ const RenderReceiptSchema = z
     kind: z.union([z.literal("design-previewed"), z.literal("revision-rendered")]),
     document: z.unknown(),
     qualityIssues: z.unknown(),
+    evidence: z.unknown(),
     outputs: z.unknown(),
     designId: z.string().min(1).optional(),
     revisionId: z.string().min(1).optional(),
@@ -287,6 +343,12 @@ export type WorkspaceDashboard = {
   designs: DesignSummary[];
 };
 
+export type SelectableResource = z.infer<typeof SelectableResourceSchema>;
+export type WorkspaceResources = {
+  resources: SelectableResource[];
+  truncated: boolean;
+};
+
 export type PublishedBrand = z.infer<typeof PublishedBrandSchema>;
 export type BrandSnapshotProjection = z.infer<typeof BrandSnapshotProjectionSchema>;
 export type SavedDesign = z.infer<typeof DesignSavedSchema>;
@@ -326,6 +388,7 @@ export type AppAlphaApi = {
     invitationToken: string,
   ) => Promise<ApiResult<WorkspaceMembershipSummary>>;
   dashboard: (workspaceId: string) => Promise<ApiResult<WorkspaceDashboard>>;
+  resources: (workspaceId: string) => Promise<ApiResult<WorkspaceResources>>;
   publishBrand: (input: {
     workspaceId: string;
     brandKitId?: string;
@@ -512,6 +575,16 @@ export function createAppAlphaApi(
         }),
       );
     },
+    async resources(workspaceId) {
+      return parseValue(
+        await query({ type: "workspace.resources", workspaceId }),
+        WorkspaceResourcesSchema,
+        (value) => ({
+          resources: value.resources,
+          truncated: value.truncated,
+        }),
+      );
+    },
     async publishBrand(input) {
       return parseValue(
         await command({ type: "brand.publish", ...input }),
@@ -627,6 +700,7 @@ function parseRenderedReceipt(
       ok: true,
       document: receipt.data.document,
       qualityIssues: receipt.data.qualityIssues,
+      evidence: receipt.data.evidence,
       outputs: receipt.data.outputs,
     },
     200,

@@ -1,12 +1,19 @@
 import type {
+  AssetOrigin,
   BrandSnapshot,
+  CampaignCompositionVariantId,
+  CampaignFamilyId,
   DesignDocument,
   FormatId,
   QualityIssue,
+  RenderEvidence,
   RenderManifest,
   TemplateId,
   ValidationProblem,
 } from "@glyphkiln/core";
+
+import type { AuthoringLockId } from "@/server/ai-authoring";
+import type { ResourceLicense } from "@/server/resources";
 
 import type {
   WorkspaceAction,
@@ -105,6 +112,60 @@ export type AppCommand =
       changeNote?: string;
     }
   | {
+      type: "campaign.create";
+      workspaceId: string;
+      name: string;
+      brief: string;
+      campaignSeed: string;
+      familyId: CampaignFamilyId;
+    }
+  | {
+      type: "campaign.direction.create";
+      workspaceId: string;
+      campaignId: string;
+      directionKey: string;
+      name: string;
+      locks: AuthoringLockId[];
+    }
+  | {
+      type: "campaign.canvas.attach";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      canvasKey: string;
+      designId: string;
+      revisionId: string;
+      compositionVariantId: CampaignCompositionVariantId;
+      ordinal: number;
+    }
+  | {
+      type: "revision.review.submit";
+      workspaceId: string;
+      designId: string;
+      revisionId: string;
+    }
+  | {
+      type: "revision.review.comment";
+      workspaceId: string;
+      reviewId: string;
+      body: string;
+      anchor?: { x: number; y: number };
+    }
+  | {
+      type: "revision.review.request-changes";
+      workspaceId: string;
+      designId: string;
+      revisionId: string;
+      reason: string;
+    }
+  | {
+      type: "revision.review.approve";
+      workspaceId: string;
+      designId: string;
+      revisionId: string;
+      renderJobId: string;
+    }
+  | {
       type: "revision.render";
       workspaceId: string;
       designId: string;
@@ -122,6 +183,14 @@ export type AppQuery =
   | { type: "session.current" }
   | { type: "workspace.dashboard"; workspaceId: string }
   | { type: "workspace.members"; workspaceId: string }
+  | { type: "workspace.resources"; workspaceId: string }
+  | { type: "campaign.board"; workspaceId: string; campaignId: string }
+  | {
+      type: "revision.review";
+      workspaceId: string;
+      designId: string;
+      revisionId: string;
+    }
   | {
       type: "brand.snapshot";
       workspaceId: string;
@@ -212,6 +281,7 @@ export type CommandReceipt =
       kind: "design-previewed";
       document: DesignDocument;
       qualityIssues: QualityIssue[];
+      evidence: RenderEvidence;
       outputs: RenderedArtifact[];
     }
   | {
@@ -223,11 +293,39 @@ export type CommandReceipt =
       document: DesignDocument;
     }
   | {
+      kind: "campaign-created";
+      campaign: CampaignSummary;
+    }
+  | {
+      kind: "campaign-direction-created";
+      campaignId: string;
+      direction: CampaignDirectionProjection;
+    }
+  | {
+      kind: "campaign-canvas-attached";
+      campaignId: string;
+      directionId: string;
+      canvas: CampaignCanvasProjection;
+    }
+  | { kind: "revision-review-submitted"; review: RevisionReviewProjection }
+  | {
+      kind: "revision-review-commented";
+      reviewId: string;
+      comment: RevisionReviewCommentProjection;
+    }
+  | { kind: "revision-changes-requested"; review: RevisionReviewProjection }
+  | {
+      kind: "revision-approved";
+      review: RevisionReviewProjection;
+      approval: RevisionApprovalProjection;
+    }
+  | {
       kind: "revision-rendered";
       designId: string;
       revisionId: string;
       document: DesignDocument;
       qualityIssues: QualityIssue[];
+      evidence: RenderEvidence;
       outputs: RenderedArtifact[];
     }
   | {
@@ -256,6 +354,14 @@ export type QueryProjection =
       workspaceId: string;
       members: WorkspaceMemberSummary[];
     }
+  | {
+      kind: "workspace-resources";
+      workspaceId: string;
+      resources: SelectableResourceProjection[];
+      truncated: boolean;
+    }
+  | CampaignBoardProjection
+  | RevisionReviewProjection
   | {
       kind: "brand-snapshot";
       brandKitId: string;
@@ -341,6 +447,30 @@ export type WorkspaceMemberSummary = {
   createdAt: string;
 };
 
+type SelectableResourceBase = {
+  id: string;
+  contentHash: string;
+  byteSize: number;
+  origin: AssetOrigin;
+  license: ResourceLicense;
+  createdAt: string;
+};
+
+export type SelectableResourceProjection =
+  | (SelectableResourceBase & {
+      kind: "raster-asset";
+      mediaType: "image/png" | "image/jpeg";
+      width: number;
+      height: number;
+    })
+  | (SelectableResourceBase & {
+      kind: "font";
+      mediaType: "font/ttf" | "font/otf";
+      family: string;
+      weight: number;
+      style: "normal" | "italic";
+    });
+
 export type BrandKitSummary = {
   id: string;
   name: string;
@@ -355,6 +485,106 @@ export type DesignSummary = {
   headRevisionId: string;
   revisionNumber: number;
   updatedAt: string;
+};
+
+export type CampaignSummary = {
+  id: string;
+  name: string;
+  brief: string;
+  campaignSeed: string;
+  familyId: CampaignFamilyId;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CampaignCanvasProjection = {
+  id: string;
+  canvasKey: string;
+  designId: string;
+  revisionId: string;
+  template: {
+    id: TemplateId;
+    version: string;
+  };
+  format: FormatId;
+  compositionVariantId: CampaignCompositionVariantId;
+  seedDerivationVersion: string;
+  directionSeed: string;
+  canvasSeed: string;
+  ordinal: number;
+  createdAt: string;
+};
+
+export type CampaignDirectionProjection = {
+  id: string;
+  directionKey: string;
+  name: string;
+  locks: AuthoringLockId[];
+  createdAt: string;
+  canvases: CampaignCanvasProjection[];
+};
+
+export type CampaignBoardProjection = {
+  kind: "campaign-board";
+  campaign: CampaignSummary;
+  directions: CampaignDirectionProjection[];
+};
+
+export type RevisionReviewState = "in-review" | "changes-requested" | "approved";
+
+export type RevisionReviewCommentProjection = {
+  id: string;
+  body: string;
+  anchor?: { x: number; y: number };
+  createdBy: UserSummary;
+  createdAt: string;
+};
+
+export type RevisionReviewTransitionProjection = {
+  id: string;
+  fromState?: RevisionReviewState;
+  toState: RevisionReviewState;
+  reason?: string;
+  createdBy: UserSummary;
+  createdAt: string;
+};
+
+export type RevisionApprovalOutputEvidence = {
+  format: "svg" | "png";
+  artifactSha256: string;
+  manifestSha256: string;
+  fingerprint: string;
+};
+
+export type RevisionApprovalProjection = {
+  id: string;
+  renderJobId: string;
+  revisionCanonicalHash: string;
+  resourcePins: readonly {
+    resourceId: string;
+    resourceKind: "raster-asset" | "font";
+    ordinal: number;
+    contentHash: string;
+  }[];
+  outputEvidence: readonly RevisionApprovalOutputEvidence[];
+  approvedBy: UserSummary;
+  approvedAt: string;
+};
+
+export type RevisionReviewProjection = {
+  kind: "revision-review";
+  id: string;
+  workspaceId: string;
+  designId: string;
+  revisionId: string;
+  state: RevisionReviewState;
+  startedBy: UserSummary;
+  startedAt: string;
+  updatedBy: UserSummary;
+  updatedAt: string;
+  comments: RevisionReviewCommentProjection[];
+  transitions: RevisionReviewTransitionProjection[];
+  approval?: RevisionApprovalProjection;
 };
 
 export type AppFailureCode =
@@ -377,6 +607,8 @@ export type AppFailureCode =
   | "RENDER_REQUEST_CONFLICT"
   | "INVALID_BRAND_SNAPSHOT"
   | "INVALID_DESIGN_DOCUMENT"
+  | "INVALID_CAMPAIGN_CANVAS"
+  | "REVIEW_CONFLICT"
   | "UNSUPPORTED_MANUAL_RESOURCE"
   | "RENDER_REJECTED"
   | "RENDER_UNAVAILABLE"

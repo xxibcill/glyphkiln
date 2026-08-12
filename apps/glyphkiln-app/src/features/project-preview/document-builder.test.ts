@@ -16,7 +16,11 @@ import {
 } from "@/lib/project-preview/catalog";
 
 import { buildPreviewDocument, createInitialPreviewForm } from "./document-builder";
-import type { PreviewFormState, PreviewTemplateId } from "./types";
+import type {
+  EditorSelectableResource,
+  PreviewFormState,
+  PreviewTemplateId,
+} from "./types";
 
 const EXPECTED_LAYERS = {
   "product-announcement": [
@@ -55,7 +59,10 @@ const EXPECTED_LAYERS = {
     ["cta", "cta"],
     ["footer", "footer"],
   ],
-} as const satisfies Record<PreviewTemplateId, readonly (readonly [string, string])[]>;
+} as const satisfies Record<
+  (typeof PREVIEW_TEMPLATE_IDS)[number],
+  readonly (readonly [string, string])[]
+>;
 
 const EXPECTED_STARTER_SVG_SHA256 = {
   "product-announcement":
@@ -65,9 +72,92 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
     "ee04f360f7442c70845e7fe29e7a28a5dd0f39c57ed18442ee44f800cd75a84d",
-} as const satisfies Record<PreviewTemplateId, string>;
+} as const satisfies Record<(typeof PREVIEW_TEMPLATE_IDS)[number], string>;
 
 describe("buildPreviewDocument", () => {
+  it("builds a Core-valid image-led draft from explicit resource roles", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "image-led-campaign";
+    state.composition.formatId = "instagram-portrait";
+    state.composition.imageFocalPoint = { x: 0.68, y: 0.42 };
+    state.composition.imageTreatment = "dark-scrim";
+    state.resources = {
+      assetIds: ["campaign-image", "brand-logo"],
+      fontIds: [],
+      imageAssetId: "campaign-image",
+      logoAssetId: "brand-logo",
+    };
+    const resources: EditorSelectableResource[] = [
+      rasterResource("campaign-image", "a"),
+      rasterResource("brand-logo", "b"),
+    ];
+
+    const document = buildPreviewDocument(state, catalog, resources);
+
+    expect(validateDesignDocument(document)).toMatchObject({ success: true });
+    expect(document.assets.map((asset) => asset.id)).toEqual([
+      "brand-logo",
+      "campaign-image",
+    ]);
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({
+        type: "image",
+        assetId: "campaign-image",
+        focalPoint: { x: 0.68, y: 0.42 },
+        treatment: "dark-scrim",
+      }),
+    );
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({ type: "logo", assetId: "brand-logo" }),
+    );
+  });
+
+  it("binds admitted font declarations to explicit brand typography roles", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.brand.typography = {
+      ...state.brand.typography,
+      headlineFamily: "Kiln Sans",
+      rolesEnabled: true,
+      display: { weight: 700, lineHeight: 0.92, tracking: -0.01 },
+    };
+    state.resources.fontIds = ["font-kiln-sans-700"];
+    const resources: EditorSelectableResource[] = [
+      {
+        id: "font-kiln-sans-700",
+        kind: "font",
+        mediaType: "font/ttf",
+        contentHash: "c".repeat(64),
+        family: "Kiln Sans",
+        weight: 700,
+        style: "normal",
+        origin: { kind: "user-upload" },
+        license: { status: "owned" },
+      },
+    ];
+
+    const document = buildPreviewDocument(state, catalog, resources);
+
+    expect(validateDesignDocument(document)).toMatchObject({ success: true });
+    expect(document.brand.typography).toMatchObject({
+      roles: {
+        display: {
+          family: "Kiln Sans",
+          weight: 700,
+          lineHeight: 0.92,
+          tracking: -0.01,
+        },
+      },
+    });
+    expect(document.fonts).toContainEqual({
+      family: "Kiln Sans",
+      weight: 700,
+      style: "normal",
+      sha256: "c".repeat(64),
+    });
+  });
+
   it("builds a Core-valid document for every catalog template", () => {
     const catalog = createPreviewCatalog();
 
@@ -311,6 +401,7 @@ describe("buildPreviewDocument", () => {
       darkText: "#FAFBFC",
       darkMutedText: "#CACBCC",
       safeArea: 0.11,
+      typography: state.brand.typography,
     };
 
     const document = build(state);
@@ -383,6 +474,19 @@ describe("buildPreviewDocument", () => {
     expect(hashCanonical(second)).toBe(hashCanonical(first));
   });
 });
+
+function rasterResource(id: string, hashCharacter: string): EditorSelectableResource {
+  return {
+    id,
+    kind: "raster-asset",
+    mediaType: "image/png",
+    contentHash: hashCharacter.repeat(64),
+    width: 1_200,
+    height: 800,
+    origin: { kind: "user-upload" },
+    license: { status: "owned" },
+  };
+}
 
 function createFormForTemplate(templateId: PreviewTemplateId): PreviewFormState {
   const catalog = createPreviewCatalog();

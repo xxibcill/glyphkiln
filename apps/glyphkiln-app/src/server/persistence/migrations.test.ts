@@ -19,6 +19,10 @@ const WORKSPACE_OWNED_TABLES = [
   "audit_events",
   "brand_kits",
   "brand_snapshots",
+  "campaign_canvases",
+  "campaign_direction_locks",
+  "campaign_directions",
+  "campaigns",
   "design_revision_resources",
   "design_revisions",
   "designs",
@@ -28,6 +32,10 @@ const WORKSPACE_OWNED_TABLES = [
   "render_workspace_queue_schedules",
   "resource_ingestions",
   "resource_versions",
+  "revision_approval_receipts",
+  "revision_review_comments",
+  "revision_review_transitions",
+  "revision_reviews",
   "workspace_invitations",
   "workspace_memberships",
 ] as const;
@@ -37,7 +45,8 @@ const WORKSPACE_ENTITY_TABLES = WORKSPACE_OWNED_TABLES.filter(
     tableName !== "render_attempts" &&
     tableName !== "render_outputs" &&
     tableName !== "render_workspace_queue_schedules" &&
-    tableName !== "design_revision_resources",
+    tableName !== "design_revision_resources" &&
+    tableName !== "campaign_direction_locks",
 );
 
 const MIGRATION_VERSIONS = [
@@ -48,6 +57,8 @@ const MIGRATION_VERSIONS = [
   "202607310005_resource_admission_identity",
   "202607310006_render_queue_capacity_fairness",
   "202607310007_revision_resource_provenance",
+  "202608120008_campaign_workflow",
+  "202608120009_revision_review_approval",
 ] as const;
 
 type TableNameRow = {

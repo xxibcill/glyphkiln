@@ -11,6 +11,10 @@ import type {
   PreviewFormState,
   PreviewTemplateId,
 } from "@/features/project-preview/types";
+import {
+  brandTypographyFromSnapshot,
+  buildBrandTypography,
+} from "@/features/project-preview/brand-typography";
 
 export function buildManualDraft(
   state: PreviewFormState,
@@ -56,11 +60,7 @@ export function buildBrandSnapshotDraft(state: PreviewFormState): BrandSnapshotD
         mutedText: state.brand.darkMutedText,
       },
     },
-    typography: {
-      headlineFamily: "Inter",
-      bodyFamily: "Inter",
-      monospaceFamily: "Inter",
-    },
+    typography: buildBrandTypography(state.brand.typography),
     spacingScale: [4, 8, 12, 16, 24, 32, 48, 64],
     borderRadii: [0, 12, 24],
     visualDensity: state.brand.visualDensity,
@@ -100,6 +100,7 @@ export function withBrandSnapshot(
       darkMutedText: snapshot.themes.dark.mutedText,
       visualDensity: snapshot.visualDensity,
       safeArea: snapshot.safeArea.top,
+      typography: brandTypographyFromSnapshot(snapshot.typography),
     },
     composition: {
       ...state.composition,
@@ -128,16 +129,23 @@ export function formFromStoredDocument(
     assetIds: [],
     fontIds: [],
   };
+  const imageLayer = document.layers.find((layer) => layer.type === "image");
+  const logoLayer = document.layers.find((layer) => layer.type === "logo");
 
   return {
     ...next,
-    resources,
     brand: { ...next.brand, mode: document.mode },
     composition: {
       ...next.composition,
       templateId,
       formatId: document.format,
       seed: document.seed,
+      ...(imageLayer?.type === "image"
+        ? {
+            imageFocalPoint: readImageFocalPoint(imageLayer),
+            imageTreatment: readImageTreatment(imageLayer),
+          }
+        : {}),
       ...(procedural === undefined
         ? {}
         : {
@@ -183,6 +191,17 @@ export function formFromStoredDocument(
         cta: textFor(document.layers, "cta"),
         footer: textFor(document.layers, "footer"),
       },
+      imageLedCampaign: {
+        eyebrow: textFor(document.layers, "eyebrow"),
+        headline: textFor(document.layers, "headline"),
+        subtitle: textFor(document.layers, "subtitle"),
+        cta: textFor(document.layers, "cta"),
+      },
+    },
+    resources: {
+      ...resources,
+      ...(imageLayer?.type === "image" ? { imageAssetId: imageLayer.assetId } : {}),
+      ...(logoLayer?.type === "logo" ? { logoAssetId: logoLayer.assetId } : {}),
     },
   };
 }
@@ -327,6 +346,23 @@ function hasResourceId(value: unknown): value is ResourceVersionRecord {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readImageFocalPoint(layer: DesignLayer): { x: number; y: number } {
+  if (!("focalPoint" in layer) || !isRecord(layer.focalPoint)) {
+    return { x: 0.5, y: 0.5 };
+  }
+  const { x, y } = layer.focalPoint;
+  return typeof x === "number" && typeof y === "number" ? { x, y } : { x: 0.5, y: 0.5 };
+}
+
+function readImageTreatment(
+  layer: DesignLayer,
+): PreviewFormState["composition"]["imageTreatment"] {
+  if (!("treatment" in layer)) return "none";
+  return layer.treatment === "dark-scrim" || layer.treatment === "light-scrim"
+    ? layer.treatment
+    : "none";
 }
 
 function textFor(layers: DesignLayer[], id: string): string {

@@ -17,6 +17,7 @@
 | [0013](0013-offline-cli-resource-bundles.md)                 | Validated offline CLI resource bundles        |
 | [0014](0014-app-alpha-lifecycle-and-capacity-invariants.md)  | App lifecycle and capacity invariants         |
 | [0015](0015-image-led-brand-fidelity.md)                     | Image-led brand-fidelity primitives           |
+| [0016](0016-explicit-color-normalization.md)                 | Explicit canonical sRGB raster normalization  |
 
 ADRs are immutable after acceptance. Superseding decisions add a new ADR and
 link back to the old one.

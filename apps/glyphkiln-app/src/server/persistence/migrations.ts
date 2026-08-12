@@ -74,6 +74,25 @@ const MIGRATION_FILES = [
     ),
     version: "202607310007_revision_resource_provenance",
   },
+  {
+    down: new URL(
+      "./migrations/202608120008_campaign_workflow.down.sql",
+      import.meta.url,
+    ),
+    up: new URL("./migrations/202608120008_campaign_workflow.up.sql", import.meta.url),
+    version: "202608120008_campaign_workflow",
+  },
+  {
+    down: new URL(
+      "./migrations/202608120009_revision_review_approval.down.sql",
+      import.meta.url,
+    ),
+    up: new URL(
+      "./migrations/202608120009_revision_review_approval.up.sql",
+      import.meta.url,
+    ),
+    version: "202608120009_revision_review_approval",
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

@@ -8,6 +8,7 @@ const runtimeMocks = vi.hoisted(() => {
   };
   return {
     assertDatabaseMigrationsCurrent: vi.fn(() => Promise.resolve()),
+    createBriefInterpreterFromEnvironment: vi.fn(),
     createAppWorkflow: vi.fn(),
     createPostgresDatabase: vi.fn(() => database),
     createRenderBlobStorageFromEnvironment: vi.fn(),
@@ -30,6 +31,11 @@ vi.mock("@/server/app-workflow", () => ({
     maximumWorkspacesPerInstallation: 100,
     maximumWorkspacesPerUser: 5,
   },
+}));
+
+vi.mock("@/server/ai-authoring", () => ({
+  createBriefInterpreterFromEnvironment:
+    runtimeMocks.createBriefInterpreterFromEnvironment,
 }));
 
 vi.mock("@/server/persistence/postgres-database", () => ({
@@ -81,6 +87,7 @@ describe("application runtime composition", () => {
     runtimeMocks.createPostgresDatabase.mockReturnValue(runtimeMocks.database);
     runtimeMocks.assertDatabaseMigrationsCurrent.mockResolvedValue(undefined);
     runtimeMocks.createAppWorkflow.mockReturnValue(runtimeMocks.workflow);
+    runtimeMocks.createBriefInterpreterFromEnvironment.mockReturnValue(undefined);
     runtimeMocks.createResourceServicesFromEnvironment.mockReturnValue(undefined);
     runtimeMocks.createRenderBlobStorageFromEnvironment.mockReturnValue(
       runtimeMocks.renderStorage,
@@ -122,6 +129,9 @@ describe("application runtime composition", () => {
     );
     expect(runtimeMocks.assertDatabaseMigrationsCurrent).toHaveBeenCalledWith(
       runtimeMocks.database,
+    );
+    expect(runtimeMocks.createBriefInterpreterFromEnvironment).toHaveBeenCalledWith(
+      environment,
     );
     expect(runtimeMocks.createResourceServicesFromEnvironment).toHaveBeenCalledWith(
       runtimeMocks.database,

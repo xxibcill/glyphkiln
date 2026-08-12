@@ -561,6 +561,26 @@ export class DatabaseResourceStore implements ResourceStore {
     return row === undefined ? null : mapResourceRow(row);
   }
 
+  public async listByWorkspace(
+    workspaceId: string,
+    maximum: number,
+  ): Promise<ResourceVersion[]> {
+    if (!Number.isSafeInteger(maximum) || maximum < 1 || maximum > 1_001) {
+      throw new Error("Resource catalog maximum must be between 1 and 1001.");
+    }
+    const rows = await this.#database.query<ResourceRow>(
+      `
+        SELECT ${RESOURCE_COLUMNS}
+        FROM resource_versions
+        WHERE workspace_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT $2
+      `,
+      [workspaceId, maximum],
+    );
+    return rows.map(mapResourceRow);
+  }
+
   public async readById(
     workspaceId: string,
     resourceId: string,
