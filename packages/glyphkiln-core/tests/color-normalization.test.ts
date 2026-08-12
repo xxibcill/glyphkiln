@@ -18,6 +18,15 @@ const DISPLAY_P3_PNG = Buffer.from(
   "base64",
 );
 
+const ORIENTATION_PIXELS = {
+  A: [255, 0, 0, 255],
+  B: [0, 255, 0, 255],
+  C: [0, 0, 255, 255],
+  D: [255, 255, 0, 255],
+  E: [255, 0, 255, 255],
+  F: [0, 255, 255, 255],
+} as const;
+
 describe("canonical sRGB color normalization", () => {
   it("re-encodes implicit-sRGB RGBA pixels deterministically without metadata", async () => {
     const source = createPng([255, 0, 0, 255, 0, 128, 255, 128], 2, 1);
@@ -89,6 +98,58 @@ describe("canonical sRGB color normalization", () => {
     expect(pngChunkTypes(result.bytes)).toEqual(["IHDR", "IDAT", "IEND"]);
   });
 
+  it("recognizes a declared sRGB PNG and strips the declaration from output", async () => {
+    const source = insertPngChunk(
+      createPng([20, 40, 60, 255], 1, 1),
+      "sRGB",
+      Uint8Array.of(0),
+    );
+
+    const result = await normalizeRasterColorInProcess({
+      bytes: source,
+      mimeType: "image/png",
+    });
+
+    expect(result.report.source.profile).toEqual({ kind: "declared-srgb" });
+    expect(result.report.changes.colorConversion).toBe("assumed-or-declared-srgb");
+    expect([...PNG.sync.read(Buffer.from(result.bytes)).data]).toEqual([
+      20, 40, 60, 255,
+    ]);
+    expect(pngChunkTypes(result.bytes)).toEqual(["IHDR", "IDAT", "IEND"]);
+  });
+
+  it.each([
+    [1, 3, 2, ["A", "B", "C", "D", "E", "F"]],
+    [2, 3, 2, ["C", "B", "A", "F", "E", "D"]],
+    [3, 3, 2, ["F", "E", "D", "C", "B", "A"]],
+    [4, 3, 2, ["D", "E", "F", "A", "B", "C"]],
+    [5, 2, 3, ["A", "D", "B", "E", "C", "F"]],
+    [6, 2, 3, ["D", "A", "E", "B", "F", "C"]],
+    [7, 2, 3, ["F", "C", "E", "B", "D", "A"]],
+    [8, 2, 3, ["C", "F", "B", "E", "A", "D"]],
+  ] as const)(
+    "applies EXIF orientation %i to exact PNG pixels",
+    async (orientation, width, height, expectedPixels) => {
+      const source = insertPngChunk(
+        createPng(orientationPixels(["A", "B", "C", "D", "E", "F"]), 3, 2),
+        "eXIf",
+        createExif(orientation),
+      );
+
+      const result = await normalizeRasterColorInProcess({
+        bytes: source,
+        mimeType: "image/png",
+      });
+
+      expect(result.report.source.orientation).toBe(orientation);
+      expect(result.report.output).toMatchObject({ width, height });
+      expect(result.report.changes.orientationApplied).toBe(orientation !== 1);
+      expect([...PNG.sync.read(Buffer.from(result.bytes)).data]).toEqual(
+        orientationPixels(expectedPixels),
+      );
+    },
+  );
+
   it("applies EXIF orientation before reporting canonical dimensions", async () => {
     const jpeg = encodeJpeg(
       {
@@ -140,6 +201,27 @@ describe("canonical sRGB color normalization", () => {
       details: {
         maximum: COLOR_NORMALIZATION_LIMITS.maxColorProfileBytes,
         actual: COLOR_NORMALIZATION_LIMITS.maxColorProfileBytes + 1,
+      },
+    });
+  });
+
+  it("rejects a high-entropy raster whose canonical PNG exceeds the output limit", async () => {
+    const width = 2_500;
+    const height = 2_500;
+    const jpeg = encodeJpeg(
+      { width, height, data: createDeterministicNoise(width, height) },
+      70,
+    ).data;
+    expect(jpeg.byteLength).toBeLessThanOrEqual(
+      COLOR_NORMALIZATION_LIMITS.maxInputBytes,
+    );
+
+    await expect(
+      normalizeRasterColorInProcess({ bytes: jpeg, mimeType: "image/jpeg" }),
+    ).rejects.toMatchObject({
+      code: "COLOR_NORMALIZATION_OUTPUT_LIMIT_EXCEEDED",
+      details: {
+        maximum: COLOR_NORMALIZATION_LIMITS.maxOutputBytes,
       },
     });
   });
@@ -227,6 +309,27 @@ function createPng(data: number[], width: number, height: number): Uint8Array {
   const png = new PNG({ width, height });
   png.data = Buffer.from(data);
   return new Uint8Array(PNG.sync.write(png));
+}
+
+function orientationPixels(
+  labels: readonly (keyof typeof ORIENTATION_PIXELS)[],
+): number[] {
+  return labels.flatMap((label) => ORIENTATION_PIXELS[label]);
+}
+
+function createDeterministicNoise(width: number, height: number): Uint8Array {
+  const data = new Uint8Array(width * height * 4);
+  let state = 0x6d2b79f5;
+  for (let offset = 0; offset < data.byteLength; offset += 4) {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    data[offset] = state & 0xff;
+    data[offset + 1] = (state >>> 8) & 0xff;
+    data[offset + 2] = (state >>> 16) & 0xff;
+    data[offset + 3] = 255;
+  }
+  return data;
 }
 
 function createExif(orientation: number): Uint8Array {
