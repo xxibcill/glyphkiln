@@ -1987,11 +1987,6 @@ class AppWorkflowImplementation implements AppWorkflow {
       throw aiProposalRejected();
     }
     requireAuthoringLocks(base.document, candidate.document, currentLocks);
-    await this.#renderDocument(
-      command.workspaceId,
-      candidate.document,
-      campaign.createdAt,
-    );
     const designId = this.#secretFactory.createId();
     const revisionId = this.#secretFactory.createId();
     const decisionId = this.#secretFactory.createId();
@@ -2002,6 +1997,7 @@ class AppWorkflowImplementation implements AppWorkflow {
     if (!resourceReferencesMatchDocument(validation.data, base.resourceReferences)) {
       throw aiProposalRejected();
     }
+    await this.#renderDocument(command.workspaceId, validation.data, campaign.createdAt);
     const documentHash = hashCanonical(validation.data);
     const decision: CampaignProposalDecisionProjection = {
       id: decisionId,

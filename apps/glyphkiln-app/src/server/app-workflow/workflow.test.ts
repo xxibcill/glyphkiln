@@ -65,6 +65,7 @@ describe("AppWorkflow", () => {
   let renderQueue: PostgresRenderQueue;
   let resourceStore: TestResourceStore;
   let briefInterpreter: TestBriefInterpreter;
+  let renderedDocumentIds: string[];
 
   beforeEach(async () => {
     database = await createPGliteDatabase();
@@ -74,6 +75,7 @@ describe("AppWorkflow", () => {
     renderQueue = new PostgresRenderQueue(database);
     resourceStore = new TestResourceStore();
     briefInterpreter = new TestBriefInterpreter();
+    renderedDocumentIds = [];
     workflow = createAppWorkflow({
       database,
       bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
@@ -83,8 +85,9 @@ describe("AppWorkflow", () => {
       renderQueue,
       resourceStore,
       briefInterpreter,
-      render: async (document, resources, creationTimestamp) =>
-        (
+      render: async (document, resources, creationTimestamp) => {
+        renderedDocumentIds.push(document.id);
+        return (
           await createProjectPreview(
             document,
             {
@@ -94,7 +97,8 @@ describe("AppWorkflow", () => {
             resources,
             creationTimestamp,
           )
-        ).body,
+        ).body;
+      },
     });
   });
 
@@ -813,6 +817,7 @@ describe("AppWorkflow", () => {
       design: { revisionNumber: 1 },
     });
     expect(accepted.design.designId).not.toBe(revision.designId);
+    expect(renderedDocumentIds.at(-1)).toBe(accepted.design.designId);
 
     expectReceipt(
       await workflow.execute({
