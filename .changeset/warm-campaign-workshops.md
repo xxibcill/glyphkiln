@@ -11,7 +11,8 @@ response receipt, and canonical archive so alternatives cannot enter the bundle.
 
 The campaign surface is dark-launched by default and requires the explicit
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` operator assertion after a
-passing real-brief qualification record.
+passing real-brief qualification record. The runtime rejects that assertion
+while the checked-in qualification status remains pending.
 
 The campaign family includes the existing deterministic 3:4 TikTok carousel
 template so qualification can exercise a fourth format and repeated slide

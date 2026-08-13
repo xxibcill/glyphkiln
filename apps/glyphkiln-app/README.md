@@ -148,7 +148,9 @@ implemented boundary and remaining product gates. Leave
 `GLYPHKILN_AI_PROPOSALS` absent or set it to `disabled` to keep the adapter off;
 in that state, provider variables are inert. AI approval is accepted only with
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified`; campaign persistence is
-otherwise dark-launched and hidden from the workshop.
+otherwise dark-launched and hidden from the workshop. The current checked-in
+campaign qualification is pending, so the runtime rejects that enabling value
+until a reviewed PASS changes both the evidence record and runtime status.
 
 ### 5. Prepare the database and worker
 
@@ -267,8 +269,8 @@ Campaign Studio uses the same command/query boundary to create and reopen option
 boards, prepare Core-derived canvas seeds, branch locked directions, attach exact
 immutable revisions, compare verified proofs, reopen bounded proposal history,
 and download deterministic campaign handoff bundles. Campaign mutations and
-handoffs remain hidden unless the operator enables the product-qualified
-campaign gate.
+handoffs remain hidden unless the checked-in qualification is PASS and the
+operator enables the product-qualified campaign gate.
 
 The Revision Review Station submits or resubmits an exact revision, compares it
 with its immutable parent, records revision-bound comments and change requests,

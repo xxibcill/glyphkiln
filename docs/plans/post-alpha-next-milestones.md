@@ -203,8 +203,10 @@ adapter/queue tests passed in the App suite. At that earlier snapshot, the
 destructive opt-in real PostgreSQL qualification remained a release-environment
 check because no `GLYPHKILN_REAL_POSTGRES_DATABASE_URL` was configured.
 
-The completed campaign/review slice was then qualified on both Node `24.16.0`
-and an exact disposable Node `22.22.2` runtime with npm `10.9.8`. A clean
+The completed campaign/review slice's automated software gates were then
+qualified on both Node `24.16.0` and an exact disposable Node `22.22.2` runtime
+with npm `10.9.8`. This does not satisfy the still-pending real-brief product
+qualification. A clean
 `npm ci`, build, typecheck, security/lint/format, full tests, coverage,
 text-layout data, fixtures, schema conformance, identity, reviewed examples,
 licenses, packed consumer, and Core tarball dry run passed on the minimum

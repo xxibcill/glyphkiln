@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { readProductFeaturePolicy } from "./product-feature-policy";
+import {
+  CAMPAIGN_WORKFLOW_QUALIFICATION,
+  readProductFeaturePolicy,
+} from "./product-feature-policy";
 
 describe("product feature policy", () => {
   it("keeps campaign persistence disabled by default", () => {
@@ -14,14 +17,19 @@ describe("product feature policy", () => {
     ).toEqual({ campaignWorkflow: false });
   });
 
-  it("requires the exact campaign qualification value", () => {
-    expect(
+  it("rejects the enabling assertion while qualification remains pending", () => {
+    expect(CAMPAIGN_WORKFLOW_QUALIFICATION).toEqual({
+      assertion: "product-qualified",
+      record: "docs/qualification/campaign-workflow-2026-08-13.md",
+      status: "pending",
+    });
+    expect(() =>
       readProductFeaturePolicy(
         environment({
           GLYPHKILN_CAMPAIGN_WORKFLOW: "product-qualified",
         }),
       ),
-    ).toEqual({ campaignWorkflow: true });
+    ).toThrow("checked-in qualification record is PENDING");
     expect(() =>
       readProductFeaturePolicy(environment({ GLYPHKILN_CAMPAIGN_WORKFLOW: "enabled" })),
     ).toThrow("GLYPHKILN_CAMPAIGN_WORKFLOW");

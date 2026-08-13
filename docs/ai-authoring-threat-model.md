@@ -38,7 +38,8 @@ and [Responses text generation](https://developers.openai.com/api/docs/guides/te
 
 ## Authority flow
 
-1. After the production gates below are approved, an operator explicitly sets
+1. After the production gates below are approved and the checked-in campaign
+   qualification is PASS, an operator explicitly sets
    `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` and
    `GLYPHKILN_AI_PROPOSALS=production-approved`, then configures an App-owned
    provider adapter. Provider configuration alone remains inert, and AI

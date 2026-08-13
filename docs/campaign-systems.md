@@ -103,13 +103,14 @@ attachment, so the browser plan is never authoritative.
 
 Campaign persistence is dark-launched until a reviewed real-brief
 qualification passes the four-format and multi-slide gate below. The runtime
-defaults to disabled; only the exact operator assertion
+defaults to disabled. The exact operator assertion
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` enables seed preparation,
-campaign mutations, handoffs, and Campaign Studio. Stored board and proposal
-history remains readable for recovery, and locks already attached to revisions
-continue to constrain ordinary preview, revise, render, comparison, and export
-paths while the product gate is closed. Optional AI approval cannot bypass this
-campaign gate.
+campaign mutations, handoffs, and Campaign Studio only after the checked-in
+qualification status is `pass`; it fails startup while that record is pending.
+Stored board and proposal history remains readable for recovery, and locks
+already attached to revisions continue to constrain ordinary preview, revise,
+render, comparison, and export paths while the product gate is closed. Optional
+AI approval cannot bypass this campaign gate.
 
 `campaign.handoff` requires one explicit campaign direction and creates a
 canonical JSON archive with stable sorted paths for only that direction. The
