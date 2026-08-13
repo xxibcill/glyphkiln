@@ -1,6 +1,5 @@
 "use client";
 
-import { canonicalJson } from "@glyphkiln/core/browser";
 import { useEffect, useMemo, useState } from "react";
 import type { SyntheticEvent } from "react";
 
@@ -11,34 +10,44 @@ import type {
   AppAlphaApi,
   CampaignBoard,
   CampaignCanvas,
-  CampaignCanvasSeed,
   CampaignCanvasSeedInput,
   CampaignProposalRun,
   DesignRevision,
   RevisionComparison,
 } from "./api-client";
-import { RevisionProofFigure } from "./revision-proof-figure";
+import {
+  CAMPAIGN_CANVAS_KEY_PATTERN,
+  CAMPAIGN_LOCKS,
+  campaignCompositionVariant,
+  downloadBytes,
+  draftMatchesSeedPlan,
+  findCampaignCanvas,
+  mergeProposalProofBytes,
+  requiredFormText,
+  revisionMatchesSeedPlan,
+  sameCanvasSeedScope,
+  type CampaignCanvasSeedPlan,
+  type CampaignDraftCanvas,
+} from "./campaign-studio-model";
+import {
+  CampaignCanvasAttachment,
+  CampaignCommandRail,
+  CampaignDirectionComposer,
+  CampaignOptionBoard,
+  CampaignProofComparison,
+  CampaignProposalBoard,
+} from "./campaign-studio-sections";
 
-const LOCKS = [
-  "copy",
-  "image",
-  "crop",
-  "typography",
-  "palette",
-  "composition",
-] as const;
-
-const CANVAS_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
-
-type CampaignDraftCanvas = {
-  templateId: CampaignCanvasSeedInput["templateId"];
-  format: CampaignCanvasSeedInput["format"];
-  seed: string;
-};
-
-type CampaignCanvasSeedPlan = {
-  scope: CampaignCanvasSeedInput;
-  result: CampaignCanvasSeed;
+type CampaignStudioProps = {
+  api: AppAlphaApi;
+  workspaceId: string;
+  campaigns: CampaignSummary[];
+  draftCanvas: CampaignDraftCanvas;
+  openRevision?: DesignRevision;
+  canCoordinate: boolean;
+  onApplyCanvasSeed: (seed: string) => void;
+  onCampaignChanged: () => Promise<void>;
+  onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
 };
 
 export function CampaignStudio({
@@ -51,17 +60,7 @@ export function CampaignStudio({
   onApplyCanvasSeed,
   onCampaignChanged,
   onOpenDesign,
-}: {
-  api: AppAlphaApi;
-  workspaceId: string;
-  campaigns: CampaignSummary[];
-  draftCanvas: CampaignDraftCanvas;
-  openRevision?: DesignRevision;
-  canCoordinate: boolean;
-  onApplyCanvasSeed: (seed: string) => void;
-  onCampaignChanged: () => Promise<void>;
-  onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
-}) {
+}: CampaignStudioProps) {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>();
   const [board, setBoard] = useState<CampaignBoard>();
   const [proposalRun, setProposalRun] = useState<CampaignProposalRun>();
@@ -88,7 +87,7 @@ export function CampaignStudio({
     if (
       board === undefined ||
       canvasDirectionId === "" ||
-      !CANVAS_KEY_PATTERN.test(canvasKey)
+      !CAMPAIGN_CANVAS_KEY_PATTERN.test(canvasKey)
     ) {
       return undefined;
     }
@@ -152,27 +151,33 @@ export function CampaignStudio({
       setBoard(result.value);
       setProposalRun(undefined);
       setCanvasSeedPlan(undefined);
-      const directionIds = result.value.directions.map((direction) => direction.id);
-      setCanvasDirectionId((current) =>
-        directionIds.includes(current) ? current : (directionIds.at(0) ?? ""),
+      synchronizeBoardSelections(result.value);
+      setMessage(
+        `Option board loaded · ${countCampaignCanvases(result.value).toString()} canvases.`,
       );
-      const available = result.value.directions.flatMap((direction) =>
-        direction.canvases.map((canvas) => canvas.id),
-      );
-      setLeftCanvasId((current) =>
-        available.includes(current) ? current : (available.at(0) ?? ""),
-      );
-      setRightCanvasId((current) =>
-        available.includes(current) ? current : (available.at(1) ?? ""),
-      );
-      setMessage(`Option board loaded · ${available.length.toString()} canvases.`);
     } else {
       setFailure(result);
     }
     setBusy(undefined);
   }
 
-  async function createCampaign(event: SyntheticEvent<HTMLFormElement>) {
+  function synchronizeBoardSelections(nextBoard: CampaignBoard): void {
+    const directionIds = nextBoard.directions.map((direction) => direction.id);
+    setCanvasDirectionId((current) =>
+      directionIds.includes(current) ? current : (directionIds.at(0) ?? ""),
+    );
+    const canvasIds = nextBoard.directions.flatMap((direction) =>
+      direction.canvases.map((canvas) => canvas.id),
+    );
+    setLeftCanvasId((current) =>
+      canvasIds.includes(current) ? current : (canvasIds.at(0) ?? ""),
+    );
+    setRightCanvasId((current) =>
+      canvasIds.includes(current) ? current : (canvasIds.at(1) ?? ""),
+    );
+  }
+
+  async function createCampaign(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!canCoordinate || busy !== undefined) return;
     const formElement = event.currentTarget;
@@ -197,7 +202,9 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function createDirection(event: SyntheticEvent<HTMLFormElement>) {
+  async function createDirection(
+    event: SyntheticEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     if (!canCoordinate || board === undefined || busy !== undefined) return;
     const formElement = event.currentTarget;
@@ -209,7 +216,7 @@ export function CampaignStudio({
       campaignId: board.campaign.id,
       directionKey: requiredFormText(form, "directionKey"),
       name: requiredFormText(form, "directionName"),
-      locks: LOCKS.filter((lock) => form.get(`lock-${lock}`) === "on"),
+      locks: CAMPAIGN_LOCKS.filter((lock) => form.get(`lock-${lock}`) === "on"),
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);
@@ -221,7 +228,7 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function branchDirection(sourceDirectionId: string) {
+  async function branchDirection(sourceDirectionId: string): Promise<void> {
     if (!canCoordinate || board === undefined || busy !== undefined) return;
     const source = board.directions.find(
       (direction) => direction.id === sourceDirectionId,
@@ -246,9 +253,16 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function attachCanvas(event: SyntheticEvent<HTMLFormElement>) {
+  async function attachCanvas(event: SyntheticEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (openRevision === undefined || !canAttachCanvas) return;
+    if (
+      openRevision === undefined ||
+      board === undefined ||
+      currentCanvasSeedPlan === undefined ||
+      !canAttachCanvas
+    ) {
+      return;
+    }
     const form = new FormData(event.currentTarget);
     setBusy("canvas");
     setFailure(undefined);
@@ -272,8 +286,9 @@ export function CampaignStudio({
   }
 
   async function planCanvasSeed(): Promise<void> {
-    if (!canCoordinate || currentCanvasScope === undefined || busy !== undefined)
+    if (!canCoordinate || currentCanvasScope === undefined || busy !== undefined) {
       return;
+    }
     const requestedScope = currentCanvasScope;
     setBusy("canvas-seed");
     setFailure(undefined);
@@ -289,9 +304,9 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function compareCanvases() {
-    const left = findCanvas(canvases, leftCanvasId);
-    const right = findCanvas(canvases, rightCanvasId);
+  async function compareCanvases(): Promise<void> {
+    const left = findCampaignCanvas(canvases, leftCanvasId);
+    const right = findCampaignCanvas(canvases, rightCanvasId);
     if (left === undefined || right === undefined || busy !== undefined) return;
     setBusy("comparison");
     setFailure(undefined);
@@ -311,7 +326,10 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function requestProposals(base: CampaignCanvas, directionId: string) {
+  async function requestProposals(
+    base: CampaignCanvas,
+    directionId: string,
+  ): Promise<void> {
     if (!canCoordinate || board === undefined || busy !== undefined) return;
     setBusy("proposals");
     setFailure(undefined);
@@ -331,7 +349,7 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function openProposalRun(runId: string) {
+  async function openProposalRun(runId: string): Promise<void> {
     if (board === undefined || busy !== undefined) return;
     setBusy("proposal-history");
     setFailure(undefined);
@@ -349,7 +367,10 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function decideProposal(candidateId: string, decision: "accept" | "reject") {
+  async function decideProposal(
+    candidateId: string,
+    decision: "accept" | "reject",
+  ): Promise<void> {
     if (!canCoordinate || board === undefined || proposalRun === undefined) return;
     setBusy("decision");
     setFailure(undefined);
@@ -369,18 +390,7 @@ export function CampaignStudio({
             candidateId,
           });
     if (result.ok) {
-      const refreshed = await api.campaignProposalRun({
-        workspaceId,
-        campaignId: board.campaign.id,
-        runId: proposalRun.id,
-      });
-      if (refreshed.ok) {
-        setProposalRun((current) =>
-          current === undefined
-            ? refreshed.value
-            : mergeProposalProofBytes(current, refreshed.value),
-        );
-      }
+      await refreshProposalRun(proposalRun);
       const acceptedDesignId =
         "designId" in result.value ? result.value.designId : undefined;
       if (decision === "accept" && acceptedDesignId !== undefined) {
@@ -398,7 +408,22 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
-  async function downloadHandoff() {
+  async function refreshProposalRun(current: CampaignProposalRun): Promise<void> {
+    if (board === undefined) return;
+    const refreshed = await api.campaignProposalRun({
+      workspaceId,
+      campaignId: board.campaign.id,
+      runId: current.id,
+    });
+    if (!refreshed.ok) return;
+    setProposalRun((existing) =>
+      existing === undefined
+        ? refreshed.value
+        : mergeProposalProofBytes(existing, refreshed.value),
+    );
+  }
+
+  async function downloadHandoff(): Promise<void> {
     if (board === undefined || busy !== undefined) return;
     setBusy("handoff");
     setFailure(undefined);
@@ -414,6 +439,7 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
+  const isBusy = busy !== undefined;
   return (
     <section className="campaign-studio" aria-labelledby="campaign-studio-title">
       <header className="campaign-studio-header">
@@ -431,592 +457,103 @@ export function CampaignStudio({
         </div>
       )}
 
-      <div className="campaign-command-rail">
-        <form onSubmit={(event) => void createCampaign(event)}>
-          <span>01 / BRIEF</span>
-          <label>
-            Campaign name
-            <input name="campaignName" maxLength={160} required />
-          </label>
-          <label>
-            Brief
-            <textarea name="campaignBrief" maxLength={4000} required rows={3} />
-          </label>
-          <label>
-            Campaign seed
-            <input name="campaignSeed" maxLength={256} required />
-          </label>
-          <button
-            className="secondary-action"
-            disabled={!canCoordinate || busy !== undefined}
-          >
-            Create campaign
-          </button>
-        </form>
-
-        <div className="campaign-selector-panel">
-          <span>02 / BOARD</span>
-          <label htmlFor="campaign-selector">Active campaign</label>
-          <select
-            id="campaign-selector"
-            value={selectedCampaignId ?? ""}
-            disabled={campaigns.length === 0 || busy !== undefined}
-            onChange={(event) => {
-              const campaignId = event.currentTarget.value;
-              setSelectedCampaignId(campaignId);
-              setCanvasSeedPlan(undefined);
-              void loadBoard(campaignId);
-            }}
-          >
-            {campaigns.length === 0 ? <option value="">No campaign yet</option> : null}
-            {campaigns.map((campaign) => (
-              <option key={campaign.id} value={campaign.id}>
-                {campaign.name}
-              </option>
-            ))}
-          </select>
-          {board === undefined ? (
-            <p>Seal a brief to open a direction board.</p>
-          ) : (
-            <>
-              <blockquote>{board.campaign.brief}</blockquote>
-              <button
-                className="quiet-action"
-                type="button"
-                disabled={busy !== undefined}
-                onClick={() => void downloadHandoff()}
-              >
-                Build verified handoff
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      <CampaignCommandRail
+        campaigns={campaigns}
+        selectedCampaignId={selectedCampaignId}
+        board={board}
+        canCoordinate={canCoordinate}
+        isBusy={isBusy}
+        onCreateCampaign={(event) => void createCampaign(event)}
+        onSelectCampaign={(campaignId) => {
+          setSelectedCampaignId(campaignId);
+          setCanvasSeedPlan(undefined);
+          void loadBoard(campaignId);
+        }}
+        onDownloadHandoff={() => void downloadHandoff()}
+      />
 
       {board === undefined ? null : (
         <>
-          <form
-            className="direction-composer"
-            onSubmit={(event) => void createDirection(event)}
-          >
-            <div>
-              <span>03 / DIRECTION</span>
-              <label>
-                Direction key
-                <input
-                  name="directionKey"
-                  pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*"
-                  required
-                />
-              </label>
-              <label>
-                Direction name
-                <input name="directionName" maxLength={160} required />
-              </label>
-            </div>
-            <fieldset>
-              <legend>Human locks</legend>
-              {LOCKS.map((lock) => (
-                <label key={lock}>
-                  <input type="checkbox" name={`lock-${lock}`} />
-                  {lock}
-                </label>
-              ))}
-            </fieldset>
-            <button
-              className="secondary-action"
-              disabled={!canCoordinate || busy !== undefined}
-            >
-              Add direction
-            </button>
-          </form>
-
-          <div className="option-board" aria-label="Campaign option board">
-            {board.directions.length === 0 ? (
-              <p className="campaign-empty-state">
-                Add a direction, choose what must not move, then attach exact saved
-                revisions as canvases.
-              </p>
-            ) : (
-              board.directions.map((direction, directionIndex) => (
-                <article className="direction-column" key={direction.id}>
-                  <header>
-                    <span>{(directionIndex + 1).toString().padStart(2, "0")}</span>
-                    <div>
-                      <h3>{direction.name}</h3>
-                      <small>{direction.directionKey}</small>
-                    </div>
-                    <button
-                      type="button"
-                      className="quiet-action"
-                      disabled={!canCoordinate || busy !== undefined}
-                      onClick={() => void branchDirection(direction.id)}
-                    >
-                      Branch
-                    </button>
-                  </header>
-                  <p className="direction-locks">
-                    {direction.locks.length === 0
-                      ? "No locks"
-                      : `LOCKED · ${direction.locks.join(" · ")}`}
-                  </p>
-                  <ol>
-                    {direction.canvases.map((canvas) => (
-                      <li key={canvas.id}>
-                        <span>{canvas.ordinal.toString().padStart(3, "0")}</span>
-                        <strong>{canvas.canvasKey}</strong>
-                        <small>
-                          {canvas.format} · {canvas.revisionId.slice(0, 8)}
-                        </small>
-                        <button
-                          type="button"
-                          className="text-action"
-                          onClick={() =>
-                            void onOpenDesign(canvas.designId, canvas.revisionId)
-                          }
-                        >
-                          Open revision
-                        </button>
-                      </li>
-                    ))}
-                  </ol>
-                  {direction.canvases.at(0) === undefined ? null : (
-                    <button
-                      type="button"
-                      className="text-action"
-                      disabled={!canCoordinate || busy !== undefined}
-                      onClick={() => {
-                        const baseCanvas = direction.canvases.at(0);
-                        if (baseCanvas !== undefined) {
-                          void requestProposals(baseCanvas, direction.id);
-                        }
-                      }}
-                    >
-                      Request 3 optional proposals
-                    </button>
-                  )}
-                  {direction.proposalRuns.length === 0 ? null : (
-                    <div className="proposal-history">
-                      <strong>Proposal history</strong>
-                      <ul>
-                        {direction.proposalRuns.map((run, runIndex) => (
-                          <li key={run.id}>
-                            <button
-                              type="button"
-                              className="text-action"
-                              disabled={busy !== undefined}
-                              onClick={() => void openProposalRun(run.id)}
-                            >
-                              Open run {(runIndex + 1).toString().padStart(2, "0")}
-                            </button>
-                            <small>
-                              {run.providerId} · {run.modelId} · {run.decidedCount}/
-                              {run.candidateCount} decided
-                            </small>
-                            <time dateTime={run.createdAt}>{run.createdAt}</time>
-                          </li>
-                        ))}
-                      </ul>
-                      {direction.proposalRunsTruncated ? (
-                        <small>Showing the 20 most recent proposal runs.</small>
-                      ) : null}
-                    </div>
-                  )}
-                </article>
-              ))
-            )}
-          </div>
-
-          <form
-            className="canvas-attachment"
-            onSubmit={(event) => void attachCanvas(event)}
-          >
-            <span>04 / ATTACH EXACT REVISION</span>
-            <label>
-              Direction
-              <select
-                name="canvasDirection"
-                required
-                value={canvasDirectionId}
-                disabled={busy !== undefined}
-                onChange={(event) => {
-                  setCanvasDirectionId(event.currentTarget.value);
-                  setCanvasSeedPlan(undefined);
-                }}
-              >
-                {board.directions.map((direction) => (
-                  <option key={direction.id} value={direction.id}>
-                    {direction.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Canvas key
-              <input
-                name="canvasKey"
-                pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*"
-                maxLength={160}
-                required
-                value={canvasKey}
-                disabled={busy !== undefined}
-                onChange={(event) => {
-                  setCanvasKey(event.currentTarget.value);
-                  setCanvasSeedPlan(undefined);
-                }}
-              />
-            </label>
-            <label>
-              Order
-              <input
-                name="canvasOrdinal"
-                type="number"
-                min={0}
-                max={999}
-                defaultValue={0}
-                required
-              />
-            </label>
-            <p>
-              {openRevision === undefined
-                ? "Open a saved revision first."
-                : `Open: ${openRevision.designName} · revision ${openRevision.revisionNumber.toString()}`}
-            </p>
-            <p>
-              Draft scope: {draftCanvas.templateId} · {draftCanvas.format}. The planned
-              seed is advisory and will be recomputed when the exact revision is
-              attached.
-            </p>
-            <button
-              className="quiet-action"
-              type="button"
-              disabled={
-                !canCoordinate || currentCanvasScope === undefined || busy !== undefined
-              }
-              onClick={() => void planCanvasSeed()}
-            >
-              Plan canvas seed
-            </button>
-            {currentCanvasSeedPlan === undefined ? null : (
-              <div>
-                <small>
-                  {currentCanvasSeedPlan.result.seedDerivationVersion} · template{" "}
-                  {currentCanvasSeedPlan.result.template.id}@
-                  {currentCanvasSeedPlan.result.template.version}
-                </small>
-                <code>{currentCanvasSeedPlan.result.canvasSeed}</code>
-                <button
-                  className="quiet-action"
-                  type="button"
-                  disabled={
-                    !canCoordinate || draftMatchesCanvasSeed || busy !== undefined
-                  }
-                  onClick={() => {
-                    onApplyCanvasSeed(currentCanvasSeedPlan.result.canvasSeed);
-                    setMessage(
-                      "Canvas seed applied to the draft only. Preview, save, and reopen it before attachment.",
-                    );
-                  }}
-                >
-                  Apply seed to draft
-                </button>
-              </div>
-            )}
-            <p>
-              {currentCanvasSeedPlan === undefined
-                ? "Plan a seed for the current scope before attachment."
-                : !draftMatchesCanvasSeed
-                  ? "Apply the planned seed to the current draft."
-                  : !revisionMatchesCanvasSeed
-                    ? "Preview, save, and reopen a revision with this exact seed, template version, and format."
-                    : "The reopened immutable revision matches this canvas seed plan."}
-            </p>
-            <button className="secondary-action" disabled={!canAttachCanvas}>
-              Attach revision
-            </button>
-          </form>
-
-          {canvases.length < 2 ? null : (
-            <section
-              className="proof-comparison"
-              aria-labelledby="proof-comparison-title"
-            >
-              <header>
-                <div>
-                  <span>05 / COMPARE</span>
-                  <h3 id="proof-comparison-title">Exact revision proofs</h3>
-                </div>
-                <div>
-                  <select
-                    aria-label="Left campaign canvas"
-                    value={leftCanvasId}
-                    onChange={(event) => {
-                      setLeftCanvasId(event.currentTarget.value);
-                    }}
-                  >
-                    {canvases.map(({ direction, canvas }) => (
-                      <option key={canvas.id} value={canvas.id}>
-                        {direction.name} · {canvas.canvasKey}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    aria-label="Right campaign canvas"
-                    value={rightCanvasId}
-                    onChange={(event) => {
-                      setRightCanvasId(event.currentTarget.value);
-                    }}
-                  >
-                    {canvases.map(({ direction, canvas }) => (
-                      <option key={canvas.id} value={canvas.id}>
-                        {direction.name} · {canvas.canvasKey}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="quiet-action"
-                    type="button"
-                    onClick={() => void compareCanvases()}
-                    disabled={busy !== undefined || leftCanvasId === rightCanvasId}
-                  >
-                    Render side by side
-                  </button>
-                </div>
-              </header>
-              {comparison === undefined ? null : (
-                <div className="comparison-spread">
-                  <RevisionProofFigure
-                    side={comparison.left}
-                    caption={
-                      <>
-                        <span>A</span>
-                        <strong>{comparison.left.revision.designName}</strong>
-                        <small>
-                          REV{" "}
-                          {comparison.left.revision.revisionNumber
-                            .toString()
-                            .padStart(3, "0")}
-                        </small>
-                      </>
-                    }
-                    alt={`${comparison.left.revision.designName} exact rendered revision`}
-                  />
-                  <RevisionProofFigure
-                    side={comparison.right}
-                    caption={
-                      <>
-                        <span>B</span>
-                        <strong>{comparison.right.revision.designName}</strong>
-                        <small>
-                          REV{" "}
-                          {comparison.right.revision.revisionNumber
-                            .toString()
-                            .padStart(3, "0")}
-                        </small>
-                      </>
-                    }
-                    alt={`${comparison.right.revision.designName} exact rendered revision`}
-                  />
-                </div>
-              )}
-            </section>
-          )}
-
-          {proposalRun === undefined ? null : (
-            <section className="proposal-board" aria-labelledby="proposal-board-title">
-              <header>
-                <div>
-                  <span>OPTIONAL / PROPOSAL-ONLY</span>
-                  <h3 id="proposal-board-title">Model suggestions under human locks</h3>
-                </div>
-                <p>{proposalRun.descriptor.retentionDisclosure}</p>
-              </header>
-              <div>
-                {proposalRun.candidates.map((candidate) => {
-                  const png = candidate.proof?.outputs.find(
-                    (output) => output.format === "png",
-                  );
-                  return (
-                    <article key={candidate.id} data-status={candidate.status}>
-                      <span>
-                        OPTION {(candidate.index + 1).toString().padStart(2, "0")}
-                      </span>
-                      {png?.base64 === undefined ? (
-                        <div className="proposal-proof-missing">
-                          No accepted Core proof
-                        </div>
-                      ) : (
-                        // The parser bounds this inert base64 field before it reaches the UI.
-                        // eslint-disable-next-line @next/next/no-img-element -- bounded in-memory Core proof, not a network image.
-                        <img
-                          src={`data:${png.mimeType};base64,${png.base64}`}
-                          alt={`Core proof for proposal ${(candidate.index + 1).toString()}`}
-                        />
-                      )}
-                      <p>
-                        {candidate.rationale?.text ?? "Provider candidate rejected."}
-                      </p>
-                      {candidate.issues.length === 0 ? null : (
-                        <ul>
-                          {candidate.issues.map((issue) => (
-                            <li key={`${issue.code}-${issue.message}`}>
-                              {issue.message}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {candidate.decision === undefined &&
-                      candidate.status === "proved" ? (
-                        <div>
-                          <button
-                            type="button"
-                            className="secondary-action"
-                            disabled={busy !== undefined}
-                            onClick={() => void decideProposal(candidate.id, "accept")}
-                          >
-                            Accept into new design
-                          </button>
-                          <button
-                            type="button"
-                            className="text-action"
-                            disabled={busy !== undefined}
-                            onClick={() => void decideProposal(candidate.id, "reject")}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      ) : (
-                        <strong>
-                          {candidate.decision?.decision.toUpperCase() ??
-                            "REJECTED BY BOUNDARY"}
-                        </strong>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+          <CampaignDirectionComposer
+            canCoordinate={canCoordinate}
+            isBusy={isBusy}
+            onCreateDirection={(event) => void createDirection(event)}
+          />
+          <CampaignOptionBoard
+            board={board}
+            canCoordinate={canCoordinate}
+            isBusy={isBusy}
+            onBranchDirection={(directionId) => void branchDirection(directionId)}
+            onOpenDesign={(designId, revisionId) =>
+              void onOpenDesign(designId, revisionId)
+            }
+            onRequestProposals={(base, directionId) =>
+              void requestProposals(base, directionId)
+            }
+            onOpenProposalRun={(runId) => void openProposalRun(runId)}
+          />
+          <CampaignCanvasAttachment
+            board={board}
+            openRevision={openRevision}
+            draftCanvas={draftCanvas}
+            canvasDirectionId={canvasDirectionId}
+            canvasKey={canvasKey}
+            seedPlan={currentCanvasSeedPlan}
+            hasValidScope={currentCanvasScope !== undefined}
+            draftMatchesSeed={draftMatchesCanvasSeed}
+            revisionMatchesSeed={revisionMatchesCanvasSeed}
+            canCoordinate={canCoordinate}
+            canAttachCanvas={canAttachCanvas}
+            isBusy={isBusy}
+            onDirectionChange={(directionId) => {
+              setCanvasDirectionId(directionId);
+              setCanvasSeedPlan(undefined);
+            }}
+            onCanvasKeyChange={(nextCanvasKey) => {
+              setCanvasKey(nextCanvasKey);
+              setCanvasSeedPlan(undefined);
+            }}
+            onPlanSeed={() => void planCanvasSeed()}
+            onApplySeed={() => {
+              if (currentCanvasSeedPlan === undefined) return;
+              onApplyCanvasSeed(currentCanvasSeedPlan.result.canvasSeed);
+              setMessage(
+                "Canvas seed applied to the draft only. Preview, save, and reopen it before attachment.",
+              );
+            }}
+            onAttachCanvas={(event) => void attachCanvas(event)}
+          />
+          <CampaignProofComparison
+            canvases={canvases}
+            leftCanvasId={leftCanvasId}
+            rightCanvasId={rightCanvasId}
+            comparison={comparison}
+            isBusy={isBusy}
+            onLeftCanvasChange={setLeftCanvasId}
+            onRightCanvasChange={setRightCanvasId}
+            onCompare={() => void compareCanvases()}
+          />
+          <CampaignProposalBoard
+            proposalRun={proposalRun}
+            isBusy={isBusy}
+            onDecideProposal={(candidateId, decision) =>
+              void decideProposal(candidateId, decision)
+            }
+          />
         </>
       )}
 
       <p className="campaign-status" role="status" aria-live="polite">
         <span aria-hidden="true">◆</span>
-        {busy === undefined
-          ? message
-          : "Working through the bounded campaign workflow…"}
+        {isBusy ? "Working through the bounded campaign workflow…" : message}
       </p>
     </section>
   );
 }
 
-function campaignCompositionVariant(
-  templateId: CampaignCanvasSeedInput["templateId"],
-): CampaignCanvasSeedInput["compositionVariantId"] {
-  return templateId === "tiktok-carousel-slide"
-    ? "organic-photo-editorial"
-    : "focal-editorial";
-}
-
-function findCanvas(
-  canvases: readonly { canvas: CampaignCanvas }[],
-  canvasId: string,
-): CampaignCanvas | undefined {
-  return canvases.find((entry) => entry.canvas.id === canvasId)?.canvas;
-}
-
-function sameCanvasSeedScope(
-  left: CampaignCanvasSeedInput,
-  right: CampaignCanvasSeedInput,
-): boolean {
-  return canonicalJson(left) === canonicalJson(right);
-}
-
-function draftMatchesSeedPlan(
-  draft: CampaignDraftCanvas,
-  plan: CampaignCanvasSeedPlan | undefined,
-): boolean {
-  return draft.seed === plan?.result.canvasSeed;
-}
-
-function revisionMatchesSeedPlan(
-  revision: DesignRevision | undefined,
-  plan: CampaignCanvasSeedPlan | undefined,
-): boolean {
-  const document = revision?.document;
-  const result = plan?.result;
-  return (
-    result !== undefined &&
-    document?.seed === result.canvasSeed &&
-    document.template.id === result.template.id &&
-    document.template.version === result.template.version &&
-    document.format === result.format
+function countCampaignCanvases(board: CampaignBoard): number {
+  return board.directions.reduce(
+    (count, direction) => count + direction.canvases.length,
+    0,
   );
-}
-
-function requiredFormText(form: FormData, name: string): string {
-  const value = form.get(name);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function downloadBytes(bytes: Uint8Array, mediaType: string, filename: string): void {
-  const url = URL.createObjectURL(
-    new Blob([Uint8Array.from(bytes).buffer], { type: mediaType }),
-  );
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-function mergeProposalProofBytes(
-  current: CampaignProposalRun,
-  refreshed: CampaignProposalRun,
-): CampaignProposalRun {
-  if (current.id !== refreshed.id) return refreshed;
-  return {
-    ...refreshed,
-    candidates: refreshed.candidates.map((candidate) => {
-      const previous = current.candidates.find((entry) => entry.id === candidate.id);
-      if (
-        previous?.canonicalHash === undefined ||
-        previous.canonicalHash !== candidate.canonicalHash ||
-        previous.proof === undefined ||
-        candidate.proof === undefined ||
-        canonicalJson(proofMetadata(previous.proof)) !==
-          canonicalJson(proofMetadata(candidate.proof))
-      ) {
-        return candidate;
-      }
-      return {
-        ...candidate,
-        proof: {
-          ...candidate.proof,
-          outputs: candidate.proof.outputs.map((output) => {
-            const priorOutput = previous.proof?.outputs.find(
-              (entry) => entry.format === output.format,
-            );
-            return priorOutput?.base64 === undefined
-              ? output
-              : { ...output, base64: priorOutput.base64 };
-          }),
-        },
-      };
-    }),
-  };
-}
-
-function proofMetadata(
-  proof: NonNullable<CampaignProposalRun["candidates"][number]["proof"]>,
-) {
-  return {
-    qualityIssues: proof.qualityIssues,
-    evidence: proof.evidence,
-    outputs: proof.outputs.map((output) => {
-      const metadata = { ...output };
-      delete metadata.base64;
-      return metadata;
-    }),
-  };
 }
