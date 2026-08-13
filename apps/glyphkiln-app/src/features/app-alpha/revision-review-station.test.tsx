@@ -96,6 +96,53 @@ describe("RevisionReviewStation", () => {
     });
   });
 
+  it("resubmits a changes-requested revision for review", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "revision.review") {
+        return Promise.resolve(success(200, reviewFixture("changes-requested")));
+      }
+      if (body.type === "render.jobs.completed") {
+        return Promise.resolve(
+          success(200, { kind: "completed-render-jobs", jobs: [] }),
+        );
+      }
+      if (body.type === "revision.review.submit") {
+        return Promise.resolve(
+          success(201, {
+            kind: "revision-review-submitted",
+            review: reviewFixture("in-review"),
+          }),
+        );
+      }
+      throw new Error(`Unexpected review API request: ${body.type}`);
+    });
+    const revision = revisionFixture();
+
+    await act(async () => {
+      root.render(
+        <RevisionReviewStation
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          revision={revision}
+          canManage
+          canApprove
+        />,
+      );
+      await flushEffects();
+    });
+
+    expect(container.textContent).toContain("CHANGES-REQUESTED");
+    await clickButton("Resubmit exact revision");
+    expect(container.textContent).toContain("IN-REVIEW");
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "revision.review.submit",
+      workspaceId: "workspace-1",
+      designId: revision.designId,
+      revisionId: revision.revisionId,
+    });
+  });
+
   async function clickButton(label: string): Promise<void> {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -122,7 +169,7 @@ function revisionFixture(): DesignRevision {
   };
 }
 
-function reviewFixture() {
+function reviewFixture(state: "in-review" | "changes-requested" = "in-review") {
   const user = {
     id: "owner-1",
     email: "owner@example.test",
@@ -134,7 +181,7 @@ function reviewFixture() {
     workspaceId: "workspace-1",
     designId: "design-1",
     revisionId: "revision-1",
-    state: "in-review",
+    state,
     startedBy: user,
     startedAt: NOW,
     updatedBy: user,
@@ -143,7 +190,7 @@ function reviewFixture() {
     transitions: [
       {
         id: "transition-1",
-        toState: "in-review",
+        toState: state,
         createdBy: user,
         createdAt: NOW,
       },

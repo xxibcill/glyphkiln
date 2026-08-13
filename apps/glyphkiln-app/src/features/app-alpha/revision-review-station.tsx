@@ -174,14 +174,14 @@ export function RevisionReviewStation({
       )}
 
       <div className="review-action-strip">
-        {review === undefined ? (
+        {review === undefined || review.state === "changes-requested" ? (
           <button
             type="button"
             className="secondary-action"
             disabled={!canManage || busy}
             onClick={() => void submitReview()}
           >
-            Submit exact revision
+            {review === undefined ? "Submit exact revision" : "Resubmit exact revision"}
           </button>
         ) : null}
         {revision.parentRevisionId === undefined ? (
