@@ -64,6 +64,7 @@ const MIGRATION_VERSIONS = [
   "202608120009_revision_review_approval",
   "202608120010_resource_color_normalization_provenance",
   "202608120011_campaign_proposals",
+  "202608130012_campaign_carousel_variant",
 ] as const;
 
 type TableNameRow = {
@@ -424,6 +425,92 @@ describe("App Alpha PostgreSQL migration", () => {
       "SELECT count(*)::integer AS count FROM installation_state",
     );
     expect(singletonRows).toEqual([{ count: 1 }]);
+  });
+
+  it("persists the authoritative carousel composition variant", async () => {
+    await migrateDatabase(database);
+    await seedBrandAndDesignState(database);
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-a",
+      documentName: "Carousel slide",
+      id: "revision-carousel-a",
+      revisionNumber: 1,
+    });
+    await database.query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id, created_by
+       ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6)`,
+      [
+        "campaign-carousel-a",
+        "workspace-a",
+        "Carousel campaign",
+        "Coordinate an exact multi-slide series.",
+        "carousel-seed",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        "direction-carousel-a",
+        "workspace-a",
+        "campaign-carousel-a",
+        "direction-a",
+        "Direction A",
+        "user-a",
+      ],
+    );
+
+    const insertCanvas = (
+      id: string,
+      canvasKey: string,
+      compositionVariantId: string,
+      ordinal: number,
+    ) =>
+      database.query(
+        `INSERT INTO campaign_canvases (
+           id, workspace_id, campaign_id, direction_id, canvas_key,
+           design_id, revision_id, template_id, template_version, format_id,
+           composition_variant_id, seed_derivation_version, direction_seed,
+           canvas_seed, ordinal, created_by
+         ) VALUES (
+           $1, 'workspace-a', 'campaign-carousel-a', 'direction-carousel-a', $2,
+           'design-a', 'revision-carousel-a', 'tiktok-carousel-slide', '1.0.3',
+           'tiktok-carousel-3x4', $3, 'sha256/canonical-scope-v1', $4, $5, $6,
+           'user-a'
+         )`,
+        [id, canvasKey, compositionVariantId, HASH_A, HASH_B, ordinal],
+      );
+
+    await expect(
+      insertCanvas("canvas-carousel-a", "slide-01", "organic-photo-editorial", 0),
+    ).resolves.toEqual([]);
+    await expect(
+      insertCanvas("canvas-unknown-a", "slide-02", "unknown-variant", 1),
+    ).rejects.toHaveProperty("code", "23514");
+
+    const constraints = await database.query<ConstraintRow>(
+      `SELECT
+         constraint_table.relname AS table_name,
+         constraint_record.conname,
+         constraint_record.condeferrable,
+         constraint_record.condeferred,
+         pg_get_constraintdef(constraint_record.oid) AS definition
+       FROM pg_constraint AS constraint_record
+       JOIN pg_class AS constraint_table
+         ON constraint_table.oid = constraint_record.conrelid
+       WHERE constraint_record.conname = $1`,
+      ["campaign_canvases_composition_variant_check"],
+    );
+    expect(constraints).toHaveLength(1);
+    expect(constraints[0]?.definition).toContain("organic-photo-editorial");
+
+    await expect(
+      rollbackMigrations(database, { allowDataLoss: true, warn: () => undefined }),
+    ).resolves.toEqual({ rolledBack: [...MIGRATION_VERSIONS].reverse() });
   });
 
   it("enforces role, invitation, session, and audit constraints", async () => {
