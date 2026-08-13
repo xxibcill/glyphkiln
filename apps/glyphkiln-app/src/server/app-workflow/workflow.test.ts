@@ -816,7 +816,7 @@ describe("AppWorkflow", () => {
           canvasKey: "carousel-01",
           templateId: "tiktok-carousel-slide",
           format: "tiktok-photo-carousel",
-          compositionVariantId: "focal-editorial",
+          compositionVariantId: "organic-photo-editorial",
         },
       }),
       "campaign-canvas-seed",

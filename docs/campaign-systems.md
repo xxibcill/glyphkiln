@@ -18,11 +18,15 @@ version `1.1.0`. Its first family, `image-led-campaign`, records:
 - safe-area and render-evidence behavior.
 
 The family coordinates `image-led-campaign@1.0.0` across landscape, square, and
-portrait plus `tiktok-carousel-slide@1.0.3` for exact 3:4 carousel slides. The
-named direction variant, `focal-editorial`, does not add a document field or
-change either template's pixels. Distinct carousel canvas keys produce distinct
-slide seeds while retaining the direction seed. Metadata drift is tested against
-the authoritative template and treatment registries.
+portrait plus `tiktok-carousel-slide@1.0.3` for exact 3:4 carousel slides. Each
+member carries its own roles, composition variant, and safe-area policy.
+`image-led-campaign@1.0.0` uses `focal-editorial` with required image and logo
+assets; `tiktok-carousel-slide@1.0.3` uses its authoritative
+`organic-photo-editorial` typography-first contract with no asset roles. Neither
+coordination value adds a document field or changes template pixels. Distinct
+carousel canvas keys produce distinct slide seeds while retaining the direction
+seed. Metadata drift is tested against the authoritative authoring, template,
+and treatment registries.
 
 The registry is exported from both `@glyphkiln/core` and
 `@glyphkiln/core/browser`. The browser export contains static data only and
@@ -70,7 +74,7 @@ Campaign-family metadata and seed derivation have independent version labels.
 This contract slice does not change the design schema, templates, renderer,
 procedural algorithms, manifest, fingerprints, SVG, or PNG output.
 
-Content-length profiles and additional composition variants remain gated on a
+Further content-length profiles and composition variants remain gated on a
 reviewed brief requiring at least four formats and a multi-slide series. Locks,
 grouping, ordering, review state, and revision identity remain App metadata and
 must not enter Core pixel fingerprints.

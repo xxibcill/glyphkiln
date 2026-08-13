@@ -58,8 +58,12 @@ templates, or manifests.
 
 Campaign-family metadata `1.1.0` adds the existing
 `tiktok-carousel-slide@1.0.3` template and `tiktok-photo-carousel` format to the
-image-led family. Repeated carousel canvas keys remain separate seed streams.
-No template, renderer, manifest, fingerprint, SVG, or PNG behavior changes.
+image-led family. Family members carry their own semantic roles, safe-area
+guidance, and closed composition variant, so the carousel retains its
+authoritative typography-first `organic-photo-editorial` contract rather than
+inheriting image and logo requirements. Repeated carousel canvas keys remain
+separate seed streams. No template, renderer, manifest, fingerprint, SVG, or
+PNG behavior changes.
 
 Authoring metadata `1.0.0` describes every supported exact template version as
 browser-safe static data. Actionable issue metadata `1.0.0` supplies a bounded

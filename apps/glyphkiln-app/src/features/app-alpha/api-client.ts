@@ -1,7 +1,10 @@
 "use client";
 
 import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schema";
-import { canonicalJson } from "@glyphkiln/core/browser";
+import {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  canonicalJson,
+} from "@glyphkiln/core/browser";
 import { z } from "zod";
 
 import type {
@@ -160,7 +163,7 @@ const CampaignCanvasSchema = z
     revisionId: z.string().min(1),
     template: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
     format: z.string().min(1),
-    compositionVariantId: z.literal("focal-editorial"),
+    compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -177,7 +180,7 @@ const CampaignCanvasSeedSchema = z
     canvasKey: z.string().min(1),
     template: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
     format: z.string().min(1),
-    compositionVariantId: z.literal("focal-editorial"),
+    compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -921,6 +924,7 @@ export type AppAlphaApi = {
     designId: string;
     revisionId: string;
     ordinal: number;
+    compositionVariantId: CampaignCanvasSeedInput["compositionVariantId"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {
     workspaceId: string;
@@ -1265,11 +1269,7 @@ export function createAppAlphaApi(
     },
     async attachCampaignCanvas(input) {
       return parseValue(
-        await command({
-          type: "campaign.canvas.attach",
-          ...input,
-          compositionVariantId: "focal-editorial",
-        }),
+        await command({ type: "campaign.canvas.attach", ...input }),
         CampaignCanvasAttachedSchema,
         (value) => value.canvas,
       );

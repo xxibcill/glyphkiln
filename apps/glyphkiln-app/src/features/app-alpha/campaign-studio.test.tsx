@@ -436,6 +436,60 @@ describe("CampaignStudio", () => {
     expect(button("Attach revision").disabled).toBe(true);
   });
 
+  it("requests the carousel member's authoritative composition variant", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, campaignBoardFixture()));
+      }
+      if (body.type === "campaign.canvas.seed") {
+        return Promise.resolve(
+          success(200, {
+            ...campaignCanvasSeedFixture(),
+            canvasKey: "carousel-01",
+            template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+            format: "tiktok-photo-carousel",
+            compositionVariantId: "organic-photo-editorial",
+          }),
+        );
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={{
+            templateId: "tiktok-carousel-slide",
+            format: "tiktok-photo-carousel",
+            seed: "carousel-draft",
+          }}
+          canCoordinate
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    await setInput('input[name="canvasKey"]', "carousel-01");
+    await clickButton("Plan canvas seed");
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "campaign.canvas.seed",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "carousel-01",
+      templateId: "tiktok-carousel-slide",
+      format: "tiktok-photo-carousel",
+      compositionVariantId: "organic-photo-editorial",
+    });
+  });
+
   async function clickButton(label: string): Promise<void> {
     const target = button(label);
     await act(async () => {

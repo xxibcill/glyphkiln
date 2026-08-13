@@ -210,9 +210,30 @@ assert.deepEqual(
   {
     template: { id: "tiktok-carousel-slide", version: "1.0.3" },
     formats: ["tiktok-photo-carousel"],
-    compositionVariants:
-      CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0]
-        .compositionVariants,
+    compositionVariants: [
+      {
+        id: "organic-photo-editorial",
+        label: "Organic photo editorial",
+        description:
+          "A compact 3:4 typography-first organic photo-carousel slide.",
+      },
+    ],
+    contentRoles: [
+      { layerType: "badge", required: true },
+      { layerType: "eyebrow", required: false },
+      { layerType: "headline", required: true },
+      { layerType: "subtitle", required: false },
+      { layerType: "statistic", required: false },
+      { layerType: "cta", required: false },
+      { layerType: "footer", required: false },
+    ],
+    assetRoles: [],
+    safeAreaPolicy: {
+      semanticContent: "brand-snapshot",
+      fullBleedAssetLayers: [],
+      exposesRenderEvidence: true,
+      guidance: "Honor compact top, action-side, and bottom interface insets.",
+    },
   },
 );
 assert.equal(

@@ -19,6 +19,7 @@ import {
   CAMPAIGN_FAMILY_METADATA_VERSION as BROWSER_CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY as BROWSER_CAMPAIGN_FAMILY_REGISTRY,
 } from "../src/browser.js";
+import { AUTHORING_TEMPLATE_REGISTRY } from "../src/authoring/metadata.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led-campaign-contract.js";
 
 describe("campaign-family metadata", () => {
@@ -40,47 +41,65 @@ describe("campaign-family metadata", () => {
                   "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
               },
             ],
+            contentRoles: [
+              { layerType: "eyebrow", required: false },
+              { layerType: "headline", required: true },
+              { layerType: "subtitle", required: false },
+              { layerType: "cta", required: false },
+            ],
+            assetRoles: [
+              {
+                layerType: "image",
+                required: true,
+                fit: "cover",
+                supportsFocalPoint: true,
+                supportedTreatments: ["none", "dark-scrim", "light-scrim"],
+              },
+              {
+                layerType: "logo",
+                required: true,
+                fit: "contain",
+                supportsFocalPoint: false,
+                supportedTreatments: [],
+              },
+            ],
+            safeAreaPolicy: {
+              semanticContent: "brand-snapshot",
+              fullBleedAssetLayers: ["image"],
+              exposesRenderEvidence: true,
+              guidance:
+                "Logo and semantic copy stay inside the brand safe area; the focal image is full bleed.",
+            },
           },
           {
             template: { id: "tiktok-carousel-slide", version: "1.0.3" },
             formats: ["tiktok-photo-carousel"],
             compositionVariants: [
               {
-                id: "focal-editorial",
-                label: "Focal editorial",
+                id: "organic-photo-editorial",
+                label: "Organic photo editorial",
                 description:
-                  "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
+                  "A compact 3:4 typography-first organic photo-carousel slide.",
               },
             ],
+            contentRoles: [
+              { layerType: "badge", required: true },
+              { layerType: "eyebrow", required: false },
+              { layerType: "headline", required: true },
+              { layerType: "subtitle", required: false },
+              { layerType: "statistic", required: false },
+              { layerType: "cta", required: false },
+              { layerType: "footer", required: false },
+            ],
+            assetRoles: [],
+            safeAreaPolicy: {
+              semanticContent: "brand-snapshot",
+              fullBleedAssetLayers: [],
+              exposesRenderEvidence: true,
+              guidance: "Honor compact top, action-side, and bottom interface insets.",
+            },
           },
         ],
-        contentRoles: [
-          { layerType: "eyebrow", required: false },
-          { layerType: "headline", required: true },
-          { layerType: "subtitle", required: false },
-          { layerType: "cta", required: false },
-        ],
-        assetRoles: [
-          {
-            layerType: "image",
-            required: true,
-            fit: "cover",
-            supportsFocalPoint: true,
-            supportedTreatments: ["none", "dark-scrim", "light-scrim"],
-          },
-          {
-            layerType: "logo",
-            required: true,
-            fit: "contain",
-            supportsFocalPoint: false,
-            supportedTreatments: [],
-          },
-        ],
-        safeAreaPolicy: {
-          semanticContent: "brand-snapshot",
-          fullBleedAssetLayers: ["image"],
-          exposesRenderEvidence: true,
-        },
       },
     });
   });
@@ -97,16 +116,16 @@ describe("campaign-family metadata", () => {
     expect(Object.isFrozen(member)).toBe(true);
     expect(Object.isFrozen(member.formats)).toBe(true);
     expect(Object.isFrozen(member.compositionVariants)).toBe(true);
-    expect(Object.isFrozen(family.contentRoles)).toBe(true);
-    expect(Object.isFrozen(family.assetRoles)).toBe(true);
-    expect(Object.isFrozen(family.safeAreaPolicy)).toBe(true);
+    expect(Object.isFrozen(member.contentRoles)).toBe(true);
+    expect(Object.isFrozen(member.assetRoles)).toBe(true);
+    expect(Object.isFrozen(member.safeAreaPolicy)).toBe(true);
   });
 
   it("matches the authoritative template and treatment registries", () => {
     const family = CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
     const member = family.members[0];
     const template = TEMPLATE_REGISTRY[member.template.id];
-    const imageRole = family.assetRoles.find((role) => role.layerType === "image");
+    const imageRole = member.assetRoles.find((role) => role.layerType === "image");
 
     expect(template.requiredLayers).toBe(
       IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
@@ -123,7 +142,7 @@ describe("campaign-family metadata", () => {
     expect(member.compositionVariants).toBe(
       IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.compositionVariants,
     );
-    expect(family.safeAreaPolicy).toBe(
+    expect(member.safeAreaPolicy).toMatchObject(
       IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
     );
     expect(imageRole?.supportedTreatments).toEqual(IMAGE_TREATMENT_IDS);
@@ -133,7 +152,23 @@ describe("campaign-family metadata", () => {
       id: carouselTemplate.id,
       version: carouselTemplate.version,
     });
-    expect(carouselMember.formats).toBe(carouselTemplate.supportedFormats);
+    expect(carouselMember.formats).toEqual(carouselTemplate.supportedFormats);
+    const carouselAuthoring =
+      AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.3"];
+    expect(carouselMember.formats).toBe(carouselAuthoring.compatibleFormats);
+    expect(carouselMember.compositionVariants[0].id).toBe(
+      carouselAuthoring.compositionVariant.id,
+    );
+    expect(carouselMember.contentRoles).toEqual(
+      carouselAuthoring.contentRoles.map(({ layerType, required }) => ({
+        layerType,
+        required,
+      })),
+    );
+    expect(carouselMember.assetRoles).toEqual(carouselAuthoring.assetRoles);
+    expect(carouselMember.safeAreaPolicy.guidance).toBe(
+      carouselAuthoring.safeAreaGuidance,
+    );
   });
 
   it("exposes the same static catalog through the browser entry point", () => {
@@ -218,12 +253,14 @@ describe("campaign seed derivation", () => {
       canvasKey: createCampaignCanvasKey("carousel-01"),
       template: { id: "tiktok-carousel-slide", version: "1.0.3" },
       format: "tiktok-photo-carousel",
+      compositionVariantId: "organic-photo-editorial",
     });
     const secondSlide = deriveCampaignSeeds({
       ...baseInput,
       canvasKey: createCampaignCanvasKey("carousel-02"),
       template: { id: "tiktok-carousel-slide", version: "1.0.3" },
       format: "tiktok-photo-carousel",
+      compositionVariantId: "organic-photo-editorial",
     });
 
     expect(firstSlide.directionSeed).toBe(secondSlide.directionSeed);

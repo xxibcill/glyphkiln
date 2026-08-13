@@ -14,7 +14,8 @@ passing real-brief qualification record.
 
 The campaign family includes the existing deterministic 3:4 TikTok carousel
 template so qualification can exercise a fourth format and repeated slide
-canvas streams without changing renderer or template pixels.
+canvas streams without changing renderer or template pixels. Each family member
+publishes its own authoritative roles, composition variant, and safe-area policy.
 
 Campaign boards expose a bounded recent proposal-run index so stored history can
 be reopened after a browser reload, including while campaign mutations remain

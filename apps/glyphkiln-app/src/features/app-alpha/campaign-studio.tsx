@@ -28,7 +28,6 @@ const LOCKS = [
   "composition",
 ] as const;
 
-const CAMPAIGN_COMPOSITION_VARIANT = "focal-editorial" as const;
 const CANVAS_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
 
 type CampaignDraftCanvas = {
@@ -100,7 +99,7 @@ export function CampaignStudio({
       canvasKey,
       templateId: draftCanvas.templateId,
       format: draftCanvas.format,
-      compositionVariantId: CAMPAIGN_COMPOSITION_VARIANT,
+      compositionVariantId: campaignCompositionVariant(draftCanvas.templateId),
     };
   }, [board, canvasDirectionId, canvasKey, draftCanvas, workspaceId]);
   const currentCanvasSeedPlan =
@@ -261,6 +260,7 @@ export function CampaignStudio({
       designId: openRevision.designId,
       revisionId: openRevision.revisionId,
       ordinal: Number(requiredFormText(form, "canvasOrdinal")),
+      compositionVariantId: currentCanvasSeedPlan.scope.compositionVariantId,
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);
@@ -908,6 +908,14 @@ export function CampaignStudio({
       </p>
     </section>
   );
+}
+
+function campaignCompositionVariant(
+  templateId: CampaignCanvasSeedInput["templateId"],
+): CampaignCanvasSeedInput["compositionVariantId"] {
+  return templateId === "tiktok-carousel-slide"
+    ? "organic-photo-editorial"
+    : "focal-editorial";
 }
 
 function findCanvas(
