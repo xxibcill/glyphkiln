@@ -2246,15 +2246,17 @@ class AppWorkflowImplementation implements AppWorkflow {
   ): Promise<CampaignHandoffProjection> {
     const board = await state.readCampaignBoard(query.workspaceId, query.campaignId);
     if (board === undefined) throw resourceNotFound();
-    if (!board.directions.some((direction) => direction.canvases.length > 0)) {
+    const direction = board.directions.find(
+      (candidate) => candidate.id === query.directionId,
+    );
+    if (direction === undefined) throw resourceNotFound();
+    const baselineCanvas = direction.canvases.at(0);
+    if (baselineCanvas === undefined) {
       throw invalidCampaignCanvas(
         "Attach at least one exact saved revision before building a campaign handoff.",
       );
     }
-    const handoffCanvasCount = board.directions.reduce(
-      (count, direction) => count + direction.canvases.length,
-      0,
-    );
+    const handoffCanvasCount = direction.canvases.length;
     if (handoffCanvasCount > MAXIMUM_CAMPAIGN_HANDOFF_CANVASES) {
       throw invalidCampaignCanvas(
         `A verified handoff is limited to ${MAXIMUM_CAMPAIGN_HANDOFF_CANVASES.toString()} exact canvases.`,
@@ -2266,137 +2268,134 @@ class AppWorkflowImplementation implements AppWorkflow {
     const campaignPrefix = `${slugBase(board.campaign.name)}-${board.campaign.id
       .replaceAll(/[^a-zA-Z0-9_-]/g, "-")
       .slice(0, 24)}`;
-    for (const direction of board.directions) {
-      const baselineCanvas = direction.canvases.at(0);
-      if (baselineCanvas === undefined) continue;
-      for (const canvas of direction.canvases) {
-        const revision = await this.#loadTrustedRevision(
-          state,
+    const baselineRevision = await this.#loadTrustedRevision(
+      state,
+      query.workspaceId,
+      baselineCanvas.designId,
+      baselineCanvas.revisionId,
+    );
+    for (const canvas of direction.canvases) {
+      const revision = await this.#loadTrustedRevision(
+        state,
+        query.workspaceId,
+        canvas.designId,
+        canvas.revisionId,
+      );
+      requireAuthoringLocks(
+        baselineRevision.document,
+        revision.document,
+        direction.locks,
+      );
+      const review = await state.readRevisionReview({
+        workspaceId: query.workspaceId,
+        designId: canvas.designId,
+        revisionId: canvas.revisionId,
+      });
+      let manifestCreationTimestamp = new Date(board.campaign.createdAt);
+      if (review?.approval !== undefined && this.#renderQueue !== undefined) {
+        const approvedJob = await this.#renderQueue.inspect(
           query.workspaceId,
-          canvas.designId,
-          canvas.revisionId,
+          review.approval.renderJobId,
         );
-        requireAuthoringLocks(
-          (
-            await this.#loadTrustedRevision(
-              state,
-              query.workspaceId,
-              baselineCanvas.designId,
-              baselineCanvas.revisionId,
-            )
-          ).document,
-          revision.document,
-          direction.locks,
-        );
-        const review = await state.readRevisionReview({
-          workspaceId: query.workspaceId,
-          designId: canvas.designId,
-          revisionId: canvas.revisionId,
-        });
-        let manifestCreationTimestamp = new Date(board.campaign.createdAt);
-        if (review?.approval !== undefined && this.#renderQueue !== undefined) {
-          const approvedJob = await this.#renderQueue.inspect(
-            query.workspaceId,
-            review.approval.renderJobId,
-          );
-          if (
-            approvedJob?.state === "completed" &&
-            approvedJob.designId === canvas.designId &&
-            approvedJob.revisionId === canvas.revisionId
-          ) {
-            manifestCreationTimestamp = approvedJob.manifestCreationTimestamp;
-          }
+        if (
+          approvedJob?.state === "completed" &&
+          approvedJob.designId === canvas.designId &&
+          approvedJob.revisionId === canvas.revisionId
+        ) {
+          manifestCreationTimestamp = approvedJob.manifestCreationTimestamp;
         }
-        const proof = await this.#renderDocument(
-          query.workspaceId,
+      }
+      const proof = await this.#renderDocument(
+        query.workspaceId,
+        revision.document,
+        manifestCreationTimestamp,
+      );
+      const resourcePins = revision.resourceReferences.map((reference) => ({
+        resourceId: reference.resourceId,
+        resourceKind: reference.resourceKind,
+        ordinal: reference.ordinal,
+        contentHash: reference.contentHash,
+      }));
+      const approvalStatus =
+        review?.approval !== undefined &&
+        handoffProofMatchesApproval({
+          approval: review.approval,
+          revisionCanonicalHash: revision.canonicalHash,
+          resourcePins,
+          outputs: proof.outputs,
+        })
+          ? "approved"
+          : "unapproved";
+      if (approvalStatus === "approved") approvedCanvasCount += 1;
+      else unapprovedCanvasCount += 1;
+      const canvasPrefix = campaignHandoffCanvasPrefix({
+        campaignPrefix,
+        directionKey: direction.directionKey,
+        canvasOrdinal: canvas.ordinal,
+        canvasKey: canvas.canvasKey,
+      });
+      addCampaignHandoffFiles(
+        archive,
+        handoffJsonFile(
+          `${canvasPrefix}.design.json`,
           revision.document,
-          manifestCreationTimestamp,
-        );
-        const resourcePins = revision.resourceReferences.map((reference) => ({
-          resourceId: reference.resourceId,
-          resourceKind: reference.resourceKind,
-          ordinal: reference.ordinal,
-          contentHash: reference.contentHash,
-        }));
-        const approvalStatus =
-          review?.approval !== undefined &&
-          handoffProofMatchesApproval({
-            approval: review.approval,
-            revisionCanonicalHash: revision.canonicalHash,
+          approvalStatus,
+        ),
+        handoffJsonFile(
+          `${canvasPrefix}.resources.json`,
+          {
+            revisionId: revision.revisionId,
+            documentHash: revision.canonicalHash,
             resourcePins,
-            outputs: proof.outputs,
-          })
-            ? "approved"
-            : "unapproved";
-        if (approvalStatus === "approved") approvedCanvasCount += 1;
-        else unapprovedCanvasCount += 1;
-        const canvasPrefix = campaignHandoffCanvasPrefix({
-          campaignPrefix,
-          directionKey: direction.directionKey,
-          canvasOrdinal: canvas.ordinal,
-          canvasKey: canvas.canvasKey,
-        });
+          },
+          approvalStatus,
+        ),
+        handoffJsonFile(
+          `${canvasPrefix}.approval.json`,
+          review?.approval === undefined
+            ? {
+                status: "unapproved",
+                reviewState: review?.state ?? "not-submitted",
+                revisionId: revision.revisionId,
+              }
+            : approvalStatus === "approved"
+              ? { status: "approved", receipt: review.approval }
+              : {
+                  status: "unapproved",
+                  reason: "included-proofs-do-not-match-approval-receipt",
+                  receipt: review.approval,
+                },
+          approvalStatus,
+        ),
+      );
+      for (const output of proof.outputs) {
+        const bytes = Buffer.from(output.base64, "base64");
         addCampaignHandoffFiles(
           archive,
-          handoffJsonFile(
-            `${canvasPrefix}.design.json`,
-            revision.document,
+          handoffBinaryFile(
+            `${canvasPrefix}.${output.format}`,
+            output.mimeType,
+            bytes,
             approvalStatus,
           ),
           handoffJsonFile(
-            `${canvasPrefix}.resources.json`,
-            {
-              revisionId: revision.revisionId,
-              documentHash: revision.canonicalHash,
-              resourcePins,
-            },
-            approvalStatus,
-          ),
-          handoffJsonFile(
-            `${canvasPrefix}.approval.json`,
-            review?.approval === undefined
-              ? {
-                  status: "unapproved",
-                  reviewState: review?.state ?? "not-submitted",
-                  revisionId: revision.revisionId,
-                }
-              : approvalStatus === "approved"
-                ? { status: "approved", receipt: review.approval }
-                : {
-                    status: "unapproved",
-                    reason: "included-proofs-do-not-match-approval-receipt",
-                    receipt: review.approval,
-                  },
+            `${canvasPrefix}.${output.format}.manifest.json`,
+            output.manifest,
             approvalStatus,
           ),
         );
-        for (const output of proof.outputs) {
-          const bytes = Buffer.from(output.base64, "base64");
-          addCampaignHandoffFiles(
-            archive,
-            handoffBinaryFile(
-              `${canvasPrefix}.${output.format}`,
-              output.mimeType,
-              bytes,
-              approvalStatus,
-            ),
-            handoffJsonFile(
-              `${canvasPrefix}.${output.format}.manifest.json`,
-              output.manifest,
-              approvalStatus,
-            ),
-          );
-        }
       }
     }
     const { files, bytes: archiveBytes } = encodeCampaignHandoffArchive(archive, {
       campaign: board.campaign,
+      directionId: direction.id,
       summary: { approvedCanvasCount, unapprovedCanvasCount },
     });
     return {
       kind: "campaign-handoff",
       campaignId: board.campaign.id,
-      filename: `${campaignPrefix}.gk-handoff.json`,
+      directionId: direction.id,
+      filename: `${campaignPrefix}-${slugBase(direction.directionKey)}.gk-handoff.json`,
       mediaType: "application/vnd.glyphkiln.campaign-handoff+json",
       byteSize: archiveBytes.byteLength,
       sha256: sha256(archiveBytes),

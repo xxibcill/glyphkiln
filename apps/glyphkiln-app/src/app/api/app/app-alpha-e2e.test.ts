@@ -279,6 +279,7 @@ describe("App Alpha manual HTTP workflow", () => {
         type: "campaign.handoff",
         workspaceId,
         campaignId: campaign.id,
+        directionId: direction.id,
       },
       422,
       "INVALID_CAMPAIGN_CANVAS",

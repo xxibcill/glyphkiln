@@ -598,6 +598,7 @@ const CampaignHandoffSchema = z
   .object({
     kind: z.literal("campaign-handoff"),
     campaignId: z.string().min(1),
+    directionId: z.string().min(1),
     filename: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,199}$/),
     mediaType: z.literal("application/vnd.glyphkiln.campaign-handoff+json"),
     byteSize: z.number().int().positive().max(MAXIMUM_CAMPAIGN_HANDOFF_BYTES),
@@ -627,6 +628,7 @@ const CampaignHandoffArchiveSchema = z
   .object({
     version: z.literal("1.0.0"),
     campaign: CampaignSummarySchema,
+    directionId: z.string().min(1),
     files: z.array(CampaignHandoffFileSchema).max(512),
     summary: z
       .object({
@@ -952,10 +954,11 @@ export type AppAlphaApi = {
     candidateId: string;
     reason?: string;
   }) => Promise<ApiResult<CampaignProposalDecision>>;
-  campaignHandoff: (
-    workspaceId: string,
-    campaignId: string,
-  ) => Promise<ApiResult<CampaignHandoff>>;
+  campaignHandoff: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+  }) => Promise<ApiResult<CampaignHandoff>>;
   compareRevisions: (input: {
     workspaceId: string;
     leftDesignId: string;
@@ -1302,10 +1305,10 @@ export function createAppAlphaApi(
         (value) => value.decision,
       );
     },
-    async campaignHandoff(workspaceId, campaignId) {
+    async campaignHandoff(input) {
       return parseCampaignHandoff(
-        await query({ type: "campaign.handoff", workspaceId, campaignId }),
-        campaignId,
+        await query({ type: "campaign.handoff", ...input }),
+        input,
       );
     },
     async compareRevisions(input) {
@@ -1407,7 +1410,7 @@ async function parseProposalRun<Schema extends z.ZodType>(
 
 async function parseCampaignHandoff(
   result: RawResult,
-  expectedCampaignId: string,
+  expected: { campaignId: string; directionId: string },
 ): Promise<ApiResult<CampaignHandoff>> {
   const parsed = parseValue(result, CampaignHandoffSchema, (value) => value);
   if (!parsed.ok) return parsed;
@@ -1415,7 +1418,8 @@ async function parseCampaignHandoff(
   const bytes = decodeBase64(value.base64, value.byteSize);
   if (
     bytes === undefined ||
-    value.campaignId !== expectedCampaignId ||
+    value.campaignId !== expected.campaignId ||
+    value.directionId !== expected.directionId ||
     value.approvedCanvasCount + value.unapprovedCanvasCount > 64 ||
     (await sha256Bytes(bytes)) !== value.sha256
   ) {
@@ -1433,7 +1437,8 @@ async function parseCampaignHandoff(
     : [];
   if (
     !archive.success ||
-    archive.data.campaign.id !== expectedCampaignId ||
+    archive.data.campaign.id !== expected.campaignId ||
+    archive.data.directionId !== expected.directionId ||
     archive.data.files.length !== value.fileCount ||
     archive.data.summary.approvedCanvasCount !== value.approvedCanvasCount ||
     archive.data.summary.unapprovedCanvasCount !== value.unapprovedCanvasCount ||
@@ -1458,6 +1463,7 @@ async function parseCampaignHandoff(
     value: {
       kind: value.kind,
       campaignId: value.campaignId,
+      directionId: value.directionId,
       filename: value.filename,
       mediaType: value.mediaType,
       byteSize: value.byteSize,

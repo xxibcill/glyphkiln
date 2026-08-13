@@ -25,19 +25,23 @@ export function CampaignCommandRail({
   campaigns,
   selectedCampaignId,
   board,
+  handoffDirectionId,
   canCoordinate,
   isBusy,
   onCreateCampaign,
   onSelectCampaign,
+  onHandoffDirectionChange,
   onDownloadHandoff,
 }: {
   campaigns: CampaignSummary[];
   selectedCampaignId?: string;
   board?: CampaignBoard;
+  handoffDirectionId: string;
   canCoordinate: boolean;
   isBusy: boolean;
   onCreateCampaign: (event: SyntheticEvent<HTMLFormElement>) => void;
   onSelectCampaign: (campaignId: string) => void;
+  onHandoffDirectionChange: (directionId: string) => void;
   onDownloadHandoff: () => void;
 }) {
   return (
@@ -84,10 +88,28 @@ export function CampaignCommandRail({
         ) : (
           <>
             <blockquote>{board.campaign.brief}</blockquote>
+            <label htmlFor="campaign-handoff-direction">Production direction</label>
+            <select
+              id="campaign-handoff-direction"
+              value={handoffDirectionId}
+              disabled={board.directions.length === 0 || isBusy}
+              onChange={(event) => {
+                onHandoffDirectionChange(event.currentTarget.value);
+              }}
+            >
+              {board.directions.length === 0 ? (
+                <option value="">No direction yet</option>
+              ) : null}
+              {board.directions.map((direction) => (
+                <option key={direction.id} value={direction.id}>
+                  {direction.name}
+                </option>
+              ))}
+            </select>
             <button
               className="quiet-action"
               type="button"
-              disabled={isBusy}
+              disabled={isBusy || handoffDirectionId === ""}
               onClick={onDownloadHandoff}
             >
               Build verified handoff

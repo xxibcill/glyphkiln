@@ -67,6 +67,7 @@ export function CampaignStudio({
   const [comparison, setComparison] = useState<RevisionComparison>();
   const [leftCanvasId, setLeftCanvasId] = useState("");
   const [rightCanvasId, setRightCanvasId] = useState("");
+  const [handoffDirectionId, setHandoffDirectionId] = useState("");
   const [canvasDirectionId, setCanvasDirectionId] = useState("");
   const [canvasKey, setCanvasKey] = useState("");
   const [canvasSeedPlan, setCanvasSeedPlan] = useState<CampaignCanvasSeedPlan>();
@@ -163,6 +164,9 @@ export function CampaignStudio({
 
   function synchronizeBoardSelections(nextBoard: CampaignBoard): void {
     const directionIds = nextBoard.directions.map((direction) => direction.id);
+    setHandoffDirectionId((current) =>
+      directionIds.includes(current) ? current : (directionIds.at(0) ?? ""),
+    );
     setCanvasDirectionId((current) =>
       directionIds.includes(current) ? current : (directionIds.at(0) ?? ""),
     );
@@ -424,10 +428,16 @@ export function CampaignStudio({
   }
 
   async function downloadHandoff(): Promise<void> {
-    if (board === undefined || busy !== undefined) return;
+    if (board === undefined || handoffDirectionId === "" || busy !== undefined) {
+      return;
+    }
     setBusy("handoff");
     setFailure(undefined);
-    const result = await api.campaignHandoff(workspaceId, board.campaign.id);
+    const result = await api.campaignHandoff({
+      workspaceId,
+      campaignId: board.campaign.id,
+      directionId: handoffDirectionId,
+    });
     if (result.ok) {
       downloadBytes(result.value.bytes, result.value.mediaType, result.value.filename);
       setMessage(
@@ -461,6 +471,7 @@ export function CampaignStudio({
         campaigns={campaigns}
         selectedCampaignId={selectedCampaignId}
         board={board}
+        handoffDirectionId={handoffDirectionId}
         canCoordinate={canCoordinate}
         isBusy={isBusy}
         onCreateCampaign={(event) => void createCampaign(event)}
@@ -469,6 +480,7 @@ export function CampaignStudio({
           setCanvasSeedPlan(undefined);
           void loadBoard(campaignId);
         }}
+        onHandoffDirectionChange={setHandoffDirectionId}
         onDownloadHandoff={() => void downloadHandoff()}
       />
 

@@ -14,6 +14,7 @@ describe("CampaignHandoffArchive", () => {
 
     const encoded = archive.encode({
       campaign: { id: "campaign-1" },
+      directionId: "direction-1",
       summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 2 },
     });
 
@@ -21,7 +22,9 @@ describe("CampaignHandoffArchive", () => {
       "a-first.json",
       "z-last.json",
     ]);
-    expect(new TextDecoder().decode(encoded.bytes)).toContain('"version":"1.0.0"');
+    expect(new TextDecoder().decode(encoded.bytes)).toContain(
+      '"directionId":"direction-1"',
+    );
   });
 
   it("rejects an aggregate that exceeds the byte budget without partial addition", () => {
@@ -35,6 +38,7 @@ describe("CampaignHandoffArchive", () => {
     }).toThrow(CampaignHandoffArchiveLimitError);
     const encoded = archive.encode({
       campaign: {},
+      directionId: "direction-1",
       summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 0 },
     });
     expect(encoded.files).toEqual([]);
@@ -46,6 +50,7 @@ describe("CampaignHandoffArchive", () => {
     expect(() =>
       archive.encode({
         campaign: { name: "x".repeat(128) },
+        directionId: "direction-1",
         summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 0 },
       }),
     ).toThrow(CampaignHandoffArchiveLimitError);

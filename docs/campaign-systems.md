@@ -111,8 +111,10 @@ continue to constrain ordinary preview, revise, render, comparison, and export
 paths while the product gate is closed. Optional AI approval cannot bypass this
 campaign gate.
 
-`campaign.handoff` creates a canonical JSON archive with stable sorted paths.
-Each canvas contributes its exact design document, immutable resource pins,
+`campaign.handoff` requires one explicit campaign direction and creates a
+canonical JSON archive with stable sorted paths for only that direction. The
+direction identifier is bound into both the response receipt and archive. Each
+selected canvas contributes its exact design document, immutable resource pins,
 SVG and PNG bytes, both render manifests, and an approval record. The record is
 an exact approval receipt only when the included artifact hashes, manifest
 hashes, fingerprints, revision hash, and resource pins match that receipt. A

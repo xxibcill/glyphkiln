@@ -67,6 +67,7 @@ describe("POST /api/app/queries", () => {
         type: "campaign.handoff",
         workspaceId: "workspace-id",
         campaignId: "campaign-id",
+        directionId: "direction-id",
       },
       {
         type: "revision.compare",
@@ -90,6 +91,16 @@ describe("POST /api/app/queries", () => {
       getWorkflow: () => Promise.resolve(workflowWith(read)),
       environment: { NODE_ENV: "test" },
     });
+
+    const incompleteHandoff = await route(
+      request({
+        type: "campaign.handoff",
+        workspaceId: "workspace-id",
+        campaignId: "campaign-id",
+      }),
+    );
+    expect(incompleteHandoff.status).toBe(422);
+    expect(read).not.toHaveBeenCalled();
 
     for (const query of queries) {
       const response = await route(

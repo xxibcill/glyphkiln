@@ -406,6 +406,7 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       type: z.literal("campaign.handoff"),
       workspaceId: identifier,
       campaignId: identifier,
+      directionId: identifier,
     })
     .strict(),
   z

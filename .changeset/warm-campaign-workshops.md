@@ -6,7 +6,8 @@
 Add the manual campaign option board, immutable direction branching and locks,
 bounded proposal-only AI workflow, exact revision comparison and approval
 station, and deterministic campaign handoff bundles with proof and approval
-evidence.
+evidence. Handoff requests bind one explicit selected direction into the query,
+response receipt, and canonical archive so alternatives cannot enter the bundle.
 
 The campaign surface is dark-launched by default and requires the explicit
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` operator assertion after a

@@ -721,7 +721,12 @@ describe("AppWorkflow", () => {
     expectFailure(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
-        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
       }),
       503,
       "CAMPAIGN_WORKFLOW_DISABLED",
@@ -995,6 +1000,48 @@ describe("AppWorkflow", () => {
       locks: ["copy", "image", "palette"],
       canvases: [],
     });
+    const branchedCanvasSeeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(branched.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-square"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "instagram-square",
+      compositionVariantId: "focal-editorial",
+    });
+    const branchedRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Alternative campaign hero",
+          brandSnapshotId: brand.snapshotId,
+          draft: {
+            ...imageLedCampaignDraft(branchedCanvasSeeds.canvasSeed),
+            format: "instagram-square",
+          },
+        },
+      }),
+      "design-saved",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square",
+          designId: branchedRevision.designId,
+          revisionId: branchedRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
 
     const copyViolation = imageLedCampaignDraft(seedAdvice.canvasSeed);
     const lockedHeadline = copyViolation.layers.find(
@@ -1321,27 +1368,60 @@ describe("AppWorkflow", () => {
     const handoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
-        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
       }),
       "campaign-handoff",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: "missing-direction",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
     );
     const repeatedHandoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
-        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
       }),
       "campaign-handoff",
     );
     expect(repeatedHandoff).toMatchObject({
       sha256: handoff.sha256,
       base64: handoff.base64,
+      directionId: direction.id,
       fileCount: 7,
       approvedCanvasCount: 0,
       unapprovedCanvasCount: 1,
     });
     const handoffArchive = parseTestJson(
       Buffer.from(handoff.base64, "base64").toString("utf8"),
-    ) as { files: { path: string; approvalStatus: string }[] };
+    ) as {
+      directionId: string;
+      files: { path: string; approvalStatus: string }[];
+    };
+    expect(handoffArchive.directionId).toBe(direction.id);
+    expect(
+      handoffArchive.files.every((file) =>
+        file.path.includes(`/direction-${direction.directionKey}/`),
+      ),
+    ).toBe(true);
     expect(handoffArchive.files.map((file) => file.path)).toEqual(
       [...handoffArchive.files]
         .map((file) => file.path)
@@ -1407,7 +1487,12 @@ describe("AppWorkflow", () => {
     const mismatchedApprovalHandoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
-        query: { type: "campaign.handoff", workspaceId, campaignId: campaign.id },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
       }),
       "campaign-handoff",
     );
@@ -1532,6 +1617,7 @@ describe("AppWorkflow", () => {
           type: "campaign.handoff",
           workspaceId,
           campaignId: approvedCampaign.id,
+          directionId: approvedDirection.id,
         },
       }),
       "campaign-handoff",

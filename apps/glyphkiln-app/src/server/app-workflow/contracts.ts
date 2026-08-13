@@ -238,6 +238,7 @@ export type AppQuery =
       type: "campaign.handoff";
       workspaceId: string;
       campaignId: string;
+      directionId: string;
     }
   | {
       type: "revision.compare";
@@ -719,6 +720,7 @@ export type RevisionComparisonProjection = {
 export type CampaignHandoffProjection = {
   kind: "campaign-handoff";
   campaignId: string;
+  directionId: string;
   filename: string;
   mediaType: "application/vnd.glyphkiln.campaign-handoff+json";
   byteSize: number;

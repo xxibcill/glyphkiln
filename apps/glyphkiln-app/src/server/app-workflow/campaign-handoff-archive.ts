@@ -68,6 +68,7 @@ export class CampaignHandoffArchive {
 
   encode(input: {
     readonly campaign: unknown;
+    readonly directionId: string;
     readonly summary: CampaignHandoffSummary;
   }): { readonly files: CampaignHandoffFile[]; readonly bytes: Uint8Array } {
     const files = [...this.#files].sort((left, right) =>
@@ -77,6 +78,7 @@ export class CampaignHandoffArchive {
       `${canonicalJson({
         version: "1.0.0",
         campaign: input.campaign,
+        directionId: input.directionId,
         files,
         summary: input.summary,
       })}\n`,

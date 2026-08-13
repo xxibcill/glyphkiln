@@ -433,7 +433,11 @@ describe("App Alpha API client", () => {
         ],
       },
     });
-    const handoffResult = await api.campaignHandoff("workspace-1", "campaign-1");
+    const handoffResult = await api.campaignHandoff({
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+    });
     expect(handoffResult).toMatchObject({
       ok: true,
       value: {
@@ -455,6 +459,7 @@ describe("App Alpha API client", () => {
       type: "campaign.handoff",
       workspaceId: "workspace-1",
       campaignId: "campaign-1",
+      directionId: "direction-1",
     });
   });
 
@@ -543,6 +548,7 @@ describe("App Alpha API client", () => {
 
   it.each([
     ["campaign", { campaignId: "campaign-other" }],
+    ["direction", { directionId: "direction-other" }],
     ["byte size", { byteSize: 1 }],
     ["archive hash", { sha256: "f".repeat(64) }],
     ["file count", { fileCount: 2 }],
@@ -562,7 +568,11 @@ describe("App Alpha API client", () => {
     );
 
     await expect(
-      createAppAlphaApi(fetchMock).campaignHandoff("workspace-1", "campaign-1"),
+      createAppAlphaApi(fetchMock).campaignHandoff({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+      }),
     ).resolves.toMatchObject({
       ok: false,
       status: 502,
@@ -624,6 +634,7 @@ describe("App Alpha API client", () => {
 function campaignHandoffFixture(
   overrides: Partial<{
     campaignId: string;
+    directionId: string;
     byteSize: number;
     sha256: string;
     fileCount: number;
@@ -650,6 +661,7 @@ function campaignHandoffFixture(
         createdAt: "2026-08-12T01:00:00.000Z",
         updatedAt: "2026-08-12T01:00:00.000Z",
       },
+      directionId: "direction-1",
       files: [file],
       summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 1 },
     })}\n`,
@@ -657,7 +669,8 @@ function campaignHandoffFixture(
   return {
     kind: "campaign-handoff" as const,
     campaignId: "campaign-1",
-    filename: "campaign-1.gk-handoff.json",
+    directionId: "direction-1",
+    filename: "campaign-1-direction-1.gk-handoff.json",
     mediaType: "application/vnd.glyphkiln.campaign-handoff+json" as const,
     byteSize: archiveBytes.byteLength,
     sha256: sha256(archiveBytes),

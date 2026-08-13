@@ -140,6 +140,56 @@ describe("CampaignStudio", () => {
     expect(onOpenDesign).toHaveBeenCalledWith("design-1", "revision-1");
   });
 
+  it("requests a handoff for one explicitly selected direction", async () => {
+    const board = campaignBoardFixture();
+    const alternative = structuredClone(board.directions[0]);
+    alternative.id = "direction-2";
+    alternative.directionKey = "editorial-b";
+    alternative.name = "Editorial B";
+    alternative.canvases[0] = {
+      ...alternative.canvases[0],
+      id: "canvas-2",
+      canvasKey: "hero-square",
+      format: "instagram-square",
+    };
+    board.directions.push(alternative);
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, board));
+      }
+      if (body.type === "campaign.handoff") {
+        return Promise.resolve(success(200, {}));
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas()}
+          canCoordinate
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    await setSelect("#campaign-handoff-direction", "direction-2");
+    await clickButton("Build verified handoff");
+    expect(requestBodies(fetchMock)).toContainEqual({
+      type: "campaign.handoff",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-2",
+    });
+  });
+
   it("recovers bounded proposal history while campaign mutations are disabled", async () => {
     const board = campaignBoardFixture();
     const direction = board.directions[0];
