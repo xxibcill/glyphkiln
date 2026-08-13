@@ -263,13 +263,18 @@ The application APIs are same-origin, cookie-authenticated interfaces under
 workspace authorization. The legacy caller-authored `/api/preview` endpoint is
 retired and returns `410 Gone`.
 
-Campaign and review foundations use the same command/query boundary. Campaign
-canvases refer to exact immutable design revisions and Core-derived seeds.
-Review comments and state transitions are revision-bound; approval is restricted
-to owner/admin capability and snapshots the exact revision hash, resource pins,
-and completed-render output hashes/fingerprints. The current browser workshop
-does not yet expose option boards, visual revision comparison, or campaign
-handoff bundles.
+Campaign Studio uses the same command/query boundary to create and reopen option
+boards, prepare Core-derived canvas seeds, branch locked directions, attach exact
+immutable revisions, compare verified proofs, reopen bounded proposal history,
+and download deterministic campaign handoff bundles. Campaign mutations and
+handoffs remain hidden unless the operator enables the product-qualified
+campaign gate.
+
+The Revision Review Station submits or resubmits an exact revision, compares it
+with its immutable parent, records revision-bound comments and change requests,
+and exposes approval only to owner/admin capability with a matching completed
+render. Approval receipts snapshot the exact revision hash, resource pins, and
+output hashes and fingerprints.
 
 ## Production build
 
