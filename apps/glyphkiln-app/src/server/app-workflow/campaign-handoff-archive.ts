@@ -13,6 +13,19 @@ export type CampaignHandoffFile = {
   approvalStatus: "approved" | "unapproved";
 };
 
+export function campaignHandoffCanvasPrefix(input: {
+  campaignPrefix: string;
+  directionKey: string;
+  canvasOrdinal: number;
+  canvasKey: string;
+}): string {
+  return [
+    input.campaignPrefix,
+    `direction-${input.directionKey}`,
+    `${input.canvasOrdinal.toString().padStart(3, "0")}-${input.canvasKey}`,
+  ].join("/");
+}
+
 type CampaignHandoffSummary = {
   readonly approvedCanvasCount: number;
   readonly unapprovedCanvasCount: number;

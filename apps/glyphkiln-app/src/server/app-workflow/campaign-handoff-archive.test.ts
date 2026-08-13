@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CampaignHandoffArchive,
   CampaignHandoffArchiveLimitError,
+  campaignHandoffCanvasPrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
 
@@ -49,7 +50,53 @@ describe("CampaignHandoffArchive", () => {
       }),
     ).toThrow(CampaignHandoffArchiveLimitError);
   });
+
+  it("keeps existing canvas paths stable when the board grows before them", () => {
+    const initialBoard = [
+      {
+        directionKey: "editorial-b",
+        canvases: [{ canvasKey: "hero", ordinal: 10 }],
+      },
+    ];
+    const grownBoard = [
+      {
+        directionKey: "editorial-a",
+        canvases: [{ canvasKey: "cover", ordinal: 0 }],
+      },
+      {
+        directionKey: "editorial-b",
+        canvases: [
+          { canvasKey: "detail", ordinal: 2 },
+          { canvasKey: "hero", ordinal: 10 },
+        ],
+      },
+    ];
+
+    const initialPaths = canvasPaths(initialBoard);
+    const grownPaths = canvasPaths(grownBoard);
+
+    expect(initialPaths).toEqual(["first-firing/direction-editorial-b/010-hero"]);
+    expect(grownPaths).toEqual(expect.arrayContaining(initialPaths));
+  });
 });
+
+function canvasPaths(
+  directions: readonly {
+    directionKey: string;
+    canvases: readonly { canvasKey: string; ordinal: number }[];
+  }[],
+): string[] {
+  return directions.flatMap((direction) =>
+    direction.canvases.map((canvas) =>
+      campaignHandoffCanvasPrefix({
+        campaignPrefix: "first-firing",
+        directionKey: direction.directionKey,
+        canvasOrdinal: canvas.ordinal,
+        canvasKey: canvas.canvasKey,
+      }),
+    ),
+  );
+}
 
 function file(path: string, base64: string): CampaignHandoffFile {
   return {

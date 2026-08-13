@@ -131,6 +131,7 @@ import {
   CampaignHandoffArchive,
   CampaignHandoffArchiveLimitError,
   MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES,
+  campaignHandoffCanvasPrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
 
@@ -2265,10 +2266,10 @@ class AppWorkflowImplementation implements AppWorkflow {
     const campaignPrefix = `${slugBase(board.campaign.name)}-${board.campaign.id
       .replaceAll(/[^a-zA-Z0-9_-]/g, "-")
       .slice(0, 24)}`;
-    for (const [directionIndex, direction] of board.directions.entries()) {
+    for (const direction of board.directions) {
       const baselineCanvas = direction.canvases.at(0);
       if (baselineCanvas === undefined) continue;
-      for (const [canvasIndex, canvas] of direction.canvases.entries()) {
+      for (const canvas of direction.canvases) {
         const revision = await this.#loadTrustedRevision(
           state,
           query.workspaceId,
@@ -2329,11 +2330,12 @@ class AppWorkflowImplementation implements AppWorkflow {
             : "unapproved";
         if (approvalStatus === "approved") approvedCanvasCount += 1;
         else unapprovedCanvasCount += 1;
-        const canvasPrefix = [
+        const canvasPrefix = campaignHandoffCanvasPrefix({
           campaignPrefix,
-          `${directionIndex.toString().padStart(2, "0")}-${direction.directionKey}`,
-          `${canvasIndex.toString().padStart(3, "0")}-${canvas.canvasKey}`,
-        ].join("/");
+          directionKey: direction.directionKey,
+          canvasOrdinal: canvas.ordinal,
+          canvasKey: canvas.canvasKey,
+        });
         addCampaignHandoffFiles(
           archive,
           handoffJsonFile(
