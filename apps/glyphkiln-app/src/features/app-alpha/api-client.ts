@@ -1564,47 +1564,47 @@ async function parseRevisionComparison(
   if (previewCatalog === undefined) return malformedResponse();
   const parsed = RevisionComparisonSchema.safeParse(result.value);
   if (!parsed.success) return malformedResponse();
-  const left = parsePreviewResponse(
-    {
-      ok: true,
-      document: parsed.data.left.revision.document,
-      qualityIssues: parsed.data.left.qualityIssues,
-      evidence: parsed.data.left.evidence,
-      outputs: parsed.data.left.outputs,
-    },
-    200,
-  );
-  const right = parsePreviewResponse(
-    {
-      ok: true,
-      document: parsed.data.right.revision.document,
-      qualityIssues: parsed.data.right.qualityIssues,
-      evidence: parsed.data.right.evidence,
-      outputs: parsed.data.right.outputs,
-    },
-    200,
-  );
-  if (!left.ok || !right.ok) return malformedResponse();
-  if (
-    !previewMatchesRevisionHash(left, parsed.data.left.revision.documentHash) ||
-    !previewMatchesRevisionHash(right, parsed.data.right.revision.documentHash)
-  ) {
-    return malformedResponse();
-  }
-  const [leftIntegrity, rightIntegrity] = await Promise.all([
-    verifyPreviewIntegrity(left, previewCatalog, parsed.data.left.revision.document),
-    verifyPreviewIntegrity(right, previewCatalog, parsed.data.right.revision.document),
+  const [left, right] = await Promise.all([
+    parseRevisionComparisonSide(parsed.data.left, previewCatalog),
+    parseRevisionComparisonSide(parsed.data.right, previewCatalog),
   ]);
-  if (leftIntegrity !== null || rightIntegrity !== null) {
-    return previewIntegrityFailure(leftIntegrity ?? rightIntegrity);
-  }
+  if (!left.ok) return left;
+  if (!right.ok) return right;
   return {
     ok: true,
     value: {
-      left: { revision: parsed.data.left.revision, proof: left },
-      right: { revision: parsed.data.right.revision, proof: right },
+      left: left.value,
+      right: right.value,
     },
   };
+}
+
+async function parseRevisionComparisonSide(
+  side: z.infer<typeof RevisionComparisonSchema>["left"],
+  previewCatalog: PreviewCatalog,
+): Promise<ApiResult<RevisionComparison["left"]>> {
+  const proof = parsePreviewResponse(
+    {
+      ok: true,
+      document: side.revision.document,
+      qualityIssues: side.qualityIssues,
+      evidence: side.evidence,
+      outputs: side.outputs,
+    },
+    200,
+  );
+  if (!proof.ok || !previewMatchesRevisionHash(proof, side.revision.documentHash)) {
+    return malformedResponse();
+  }
+  const integrityFailure = await verifyPreviewIntegrity(
+    proof,
+    previewCatalog,
+    side.revision.document,
+  );
+  if (integrityFailure !== null) {
+    return previewIntegrityFailure(integrityFailure);
+  }
+  return { ok: true, value: { revision: side.revision, proof } };
 }
 
 function previewMatchesRevisionHash(

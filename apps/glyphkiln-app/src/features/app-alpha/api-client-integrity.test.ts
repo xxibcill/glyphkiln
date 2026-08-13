@@ -37,7 +37,7 @@ describe("App Alpha comparison integrity", () => {
       document: proof.document,
       createdAt: "2026-08-12T01:00:00.000Z",
     };
-    const comparisonResponse = (right = proof) =>
+    const comparisonResponse = (left = proof, right = proof) =>
       jsonResponse(
         {
           ok: true,
@@ -46,9 +46,9 @@ describe("App Alpha comparison integrity", () => {
             kind: "revision-comparison",
             left: {
               revision,
-              qualityIssues: proof.qualityIssues,
-              evidence: proof.evidence,
-              outputs: proof.outputs,
+              qualityIssues: left.qualityIssues,
+              evidence: left.evidence,
+              outputs: left.outputs,
             },
             right: {
               revision,
@@ -78,7 +78,18 @@ describe("App Alpha comparison integrity", () => {
 
     await expect(
       createAppAlphaApi(
-        vi.fn(() => Promise.resolve(comparisonResponse(tampered))),
+        vi.fn(() => Promise.resolve(comparisonResponse(proof, tampered))),
+        catalog,
+      ).compareRevisions(input),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "PREVIEW_INTEGRITY_FAILED" },
+    });
+
+    await expect(
+      createAppAlphaApi(
+        vi.fn(() => Promise.resolve(comparisonResponse(tampered, proof))),
         catalog,
       ).compareRevisions(input),
     ).resolves.toMatchObject({
