@@ -1,5 +1,6 @@
 ---
 "@glyphkiln/app": patch
+"@glyphkiln/core": minor
 ---
 
 Add the manual campaign option board, immutable direction branching and locks,
