@@ -7,11 +7,11 @@ import {
 
 import type { SqlDatabase } from "../persistence/database";
 import type { ClaimedRenderJob } from "../render-queue";
+import { validateAuthoringLocks } from "../ai-authoring";
 import {
-  AUTHORING_LOCK_IDS,
-  validateAuthoringLocks,
-  type AuthoringLockId,
-} from "../ai-authoring";
+  CampaignRevisionLockContextIntegrityError,
+  resolveCampaignRevisionLockContexts,
+} from "../campaigns/revision-lock-context";
 import {
   REVISION_RESOURCE_REFERENCE_COLUMNS,
   mapRevisionResourceReference,
@@ -148,88 +148,24 @@ async function assertCampaignLocks(
   claim: ClaimedRenderJob,
   candidate: DesignDocument,
 ): Promise<void> {
-  const rows = await database.query<{
-    campaign_id: string;
-    direction_id: string;
-    lock_id: string;
-    lock_ordinal: number | string;
-    base_document: DesignDocument | string;
-    base_hash: string;
-  }>(
-    `WITH RECURSIVE revision_ancestry AS (
-       SELECT id, parent_revision_id
-         FROM design_revisions
-        WHERE workspace_id = $1
-          AND design_id = $2
-          AND id = $3
-       UNION ALL
-       SELECT parent.id, parent.parent_revision_id
-         FROM design_revisions parent
-         JOIN revision_ancestry child
-           ON parent.id = child.parent_revision_id
-          AND parent.workspace_id = $1
-          AND parent.design_id = $2
-     ), target_contexts AS (
-       SELECT DISTINCT canvas.workspace_id, canvas.campaign_id, canvas.direction_id
-         FROM campaign_canvases canvas
-         JOIN revision_ancestry ancestor
-           ON ancestor.id = canvas.revision_id
-        WHERE canvas.workspace_id = $1
-          AND canvas.design_id = $2
-     )
-     SELECT target.campaign_id,
-            target.direction_id,
-            lock_record.lock_id,
-            lock_record.ordinal AS lock_ordinal,
-            base_revision.design_document AS base_document,
-            base_revision.canonical_hash AS base_hash
-       FROM target_contexts target
-       JOIN campaign_direction_locks lock_record
-         ON lock_record.workspace_id = target.workspace_id
-        AND lock_record.campaign_id = target.campaign_id
-        AND lock_record.direction_id = target.direction_id
-       JOIN LATERAL (
-         SELECT design_id, revision_id
-           FROM campaign_canvases candidate_base
-          WHERE candidate_base.workspace_id = target.workspace_id
-            AND candidate_base.campaign_id = target.campaign_id
-            AND candidate_base.direction_id = target.direction_id
-          ORDER BY candidate_base.ordinal, candidate_base.id
-          LIMIT 1
-       ) base_canvas ON TRUE
-       JOIN design_revisions base_revision
-         ON base_revision.workspace_id = target.workspace_id
-        AND base_revision.design_id = base_canvas.design_id
-        AND base_revision.id = base_canvas.revision_id
-      WHERE target.workspace_id = $1
-      ORDER BY target.campaign_id, target.direction_id, lock_record.ordinal`,
-    [claim.workspaceId, claim.designId, claim.revisionId],
-  );
-  const contexts = new Map<
-    string,
-    { base: DesignDocument; baseHash: string; locks: AuthoringLockId[] }
-  >();
-  for (const row of rows) {
-    if (!AUTHORING_LOCK_IDS.includes(row.lock_id as AuthoringLockId)) {
+  let contexts;
+  try {
+    contexts = await resolveCampaignRevisionLockContexts(database, {
+      workspaceId: claim.workspaceId,
+      designId: claim.designId,
+      revisionId: claim.revisionId,
+    });
+  } catch (error) {
+    if (error instanceof CampaignRevisionLockContextIntegrityError) {
       throw corruptedRevision();
     }
-    const key = `${row.campaign_id}\u0000${row.direction_id}`;
-    const existing = contexts.get(key);
-    if (existing === undefined) {
-      contexts.set(key, {
-        base: parseJson(row.base_document) as DesignDocument,
-        baseHash: row.base_hash,
-        locks: [row.lock_id as AuthoringLockId],
-      });
-    } else {
-      existing.locks.push(row.lock_id as AuthoringLockId);
-    }
+    throw error;
   }
-  for (const context of contexts.values()) {
-    const baseValidation = validateDesignDocument(context.base);
+  for (const context of contexts) {
+    const baseValidation = validateDesignDocument(parseJson(context.baseDocument));
     if (
       !baseValidation.success ||
-      hashCanonical(baseValidation.data) !== context.baseHash
+      hashCanonical(baseValidation.data) !== context.baseCanonicalHash
     ) {
       throw corruptedRevision();
     }

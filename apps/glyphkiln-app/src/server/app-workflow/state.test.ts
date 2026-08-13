@@ -56,7 +56,28 @@ describe("AppState", () => {
   });
 
   it("resolves campaign lock contexts through revision ancestry", async () => {
-    const database = new RecordingTransaction();
+    const database = new RecordingTransaction([
+      [
+        {
+          campaign_id: "campaign-1",
+          direction_id: "direction-1",
+          lock_id: "copy",
+          base_design_id: "design-base",
+          base_revision_id: "revision-base",
+          base_document: {},
+          base_canonical_hash: "base-hash",
+        },
+        {
+          campaign_id: "campaign-1",
+          direction_id: "direction-1",
+          lock_id: "palette",
+          base_design_id: "design-base",
+          base_revision_id: "revision-base",
+          base_document: {},
+          base_canonical_hash: "base-hash",
+        },
+      ],
+    ]);
     const state = new AppState(database);
 
     await expect(
@@ -65,11 +86,22 @@ describe("AppState", () => {
         designId: "design-1",
         revisionId: "revision-3",
       }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual([
+      {
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        locks: ["copy", "palette"],
+        baseDesignId: "design-base",
+        baseRevisionId: "revision-base",
+      },
+    ]);
 
     expect(database.statements).toHaveLength(1);
     expect(database.statements[0]?.statement).toMatch(
       /WITH RECURSIVE revision_ancestry[\s\S]+parent\.id = child\.parent_revision_id[\s\S]+ancestor\.id = canvas\.revision_id/u,
+    );
+    expect(database.statements[0]?.statement).toMatch(
+      /ORDER BY candidate_base\.ordinal, candidate_base\.id[\s\S]+ORDER BY target\.campaign_id, target\.direction_id, lock_record\.ordinal/u,
     );
     expect(database.statements[0]?.parameters).toEqual([
       "workspace-1",

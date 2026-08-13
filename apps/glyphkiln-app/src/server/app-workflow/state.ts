@@ -35,6 +35,7 @@ import type {
   SqlParameters,
   SqlTransaction,
 } from "@/server/persistence/database";
+import { resolveCampaignRevisionLockContexts } from "@/server/campaigns/revision-lock-context";
 import {
   REVISION_RESOURCE_REFERENCE_COLUMNS,
   mapRevisionResourceReference,
@@ -1618,65 +1619,15 @@ export class AppState {
     designId: string;
     revisionId: string;
   }): Promise<CampaignLockContext[]> {
-    const targets = await this.#query<{
-      campaign_id: string;
-      direction_id: string;
-    }>(
-      `WITH RECURSIVE revision_ancestry AS (
-         SELECT id, parent_revision_id
-           FROM design_revisions
-          WHERE workspace_id = $1
-            AND design_id = $2
-            AND id = $3
-         UNION ALL
-         SELECT parent.id, parent.parent_revision_id
-           FROM design_revisions parent
-           JOIN revision_ancestry child
-             ON parent.id = child.parent_revision_id
-            AND parent.workspace_id = $1
-            AND parent.design_id = $2
-       )
-       SELECT DISTINCT canvas.campaign_id, canvas.direction_id
-         FROM campaign_canvases canvas
-         JOIN revision_ancestry ancestor
-           ON ancestor.id = canvas.revision_id
-        WHERE canvas.workspace_id = $1
-          AND canvas.design_id = $2
-        ORDER BY campaign_id, direction_id`,
-      [input.workspaceId, input.designId, input.revisionId],
+    return (await resolveCampaignRevisionLockContexts(this.#database, input)).map(
+      (context) => ({
+        campaignId: context.campaignId,
+        directionId: context.directionId,
+        locks: context.locks,
+        baseDesignId: context.baseDesignId,
+        baseRevisionId: context.baseRevisionId,
+      }),
     );
-    const contexts: CampaignLockContext[] = [];
-    for (const target of targets) {
-      const [locks, baseRows] = await Promise.all([
-        this.readCampaignDirectionLocks({
-          workspaceId: input.workspaceId,
-          campaignId: target.campaign_id,
-          directionId: target.direction_id,
-        }),
-        this.#query<{ design_id: string; revision_id: string }>(
-          `SELECT design_id, revision_id
-             FROM campaign_canvases
-            WHERE workspace_id = $1
-              AND campaign_id = $2
-              AND direction_id = $3
-            ORDER BY ordinal, id
-            LIMIT 1`,
-          [input.workspaceId, target.campaign_id, target.direction_id],
-        ),
-      ]);
-      const base = baseRows.at(0);
-      if (locks === undefined || base === undefined) {
-        throw new Error("Stored campaign lock metadata is invalid.");
-      }
-      contexts.push({
-        campaignId: target.campaign_id,
-        directionId: target.direction_id,
-        locks,
-        baseDesignId: base.design_id,
-        baseRevisionId: base.revision_id,
-      });
-    }
-    return contexts;
   }
 
   async insertCampaignProposalRun(input: {
