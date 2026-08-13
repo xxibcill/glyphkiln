@@ -24,9 +24,14 @@ import {
   isRenderProofProjection,
   MAXIMUM_BROWSER_RENDER_PROOF_BYTES,
   parsePreviewResponse,
+  verifyPreviewIntegrity,
   type RenderProofProjection,
 } from "@/features/project-preview/response-parser";
-import type { PreviewFailure, PreviewSuccess } from "@/features/project-preview/types";
+import type {
+  PreviewCatalog,
+  PreviewFailure,
+  PreviewSuccess,
+} from "@/features/project-preview/types";
 
 const WorkspaceRoleSchema = z.enum(["owner", "admin", "editor", "viewer"]);
 const UserSummarySchema = z
@@ -991,6 +996,7 @@ type FetchImplementation = (
 
 export function createAppAlphaApi(
   fetchImplementation: FetchImplementation = (input, init) => fetch(input, init),
+  previewCatalog?: PreviewCatalog,
 ): AppAlphaApi {
   async function command(commandInput: AppCommand): Promise<RawResult> {
     return post("/api/app/commands", commandInput, true);
@@ -1305,6 +1311,7 @@ export function createAppAlphaApi(
     async compareRevisions(input) {
       return parseRevisionComparison(
         await query({ type: "revision.compare", ...input }),
+        previewCatalog,
       );
     },
     async revisionReview(input) {
@@ -1549,8 +1556,12 @@ function parseRenderedReceipt(
       };
 }
 
-function parseRevisionComparison(result: RawResult): ApiResult<RevisionComparison> {
+async function parseRevisionComparison(
+  result: RawResult,
+  previewCatalog?: PreviewCatalog,
+): Promise<ApiResult<RevisionComparison>> {
   if (!result.ok) return result;
+  if (previewCatalog === undefined) return malformedResponse();
   const parsed = RevisionComparisonSchema.safeParse(result.value);
   if (!parsed.success) return malformedResponse();
   const left = parsePreviewResponse(
@@ -1574,11 +1585,50 @@ function parseRevisionComparison(result: RawResult): ApiResult<RevisionCompariso
     200,
   );
   if (!left.ok || !right.ok) return malformedResponse();
+  if (
+    !previewMatchesRevisionHash(left, parsed.data.left.revision.documentHash) ||
+    !previewMatchesRevisionHash(right, parsed.data.right.revision.documentHash)
+  ) {
+    return malformedResponse();
+  }
+  const [leftIntegrity, rightIntegrity] = await Promise.all([
+    verifyPreviewIntegrity(left, previewCatalog, parsed.data.left.revision.document),
+    verifyPreviewIntegrity(right, previewCatalog, parsed.data.right.revision.document),
+  ]);
+  if (leftIntegrity !== null || rightIntegrity !== null) {
+    return previewIntegrityFailure(leftIntegrity ?? rightIntegrity);
+  }
   return {
     ok: true,
     value: {
       left: { revision: parsed.data.left.revision, proof: left },
       right: { revision: parsed.data.right.revision, proof: right },
+    },
+  };
+}
+
+function previewMatchesRevisionHash(
+  preview: PreviewSuccess,
+  revisionDocumentHash: string,
+): boolean {
+  return preview.outputs.every(
+    (output) => output.manifest.designDocumentHash === revisionDocumentHash,
+  );
+}
+
+function previewIntegrityFailure(failure: PreviewFailure | null): ApiFailure {
+  if (failure === null) return malformedResponse();
+  return {
+    ok: false,
+    status: failure.status,
+    error: {
+      code: failure.code,
+      title: failure.title,
+      detail: failure.detail,
+      ...(failure.problems === undefined ? {} : { problems: failure.problems }),
+      ...(failure.qualityIssues === undefined
+        ? {}
+        : { qualityIssues: failure.qualityIssues }),
     },
   };
 }

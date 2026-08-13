@@ -60,14 +60,16 @@ import { InvitationStation } from "./invitation-station";
 import { RevisionReviewStation } from "./revision-review-station";
 import { useAppAlphaAccess } from "./use-app-alpha-access";
 
-const DEFAULT_API = createAppAlphaApi();
-
 export type AppAlphaProps = {
   catalog: PreviewCatalog;
   api?: AppAlphaApi;
 };
 
-export function AppAlpha({ catalog, api = DEFAULT_API }: AppAlphaProps) {
+export function AppAlpha({ catalog, api: apiOverride }: AppAlphaProps) {
+  const api = useMemo(
+    () => apiOverride ?? createAppAlphaApi(undefined, catalog),
+    [apiOverride, catalog],
+  );
   const [dashboard, setDashboard] = useState<WorkspaceDashboard>();
   const [workspaceResources, setWorkspaceResources] = useState<SelectableResource[]>(
     [],
