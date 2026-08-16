@@ -61,6 +61,7 @@ export async function createProjectPreview(
   input: unknown,
   dependencies: PreviewDependencies = DEFAULT_DEPENDENCIES,
   resources: PreviewResources = {},
+  creationTimestamp?: Date,
 ): Promise<PreviewServiceResult> {
   const validation = validateDesignDocument(input);
   if (!validation.success) {
@@ -83,7 +84,7 @@ export async function createProjectPreview(
         formats: ["svg", "png"],
         assets: resources.assets ?? [],
         fonts: resources.fonts ?? [DEVELOPMENT_FONT],
-        creationTimestamp: dependencies.now().toISOString(),
+        creationTimestamp: (creationTimestamp ?? dependencies.now()).toISOString(),
       },
       {},
     );

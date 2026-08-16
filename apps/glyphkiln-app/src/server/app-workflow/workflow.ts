@@ -6,21 +6,34 @@ import {
   createCampaignDirectionKey,
   deriveCampaignSeeds,
   hashCanonical,
+  sha256,
   validateDesignDocument,
+  AUTHORING_TEMPLATE_KEYS,
 } from "@glyphkiln/core";
 import type {
   AssetDeclaration,
+  CampaignCompositionVariantId,
   DesignDocument,
   FontDeclaration,
+  FormatId,
   QualityIssue,
+  TemplateId,
   ValidationProblem,
 } from "@glyphkiln/core";
 
-import { AUTHORING_LOCK_IDS } from "@/server/ai-authoring";
+import {
+  AUTHORING_LOCK_IDS,
+  BRIEF_INTERPRETER_INPUT_CONTRACT_VERSION,
+  BriefInterpreterProviderError,
+  validateAuthoringLocks,
+  validateBriefInterpreterResponse,
+  type AuthoringLockId,
+  type BriefInterpreter,
+} from "@/server/ai-authoring";
 import type { PreviewResponse, PreviewSuccess } from "@/features/project-preview/types";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
 import { compareCanonicalStrings } from "@/lib/deterministic-order";
-import type { SqlDatabase } from "@/server/persistence/database";
+import type { SqlDatabase, SqlJsonValue } from "@/server/persistence/database";
 import {
   RenderQueueError,
   type RenderJobView,
@@ -79,13 +92,23 @@ import type {
   AppResult,
   AppWorkflow,
   CampaignCanvasProjection,
+  CampaignCanvasSeedProjection,
   CampaignDirectionProjection,
+  CampaignHandoffProjection,
+  CampaignProposalCandidateProjection,
+  CampaignProposalDecisionProjection,
+  CampaignProposalIssueProjection,
+  CampaignProposalProofProjection,
+  CampaignProposalRunProjection,
   CampaignSummary,
   CommandEnvelope,
   CommandReceipt,
   ManualDraft,
   QueryEnvelope,
   QueryProjection,
+  DesignRevisionProjection,
+  RevisionApprovalProjection,
+  RevisionComparisonProjection,
   RevisionApprovalOutputEvidence,
   RevisionReviewCommentProjection,
   RenderJobProjection,
@@ -100,18 +123,29 @@ import type {
   AuthenticatedSessionRecord,
   InvitationRecord,
   StoredBrandSnapshot,
+  StoredCampaign,
+  StoredCampaignDirection,
   StoredDesignRevision,
 } from "./state";
+import {
+  CampaignHandoffArchive,
+  CampaignHandoffArchiveLimitError,
+  MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES,
+  campaignHandoffCanvasPrefix,
+  type CampaignHandoffFile,
+} from "./campaign-handoff-archive";
 
 type ManualRenderer = (
   document: DesignDocument,
   resources: ResolvedRenderResources,
+  creationTimestamp?: Date,
 ) => Promise<PreviewResponse>;
 
 const LOGIN_FAILURE_THRESHOLD = 5;
 const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_BLOCK_DURATION_MS = 15 * 60 * 1000;
 const MAX_SELECTABLE_WORKSPACE_RESOURCES = 500;
+const MAXIMUM_CAMPAIGN_HANDOFF_CANVASES = 64;
 
 export type WorkspaceCreationLimits = {
   readonly maximumWorkspacesPerInstallation: number;
@@ -149,6 +183,8 @@ export type AppWorkflowDependencies = {
   renderQueue?: RenderQueue;
   resourceStore?: ResourceStore;
   resourceResolver?: RenderResourceResolver;
+  briefInterpreter?: BriefInterpreter;
+  campaignWorkflowEnabled?: boolean;
   workspaceCreationLimits?: WorkspaceCreationLimits;
 };
 
@@ -189,6 +225,8 @@ class AppWorkflowImplementation implements AppWorkflow {
   readonly #renderQueue: RenderQueue | undefined;
   readonly #resourceStore: ResourceStore | undefined;
   readonly #resourceResolver: RenderResourceResolver;
+  readonly #briefInterpreter: BriefInterpreter | undefined;
+  readonly #campaignWorkflowEnabled: boolean;
   readonly #workspaceCreationLimits: WorkspaceCreationLimits;
 
   constructor(dependencies: AppWorkflowDependencies) {
@@ -199,8 +237,9 @@ class AppWorkflowImplementation implements AppWorkflow {
     this.#clock = dependencies.clock ?? systemClock;
     this.#render =
       dependencies.render ??
-      (async (document, resources) =>
-        (await createProjectPreview(document, undefined, resources)).body);
+      (async (document, resources, creationTimestamp) =>
+        (await createProjectPreview(document, undefined, resources, creationTimestamp))
+          .body);
     this.#renderAdmission =
       dependencies.renderAdmission ?? new InProcessRenderAdmissionController();
     this.#renderQueue = dependencies.renderQueue;
@@ -210,6 +249,8 @@ class AppWorkflowImplementation implements AppWorkflow {
       (dependencies.resourceStore === undefined
         ? new BuiltInRenderResourceResolver()
         : new AdmittedRenderResourceResolver(dependencies.resourceStore));
+    this.#briefInterpreter = dependencies.briefInterpreter;
+    this.#campaignWorkflowEnabled = dependencies.campaignWorkflowEnabled ?? false;
     this.#workspaceCreationLimits = validateWorkspaceCreationLimits(
       dependencies.workspaceCreationLimits ?? DEFAULT_WORKSPACE_CREATION_LIMITS,
     );
@@ -299,8 +340,16 @@ class AppWorkflowImplementation implements AppWorkflow {
         return this.#createCampaign(command, evidence);
       case "campaign.direction.create":
         return this.#createCampaignDirection(command, evidence);
+      case "campaign.direction.branch":
+        return this.#branchCampaignDirection(command, evidence);
       case "campaign.canvas.attach":
         return this.#attachCampaignCanvas(command, evidence);
+      case "campaign.proposals.request":
+        return this.#requestCampaignProposals(command, evidence);
+      case "campaign.proposal.accept":
+        return this.#acceptCampaignProposal(command, evidence);
+      case "campaign.proposal.reject":
+        return this.#rejectCampaignProposal(command, evidence);
       case "revision.review.submit":
         return this.#submitRevisionReview(command, evidence);
       case "revision.review.comment":
@@ -338,15 +387,18 @@ class AppWorkflowImplementation implements AppWorkflow {
           query.workspaceId,
           "read_workspace",
         );
-        const [brandKits, designs] = await Promise.all([
+        const [brandKits, designs, campaigns] = await Promise.all([
           context.state.listBrandKits(query.workspaceId),
           context.state.listDesigns(query.workspaceId),
+          context.state.listCampaigns(query.workspaceId),
         ]);
         return success({
           kind: "workspace-dashboard",
           workspace: membership,
           brandKits,
           designs,
+          campaigns,
+          features: { campaignWorkflow: this.#campaignWorkflowEnabled },
         });
       }
       case "workspace.members": {
@@ -392,6 +444,44 @@ class AppWorkflowImplementation implements AppWorkflow {
         );
         if (board === undefined) throw resourceNotFound();
         return success(board);
+      }
+      case "campaign.canvas.seed": {
+        await this.#authorizeWorkspace(
+          context,
+          query.workspaceId,
+          "coordinate_campaigns",
+        );
+        this.#requireCampaignWorkflow();
+        const [campaign, direction] = await Promise.all([
+          context.state.findCampaign(query.workspaceId, query.campaignId),
+          context.state.findCampaignDirection({
+            workspaceId: query.workspaceId,
+            campaignId: query.campaignId,
+            directionId: query.directionId,
+          }),
+        ]);
+        if (campaign === undefined || direction === undefined) {
+          throw resourceNotFound();
+        }
+        return success({
+          kind: "campaign-canvas-seed",
+          ...deriveStoredCampaignCanvasSeed(campaign, direction, query),
+        });
+      }
+      case "campaign.proposal.run": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_campaigns");
+        const run = await context.state.readCampaignProposalRun(query);
+        if (run === undefined) throw resourceNotFound();
+        return success(run);
+      }
+      case "campaign.handoff": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "request_export");
+        this.#requireCampaignWorkflow();
+        return success(await this.#buildCampaignHandoff(context.state, query));
+      }
+      case "revision.compare": {
+        await this.#authorizeWorkspace(context, query.workspaceId, "read_revisions");
+        return success(await this.#compareRevisions(context.state, query));
       }
       case "revision.review": {
         await this.#authorizeWorkspace(context, query.workspaceId, "read_reviews");
@@ -1087,6 +1177,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       workspaceId: command.workspaceId,
       brandSnapshotId: command.brandSnapshotId,
       draft: command.draft,
+      baseRevision: command.baseRevision,
     }).slice(0, 24)}`;
     const resources = await this.#resolveManualResourceDeclarations(
       command.workspaceId,
@@ -1099,6 +1190,20 @@ class AppWorkflowImplementation implements AppWorkflow {
       ...resources,
     });
     if (!construction.ok) throw invalidDocument(construction.problems);
+    if (command.baseRevision !== undefined) {
+      await this.#loadTrustedRevision(
+        context.state,
+        command.workspaceId,
+        command.baseRevision.designId,
+        command.baseRevision.revisionId,
+      );
+      await this.#assertCampaignAdaptationLocks(context.state, {
+        workspaceId: command.workspaceId,
+        designId: command.baseRevision.designId,
+        revisionId: command.baseRevision.revisionId,
+        candidate: construction.document,
+      });
+    }
     const rendered = await this.#renderDocument(
       command.workspaceId,
       construction.document,
@@ -1219,6 +1324,12 @@ class AppWorkflowImplementation implements AppWorkflow {
         ...resources,
       });
       if (!construction.ok) throw invalidDocument(construction.problems);
+      await this.#assertCampaignAdaptationLocks(state, {
+        workspaceId: command.workspaceId,
+        designId: command.designId,
+        revisionId: command.baseRevisionId,
+        candidate: construction.document,
+      });
       const revisionNumber = design.headRevisionNumber + 1;
       const documentHash = hashCanonical(construction.document);
       await state.insertDesignRevision({
@@ -1281,6 +1392,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const campaignId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const campaign = await context.state.transaction(async (state) => {
@@ -1329,6 +1441,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const directionId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const locks = AUTHORING_LOCK_IDS.filter((lock) => command.locks.includes(lock));
@@ -1369,6 +1482,84 @@ class AppWorkflowImplementation implements AppWorkflow {
         locks: [...locks],
         createdAt: now.toISOString(),
         canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
+      } satisfies CampaignDirectionProjection;
+    });
+    return success(
+      {
+        kind: "campaign-direction-created",
+        campaignId: command.campaignId,
+        direction,
+      },
+      201,
+    );
+  }
+
+  async #branchCampaignDirection(
+    command: Extract<AppCommand, { type: "campaign.direction.branch" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    this.#requireCampaignWorkflow();
+    const directionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const direction = await context.state.transaction(async (state) => {
+      const [campaign, source, locks] = await Promise.all([
+        state.findCampaign(command.workspaceId, command.campaignId),
+        state.findCampaignDirection({
+          workspaceId: command.workspaceId,
+          campaignId: command.campaignId,
+          directionId: command.sourceDirectionId,
+        }),
+        state.readCampaignDirectionLocks({
+          workspaceId: command.workspaceId,
+          campaignId: command.campaignId,
+          directionId: command.sourceDirectionId,
+        }),
+      ]);
+      if (campaign === undefined || source === undefined || locks === undefined) {
+        throw resourceNotFound();
+      }
+      createCampaignDirectionKey(command.directionKey);
+      await state.insertCampaignDirection({
+        id: directionId,
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionKey: command.directionKey,
+        name: command.name,
+        locks,
+        createdBy: context.session.user.id,
+        createdAt: now,
+      });
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "campaign.direction.branched",
+        targetType: "campaign_direction",
+        targetId: directionId,
+        metadata: {
+          campaignId: command.campaignId,
+          sourceDirectionId: command.sourceDirectionId,
+          directionKey: command.directionKey,
+          locks,
+        },
+        createdAt: now,
+      });
+      return {
+        id: directionId,
+        directionKey: command.directionKey,
+        name: command.name,
+        locks: [...locks],
+        createdAt: now.toISOString(),
+        canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       } satisfies CampaignDirectionProjection;
     });
     return success(
@@ -1391,16 +1582,17 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.workspaceId,
       "coordinate_campaigns",
     );
+    this.#requireCampaignWorkflow();
     const canvasId = this.#secretFactory.createId();
     const now = this.#clock.now();
     const canvas = await context.state.transaction(async (state) => {
-      const [campaign, direction, revision] = await Promise.all([
+      const direction = await state.lockCampaignDirection({
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+      });
+      const [campaign, revision] = await Promise.all([
         state.findCampaign(command.workspaceId, command.campaignId),
-        state.findCampaignDirection({
-          workspaceId: command.workspaceId,
-          campaignId: command.campaignId,
-          directionId: command.directionId,
-        }),
         this.#loadTrustedRevision(
           state,
           command.workspaceId,
@@ -1411,26 +1603,43 @@ class AppWorkflowImplementation implements AppWorkflow {
       if (campaign === undefined || direction === undefined) {
         throw resourceNotFound();
       }
-      const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
-      const familyMember = family.members.find(
-        (member) =>
-          member.template.id === revision.document.template.id &&
-          member.template.version === revision.document.template.version &&
-          member.formats.some((format) => format === revision.document.format),
-      );
-      if (familyMember === undefined) throw invalidCampaignCanvas();
-      const seeds = deriveCampaignSeeds({
-        campaignSeed: campaign.campaignSeed,
-        familyId: campaign.familyId,
-        directionKey: createCampaignDirectionKey(direction.directionKey),
-        canvasKey: createCampaignCanvasKey(command.canvasKey),
-        template: familyMember.template,
+      const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {
+        canvasKey: command.canvasKey,
+        templateId: revision.document.template.id,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
       });
-      if (revision.document.seed !== seeds.canvasSeed) {
+      if (
+        revision.document.template.id !== derivedSeed.template.id ||
+        revision.document.template.version !== derivedSeed.template.version
+      ) {
+        throw invalidCampaignCanvas();
+      }
+      if (revision.document.seed !== derivedSeed.canvasSeed) {
         throw invalidCampaignCanvas(
           "Create the exact revision with the campaign-derived canvas seed before attaching it to the board.",
+        );
+      }
+      const board = await state.readCampaignBoard(
+        command.workspaceId,
+        command.campaignId,
+      );
+      const boardDirection = board?.directions.find(
+        (entry) => entry.id === command.directionId,
+      );
+      if (boardDirection === undefined) throw resourceNotFound();
+      const baselineCanvas = boardDirection.canvases.at(0);
+      if (baselineCanvas !== undefined) {
+        const baseline = await this.#loadTrustedRevision(
+          state,
+          command.workspaceId,
+          baselineCanvas.designId,
+          baselineCanvas.revisionId,
+        );
+        requireAuthoringLocks(
+          baseline.document,
+          revision.document,
+          boardDirection.locks,
         );
       }
       await state.insertCampaignCanvas({
@@ -1445,9 +1654,9 @@ class AppWorkflowImplementation implements AppWorkflow {
         templateVersion: revision.document.template.version,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        seedDerivationVersion: seeds.version,
-        directionSeed: seeds.directionSeed,
-        canvasSeed: seeds.canvasSeed,
+        seedDerivationVersion: derivedSeed.seedDerivationVersion,
+        directionSeed: derivedSeed.directionSeed,
+        canvasSeed: derivedSeed.canvasSeed,
         ordinal: command.ordinal,
         createdBy: context.session.user.id,
         createdAt: now,
@@ -1464,9 +1673,9 @@ class AppWorkflowImplementation implements AppWorkflow {
           canvasKey: command.canvasKey,
           designId: command.designId,
           revisionId: command.revisionId,
-          seedDerivationVersion: seeds.version,
-          directionSeed: seeds.directionSeed,
-          canvasSeed: seeds.canvasSeed,
+          seedDerivationVersion: derivedSeed.seedDerivationVersion,
+          directionSeed: derivedSeed.directionSeed,
+          canvasSeed: derivedSeed.canvasSeed,
         },
         createdAt: now,
       });
@@ -1478,9 +1687,9 @@ class AppWorkflowImplementation implements AppWorkflow {
         template: { ...revision.document.template },
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        seedDerivationVersion: seeds.version,
-        directionSeed: seeds.directionSeed,
-        canvasSeed: seeds.canvasSeed,
+        seedDerivationVersion: derivedSeed.seedDerivationVersion,
+        directionSeed: derivedSeed.directionSeed,
+        canvasSeed: derivedSeed.canvasSeed,
         ordinal: command.ordinal,
         createdAt: now.toISOString(),
       } satisfies CampaignCanvasProjection;
@@ -1494,6 +1703,707 @@ class AppWorkflowImplementation implements AppWorkflow {
       },
       201,
     );
+  }
+
+  async #requestCampaignProposals(
+    command: Extract<AppCommand, { type: "campaign.proposals.request" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    this.#requireCampaignWorkflow();
+    if (this.#briefInterpreter === undefined) throw aiAuthoringDisabled();
+    const [campaign, direction, locks, baseCanvas] = await Promise.all([
+      context.state.findCampaign(command.workspaceId, command.campaignId),
+      context.state.findCampaignDirection({
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+      }),
+      context.state.readCampaignDirectionLocks({
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+      }),
+      context.state.findCampaignCanvas({
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+        canvasId: command.baseCanvasId,
+      }),
+    ]);
+    if (
+      campaign === undefined ||
+      direction === undefined ||
+      locks === undefined ||
+      baseCanvas === undefined
+    ) {
+      throw resourceNotFound();
+    }
+    const base = await this.#loadTrustedRevision(
+      context.state,
+      command.workspaceId,
+      baseCanvas.designId,
+      baseCanvas.revisionId,
+    );
+    await this.#assertStoredCampaignLocks(context.state, command.workspaceId, base);
+    const templateKey = AUTHORING_TEMPLATE_KEYS.find(
+      (key) => key === `${base.document.template.id}@${base.document.template.version}`,
+    );
+    if (templateKey === undefined) throw invalidCampaignCanvas();
+    const interpreterInput = {
+      contractVersion: BRIEF_INTERPRETER_INPUT_CONTRACT_VERSION,
+      brief: campaign.brief,
+      candidateCount: command.candidateCount,
+      baseDocument: base.document,
+      brandSnapshot: base.document.brand,
+      templateKeys: [templateKey],
+      locks,
+    } as const;
+    let providerResponse: unknown;
+    let inputHash: string;
+    let responseHash: string;
+    try {
+      const result = await this.#briefInterpreter.interpret(interpreterInput);
+      providerResponse = result.response;
+      inputHash = result.inputHash;
+      responseHash = result.responseHash;
+    } catch (error) {
+      if (error instanceof BriefInterpreterProviderError) {
+        throw fault(
+          error.code === "INTERPRETER_INPUT_INVALID" ? 422 : 503,
+          "AI_PROPOSAL_REJECTED",
+          "Proposal provider did not return usable directions",
+          error.message,
+        );
+      }
+      throw fault(
+        503,
+        "AI_PROPOSAL_REJECTED",
+        "Proposal provider unavailable",
+        "The optional proposal provider did not complete the bounded request.",
+      );
+    }
+    if (!/^[0-9a-f]{64}$/.test(inputHash) || !/^[0-9a-f]{64}$/.test(responseHash)) {
+      throw fault(
+        422,
+        "AI_PROPOSAL_REJECTED",
+        "Proposal response evidence was invalid",
+        "The configured provider adapter did not return a valid response hash.",
+      );
+    }
+    const evaluated = validateBriefInterpreterResponse(providerResponse);
+    if (evaluated.issues.some((issue) => issue.source === "response")) {
+      throw fault(
+        422,
+        "AI_PROPOSAL_REJECTED",
+        "Proposal provider returned an invalid response",
+        "The provider response did not satisfy the bounded proposal contract.",
+      );
+    }
+    const responseIssuesByCandidate = new Map<
+      number,
+      CampaignProposalIssueProjection[]
+    >();
+    for (const issue of evaluated.issues) {
+      if (issue.candidateIndex === undefined) continue;
+      const candidateIssues = responseIssuesByCandidate.get(issue.candidateIndex) ?? [];
+      candidateIssues.push(toProposalResponseIssue(issue));
+      responseIssuesByCandidate.set(issue.candidateIndex, candidateIssues);
+    }
+    const runId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const candidates: CampaignProposalCandidateProjection[] = [];
+    for (const candidate of evaluated.candidates) {
+      const candidateId = this.#secretFactory.createId();
+      const responseIssues = responseIssuesByCandidate.get(candidate.index) ?? [];
+      if (candidate.status === "rejected") {
+        candidates.push({
+          id: candidateId,
+          index: candidate.index,
+          status: "rejected",
+          issues: [...candidate.issues.map(toProposalResponseIssue), ...responseIssues],
+        });
+        continue;
+      }
+      if (candidate.validation.status === "invalid") {
+        candidates.push({
+          id: candidateId,
+          index: candidate.index,
+          status: "rejected",
+          rationale: candidate.rationale,
+          issues: [
+            ...candidate.validation.issues.map(toProposalDocumentIssue),
+            ...responseIssues,
+          ],
+        });
+        continue;
+      }
+      const document = candidate.validation.document;
+      const invariantIssues = proposalInvariantIssues(base.document, document);
+      const lockValidation = validateAuthoringLocks(base.document, document, locks);
+      const issues = [
+        ...responseIssues,
+        ...candidate.validation.issues.map(toProposalDocumentIssue),
+        ...invariantIssues,
+        ...lockValidation.issues.map(toProposalLockIssue),
+      ];
+      if (
+        responseIssues.length > 0 ||
+        invariantIssues.length > 0 ||
+        !lockValidation.success
+      ) {
+        candidates.push({
+          id: candidateId,
+          index: candidate.index,
+          status: "rejected",
+          rationale: candidate.rationale,
+          issues,
+        });
+        continue;
+      }
+      let proof: CampaignProposalProofProjection;
+      try {
+        const rendered = await this.#renderDocument(
+          command.workspaceId,
+          document,
+          campaign.createdAt,
+        );
+        proof = {
+          qualityIssues: rendered.qualityIssues,
+          evidence: rendered.evidence,
+          outputs: rendered.outputs.map((output) => ({ ...output })),
+        };
+      } catch {
+        candidates.push({
+          id: candidateId,
+          index: candidate.index,
+          status: "rejected",
+          rationale: candidate.rationale,
+          issues: [
+            ...issues,
+            {
+              code: "RESOURCE_BACKED_PROOF_FAILED",
+              message:
+                "Core could not reproduce this candidate with the exact admitted resources.",
+              candidateIndex: candidate.index,
+            },
+          ],
+        });
+        continue;
+      }
+      candidates.push({
+        id: candidateId,
+        index: candidate.index,
+        status: "proved",
+        rationale: candidate.rationale,
+        document,
+        canonicalHash: hashCanonical(document),
+        issues,
+        proof,
+      });
+    }
+    const run: CampaignProposalRunProjection = {
+      kind: "campaign-proposal-run",
+      id: runId,
+      workspaceId: command.workspaceId,
+      campaignId: command.campaignId,
+      directionId: command.directionId,
+      baseCanvasId: command.baseCanvasId,
+      baseDesignId: base.designId,
+      baseRevisionId: base.revisionId,
+      descriptor: { ...this.#briefInterpreter.descriptor },
+      inputHash,
+      responseHash,
+      locks: [...locks],
+      createdAt: now.toISOString(),
+      candidates,
+    };
+    await context.state.transaction(async (state) => {
+      await state.insertCampaignProposalRun({
+        id: run.id,
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: command.directionId,
+        baseCanvasId: command.baseCanvasId,
+        baseDesignId: base.designId,
+        baseRevisionId: base.revisionId,
+        providerId: run.descriptor.providerId,
+        modelId: run.descriptor.modelId,
+        retentionDisclosure: run.descriptor.retentionDisclosure,
+        inputHash: run.inputHash,
+        responseHash: run.responseHash,
+        locks,
+        validation: asSqlJson(evaluated),
+        requestedBy: context.session.user.id,
+        createdAt: now,
+      });
+      for (const candidate of candidates) {
+        await state.insertCampaignProposalCandidate({
+          id: candidate.id,
+          workspaceId: command.workspaceId,
+          runId: run.id,
+          index: candidate.index,
+          status: candidate.status,
+          ...(candidate.document === undefined ? {} : { document: candidate.document }),
+          ...(candidate.canonicalHash === undefined
+            ? {}
+            : { canonicalHash: candidate.canonicalHash }),
+          ...(candidate.rationale === undefined
+            ? {}
+            : { rationale: candidate.rationale.text }),
+          issues: candidate.issues,
+          ...(candidate.proof === undefined ? {} : { proof: candidate.proof }),
+          createdAt: now,
+        });
+      }
+      await this.#audit(state, {
+        workspaceId: command.workspaceId,
+        actorUserId: context.session.user.id,
+        action: "campaign.proposals.requested",
+        targetType: "campaign_proposal_run",
+        targetId: run.id,
+        metadata: {
+          campaignId: command.campaignId,
+          directionId: command.directionId,
+          baseRevisionId: base.revisionId,
+          providerId: run.descriptor.providerId,
+          modelId: run.descriptor.modelId,
+          inputHash: run.inputHash,
+          responseHash: run.responseHash,
+          provedCandidates: candidates.filter(
+            (candidate) => candidate.status === "proved",
+          ).length,
+        },
+        createdAt: now,
+      });
+    });
+    return success({ kind: "campaign-proposals-created", run }, 201);
+  }
+
+  async #acceptCampaignProposal(
+    command: Extract<AppCommand, { type: "campaign.proposal.accept" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    this.#requireCampaignWorkflow();
+    const candidate = await context.state.findCampaignProposalCandidate(command);
+    if (
+      candidate?.status !== "proved" ||
+      candidate.document === undefined ||
+      candidate.canonicalHash === undefined
+    ) {
+      throw resourceNotFound();
+    }
+    if (await context.state.hasCampaignProposalDecision(command)) {
+      throw proposalDecisionConflict();
+    }
+    const [campaign, currentLocks, base] = await Promise.all([
+      context.state.findCampaign(command.workspaceId, command.campaignId),
+      context.state.readCampaignDirectionLocks({
+        workspaceId: command.workspaceId,
+        campaignId: command.campaignId,
+        directionId: candidate.directionId,
+      }),
+      this.#loadTrustedRevision(
+        context.state,
+        command.workspaceId,
+        candidate.baseDesignId,
+        candidate.baseRevisionId,
+      ),
+    ]);
+    if (campaign === undefined || currentLocks === undefined) throw resourceNotFound();
+    if (canonicalJson(currentLocks) !== canonicalJson(candidate.locks)) {
+      throw storeUnavailable();
+    }
+    if (proposalInvariantIssues(base.document, candidate.document).length > 0) {
+      throw aiProposalRejected();
+    }
+    requireAuthoringLocks(base.document, candidate.document, currentLocks);
+    const designId = this.#secretFactory.createId();
+    const revisionId = this.#secretFactory.createId();
+    const decisionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const acceptedDocument = { ...candidate.document, id: designId };
+    const validation = validateDesignDocument(acceptedDocument);
+    if (!validation.success) throw aiProposalRejected();
+    if (!resourceReferencesMatchDocument(validation.data, base.resourceReferences)) {
+      throw aiProposalRejected();
+    }
+    await this.#renderDocument(
+      command.workspaceId,
+      validation.data,
+      campaign.createdAt,
+    );
+    const documentHash = hashCanonical(validation.data);
+    const decision: CampaignProposalDecisionProjection = {
+      id: decisionId,
+      decision: "accepted",
+      designId,
+      revisionId,
+      decidedBy: context.session.user,
+      createdAt: now.toISOString(),
+    };
+    try {
+      await context.state.transaction(async (state) => {
+        await state.insertDesign({
+          id: designId,
+          workspaceId: command.workspaceId,
+          name: command.designName,
+          createdBy: context.session.user.id,
+          createdAt: now,
+        });
+        await state.insertDesignRevision({
+          id: revisionId,
+          workspaceId: command.workspaceId,
+          designId,
+          revisionNumber: 1,
+          brandSnapshotId: base.brandSnapshotId,
+          document: validation.data,
+          canonicalHash: documentHash,
+          resourceReferences: base.resourceReferences.map((reference) => ({
+            resourceId: reference.resourceId,
+            resourceKind: reference.resourceKind,
+            ordinal: reference.ordinal,
+          })),
+          changeNote: `Accepted proposal ${command.runId}:${candidate.index.toString()}`,
+          createdBy: context.session.user.id,
+          createdAt: now,
+        });
+        if (
+          !(await state.setDesignHead({
+            workspaceId: command.workspaceId,
+            designId,
+            headRevisionId: revisionId,
+            updatedAt: now,
+          }))
+        ) {
+          throw revisionConflict();
+        }
+        await state.insertCampaignProposalDecision({
+          id: decisionId,
+          workspaceId: command.workspaceId,
+          runId: command.runId,
+          candidateId: command.candidateId,
+          decision: "accepted",
+          designId,
+          revisionId,
+          actorUserId: context.session.user.id,
+          createdAt: now,
+        });
+        await this.#audit(state, {
+          workspaceId: command.workspaceId,
+          actorUserId: context.session.user.id,
+          action: "campaign.proposal.accepted",
+          targetType: "campaign_proposal_candidate",
+          targetId: command.candidateId,
+          metadata: {
+            campaignId: command.campaignId,
+            runId: command.runId,
+            designId,
+            revisionId,
+            documentHash,
+          },
+          createdAt: now,
+        });
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) throw proposalDecisionConflict();
+      throw error;
+    }
+    return success(
+      {
+        kind: "campaign-proposal-accepted",
+        decision,
+        design: {
+          kind: "design-saved",
+          designId,
+          revisionId,
+          revisionNumber: 1,
+          documentHash,
+          document: validation.data,
+        },
+      },
+      201,
+    );
+  }
+
+  async #rejectCampaignProposal(
+    command: Extract<AppCommand, { type: "campaign.proposal.reject" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    this.#requireCampaignWorkflow();
+    const candidate = await context.state.findCampaignProposalCandidate(command);
+    if (candidate === undefined) throw resourceNotFound();
+    if (await context.state.hasCampaignProposalDecision(command)) {
+      throw proposalDecisionConflict();
+    }
+    const decisionId = this.#secretFactory.createId();
+    const now = this.#clock.now();
+    const decision: CampaignProposalDecisionProjection = {
+      id: decisionId,
+      decision: "rejected",
+      ...(command.reason === undefined ? {} : { reason: command.reason }),
+      decidedBy: context.session.user,
+      createdAt: now.toISOString(),
+    };
+    try {
+      await context.state.transaction(async (state) => {
+        await state.insertCampaignProposalDecision({
+          id: decisionId,
+          workspaceId: command.workspaceId,
+          runId: command.runId,
+          candidateId: command.candidateId,
+          decision: "rejected",
+          ...(command.reason === undefined ? {} : { reason: command.reason }),
+          actorUserId: context.session.user.id,
+          createdAt: now,
+        });
+        await this.#audit(state, {
+          workspaceId: command.workspaceId,
+          actorUserId: context.session.user.id,
+          action: "campaign.proposal.rejected",
+          targetType: "campaign_proposal_candidate",
+          targetId: command.candidateId,
+          metadata: { campaignId: command.campaignId, runId: command.runId },
+          createdAt: now,
+        });
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) throw proposalDecisionConflict();
+      throw error;
+    }
+    return success({ kind: "campaign-proposal-rejected", decision }, 201);
+  }
+
+  async #compareRevisions(
+    state: AppState,
+    query: Extract<AppQuery, { type: "revision.compare" }>,
+  ): Promise<RevisionComparisonProjection> {
+    const [left, right] = await Promise.all([
+      this.#loadTrustedRevision(
+        state,
+        query.workspaceId,
+        query.leftDesignId,
+        query.leftRevisionId,
+      ),
+      this.#loadTrustedRevision(
+        state,
+        query.workspaceId,
+        query.rightDesignId,
+        query.rightRevisionId,
+      ),
+    ]);
+    await Promise.all([
+      this.#assertStoredCampaignLocks(state, query.workspaceId, left),
+      this.#assertStoredCampaignLocks(state, query.workspaceId, right),
+    ]);
+    const leftProof = await this.#renderDocument(
+      query.workspaceId,
+      left.document,
+      left.createdAt,
+    );
+    const rightProof = await this.#renderDocument(
+      query.workspaceId,
+      right.document,
+      right.createdAt,
+    );
+    return {
+      kind: "revision-comparison",
+      left: {
+        revision: toRevisionProjection(left),
+        qualityIssues: leftProof.qualityIssues,
+        evidence: leftProof.evidence,
+        outputs: leftProof.outputs,
+      },
+      right: {
+        revision: toRevisionProjection(right),
+        qualityIssues: rightProof.qualityIssues,
+        evidence: rightProof.evidence,
+        outputs: rightProof.outputs,
+      },
+    };
+  }
+
+  async #buildCampaignHandoff(
+    state: AppState,
+    query: Extract<AppQuery, { type: "campaign.handoff" }>,
+  ): Promise<CampaignHandoffProjection> {
+    const board = await state.readCampaignBoard(query.workspaceId, query.campaignId);
+    if (board === undefined) throw resourceNotFound();
+    const direction = board.directions.find(
+      (candidate) => candidate.id === query.directionId,
+    );
+    if (direction === undefined) throw resourceNotFound();
+    const baselineCanvas = direction.canvases.at(0);
+    if (baselineCanvas === undefined) {
+      throw invalidCampaignCanvas(
+        "Attach at least one exact saved revision before building a campaign handoff.",
+      );
+    }
+    const handoffCanvasCount = direction.canvases.length;
+    if (handoffCanvasCount > MAXIMUM_CAMPAIGN_HANDOFF_CANVASES) {
+      throw invalidCampaignCanvas(
+        `A verified handoff is limited to ${MAXIMUM_CAMPAIGN_HANDOFF_CANVASES.toString()} exact canvases.`,
+      );
+    }
+    const archive = new CampaignHandoffArchive();
+    let approvedCanvasCount = 0;
+    let unapprovedCanvasCount = 0;
+    const campaignPrefix = `${slugBase(board.campaign.name)}-${board.campaign.id
+      .replaceAll(/[^a-zA-Z0-9_-]/g, "-")
+      .slice(0, 24)}`;
+    const baselineRevision = await this.#loadTrustedRevision(
+      state,
+      query.workspaceId,
+      baselineCanvas.designId,
+      baselineCanvas.revisionId,
+    );
+    for (const canvas of direction.canvases) {
+      const revision = await this.#loadTrustedRevision(
+        state,
+        query.workspaceId,
+        canvas.designId,
+        canvas.revisionId,
+      );
+      requireAuthoringLocks(
+        baselineRevision.document,
+        revision.document,
+        direction.locks,
+      );
+      const review = await state.readRevisionReview({
+        workspaceId: query.workspaceId,
+        designId: canvas.designId,
+        revisionId: canvas.revisionId,
+      });
+      let manifestCreationTimestamp = new Date(board.campaign.createdAt);
+      if (review?.approval !== undefined && this.#renderQueue !== undefined) {
+        const approvedJob = await this.#renderQueue.inspect(
+          query.workspaceId,
+          review.approval.renderJobId,
+        );
+        if (
+          approvedJob?.state === "completed" &&
+          approvedJob.designId === canvas.designId &&
+          approvedJob.revisionId === canvas.revisionId
+        ) {
+          manifestCreationTimestamp = approvedJob.manifestCreationTimestamp;
+        }
+      }
+      const proof = await this.#renderDocument(
+        query.workspaceId,
+        revision.document,
+        manifestCreationTimestamp,
+      );
+      const resourcePins = revision.resourceReferences.map((reference) => ({
+        resourceId: reference.resourceId,
+        resourceKind: reference.resourceKind,
+        ordinal: reference.ordinal,
+        contentHash: reference.contentHash,
+      }));
+      const approvalStatus =
+        review?.approval !== undefined &&
+        handoffProofMatchesApproval({
+          approval: review.approval,
+          revisionCanonicalHash: revision.canonicalHash,
+          resourcePins,
+          outputs: proof.outputs,
+        })
+          ? "approved"
+          : "unapproved";
+      if (approvalStatus === "approved") approvedCanvasCount += 1;
+      else unapprovedCanvasCount += 1;
+      const canvasPrefix = campaignHandoffCanvasPrefix({
+        campaignPrefix,
+        directionKey: direction.directionKey,
+        canvasOrdinal: canvas.ordinal,
+        canvasKey: canvas.canvasKey,
+      });
+      addCampaignHandoffFiles(
+        archive,
+        handoffJsonFile(
+          `${canvasPrefix}.design.json`,
+          revision.document,
+          approvalStatus,
+        ),
+        handoffJsonFile(
+          `${canvasPrefix}.resources.json`,
+          {
+            revisionId: revision.revisionId,
+            documentHash: revision.canonicalHash,
+            resourcePins,
+          },
+          approvalStatus,
+        ),
+        handoffJsonFile(
+          `${canvasPrefix}.approval.json`,
+          review?.approval === undefined
+            ? {
+                status: "unapproved",
+                reviewState: review?.state ?? "not-submitted",
+                revisionId: revision.revisionId,
+              }
+            : approvalStatus === "approved"
+              ? { status: "approved", receipt: review.approval }
+              : {
+                  status: "unapproved",
+                  reason: "included-proofs-do-not-match-approval-receipt",
+                  receipt: review.approval,
+                },
+          approvalStatus,
+        ),
+      );
+      for (const output of proof.outputs) {
+        const bytes = Buffer.from(output.base64, "base64");
+        addCampaignHandoffFiles(
+          archive,
+          handoffBinaryFile(
+            `${canvasPrefix}.${output.format}`,
+            output.mimeType,
+            bytes,
+            approvalStatus,
+          ),
+          handoffJsonFile(
+            `${canvasPrefix}.${output.format}.manifest.json`,
+            output.manifest,
+            approvalStatus,
+          ),
+        );
+      }
+    }
+    const { files, bytes: archiveBytes } = encodeCampaignHandoffArchive(archive, {
+      campaign: board.campaign,
+      directionId: direction.id,
+      summary: { approvedCanvasCount, unapprovedCanvasCount },
+    });
+    return {
+      kind: "campaign-handoff",
+      campaignId: board.campaign.id,
+      directionId: direction.id,
+      filename: `${campaignPrefix}-${slugBase(direction.directionKey)}.gk-handoff.json`,
+      mediaType: "application/vnd.glyphkiln.campaign-handoff+json",
+      byteSize: archiveBytes.byteLength,
+      sha256: sha256(archiveBytes),
+      base64: Buffer.from(archiveBytes).toString("base64"),
+      fileCount: files.length,
+      approvedCanvasCount,
+      unapprovedCanvasCount,
+    };
   }
 
   async #submitRevisionReview(
@@ -1792,6 +2702,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       command.designId,
       command.revisionId,
     );
+    await this.#assertStoredCampaignLocks(context.state, command.workspaceId, revision);
     const rendered = await this.#renderDocument(command.workspaceId, revision.document);
     return success({
       kind: "revision-rendered",
@@ -1810,12 +2721,13 @@ class AppWorkflowImplementation implements AppWorkflow {
   ): Promise<AppResult<CommandReceipt>> {
     const context = await this.#authenticate(evidence, true);
     await this.#authorizeWorkspace(context, command.workspaceId, "request_export");
-    await this.#loadTrustedRevision(
+    const revision = await this.#loadTrustedRevision(
       context.state,
       command.workspaceId,
       command.designId,
       command.revisionId,
     );
+    await this.#assertStoredCampaignLocks(context.state, command.workspaceId, revision);
     if (this.#renderQueue === undefined) throw renderQueueUnavailable();
     const now = this.#clock.now();
     try {
@@ -2015,6 +2927,40 @@ class AppWorkflowImplementation implements AppWorkflow {
     return { ...revision, document: validation.data };
   }
 
+  async #assertCampaignAdaptationLocks(
+    state: AppState,
+    input: {
+      workspaceId: string;
+      designId: string;
+      revisionId: string;
+      candidate: DesignDocument;
+    },
+  ): Promise<void> {
+    const contexts = await state.listCampaignLockContextsForRevision(input);
+    for (const context of contexts) {
+      const baseline = await this.#loadTrustedRevision(
+        state,
+        input.workspaceId,
+        context.baseDesignId,
+        context.baseRevisionId,
+      );
+      requireAuthoringLocks(baseline.document, input.candidate, context.locks);
+    }
+  }
+
+  async #assertStoredCampaignLocks(
+    state: AppState,
+    workspaceId: string,
+    revision: StoredDesignRevision,
+  ): Promise<void> {
+    await this.#assertCampaignAdaptationLocks(state, {
+      workspaceId,
+      designId: revision.designId,
+      revisionId: revision.revisionId,
+      candidate: revision.document,
+    });
+  }
+
   async #resolveManualResourceDeclarations(
     workspaceId: string,
     draft: ManualDraft,
@@ -2126,6 +3072,7 @@ class AppWorkflowImplementation implements AppWorkflow {
   async #renderDocument(
     workspaceId: string,
     document: DesignDocument,
+    creationTimestamp?: Date,
   ): Promise<{
     document: DesignDocument;
     qualityIssues: QualityIssue[];
@@ -2141,7 +3088,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           workspaceId,
           document,
         });
-        return this.#render(document, resources);
+        return this.#render(document, resources, creationTimestamp);
       });
     } catch (error) {
       if (
@@ -2249,6 +3196,196 @@ class AppWorkflowImplementation implements AppWorkflow {
       ...input,
     });
   }
+
+  #requireCampaignWorkflow(): void {
+    if (!this.#campaignWorkflowEnabled) throw campaignWorkflowDisabled();
+  }
+}
+
+function handoffJsonFile(
+  path: string,
+  value: unknown,
+  approvalStatus: CampaignHandoffFile["approvalStatus"],
+): CampaignHandoffFile {
+  return handoffBinaryFile(
+    path,
+    "application/json",
+    new TextEncoder().encode(`${canonicalJson(value)}\n`),
+    approvalStatus,
+  );
+}
+
+function addCampaignHandoffFiles(
+  archive: CampaignHandoffArchive,
+  ...files: readonly CampaignHandoffFile[]
+): void {
+  withCampaignHandoffArchiveLimit(() => {
+    archive.add(...files);
+  });
+}
+
+function encodeCampaignHandoffArchive(
+  archive: CampaignHandoffArchive,
+  input: Parameters<CampaignHandoffArchive["encode"]>[0],
+): ReturnType<CampaignHandoffArchive["encode"]> {
+  return withCampaignHandoffArchiveLimit(() => archive.encode(input));
+}
+
+function withCampaignHandoffArchiveLimit<Result>(operation: () => Result): Result {
+  try {
+    return operation();
+  } catch (error) {
+    if (error instanceof CampaignHandoffArchiveLimitError) {
+      throw invalidCampaignCanvas(
+        `A verified handoff must be ${MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES.toString()} bytes or smaller.`,
+      );
+    }
+    throw error;
+  }
+}
+
+function handoffBinaryFile(
+  path: string,
+  mediaType: string,
+  bytes: Uint8Array,
+  approvalStatus: CampaignHandoffFile["approvalStatus"],
+): CampaignHandoffFile {
+  return {
+    path,
+    mediaType,
+    byteSize: bytes.byteLength,
+    sha256: sha256(bytes),
+    base64: Buffer.from(bytes).toString("base64"),
+    approvalStatus,
+  };
+}
+
+function handoffProofMatchesApproval(input: {
+  approval: RevisionApprovalProjection;
+  revisionCanonicalHash: string;
+  resourcePins: RevisionApprovalProjection["resourcePins"];
+  outputs: RenderedArtifact[];
+}): boolean {
+  if (
+    input.approval.revisionCanonicalHash !== input.revisionCanonicalHash ||
+    canonicalJson(input.approval.resourcePins) !== canonicalJson(input.resourcePins) ||
+    input.approval.outputEvidence.length !== input.outputs.length
+  ) {
+    return false;
+  }
+  return input.outputs.every((output) => {
+    const evidence = input.approval.outputEvidence.find(
+      (candidate) => candidate.format === output.format,
+    );
+    if (evidence?.fingerprint !== output.fingerprint) {
+      return false;
+    }
+    const artifactBytes = Buffer.from(output.base64, "base64");
+    const manifestBytes = new TextEncoder().encode(
+      `${canonicalJson(output.manifest)}\n`,
+    );
+    return (
+      sha256(artifactBytes) === evidence.artifactSha256 &&
+      sha256(manifestBytes) === evidence.manifestSha256
+    );
+  });
+}
+
+function proposalInvariantIssues(
+  base: DesignDocument,
+  candidate: DesignDocument,
+): CampaignProposalIssueProjection[] {
+  const checks: readonly {
+    code: string;
+    message: string;
+    baseValue: unknown;
+    candidateValue: unknown;
+  }[] = [
+    {
+      code: "DOCUMENT_ID_SERVER_OWNED",
+      message: "A proposal cannot choose or change the stored document identity.",
+      baseValue: base.id,
+      candidateValue: candidate.id,
+    },
+    {
+      code: "BRAND_SNAPSHOT_SERVER_OWNED",
+      message: "A proposal must retain the exact operator-selected brand snapshot.",
+      baseValue: base.brand,
+      candidateValue: candidate.brand,
+    },
+    {
+      code: "RESOURCE_SELECTION_SERVER_OWNED",
+      message: "A proposal must retain the exact operator-selected asset declarations.",
+      baseValue: base.assets,
+      candidateValue: candidate.assets,
+    },
+    {
+      code: "FONT_SELECTION_SERVER_OWNED",
+      message: "A proposal must retain the exact operator-selected font declarations.",
+      baseValue: base.fonts,
+      candidateValue: candidate.fonts,
+    },
+    {
+      code: "TEMPLATE_COORDINATION_SERVER_OWNED",
+      message: "A proposal must retain the coordinated exact template version.",
+      baseValue: base.template,
+      candidateValue: candidate.template,
+    },
+    {
+      code: "FORMAT_COORDINATION_SERVER_OWNED",
+      message: "A proposal must retain the coordinated canvas format.",
+      baseValue: base.format,
+      candidateValue: candidate.format,
+    },
+    {
+      code: "SEED_COORDINATION_SERVER_OWNED",
+      message: "A proposal must retain the server-derived campaign canvas seed.",
+      baseValue: base.seed,
+      candidateValue: candidate.seed,
+    },
+  ];
+  return checks.flatMap((check) =>
+    canonicalJson(check.baseValue) === canonicalJson(check.candidateValue)
+      ? []
+      : [{ code: check.code, message: check.message }],
+  );
+}
+
+function toProposalResponseIssue(issue: {
+  code: string;
+  message: string;
+  candidateIndex?: number;
+}): CampaignProposalIssueProjection {
+  return {
+    code: issue.code,
+    message: issue.message,
+    ...(issue.candidateIndex === undefined
+      ? {}
+      : { candidateIndex: issue.candidateIndex }),
+  };
+}
+
+function toProposalDocumentIssue(issue: {
+  code: string;
+  message: string;
+}): CampaignProposalIssueProjection {
+  return { code: issue.code, message: issue.message };
+}
+
+function toProposalLockIssue(issue: {
+  code: string;
+  message: string;
+  lock?: AuthoringLockId;
+}): CampaignProposalIssueProjection {
+  return {
+    code: issue.code,
+    message: issue.message,
+    ...(issue.lock === undefined ? {} : { lock: issue.lock }),
+  };
+}
+
+function asSqlJson(value: unknown): SqlJsonValue {
+  return JSON.parse(canonicalJson(value)) as SqlJsonValue;
 }
 
 function createWorkspaceRecord(
@@ -2316,7 +3453,9 @@ function requireValidPassword(password: string): void {
   );
 }
 
-function toRevisionProjection(revision: StoredDesignRevision): QueryProjection {
+function toRevisionProjection(
+  revision: StoredDesignRevision,
+): DesignRevisionProjection {
   return {
     kind: "design-revision",
     designId: revision.designId,
@@ -2396,6 +3535,46 @@ function invalidDocument(problems: ValidationProblem[]): WorkflowFault {
   );
 }
 
+function deriveStoredCampaignCanvasSeed(
+  campaign: StoredCampaign,
+  direction: StoredCampaignDirection,
+  scope: {
+    canvasKey: string;
+    templateId: TemplateId;
+    format: FormatId;
+    compositionVariantId: CampaignCompositionVariantId;
+  },
+): Omit<CampaignCanvasSeedProjection, "kind"> {
+  const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
+  const member = family.members.find(
+    (candidate) =>
+      candidate.template.id === scope.templateId &&
+      candidate.formats.some((format) => format === scope.format),
+  );
+  if (member === undefined) throw invalidCampaignCanvas();
+  const seeds = deriveCampaignSeeds({
+    campaignSeed: campaign.campaignSeed,
+    familyId: campaign.familyId,
+    directionKey: createCampaignDirectionKey(direction.directionKey),
+    canvasKey: createCampaignCanvasKey(scope.canvasKey),
+    template: member.template,
+    format: scope.format,
+    compositionVariantId: scope.compositionVariantId,
+  });
+  return {
+    workspaceId: campaign.workspaceId,
+    campaignId: campaign.id,
+    directionId: direction.id,
+    canvasKey: scope.canvasKey,
+    template: { ...member.template },
+    format: scope.format,
+    compositionVariantId: scope.compositionVariantId,
+    seedDerivationVersion: seeds.version,
+    directionSeed: seeds.directionSeed,
+    canvasSeed: seeds.canvasSeed,
+  };
+}
+
 function invalidCampaignCanvas(
   detail = "Use a template, version, format, and composition variant from the campaign family.",
 ): WorkflowFault {
@@ -2404,6 +3583,30 @@ function invalidCampaignCanvas(
     "INVALID_CAMPAIGN_CANVAS",
     "Campaign canvas needs attention",
     detail,
+  );
+}
+
+function campaignWorkflowDisabled(): WorkflowFault {
+  return fault(
+    503,
+    "CAMPAIGN_WORKFLOW_DISABLED",
+    "Campaign workflow is disabled",
+    "An operator must record a passing campaign qualification before enabling campaign changes or handoffs.",
+  );
+}
+
+function requireAuthoringLocks(
+  base: DesignDocument,
+  candidate: DesignDocument,
+  locks: readonly AuthoringLockId[],
+): void {
+  const validation = validateAuthoringLocks(base, candidate, locks);
+  if (validation.success) return;
+  throw fault(
+    422,
+    "CAMPAIGN_LOCK_VIOLATION",
+    "Campaign locks must be preserved",
+    validation.issues.map((issue) => issue.message).join(" "),
   );
 }
 
@@ -2494,6 +3697,33 @@ function reviewConflict(): WorkflowFault {
     "REVIEW_CONFLICT",
     "Review state changed",
     "Reload the exact head revision and its current review state before continuing.",
+  );
+}
+
+function aiAuthoringDisabled(): WorkflowFault {
+  return fault(
+    503,
+    "AI_AUTHORING_DISABLED",
+    "Optional proposals are disabled",
+    "An operator must configure the proposal provider before this workspace can request AI directions.",
+  );
+}
+
+function aiProposalRejected(): WorkflowFault {
+  return fault(
+    422,
+    "AI_PROPOSAL_REJECTED",
+    "Proposal can no longer be accepted",
+    "The stored proposal no longer passes its resource, lock, or Core proof boundary.",
+  );
+}
+
+function proposalDecisionConflict(): WorkflowFault {
+  return fault(
+    409,
+    "AI_PROPOSAL_REJECTED",
+    "Proposal decision already recorded",
+    "Reload the proposal run to see the immutable human decision.",
   );
 }
 

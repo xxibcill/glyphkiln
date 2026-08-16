@@ -7,6 +7,11 @@ import {
 
 import type { SqlDatabase } from "../persistence/database";
 import type { ClaimedRenderJob } from "../render-queue";
+import { validateAuthoringLocks } from "../ai-authoring";
+import {
+  CampaignRevisionLockContextIntegrityError,
+  resolveCampaignRevisionLockContexts,
+} from "../campaigns/revision-lock-context";
 import {
   REVISION_RESOURCE_REFERENCE_COLUMNS,
   mapRevisionResourceReference,
@@ -27,6 +32,7 @@ export class RenderRevisionError extends Error {
   constructor(
     public readonly code:
       | "RENDER_AUTHORIZATION_REVOKED"
+      | "RENDER_CAMPAIGN_LOCK_VIOLATION"
       | "RENDER_REVISION_CORRUPTED"
       | "RENDER_REVISION_NOT_FOUND",
     message: string,
@@ -133,7 +139,45 @@ export async function loadAuthorizedRenderRevision(
   if (!resourceReferencesMatchDocument(validation.data, references)) {
     throw corruptedRevision();
   }
+  await assertCampaignLocks(database, claim, validation.data);
   return validation.data;
+}
+
+async function assertCampaignLocks(
+  database: SqlDatabase,
+  claim: ClaimedRenderJob,
+  candidate: DesignDocument,
+): Promise<void> {
+  let contexts;
+  try {
+    contexts = await resolveCampaignRevisionLockContexts(database, {
+      workspaceId: claim.workspaceId,
+      designId: claim.designId,
+      revisionId: claim.revisionId,
+    });
+  } catch (error) {
+    if (error instanceof CampaignRevisionLockContextIntegrityError) {
+      throw corruptedRevision();
+    }
+    throw error;
+  }
+  for (const context of contexts) {
+    const baseValidation = validateDesignDocument(parseJson(context.baseDocument));
+    if (
+      !baseValidation.success ||
+      hashCanonical(baseValidation.data) !== context.baseCanonicalHash
+    ) {
+      throw corruptedRevision();
+    }
+    if (
+      !validateAuthoringLocks(baseValidation.data, candidate, context.locks).success
+    ) {
+      throw new RenderRevisionError(
+        "RENDER_CAMPAIGN_LOCK_VIOLATION",
+        "The stored campaign revision no longer preserves its server-owned locks.",
+      );
+    }
+  }
 }
 
 function corruptedRevision(): RenderRevisionError {

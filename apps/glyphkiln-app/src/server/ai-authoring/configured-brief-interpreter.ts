@@ -5,16 +5,25 @@ import { OpenAIResponsesBriefInterpreter } from "./openai-responses-adapter";
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_MAXIMUM_OUTPUT_TOKENS = 20_000;
+const PRODUCTION_APPROVAL = "production-approved";
 
 export function createBriefInterpreterFromEnvironment(
   environment: NodeJS.ProcessEnv,
 ): BriefInterpreter | undefined {
-  const provider = environment.GLYPHKILN_AI_PROVIDER?.trim();
-  if (provider === undefined || provider === "" || provider === "disabled") {
+  const approval = environment.GLYPHKILN_AI_PROPOSALS?.trim();
+  if (approval === undefined || approval === "" || approval === "disabled") {
     return undefined;
   }
+  if (approval !== PRODUCTION_APPROVAL) {
+    throw new Error(
+      `GLYPHKILN_AI_PROPOSALS must be disabled or ${PRODUCTION_APPROVAL}.`,
+    );
+  }
+  const provider = environment.GLYPHKILN_AI_PROVIDER?.trim();
   if (provider !== "openai-responses") {
-    throw new Error("GLYPHKILN_AI_PROVIDER must be disabled or openai-responses.");
+    throw new Error(
+      "GLYPHKILN_AI_PROVIDER must be openai-responses when AI proposals are production-approved.",
+    );
   }
   return new OpenAIResponsesBriefInterpreter({
     apiKey: requiredValue(environment, "GLYPHKILN_OPENAI_API_KEY"),

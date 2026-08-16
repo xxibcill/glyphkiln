@@ -76,8 +76,8 @@ contrast, and safe-area placement.
 
 ## App model-response boundary
 
-The App exports an internal `validateBriefInterpreterResponse(unknown)` seam
-for future operator-configured adapters. The strict `1.0.0` response contains
+The App uses `validateBriefInterpreterResponse(unknown)` for its
+operator-configured proposal adapter. The strict `1.0.0` response contains
 only `contractVersion` and three or four ordered `{ document, rationale }`
 proposals. Candidate envelopes reject additional authority fields. Rationales
 are one bounded inert paragraph and emerge as `kind: "model-suggestion"`.
@@ -90,7 +90,7 @@ documents receive a fixed duplicate issue. The result always declares
 for human review, not that assets, fonts, provenance, persistence, rendering,
 export, or publication are authorized.
 
-The boundary has no provider SDK or network call. See the
+The validator itself has no provider SDK or network call. See the
 [AI-assisted authoring threat model](ai-authoring-threat-model.md) for the
 implemented controls and the decisions required before enabling an adapter.
 
@@ -127,8 +127,9 @@ projection differs, even when another unselected lock also owns that field.
 Document revision `id` and inert `metadata` are outside creative locks. The
 result remains `authority: "proposal-only"`; successful equality does not
 authorize a candidate's resource claims, workspace access, persistence,
-rendering, export, or publication. Those checks still belong to a later App
-workflow using immutable server records.
+rendering, export, or publication. The App campaign workflow separately reloads
+immutable server records, requires the base resource declarations, produces a
+Core proof, and records explicit human acceptance before creating a revision.
 
 ## Actionable issues
 

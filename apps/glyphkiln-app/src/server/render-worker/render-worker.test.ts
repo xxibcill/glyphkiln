@@ -1,6 +1,7 @@
 import {
   GlyphkilnError,
   canonicalJson,
+  hashCanonical,
   renderGraphic,
   type RenderGraphicOptions,
 } from "@glyphkiln/core";
@@ -151,6 +152,170 @@ describe("RenderWorker", () => {
     await expect(worker.processNext()).resolves.toMatchObject({
       kind: "failed",
       code: "RENDER_AUTHORIZATION_REVOKED",
+    });
+    expect(render).not.toHaveBeenCalled();
+  });
+
+  it("rejects a canonically valid queued revision that violates campaign locks", async () => {
+    const fixture = await seedRenderJobFixture(database, "worker-campaign-lock");
+    const targetDesignId = "design-worker-campaign-target";
+    const targetAncestorRevisionId = "revision-worker-campaign-ancestor";
+    const targetRevisionId = "revision-worker-campaign-target";
+    const targetAncestor = structuredClone(fixture.document);
+    targetAncestor.id = targetDesignId;
+    const target = structuredClone(targetAncestor);
+    const headline = target.layers.find((layer) => layer.type === "headline");
+    if (headline?.type !== "headline") throw new Error("Headline fixture missing.");
+    headline.text = "Changed after the campaign copy lock was established.";
+    await database.query(
+      `INSERT INTO designs (
+         id, workspace_id, name, created_by, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $5)`,
+      [
+        targetDesignId,
+        fixture.workspaceId,
+        "Campaign lock target",
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `INSERT INTO design_revisions (
+         id, workspace_id, design_id, revision_number, brand_snapshot_id,
+         design_document, canonical_hash, source, created_by, created_at
+       ) VALUES ($1, $2, $3, 1, $4, $5::jsonb, $6, 'manual', $7, $8)`,
+      [
+        targetAncestorRevisionId,
+        fixture.workspaceId,
+        targetDesignId,
+        fixture.brandSnapshotId,
+        targetAncestor,
+        hashCanonical(targetAncestor),
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `INSERT INTO design_revisions (
+         id, workspace_id, design_id, revision_number, parent_revision_id,
+         brand_snapshot_id, design_document, canonical_hash, source,
+         created_by, created_at
+       ) VALUES ($1, $2, $3, 2, $4, $5, $6::jsonb, $7, 'manual', $8, $9)`,
+      [
+        targetRevisionId,
+        fixture.workspaceId,
+        targetDesignId,
+        targetAncestorRevisionId,
+        fixture.brandSnapshotId,
+        target,
+        hashCanonical(target),
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `UPDATE designs
+          SET head_revision_id = $3
+        WHERE workspace_id = $1
+          AND id = $2`,
+      [fixture.workspaceId, targetDesignId, targetRevisionId],
+    );
+    await database.query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id,
+         created_by, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6, $7, $7)`,
+      [
+        "campaign-worker-lock",
+        fixture.workspaceId,
+        "Worker lock campaign",
+        "Preserve exact copy through durable export.",
+        "worker-lock-seed",
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        "direction-worker-lock",
+        fixture.workspaceId,
+        "campaign-worker-lock",
+        "locked-copy",
+        "Locked copy",
+        fixture.userId,
+        CREATED_AT,
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_direction_locks (
+         workspace_id, campaign_id, direction_id, lock_id, ordinal, created_at
+       ) VALUES ($1, $2, $3, 'copy', 0, $4)`,
+      [
+        fixture.workspaceId,
+        "campaign-worker-lock",
+        "direction-worker-lock",
+        CREATED_AT,
+      ],
+    );
+    for (const [id, designId, revisionId, ordinal] of [
+      ["canvas-worker-base", fixture.designId, fixture.revisionId, 0],
+      ["canvas-worker-target", targetDesignId, targetAncestorRevisionId, 1],
+    ] as const) {
+      await database.query(
+        `INSERT INTO campaign_canvases (
+           id, workspace_id, campaign_id, direction_id, canvas_key,
+           design_id, revision_id, template_id, template_version, format_id,
+           composition_variant_id, seed_derivation_version, direction_seed,
+           canvas_seed, ordinal, created_by, created_at
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, 'image-led-campaign', '1.0.0',
+           'linkedin-landscape', 'focal-editorial', 'sha256/canonical-scope-v1',
+           $8, $9, $10, $11, $12
+         )`,
+        [
+          id,
+          fixture.workspaceId,
+          "campaign-worker-lock",
+          "direction-worker-lock",
+          id,
+          designId,
+          revisionId,
+          "a".repeat(64),
+          "b".repeat(64),
+          ordinal,
+          fixture.userId,
+          CREATED_AT,
+        ],
+      );
+    }
+    await queue.enqueue({
+      jobId: "job-worker-campaign-lock",
+      workspaceId: fixture.workspaceId,
+      designId: targetDesignId,
+      revisionId: targetRevisionId,
+      requestedBy: fixture.userId,
+      idempotencyKey: "request-worker-campaign-lock",
+      createdAt: CREATED_AT,
+      manifestCreationTimestamp: CREATED_AT,
+    });
+    const render = vi.fn((input: unknown, options: RenderGraphicOptions = {}) =>
+      renderGraphic(input, options),
+    );
+    const worker = new RenderWorker({
+      database,
+      queue,
+      storage,
+      workerId: "worker-campaign-lock",
+      render,
+      clock: new ManualClock(CREATED_AT),
+    });
+
+    await expect(worker.processNext()).resolves.toMatchObject({
+      kind: "failed",
+      code: "RENDER_CAMPAIGN_LOCK_VIOLATION",
     });
     expect(render).not.toHaveBeenCalled();
   });

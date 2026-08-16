@@ -2857,6 +2857,670 @@ textarea:focus-visible {
   font-size: 0.68rem;
 }
 
+.text-action {
+  min-height: 2.75rem;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  color: var(--clay-dark);
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.text-action:hover:not(:disabled) {
+  color: var(--ink-1);
+}
+
+.text-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.campaign-studio,
+.review-station {
+  container-type: inline-size;
+  display: grid;
+  width: min(100%, 120rem);
+  margin-inline: auto;
+  border-block: 1px solid var(--ink-1);
+  background: var(--paper-0);
+}
+
+.campaign-studio > header,
+.review-station > header {
+  display: grid;
+  gap: var(--space-4);
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3.2vw, 3rem);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.campaign-studio h2,
+.review-station h2 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 4.75rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+}
+
+.campaign-studio-header > p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+
+.campaign-alert,
+.review-station > .app-alert {
+  margin: var(--space-4) clamp(1rem, 3.2vw, 3rem) 0;
+}
+
+.campaign-command-rail {
+  display: grid;
+  border-bottom: 1px solid var(--ink-1);
+}
+
+.campaign-command-rail > form,
+.campaign-selector-panel,
+.direction-composer,
+.canvas-attachment {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1rem, 3.2vw, 3rem);
+}
+
+.campaign-command-rail > form {
+  background: var(--paper-1);
+}
+
+.campaign-command-rail > form > span,
+.campaign-selector-panel > span,
+.direction-composer span,
+.canvas-attachment > span,
+.proof-comparison header span,
+.proposal-board > header span {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.campaign-command-rail label,
+.direction-composer label,
+.canvas-attachment label,
+.review-ledger-grid label {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--ink-3);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.campaign-command-rail input,
+.campaign-command-rail textarea,
+.campaign-command-rail select,
+.direction-composer input,
+.canvas-attachment input,
+.canvas-attachment select,
+.proof-comparison select,
+.review-ledger-grid textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  color: var(--ink-1);
+  background: var(--paper-0);
+}
+
+.campaign-command-rail textarea,
+.review-ledger-grid textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.campaign-selector-panel blockquote {
+  margin: 0;
+  padding: var(--space-4) 0 var(--space-4) var(--space-4);
+  border-left: 0.3rem solid var(--clay);
+  color: var(--ink-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.15;
+}
+
+.campaign-selector-panel > p,
+.canvas-attachment > p {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+.direction-composer {
+  gap: var(--space-5);
+  border-bottom: 1px solid var(--rule-strong);
+  background: var(--paper-2);
+}
+
+.direction-composer > div {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.direction-composer fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+}
+
+.direction-composer legend {
+  padding-inline: var(--space-2);
+  color: var(--ink-2);
+  font-family: var(--font-code);
+  font-size: 0.64rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.direction-composer fieldset label {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 2rem;
+  color: var(--ink-2);
+  text-transform: none;
+}
+
+.direction-composer input[type="checkbox"] {
+  width: 1rem;
+  min-height: 1rem;
+  accent-color: var(--clay-dark);
+}
+
+.option-board {
+  display: grid;
+  grid-auto-columns: minmax(min(20rem, 86vw), 1fr);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  border-bottom: 1px solid var(--ink-1);
+  background: var(--paper-1);
+  scrollbar-color: var(--clay) var(--paper-2);
+}
+
+.campaign-empty-state {
+  width: min(100vw, 42rem);
+  min-height: 14rem;
+  margin: 0;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 3.2vw, 3rem);
+  color: var(--ink-3);
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.direction-column {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-height: 24rem;
+  padding: var(--space-5);
+  border-right: 1px solid var(--rule-strong);
+  background: var(--paper-0);
+}
+
+.direction-column:nth-child(even) {
+  background: var(--paper-2);
+}
+
+.direction-column > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.direction-column > header > span {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  color: var(--paper-0);
+  background: var(--ink-1);
+  font-family: var(--font-code);
+  font-size: 0.68rem;
+}
+
+.direction-column h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.direction-column header small,
+.direction-column li small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.6rem;
+}
+
+.direction-locks {
+  min-height: 2.75rem;
+  margin: var(--space-4) 0;
+  padding-block: var(--space-2);
+  border-block: 1px solid var(--rule);
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
+.direction-column ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.direction-column li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.direction-column li > span {
+  grid-row: 1 / span 3;
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+}
+
+.direction-column li > .text-action {
+  min-height: 2rem;
+  justify-self: start;
+}
+
+.direction-column > .text-action {
+  justify-self: start;
+  margin-top: var(--space-4);
+}
+
+.canvas-attachment {
+  border-bottom: 1px solid var(--ink-1);
+  background: var(--clay-light);
+}
+
+.proof-comparison,
+.proposal-board {
+  display: grid;
+  border-bottom: 1px solid var(--ink-1);
+}
+
+.proof-comparison > header,
+.proposal-board > header {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5) clamp(1rem, 3.2vw, 3rem);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.proof-comparison h3,
+.proposal-board h3,
+.review-ledger-grid h3 {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.proof-comparison header > div:last-child {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.comparison-spread,
+.revision-comparison-strip,
+.proposal-board > div,
+.review-ledger-grid {
+  display: grid;
+  background: var(--ink-1);
+  gap: 1px;
+}
+
+.comparison-spread figure,
+.revision-comparison-strip figure {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  margin: 0;
+  background: var(--paper-1);
+}
+
+.comparison-spread figcaption,
+.revision-comparison-strip figcaption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--ink-1);
+}
+
+.comparison-spread figcaption > span,
+.revision-comparison-strip figcaption > span {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  color: var(--paper-0);
+  background: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.comparison-spread figcaption small {
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.6rem;
+}
+
+.comparison-spread img,
+.revision-comparison-strip img,
+.proposal-board img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.proposal-board {
+  background: var(--paper-2);
+}
+
+.proposal-board > header > p {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.7rem;
+}
+
+.proposal-board article {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--paper-0);
+}
+
+.proposal-board article[data-status="rejected"] {
+  background: var(--error-paper);
+}
+
+.proposal-board article > span,
+.proposal-board article > strong {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+.proposal-board article > p,
+.proposal-board article > ul {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.74rem;
+}
+
+.proposal-board article > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.proposal-proof-missing {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+  border: 1px dashed var(--error);
+  color: var(--error);
+  background: var(--error-paper);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+}
+
+.campaign-status,
+.review-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) clamp(1rem, 3.2vw, 3rem);
+  color: var(--ink-2);
+  background: var(--paper-2);
+  font-size: 0.68rem;
+}
+
+.campaign-status span {
+  color: var(--sage);
+}
+
+.review-station > header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.review-state-register {
+  display: grid;
+  min-width: 8rem;
+  padding: var(--space-3);
+  border: 1px solid var(--rule-strong);
+  color: var(--warning);
+  background: var(--warning-paper);
+}
+
+.review-state-register[data-state="approved"] {
+  color: var(--sage);
+  background: var(--sage-light);
+}
+
+.review-state-register > span,
+.review-state-register > small {
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.review-state-register > small {
+  margin-top: var(--space-1);
+  color: var(--ink-3);
+}
+
+.review-action-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) clamp(1rem, 3.2vw, 3rem);
+  border-bottom: 1px solid var(--rule-strong);
+  background: var(--paper-2);
+}
+
+.review-action-strip p {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+}
+
+.review-ledger-grid > div {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  background: var(--paper-0);
+}
+
+.review-comments,
+.review-transitions {
+  margin: var(--space-4) 0;
+  padding: 0;
+  border-top: 1px solid var(--rule-strong);
+  list-style: none;
+}
+
+.review-comments li,
+.review-transitions li {
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.review-comments p,
+.review-transitions p,
+.approval-receipt > p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+}
+
+.review-comments small,
+.review-transitions small {
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.6rem;
+}
+
+.review-transitions span {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.review-ledger-grid form {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.review-ledger-grid form label {
+  width: 100%;
+}
+
+.approval-receipt {
+  background: var(--sage-light) !important;
+}
+
+.approval-receipt dl {
+  display: grid;
+  margin: var(--space-4) 0 0;
+}
+
+.approval-receipt dl > div {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-top: 1px solid color-mix(in oklch, var(--sage), transparent 55%);
+}
+
+.approval-receipt dt {
+  color: var(--sage);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.approval-receipt dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-family: var(--font-code);
+  font-size: 0.66rem;
+}
+
+@container (min-width: 42rem) {
+  .campaign-studio > header,
+  .proof-comparison > header,
+  .proposal-board > header {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.7fr);
+    align-items: end;
+  }
+
+  .campaign-command-rail,
+  .comparison-spread,
+  .revision-comparison-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .campaign-command-rail > form {
+    border-right: 1px solid var(--ink-1);
+  }
+
+  .direction-composer {
+    grid-template-columns: minmax(18rem, 1fr) minmax(18rem, 1fr) auto;
+    align-items: end;
+  }
+
+  .canvas-attachment {
+    grid-template-columns: minmax(10rem, 0.8fr) repeat(3, minmax(8rem, 1fr));
+    align-items: end;
+  }
+
+  .canvas-attachment > span,
+  .canvas-attachment > p,
+  .canvas-attachment > button {
+    grid-column: 1 / -1;
+  }
+
+  .proof-comparison header > div:last-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .proof-comparison header .quiet-action {
+    grid-column: 1 / -1;
+  }
+
+  .proposal-board > div,
+  .review-ledger-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 68rem) {
+  .canvas-attachment {
+    grid-template-columns: auto repeat(3, minmax(8rem, 1fr)) minmax(14rem, 1.2fr) auto;
+  }
+
+  .canvas-attachment > span,
+  .canvas-attachment > p,
+  .canvas-attachment > button {
+    grid-column: auto;
+  }
+
+  .proof-comparison header > div:last-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  }
+
+  .proof-comparison header .quiet-action {
+    grid-column: auto;
+  }
+}
+
 @media (min-width: 40rem) {
   .app-identity-header {
     grid-template-columns: minmax(12rem, 0.8fr) minmax(18rem, 1.4fr) auto;

@@ -10,9 +10,12 @@ import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
 
 import {
+  isRenderProofProjection,
+  MAXIMUM_BROWSER_RENDER_PROOF_BYTES,
   parsePreviewResponse,
   previewIntegrityPrerequisiteFailure,
   verifyPreviewIntegrity,
+  type RenderProofProjection,
 } from "./response-parser";
 import type { PreviewSuccess } from "./types";
 
@@ -38,6 +41,24 @@ describe("parsePreviewResponse", () => {
     await expect(
       verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
     ).resolves.toBeNull();
+  });
+
+  it("accepts complete proof bytes or metadata and rejects mixed or oversized proofs", async () => {
+    const proof = await renderSuccess();
+    expect(isRenderProofProjection(proof, proof.document)).toBe(true);
+
+    const metadataOnly = structuredClone(proof) as RenderProofProjection;
+    for (const output of metadataOnly.outputs) delete output.base64;
+    expect(isRenderProofProjection(metadataOnly, proof.document)).toBe(true);
+
+    const mixed = structuredClone(proof) as RenderProofProjection;
+    delete mixed.outputs[0].base64;
+    expect(isRenderProofProjection(mixed, proof.document)).toBe(false);
+
+    const oversized = structuredClone(metadataOnly);
+    oversized.outputs[0].byteSize = MAXIMUM_BROWSER_RENDER_PROOF_BYTES;
+    oversized.outputs[0].manifest.output.byteSize = MAXIMUM_BROWSER_RENDER_PROOF_BYTES;
+    expect(isRenderProofProjection(oversized, proof.document)).toBe(false);
   });
 
   it("accepts a manifest that uses an exact declared custom font", async () => {

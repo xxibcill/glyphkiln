@@ -1,15 +1,21 @@
+import { readFile } from "node:fs/promises";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  canonicalJson,
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
+  hashCanonical,
   renderGraphic,
   sha256,
 } from "@glyphkiln/core";
 import type { DesignLayer } from "@glyphkiln/core";
 
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
+import type { BriefInterpreter } from "@/server/ai-authoring";
+import type { BriefInterpreterResult } from "@/server/ai-authoring";
 import {
   createPGliteDatabase,
   type PGliteDatabase,
@@ -58,6 +64,8 @@ describe("AppWorkflow", () => {
   let clock: MutableTestClock;
   let renderQueue: PostgresRenderQueue;
   let resourceStore: TestResourceStore;
+  let briefInterpreter: TestBriefInterpreter;
+  let renderedDocumentIds: string[];
 
   beforeEach(async () => {
     database = await createPGliteDatabase();
@@ -66,6 +74,8 @@ describe("AppWorkflow", () => {
     clock = new MutableTestClock(NOW);
     renderQueue = new PostgresRenderQueue(database);
     resourceStore = new TestResourceStore();
+    briefInterpreter = new TestBriefInterpreter();
+    renderedDocumentIds = [];
     workflow = createAppWorkflow({
       database,
       bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
@@ -74,13 +84,22 @@ describe("AppWorkflow", () => {
       clock,
       renderQueue,
       resourceStore,
-      render: async (document) =>
-        (
-          await createProjectPreview(document, {
-            render: async (input, options) => renderGraphic(input, options),
-            now: () => NOW,
-          })
-        ).body,
+      briefInterpreter,
+      campaignWorkflowEnabled: true,
+      render: async (document, resources, creationTimestamp) => {
+        renderedDocumentIds.push(document.id);
+        return (
+          await createProjectPreview(
+            document,
+            {
+              render: async (input, options) => renderGraphic(input, options),
+              now: () => NOW,
+            },
+            resources,
+            creationTimestamp,
+          )
+        ).body;
+      },
     });
   });
 
@@ -369,6 +388,364 @@ describe("AppWorkflow", () => {
     );
   });
 
+  it("derives campaign canvas seeds only from trusted campaign scope", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Seed advice",
+          brief: "Prepare one exact campaign canvas seed before saving a revision.",
+          campaignSeed: "seed-advice-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "trusted-direction",
+          name: "Trusted direction",
+          locks: [],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const expected = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-landscape"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+
+    const advised = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId: ` ${workspaceId} `,
+          campaignId: ` ${campaign.id} `,
+          directionId: ` ${direction.id} `,
+          canvasKey: " hero-landscape ",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(advised).toEqual({
+      kind: "campaign-canvas-seed",
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: direction.id,
+      canvasKey: "hero-landscape",
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+      seedDerivationVersion: expected.version,
+      directionSeed: expected.directionSeed,
+      canvasSeed: expected.canvasSeed,
+    });
+
+    const foreignCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Foreign seed advice",
+          brief: "Keep direction identities qualified by campaign.",
+          campaignSeed: "foreign-seed-advice-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const foreignDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: foreignCampaign.id,
+          directionKey: "foreign-direction",
+          name: "Foreign direction",
+          locks: [],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: foreignDirection.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "unsupported-template",
+          templateId: "quote-card",
+          format: "instagram-square",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+
+    const overPrivilegedQuery = {
+      type: "campaign.canvas.seed" as const,
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: direction.id,
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign" as const,
+      format: "linkedin-landscape" as const,
+      compositionVariantId: "focal-editorial" as const,
+      templateVersion: "untrusted-version",
+      campaignSeed: "untrusted-campaign-seed",
+      directionKey: "untrusted-direction-key",
+      directionSeed: "0".repeat(64),
+      canvasSeed: "1".repeat(64),
+    };
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: overPrivilegedQuery,
+      }),
+      422,
+      "INVALID_INPUT",
+    );
+
+    const viewer = await registerMember(
+      owner,
+      workspaceId,
+      "seed-viewer@example.com",
+      "viewer",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: viewer.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      403,
+      "ROLE_FORBIDDEN",
+    );
+  });
+
+  it("keeps campaign persistence dark while preserving authenticated recovery reads", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Gated campaign",
+          brief: "Persist history before closing the product gate.",
+          campaignSeed: "gated-campaign-seed",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "gated-direction",
+          name: "Gated direction",
+          locks: ["copy"],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+
+    workflow = createAppWorkflow({
+      database,
+      bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
+      passwordHasher: new TestPasswordHasher(),
+      secretFactory: secrets,
+      clock,
+      renderQueue,
+      resourceStore,
+      briefInterpreter,
+    });
+
+    const dashboard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "workspace.dashboard", workspaceId },
+      }),
+      "workspace-dashboard",
+    );
+    expect(dashboard.features).toEqual({ campaignWorkflow: false });
+    expect(dashboard.campaigns).toContainEqual(campaign);
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+
+    const gatedCommands: AppCommand[] = [
+      {
+        type: "campaign.create",
+        workspaceId,
+        name: "Blocked campaign",
+        brief: "The gate must run before persistence.",
+        campaignSeed: "blocked-campaign-seed",
+        familyId: "image-led-campaign",
+      },
+      {
+        type: "campaign.direction.create",
+        workspaceId,
+        campaignId: campaign.id,
+        directionKey: "blocked-direction",
+        name: "Blocked direction",
+        locks: [],
+      },
+      {
+        type: "campaign.direction.branch",
+        workspaceId,
+        campaignId: campaign.id,
+        sourceDirectionId: direction.id,
+        directionKey: "blocked-branch",
+        name: "Blocked branch",
+      },
+      {
+        type: "campaign.canvas.attach",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+        canvasKey: "blocked-canvas",
+        designId: "blocked-design",
+        revisionId: "blocked-revision",
+        compositionVariantId: "focal-editorial",
+        ordinal: 0,
+      },
+      {
+        type: "campaign.proposals.request",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+        baseCanvasId: "blocked-canvas",
+        candidateCount: 3,
+      },
+      {
+        type: "campaign.proposal.accept",
+        workspaceId,
+        campaignId: campaign.id,
+        runId: "blocked-run",
+        candidateId: "blocked-candidate",
+        designName: "Blocked accepted proposal",
+      },
+      {
+        type: "campaign.proposal.reject",
+        workspaceId,
+        campaignId: campaign.id,
+        runId: "blocked-run",
+        candidateId: "blocked-candidate",
+        reason: "Product gate closed.",
+      },
+    ];
+    for (const command of gatedCommands) {
+      expectFailure(
+        await workflow.execute({ evidence: ownerEvidence(owner), command }),
+        503,
+        "CAMPAIGN_WORKFLOW_DISABLED",
+      );
+    }
+    expect(briefInterpreter.lastInputHash).toBeUndefined();
+
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "blocked-canvas",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      503,
+      "CAMPAIGN_WORKFLOW_DISABLED",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
+      }),
+      503,
+      "CAMPAIGN_WORKFLOW_DISABLED",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: "missing-history",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+  });
+
   it("coordinates a deterministic campaign board around exact revisions and canonical locks", async () => {
     const owner = await bootstrapOwner();
     const workspaceId = requireWorkspaceId(owner);
@@ -402,7 +779,7 @@ describe("AppWorkflow", () => {
     ).direction;
     expect(direction.locks).toEqual(["copy", "image", "palette"]);
 
-    const seeds = deriveCampaignSeeds({
+    const expectedSeeds = deriveCampaignSeeds({
       campaignSeed: campaign.campaignSeed,
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
@@ -411,12 +788,82 @@ describe("AppWorkflow", () => {
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
-    const assetBytes = Uint8Array.from([1, 2, 3, 4]);
-    const assetHash = sha256(assetBytes);
-    for (const [id, sourceName] of [
-      ["campaign-image-one", "Campaign image"],
-      ["campaign-logo-one", "Campaign logo"],
-    ] as const) {
+    const seedAdvice = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(seedAdvice).toMatchObject({
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      seedDerivationVersion: expectedSeeds.version,
+      directionSeed: expectedSeeds.directionSeed,
+      canvasSeed: expectedSeeds.canvasSeed,
+    });
+    const carouselSeedAdvice = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.canvas.seed",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "carousel-01",
+          templateId: "tiktok-carousel-slide",
+          format: "tiktok-photo-carousel",
+          compositionVariantId: "organic-photo-editorial",
+        },
+      }),
+      "campaign-canvas-seed",
+    );
+    expect(carouselSeedAdvice).toMatchObject({
+      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      format: "tiktok-photo-carousel",
+      directionSeed: seedAdvice.directionSeed,
+    });
+    expect(carouselSeedAdvice.canvasSeed).not.toBe(seedAdvice.canvasSeed);
+    const campaignAssets = [
+      {
+        id: "campaign-image-one",
+        sourceName: "Campaign image",
+        width: 1536,
+        height: 1024,
+        bytes: new Uint8Array(
+          await readFile(
+            new URL(
+              "../../../../../packages/glyphkiln-core/examples/assets/kilnform-lamp-campaign.png",
+              import.meta.url,
+            ),
+          ),
+        ),
+      },
+      {
+        id: "campaign-logo-one",
+        sourceName: "Campaign logo",
+        width: 1024,
+        height: 1024,
+        bytes: new Uint8Array(
+          await readFile(
+            new URL(
+              "../../../../../packages/glyphkiln-core/examples/assets/kilnform-mark.png",
+              import.meta.url,
+            ),
+          ),
+        ),
+      },
+    ] as const;
+    for (const { id, sourceName, width, height, bytes } of campaignAssets) {
+      const assetHash = sha256(bytes);
       resourceStore.add({
         resource: {
           id,
@@ -425,9 +872,9 @@ describe("AppWorkflow", () => {
           contentHash: assetHash,
           storageKey: `internal-${id}`,
           mediaType: "image/png",
-          byteSize: assetBytes.byteLength,
-          width: 1200,
-          height: 800,
+          byteSize: bytes.byteLength,
+          width,
+          height,
           origin: { kind: "user-upload", sourceName },
           license: { status: "owned" },
           scan: {
@@ -439,7 +886,7 @@ describe("AppWorkflow", () => {
           createdBy: owner.user.id,
           createdAt: NOW,
         },
-        bytes: assetBytes,
+        bytes,
       });
       await seedResourceVersion({
         id,
@@ -449,9 +896,9 @@ describe("AppWorkflow", () => {
         contentHash: assetHash,
         storageKey: `internal-${id}`,
         mediaType: "image/png",
-        byteSize: assetBytes.byteLength,
-        width: 1200,
-        height: 800,
+        byteSize: bytes.byteLength,
+        width,
+        height,
         originKind: "user-upload",
         originSourceName: sourceName,
         licenseStatus: "owned",
@@ -477,7 +924,7 @@ describe("AppWorkflow", () => {
           workspaceId,
           name: "Campaign hero",
           brandSnapshotId: brand.snapshotId,
-          draft: imageLedCampaignDraft(seeds.canvasSeed),
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
         },
       }),
       "design-saved",
@@ -501,9 +948,9 @@ describe("AppWorkflow", () => {
     ).canvas;
     expect(attached).toMatchObject({
       revisionId: revision.revisionId,
-      seedDerivationVersion: seeds.version,
-      directionSeed: seeds.directionSeed,
-      canvasSeed: seeds.canvasSeed,
+      seedDerivationVersion: seedAdvice.seedDerivationVersion,
+      directionSeed: seedAdvice.directionSeed,
+      canvasSeed: seedAdvice.canvasSeed,
     });
 
     const board = expectProjection(
@@ -533,6 +980,792 @@ describe("AppWorkflow", () => {
         },
       ],
     });
+
+    const branched = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.branch",
+          workspaceId,
+          campaignId: campaign.id,
+          sourceDirectionId: direction.id,
+          directionKey: "editorial-b",
+          name: "Editorial B",
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expect(branched).toMatchObject({
+      directionKey: "editorial-b",
+      locks: ["copy", "image", "palette"],
+      canvases: [],
+    });
+    const branchedCanvasSeeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(branched.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-square"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "instagram-square",
+      compositionVariantId: "focal-editorial",
+    });
+    const branchedRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Alternative campaign hero",
+          brandSnapshotId: brand.snapshotId,
+          draft: {
+            ...imageLedCampaignDraft(branchedCanvasSeeds.canvasSeed),
+            format: "instagram-square",
+          },
+        },
+      }),
+      "design-saved",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square",
+          designId: branchedRevision.designId,
+          revisionId: branchedRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
+
+    const copyViolation = imageLedCampaignDraft(seedAdvice.canvasSeed);
+    const lockedHeadline = copyViolation.layers.find(
+      (layer) => layer.type === "headline",
+    );
+    if (lockedHeadline?.type !== "headline") {
+      throw new Error("Campaign headline missing.");
+    }
+    lockedHeadline.text = "A model or editor must not move locked copy.";
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.preview",
+          workspaceId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          baseRevision: {
+            designId: revision.designId,
+            revisionId: revision.revisionId,
+          },
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.preview",
+          workspaceId,
+          brandSnapshotId: brand.snapshotId,
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
+          baseRevision: {
+            designId: revision.designId,
+            revisionId: revision.revisionId,
+          },
+        },
+      }),
+      "design-previewed",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: revision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          changeNote: "Attempt to alter a locked campaign field.",
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
+    const proposalRun = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      "campaign-proposals-created",
+    ).run;
+    expect(proposalRun).toMatchObject({
+      descriptor: {
+        providerId: "test-proposal-provider",
+        modelId: "bounded-test-model",
+      },
+      locks: ["copy", "image", "palette"],
+      candidates: [
+        { index: 0, status: "proved", issues: [] },
+        { index: 1, status: "proved", issues: [] },
+        { index: 2, status: "proved", issues: [] },
+      ],
+    });
+    expect(proposalRun.inputHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(proposalRun.inputHash).toBe(briefInterpreter.lastInputHash);
+    expect(proposalRun.responseHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(
+      proposalRun.candidates.every((candidate) =>
+        candidate.proof?.outputs.every((output) => output.base64 !== undefined),
+      ),
+    ).toBe(true);
+    const proposalBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+    expect(proposalBoard.directions[0]?.proposalRuns).toEqual([
+      {
+        id: proposalRun.id,
+        providerId: "test-proposal-provider",
+        modelId: "bounded-test-model",
+        candidateCount: 3,
+        decidedCount: 0,
+        acceptedCount: 0,
+        createdAt: NOW.toISOString(),
+      },
+    ]);
+    expect(proposalBoard.directions[0]?.proposalRunsTruncated).toBe(false);
+
+    briefInterpreter.responseOverride = (input) => ({
+      contractVersion: "1.0.0",
+      candidates: Array.from({ length: input.candidateCount }, (_, index) => ({
+        document: structuredClone(input.baseDocument),
+        rationale: `Duplicate proposal ${(index + 1).toString()}.`,
+      })),
+    });
+    const duplicateRun = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      "campaign-proposals-created",
+    ).run;
+    expect(duplicateRun.candidates).toMatchObject([
+      { index: 0, status: "proved", issues: [] },
+      {
+        index: 1,
+        status: "rejected",
+        issues: [{ code: "DUPLICATE_NORMALIZED_DOCUMENT", candidateIndex: 1 }],
+      },
+      {
+        index: 2,
+        status: "rejected",
+        issues: [{ code: "DUPLICATE_NORMALIZED_DOCUMENT", candidateIndex: 2 }],
+      },
+    ]);
+
+    briefInterpreter.responseOverride = () => ({
+      contractVersion: "1.0.0",
+      candidates: [],
+    });
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      422,
+      "AI_PROPOSAL_REJECTED",
+    );
+
+    let accessorReads = 0;
+    const accessorResponse = {};
+    Object.defineProperty(accessorResponse, "contractVersion", {
+      enumerable: true,
+      get() {
+        accessorReads += 1;
+        throw new Error("Provider response accessors must not run.");
+      },
+    });
+    briefInterpreter.resultOverride = () => ({
+      response: accessorResponse,
+      inputHash: "f".repeat(64),
+      responseHash: "0".repeat(64),
+    });
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposals.request",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          baseCanvasId: attached.id,
+          candidateCount: 3,
+        },
+      }),
+      422,
+      "AI_PROPOSAL_REJECTED",
+    );
+    expect(accessorReads).toBe(0);
+
+    const storedRun = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+        },
+      }),
+      "campaign-proposal-run",
+    );
+    expect(JSON.stringify(storedRun)).not.toContain('"base64"');
+
+    const firstCandidate = proposalRun.candidates.at(0);
+    const secondCandidate = proposalRun.candidates.at(1);
+    const thirdCandidate = proposalRun.candidates.at(2);
+    if (
+      firstCandidate === undefined ||
+      secondCandidate === undefined ||
+      thirdCandidate === undefined
+    ) {
+      throw new Error("Expected three bounded proposal candidates.");
+    }
+    const accepted = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.accept",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: firstCandidate.id,
+          designName: "Accepted crop direction",
+        },
+      }),
+      "campaign-proposal-accepted",
+    );
+    expect(accepted).toMatchObject({
+      decision: { decision: "accepted" },
+      design: { revisionNumber: 1 },
+    });
+    expect(accepted.design.designId).not.toBe(revision.designId);
+    expect(renderedDocumentIds.at(-1)).toBe(accepted.design.designId);
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: secondCandidate.id,
+          reason: "The first crop has the clearer focal point.",
+        },
+      }),
+      "campaign-proposal-rejected",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: secondCandidate.id,
+        },
+      }),
+      409,
+      "AI_PROPOSAL_REJECTED",
+    );
+    const concurrentDecisions = await Promise.all([
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: thirdCandidate.id,
+          reason: "First concurrent human decision.",
+        },
+      }),
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.proposal.reject",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: proposalRun.id,
+          candidateId: thirdCandidate.id,
+          reason: "Second concurrent human decision.",
+        },
+      }),
+    ]);
+    expect(concurrentDecisions.filter((result) => result.ok)).toHaveLength(1);
+    const rejectedConcurrentDecision = concurrentDecisions.find((result) => !result.ok);
+    if (rejectedConcurrentDecision === undefined) {
+      throw new Error("Expected one immutable proposal-decision conflict.");
+    }
+    expectFailure(rejectedConcurrentDecision, 409, "AI_PROPOSAL_REJECTED");
+
+    const comparison = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "revision.compare",
+          workspaceId,
+          leftDesignId: revision.designId,
+          leftRevisionId: revision.revisionId,
+          rightDesignId: accepted.design.designId,
+          rightRevisionId: accepted.design.revisionId,
+        },
+      }),
+      "revision-comparison",
+    );
+    expect(comparison.left.revision.revisionId).toBe(revision.revisionId);
+    expect(comparison.right.revision.revisionId).toBe(accepted.design.revisionId);
+    expect(comparison.left.outputs.map((output) => output.format)).toEqual([
+      "svg",
+      "png",
+    ]);
+
+    const handoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: "missing-direction",
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+    const repeatedHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expect(repeatedHandoff).toMatchObject({
+      sha256: handoff.sha256,
+      base64: handoff.base64,
+      directionId: direction.id,
+      fileCount: 7,
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: 1,
+    });
+    const handoffArchive = parseTestJson(
+      Buffer.from(handoff.base64, "base64").toString("utf8"),
+    ) as {
+      directionId: string;
+      files: { path: string; approvalStatus: string }[];
+    };
+    expect(handoffArchive.directionId).toBe(direction.id);
+    expect(
+      handoffArchive.files.every((file) =>
+        file.path.includes(`/direction-${direction.directionKey}/`),
+      ),
+    ).toBe(true);
+    expect(handoffArchive.files.map((file) => file.path)).toEqual(
+      [...handoffArchive.files]
+        .map((file) => file.path)
+        .sort((left, right) => left.localeCompare(right)),
+    );
+    expect(
+      handoffArchive.files.some(
+        (file) =>
+          file.path.endsWith(".approval.json") && file.approvalStatus === "unapproved",
+      ),
+    ).toBe(true);
+
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    );
+    const queuedApprovalProof = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          idempotencyKey: "campaign-handoff-approval-proof",
+        },
+      }),
+      "render-job-queued",
+    );
+    const approvalClaim = await renderQueue.claim({
+      workerId: "campaign-approval-worker",
+      now: NOW,
+    });
+    if (approvalClaim === undefined) {
+      throw new Error("Expected a campaign approval render claim.");
+    }
+    await renderQueue.complete(
+      approvalClaim,
+      completedRenderOutputs(),
+      new Date(NOW.getTime() + 1),
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          renderJobId: queuedApprovalProof.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    const mismatchedApprovalHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expect(mismatchedApprovalHandoff).toMatchObject({
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: 1,
+    });
+    const mismatchedArchive = parseTestJson(
+      Buffer.from(mismatchedApprovalHandoff.base64, "base64").toString("utf8"),
+    ) as { files: { path: string; base64: string }[] };
+    const approvalFile = mismatchedArchive.files.find((file) =>
+      file.path.endsWith(".approval.json"),
+    );
+    if (approvalFile === undefined) throw new Error("Approval file missing.");
+    expect(
+      parseTestJson(Buffer.from(approvalFile.base64, "base64").toString("utf8")),
+    ).toMatchObject({
+      status: "unapproved",
+      reason: "included-proofs-do-not-match-approval-receipt",
+      receipt: { renderJobId: queuedApprovalProof.jobId },
+    });
+
+    const approvedCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Approved first firing",
+          brief: "Reproduce the exact approved render evidence in the handoff.",
+          campaignSeed: campaign.campaignSeed,
+          familyId: campaign.familyId,
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const approvedDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+          directionKey: direction.directionKey,
+          name: "Approved Editorial A",
+          locks: direction.locks,
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+          directionId: approvedDirection.id,
+          canvasKey: attached.canvasKey,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          compositionVariantId: attached.compositionVariantId,
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.submit",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+        },
+      }),
+      "revision-review-submitted",
+    );
+    const exactApprovalProof = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.export.request",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          idempotencyKey: "campaign-handoff-exact-approval-proof",
+        },
+      }),
+      "render-job-queued",
+    );
+    const exactApprovalClaim = await renderQueue.claim({
+      workerId: "campaign-exact-approval-worker",
+      now: NOW,
+    });
+    if (exactApprovalClaim === undefined) {
+      throw new Error("Expected an exact campaign approval render claim.");
+    }
+    await renderQueue.complete(
+      exactApprovalClaim,
+      completedRenderEvidence(comparison.right.outputs),
+      new Date(NOW.getTime() + 1),
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "revision.review.approve",
+          workspaceId,
+          designId: accepted.design.designId,
+          revisionId: accepted.design.revisionId,
+          renderJobId: exactApprovalProof.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    const exactApprovalHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: approvedCampaign.id,
+          directionId: approvedDirection.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expect(exactApprovalHandoff).toMatchObject({
+      approvedCanvasCount: 1,
+      unapprovedCanvasCount: 0,
+    });
+
+    const concurrentCanvasSeeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("concurrent-copy-variant"),
+      template: { id: "image-led-campaign", version: "1.0.0" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    const competingDraft = imageLedCampaignDraft(concurrentCanvasSeeds.canvasSeed);
+    const competingHeadline = competingDraft.layers.find(
+      (layer) => layer.type === "headline",
+    );
+    if (competingHeadline?.type !== "headline") {
+      throw new Error("Competing campaign headline missing.");
+    }
+    competingHeadline.text = "A conflicting first-canvas copy baseline.";
+    const competingRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Competing campaign baseline",
+          brandSnapshotId: brand.snapshotId,
+          draft: competingDraft,
+        },
+      }),
+      "design-saved",
+    );
+    const concurrentCampaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Serialized direction baseline",
+          brief: "Only one concurrent first attachment may establish the locks.",
+          campaignSeed: campaign.campaignSeed,
+          familyId: campaign.familyId,
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const concurrentDirection = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionKey: direction.directionKey,
+          name: "Serialized Editorial A",
+          locks: ["copy"],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const concurrentAttachments = await Promise.all([
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionId: concurrentDirection.id,
+          canvasKey: attached.canvasKey,
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          compositionVariantId: attached.compositionVariantId,
+          ordinal: 0,
+        },
+      }),
+      workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+          directionId: concurrentDirection.id,
+          canvasKey: "concurrent-copy-variant",
+          designId: competingRevision.designId,
+          revisionId: competingRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          ordinal: 1,
+        },
+      }),
+    ]);
+    expect(concurrentAttachments.filter((result) => result.ok)).toHaveLength(1);
+    const rejectedAttachment = concurrentAttachments.find((result) => !result.ok);
+    if (rejectedAttachment === undefined) {
+      throw new Error("Expected one concurrent lock conflict.");
+    }
+    expectFailure(rejectedAttachment, 422, "CAMPAIGN_LOCK_VIOLATION");
+    const serializedBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.board",
+          workspaceId,
+          campaignId: concurrentCampaign.id,
+        },
+      }),
+      "campaign-board",
+    );
+    expect(serializedBoard.directions[0]?.canvases).toHaveLength(1);
+
+    const compliantRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: revision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: imageLedCampaignDraft(seedAdvice.canvasSeed),
+          changeNote: "Preserve the campaign locks in an intermediate revision.",
+        },
+      }),
+      "design-saved",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: revision.designId,
+          baseRevisionId: compliantRevision.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: copyViolation,
+          changeNote: "Attempt to bypass locks through a compliant descendant.",
+        },
+      }),
+      422,
+      "CAMPAIGN_LOCK_VIOLATION",
+    );
+
     await expect(
       database.query(
         `UPDATE campaign_direction_locks
@@ -585,7 +1818,39 @@ describe("AppWorkflow", () => {
       403,
       "ROLE_FORBIDDEN",
     );
-  });
+    workflow = createAppWorkflow({
+      database,
+      bootstrapTokenHash: hashSecret(BOOTSTRAP_TOKEN),
+      passwordHasher: new TestPasswordHasher(),
+      secretFactory: secrets,
+      clock,
+      renderQueue,
+      resourceStore,
+    });
+    const recoveryBoard = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+    const recoveryRunId = recoveryBoard.directions
+      .flatMap((candidate) => candidate.proposalRuns)
+      .find((run) => run.id === proposalRun.id)?.id;
+    expect(recoveryRunId).toBe(proposalRun.id);
+    expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.proposal.run",
+          workspaceId,
+          campaignId: campaign.id,
+          runId: recoveryRunId ?? "missing-history",
+        },
+      }),
+      "campaign-proposal-run",
+    );
+  }, 15_000);
 
   it("requires a session-bound mutation proof and revokes logout immediately", async () => {
     const owner = await bootstrapOwner();
@@ -2534,6 +3799,54 @@ describe("AppWorkflow", () => {
   }
 });
 
+class TestBriefInterpreter implements BriefInterpreter {
+  readonly descriptor = {
+    providerId: "test-proposal-provider",
+    modelId: "bounded-test-model",
+    retentionDisclosure: "Test provider receives the bounded campaign brief.",
+  };
+
+  responseOverride?: (input: Parameters<BriefInterpreter["interpret"]>[0]) => unknown;
+  resultOverride?: (
+    input: Parameters<BriefInterpreter["interpret"]>[0],
+  ) => BriefInterpreterResult;
+  lastInputHash?: string;
+
+  interpret(
+    input: Parameters<BriefInterpreter["interpret"]>[0],
+  ): Promise<BriefInterpreterResult> {
+    if (this.resultOverride !== undefined) {
+      return Promise.resolve(this.resultOverride(input));
+    }
+    const response = this.responseOverride?.(input) ?? {
+      contractVersion: "1.0.0",
+      candidates: Array.from({ length: input.candidateCount }, (_, index) => {
+        const document = structuredClone(input.baseDocument);
+        const image = document.layers.find((layer) => layer.type === "image");
+        if (image?.type !== "image") {
+          throw new Error("Campaign fixture image missing.");
+        }
+        Object.assign(image, {
+          focalPoint: {
+            x: 0.22 + index * 0.2,
+            y: 0.42 + index * 0.05,
+          },
+        });
+        return {
+          document,
+          rationale: `Proposal ${(index + 1).toString()} varies only the unlocked crop.`,
+        };
+      }),
+    };
+    this.lastInputHash = hashCanonical({ providerRequest: input });
+    return Promise.resolve({
+      response,
+      inputHash: this.lastInputHash,
+      responseHash: hashCanonical(response),
+    });
+  }
+}
+
 class TestPasswordHasher implements PasswordHasher {
   hash(password: string): Promise<string> {
     return Promise.resolve(
@@ -2838,11 +4151,47 @@ function completedRenderOutputs() {
   ];
 }
 
+function completedRenderEvidence(
+  outputs: readonly {
+    format: "png" | "svg";
+    mimeType: "image/png" | "image/svg+xml";
+    base64: string;
+    fingerprint: string;
+    manifest: unknown;
+  }[],
+) {
+  return outputs.map((output) => {
+    const artifactBytes = Buffer.from(output.base64, "base64");
+    const manifestBytes = new TextEncoder().encode(
+      `${canonicalJson(output.manifest)}\n`,
+    );
+    const artifactSha256 = sha256(artifactBytes);
+    const manifestSha256 = sha256(manifestBytes);
+    return {
+      format: output.format,
+      mimeType: output.mimeType,
+      artifactKey: `workspaces/a/render-output/sha256/${artifactSha256}/${output.format}`,
+      artifactSha256,
+      artifactByteSize: artifactBytes.byteLength,
+      manifestKey: `workspaces/a/render-manifest/sha256/${manifestSha256}/${output.format}`,
+      manifestSha256,
+      manifestByteSize: manifestBytes.byteLength,
+      fingerprint: output.fingerprint,
+    };
+  });
+}
+
+function parseTestJson(input: string): unknown {
+  return JSON.parse(input) as unknown;
+}
+
 function expectSuccess<T>(result: AppResult<T>): T {
-  expect(result.ok).toBe(true);
   if (!result.ok) {
-    throw new Error(`Expected success, received ${result.error.code}.`);
+    throw new Error(
+      `Expected success, received ${result.error.code}: ${result.error.detail}`,
+    );
   }
+  expect(result.ok).toBe(true);
   return result.value;
 }
 

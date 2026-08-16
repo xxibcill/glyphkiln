@@ -24,11 +24,17 @@ export type BriefInterpreterDescriptor = {
   readonly retentionDisclosure: string;
 };
 
+export type BriefInterpreterResult = {
+  readonly response: unknown;
+  readonly inputHash: string;
+  readonly responseHash: string;
+};
+
 /**
  * An optional, proposal-only producer. Every result remains unknown until the
  * App response boundary and Core candidate validators accept it.
  */
 export type BriefInterpreter = {
   readonly descriptor: BriefInterpreterDescriptor;
-  interpret(input: BriefInterpreterInput): Promise<unknown>;
+  interpret(input: BriefInterpreterInput): Promise<BriefInterpreterResult>;
 };

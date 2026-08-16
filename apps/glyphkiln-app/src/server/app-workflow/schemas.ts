@@ -147,6 +147,10 @@ const PreviewDesignSchema = z
     workspaceId: identifier,
     brandSnapshotId: identifier,
     draft: ManualDraftSchema,
+    baseRevision: z
+      .object({ designId: identifier, revisionId: identifier })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -199,6 +203,17 @@ const CreateCampaignDirectionSchema = z
   })
   .strict();
 
+const BranchCampaignDirectionSchema = z
+  .object({
+    type: z.literal("campaign.direction.branch"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    sourceDirectionId: identifier,
+    directionKey: identifier,
+    name: designName,
+  })
+  .strict();
+
 const AttachCampaignCanvasSchema = z
   .object({
     type: z.literal("campaign.canvas.attach"),
@@ -210,6 +225,39 @@ const AttachCampaignCanvasSchema = z
     revisionId: identifier,
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     ordinal: z.number().int().min(0).max(999),
+  })
+  .strict();
+
+const RequestCampaignProposalsSchema = z
+  .object({
+    type: z.literal("campaign.proposals.request"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    directionId: identifier,
+    baseCanvasId: identifier,
+    candidateCount: z.union([z.literal(3), z.literal(4)]),
+  })
+  .strict();
+
+const AcceptCampaignProposalSchema = z
+  .object({
+    type: z.literal("campaign.proposal.accept"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    runId: identifier,
+    candidateId: identifier,
+    designName,
+  })
+  .strict();
+
+const RejectCampaignProposalSchema = z
+  .object({
+    type: z.literal("campaign.proposal.reject"),
+    workspaceId: identifier,
+    campaignId: identifier,
+    runId: identifier,
+    candidateId: identifier,
+    reason: reviewReason.optional(),
   })
   .strict();
 
@@ -293,7 +341,11 @@ export const AppCommandSchema = z.discriminatedUnion("type", [
   ReviseDesignSchema,
   CreateCampaignSchema,
   CreateCampaignDirectionSchema,
+  BranchCampaignDirectionSchema,
   AttachCampaignCanvasSchema,
+  RequestCampaignProposalsSchema,
+  AcceptCampaignProposalSchema,
+  RejectCampaignProposalSchema,
   SubmitRevisionReviewSchema,
   CommentRevisionReviewSchema,
   RequestRevisionChangesSchema,
@@ -327,6 +379,44 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       type: z.literal("campaign.board"),
       workspaceId: identifier,
       campaignId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("campaign.canvas.seed"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      directionId: identifier,
+      canvasKey: identifier,
+      templateId: z.enum(TEMPLATE_IDS),
+      format: z.enum(FORMAT_IDS),
+      compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("campaign.proposal.run"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      runId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("campaign.handoff"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      directionId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("revision.compare"),
+      workspaceId: identifier,
+      leftDesignId: identifier,
+      leftRevisionId: identifier,
+      rightDesignId: identifier,
+      rightRevisionId: identifier,
     })
     .strict(),
   z

@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
 
+import { createHash } from "node:crypto";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import type { CampaignProposalRunProjection } from "@/server/app-workflow";
+import { createPreviewDesign } from "@/test/preview-design";
 
 import { createAppAlphaApi } from "./api-client";
 
@@ -10,8 +15,10 @@ describe("App Alpha API client", () => {
   });
 
   it("rejects a failure whose body status does not match HTTP status", async () => {
-    const fetchMock = vi.fn(() =>
-      Promise.resolve(
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
         jsonResponse(
           {
             ok: false,
@@ -24,8 +31,8 @@ describe("App Alpha API client", () => {
           },
           403,
         ),
-      ),
-    );
+      );
+    });
     const api = createAppAlphaApi(fetchMock);
 
     await expect(api.currentSession()).resolves.toMatchObject({
@@ -60,6 +67,46 @@ describe("App Alpha API client", () => {
       error: {
         problems: [{ path: "name", code: "too_small", message: "Required" }],
       },
+    });
+  });
+
+  it("parses the server-owned campaign feature flag on workspace dashboards", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: dashboardFixture({ campaignWorkflow: false }),
+          },
+          200,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).dashboard("workspace-1"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { features: { campaignWorkflow: false } },
+    });
+  });
+
+  it("rejects a dashboard that omits the server-owned feature policy", async () => {
+    const { features: _features, ...dashboard } = dashboardFixture({
+      campaignWorkflow: false,
+    });
+    void _features;
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(jsonResponse({ ok: true, status: 200, value: dashboard }, 200)),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).dashboard("workspace-1"),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
     });
   });
 
@@ -227,7 +274,9 @@ describe("App Alpha API client", () => {
         outputs: [{ format: "svg", artifactByteSize: 100 }],
       },
     });
-    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    const seedRequest = fetchMock.mock.calls.at(0);
+    if (seedRequest === undefined) throw new Error("Expected a seed request.");
+    expect(JSON.parse(requestBody(seedRequest[1]?.body))).toEqual({
       type: "revision.export.request",
       workspaceId: "workspace-1",
       designId: "design-1",
@@ -332,7 +381,382 @@ describe("App Alpha API client", () => {
       },
     });
   });
+
+  it("keeps proposal requests bounded and parses a deterministic handoff receipt", async () => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const handoff = campaignHandoffFixture();
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.proposals.request") {
+        return Promise.resolve(
+          jsonResponse(
+            {
+              ok: true,
+              status: 201,
+              value: {
+                kind: "campaign-proposals-created",
+                run: proposalRunFixture(),
+              },
+            },
+            201,
+          ),
+        );
+      }
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: handoff,
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.requestCampaignProposals({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        baseCanvasId: "canvas-1",
+        candidateCount: 3,
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        candidates: [
+          { index: 0, status: "rejected" },
+          { index: 1, status: "rejected" },
+          { index: 2, status: "rejected" },
+        ],
+      },
+    });
+    const handoffResult = await api.campaignHandoff({
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+    });
+    expect(handoffResult).toMatchObject({
+      ok: true,
+      value: {
+        fileCount: 1,
+        unapprovedCanvasCount: 1,
+      },
+    });
+    if (!handoffResult.ok) throw new Error("Expected a valid handoff.");
+    expect(handoffResult.value.bytes).toBeInstanceOf(Uint8Array);
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      type: "campaign.proposals.request",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      baseCanvasId: "canvas-1",
+      candidateCount: 3,
+    });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      type: "campaign.handoff",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+    });
+  });
+
+  it("requests a campaign canvas seed for an exact scope", async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: campaignCanvasSeedFixture(),
+          },
+          200,
+        ),
+      );
+    });
+    const api = createAppAlphaApi(fetchMock);
+
+    await expect(
+      api.campaignCanvasSeed({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        canvasKey: "hero-landscape",
+        templateId: "image-led-campaign",
+        format: "linkedin-landscape",
+        compositionVariantId: "focal-editorial",
+      }),
+    ).resolves.toEqual({ ok: true, value: campaignCanvasSeedFixture() });
+    expect(JSON.parse(requestBody(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      type: "campaign.canvas.seed",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign",
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+  });
+
+  it.each([
+    ["workspace", { workspaceId: "workspace-other" }],
+    ["campaign", { campaignId: "campaign-other" }],
+    ["direction", { directionId: "direction-other" }],
+    ["canvas", { canvasKey: "hero-square" }],
+    ["template", { template: { id: "product-announcement", version: "1.1.1" } }],
+    ["format", { format: "instagram-square" }],
+    ["seed", { canvasSeed: "b".repeat(63) }],
+    ["unknown field", { ignoredScope: "slide-2" }],
+  ])(
+    "rejects a campaign canvas seed with a mismatched %s",
+    async (_name, overrides) => {
+      const fetchMock = vi.fn(() =>
+        Promise.resolve(
+          jsonResponse(
+            {
+              ok: true,
+              status: 200,
+              value: { ...campaignCanvasSeedFixture(), ...overrides },
+            },
+            200,
+          ),
+        ),
+      );
+
+      await expect(
+        createAppAlphaApi(fetchMock).campaignCanvasSeed({
+          workspaceId: "workspace-1",
+          campaignId: "campaign-1",
+          directionId: "direction-1",
+          canvasKey: "hero-landscape",
+          templateId: "image-led-campaign",
+          format: "linkedin-landscape",
+          compositionVariantId: "focal-editorial",
+        }),
+      ).resolves.toMatchObject({
+        ok: false,
+        status: 502,
+        error: { code: "INVALID_APP_RESPONSE" },
+      });
+    },
+  );
+
+  it.each([
+    ["campaign", { campaignId: "campaign-other" }],
+    ["direction", { directionId: "direction-other" }],
+    ["byte size", { byteSize: 1 }],
+    ["archive hash", { sha256: "f".repeat(64) }],
+    ["file count", { fileCount: 2 }],
+  ])("rejects a campaign handoff with a mismatched %s", async (_name, overrides) => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 200,
+            value: campaignHandoffFixture(overrides),
+          },
+          200,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).campaignHandoff({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+  });
+
+  it("rejects a proved proposal whose browser proof is incomplete", async () => {
+    document.cookie = "gk_csrf=csrf-token-123; Path=/";
+    const run = proposalRunFixture();
+    run.candidates[0] = {
+      id: "candidate-0",
+      index: 0,
+      status: "proved",
+      document: createPreviewDesign(),
+      canonicalHash: "c".repeat(64),
+      issues: [],
+      proof: {
+        qualityIssues: [],
+        evidence: {
+          version: "1.0.0",
+          safeArea: { x: 0, y: 0, width: 1, height: 1 },
+          text: [],
+          crops: [],
+          contrast: [],
+        },
+        outputs: [],
+      },
+    };
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            ok: true,
+            status: 201,
+            value: { kind: "campaign-proposals-created", run },
+          },
+          201,
+        ),
+      ),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).requestCampaignProposals({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        baseCanvasId: "canvas-1",
+        candidateCount: 3,
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+  });
 });
+
+function campaignHandoffFixture(
+  overrides: Partial<{
+    campaignId: string;
+    directionId: string;
+    byteSize: number;
+    sha256: string;
+    fileCount: number;
+  }> = {},
+) {
+  const fileBytes = new TextEncoder().encode("{}\n");
+  const file = {
+    path: "campaign/canvas.approval.json",
+    mediaType: "application/json",
+    byteSize: fileBytes.byteLength,
+    sha256: sha256(fileBytes),
+    base64: bytesToBase64(fileBytes),
+    approvalStatus: "unapproved" as const,
+  };
+  const archiveBytes = new TextEncoder().encode(
+    `${JSON.stringify({
+      version: "1.0.0",
+      campaign: {
+        id: "campaign-1",
+        name: "First firing",
+        brief: "Launch one admitted image across a coordinated campaign family.",
+        campaignSeed: "first-firing-2026",
+        familyId: "image-led-campaign",
+        createdAt: "2026-08-12T01:00:00.000Z",
+        updatedAt: "2026-08-12T01:00:00.000Z",
+      },
+      directionId: "direction-1",
+      files: [file],
+      summary: { approvedCanvasCount: 0, unapprovedCanvasCount: 1 },
+    })}\n`,
+  );
+  return {
+    kind: "campaign-handoff" as const,
+    campaignId: "campaign-1",
+    directionId: "direction-1",
+    filename: "campaign-1-direction-1.gk-handoff.json",
+    mediaType: "application/vnd.glyphkiln.campaign-handoff+json" as const,
+    byteSize: archiveBytes.byteLength,
+    sha256: sha256(archiveBytes),
+    base64: bytesToBase64(archiveBytes),
+    fileCount: 1,
+    approvedCanvasCount: 0,
+    unapprovedCanvasCount: 1,
+    ...overrides,
+  };
+}
+
+function dashboardFixture(features: { campaignWorkflow: boolean }) {
+  return {
+    kind: "workspace-dashboard" as const,
+    workspace: {
+      id: "workspace-1",
+      name: "Foundry Studio",
+      slug: "foundry-studio",
+      role: "owner" as const,
+    },
+    brandKits: [],
+    designs: [],
+    campaigns: [],
+    features,
+  };
+}
+
+function campaignCanvasSeedFixture() {
+  return {
+    kind: "campaign-canvas-seed" as const,
+    workspaceId: "workspace-1",
+    campaignId: "campaign-1",
+    directionId: "direction-1",
+    canvasKey: "hero-landscape",
+    template: { id: "image-led-campaign" as const, version: "1.0.0" },
+    format: "linkedin-landscape" as const,
+    compositionVariantId: "focal-editorial" as const,
+    seedDerivationVersion: "sha256/canonical-scope-v1",
+    directionSeed: "a".repeat(64),
+    canvasSeed: "b".repeat(64),
+  };
+}
+
+function sha256(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return globalThis.btoa(binary);
+}
+
+function proposalRunFixture(): CampaignProposalRunProjection {
+  return {
+    kind: "campaign-proposal-run",
+    id: "run-1",
+    workspaceId: "workspace-1",
+    campaignId: "campaign-1",
+    directionId: "direction-1",
+    baseCanvasId: "canvas-1",
+    baseDesignId: "design-1",
+    baseRevisionId: "revision-1",
+    descriptor: {
+      providerId: "provider-1",
+      modelId: "model-1",
+      retentionDisclosure: "Bounded provider disclosure.",
+    },
+    inputHash: "a".repeat(64),
+    responseHash: "b".repeat(64),
+    locks: ["copy"],
+    createdAt: "2026-08-12T01:00:00.000Z",
+    candidates: Array.from({ length: 3 }, (_, index) => ({
+      id: `candidate-${index.toString()}`,
+      index,
+      status: "rejected",
+      issues: [
+        {
+          code: "RESOURCE_BACKED_PROOF_FAILED",
+          message: "The candidate did not cross the Core proof boundary.",
+          candidateIndex: index,
+        },
+      ],
+    })),
+  };
+}
 
 function jsonResponse(value: unknown, status: number): Response {
   return new Response(JSON.stringify(value), {

@@ -53,6 +53,7 @@ describe("App Alpha manual HTTP workflow", () => {
       clock: fixedClock,
       passwordHasher: new TestPasswordHasher(),
       secretFactory: new DeterministicSecretFactory(),
+      campaignWorkflowEnabled: true,
       render: async (document) =>
         (
           await createProjectPreview(document, {
@@ -186,6 +187,103 @@ describe("App Alpha manual HTTP workflow", () => {
       );
       expect(output.manifest.designDocumentId).toBe(firstSave.designId);
     }
+
+    const campaign = parseReceipt(
+      await mutate(commands, browserSession, {
+        type: "campaign.create",
+        workspaceId,
+        name: "HTTP campaign",
+        brief: "Coordinate exact saved revisions through the HTTP workflow.",
+        campaignSeed: "http-campaign-seed",
+        familyId: "image-led-campaign",
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = parseReceipt(
+      await mutate(commands, browserSession, {
+        type: "campaign.direction.create",
+        workspaceId,
+        campaignId: campaign.id,
+        directionKey: "editorial-a",
+        name: "Editorial A",
+        locks: ["copy", "palette"],
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const branch = parseReceipt(
+      await mutate(commands, browserSession, {
+        type: "campaign.direction.branch",
+        workspaceId,
+        campaignId: campaign.id,
+        sourceDirectionId: direction.id,
+        directionKey: "editorial-b",
+        name: "Editorial B",
+      }),
+      "campaign-direction-created",
+    ).direction;
+    expect(branch.locks).toEqual(direction.locks);
+
+    const board = parseProjection(
+      await query(queries, browserSession, {
+        type: "campaign.board",
+        workspaceId,
+        campaignId: campaign.id,
+      }),
+      "campaign-board",
+    );
+    expect(board.directions).toMatchObject([
+      { id: direction.id, directionKey: "editorial-a", canvases: [] },
+      { id: branch.id, directionKey: "editorial-b", canvases: [] },
+    ]);
+
+    const comparison = parseProjection(
+      await query(queries, browserSession, {
+        type: "revision.compare",
+        workspaceId,
+        leftDesignId: firstSave.designId,
+        leftRevisionId: firstSave.revisionId,
+        rightDesignId: revised.designId,
+        rightRevisionId: revised.revisionId,
+      }),
+      "revision-comparison",
+    );
+    expect(comparison.left.revision.document).toEqual(firstSave.document);
+    expect(comparison.right.revision.document).toEqual(revised.document);
+    expect(comparison.left.outputs.map((output) => output.format)).toEqual([
+      "svg",
+      "png",
+    ]);
+    expect(comparison.right.outputs.map((output) => output.format)).toEqual([
+      "svg",
+      "png",
+    ]);
+
+    await expectWorkflowFailure(
+      commands,
+      browserSession,
+      {
+        type: "campaign.proposals.request",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+        baseCanvasId: "missing-canvas",
+        candidateCount: 3,
+      },
+      503,
+      "AI_AUTHORING_DISABLED",
+    );
+    await expectWorkflowFailure(
+      queries,
+      browserSession,
+      {
+        type: "campaign.handoff",
+        workspaceId,
+        campaignId: campaign.id,
+        directionId: direction.id,
+      },
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
   });
 });
 
@@ -231,6 +329,27 @@ async function query(
   const response = await route(request(body, { cookie: session.cookie }));
   expect(response.status).toBe(200);
   return response.json() as Promise<unknown>;
+}
+
+async function expectWorkflowFailure(
+  route: (request: Request) => Promise<Response>,
+  session: BrowserSession,
+  body: unknown,
+  status: number,
+  code: string,
+): Promise<void> {
+  const response = await route(
+    request(body, {
+      cookie: session.cookie,
+      "x-glyphkiln-csrf": session.csrfToken,
+    }),
+  );
+  expect(response.status).toBe(status);
+  await expect(response.json()).resolves.toMatchObject({
+    ok: false,
+    status,
+    error: { code },
+  });
 }
 
 function request(body: unknown, headers: Record<string, string> = {}): Request {

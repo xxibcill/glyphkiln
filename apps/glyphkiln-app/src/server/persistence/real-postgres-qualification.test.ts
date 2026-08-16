@@ -4,6 +4,7 @@ import { sha256 } from "@glyphkiln/core";
 import { describe, expect, it } from "vitest";
 
 import { seedRenderJobFixture } from "../../test/render-job-fixture";
+import { AppState } from "../app-workflow/state";
 import type { ImmutableBlobWriteResult, ResourceBlobStorage } from "../resources";
 import { DatabaseResourceStore, ResourceIngestionService } from "../resources";
 import { TestOnlyCleanMalwareScanner } from "../resources/test-support";
@@ -147,6 +148,123 @@ describeQualification("real PostgreSQL App Alpha qualification", () => {
     }
   });
 
+  it("serializes concurrent campaign baseline attachment on the direction row", async () => {
+    const setupDatabase = createPostgresDatabase(databaseUrl, {
+      applicationName: "glyphkiln-postgres-qualification-campaign-setup",
+      maxConnections: 1,
+    });
+    const firstDatabase = createPostgresDatabase(databaseUrl, {
+      applicationName: "glyphkiln-postgres-qualification-campaign-first",
+      maxConnections: 1,
+    });
+    const secondDatabase = createPostgresDatabase(databaseUrl, {
+      applicationName: "glyphkiln-postgres-qualification-campaign-second",
+      maxConnections: 1,
+    });
+    const observerDatabase = createPostgresDatabase(databaseUrl, {
+      applicationName: "glyphkiln-postgres-qualification-campaign-observer",
+      maxConnections: 1,
+    });
+    const firstLocked = deferred<undefined>();
+    const releaseFirst = deferred<undefined>();
+    const secondStarted = deferred<number>();
+    let firstAttachment: Promise<void> | undefined;
+    let secondAttachment: Promise<string[]> | undefined;
+
+    try {
+      await resetDatabase(setupDatabase);
+      const fixture = await seedRenderJobFixture(
+        setupDatabase,
+        "real-campaign-serialization",
+      );
+      await seedCampaignDirection(setupDatabase, fixture);
+
+      firstAttachment = firstDatabase.transaction(async (transaction) => {
+        const state = new AppState(transaction);
+        await expect(
+          state.lockCampaignDirection({
+            workspaceId: fixture.workspaceId,
+            campaignId: "campaign-real-serialization",
+            directionId: "direction-real-serialization",
+          }),
+        ).resolves.toBeDefined();
+        firstLocked.resolve();
+        await releaseFirst.promise;
+        await state.insertCampaignCanvas(
+          campaignCanvasInput(fixture, "canvas-real-first", "first", 0),
+        );
+      });
+      await firstLocked.promise;
+
+      secondAttachment = secondDatabase.transaction(async (transaction) => {
+        const backendRows = await transaction.query<{ pid: number }>(
+          "SELECT pg_backend_pid()::integer AS pid",
+        );
+        const backend = backendRows.at(0);
+        if (backend === undefined) throw new Error("PostgreSQL backend PID missing.");
+        secondStarted.resolve(backend.pid);
+
+        const state = new AppState(transaction);
+        const direction = await state.lockCampaignDirection({
+          workspaceId: fixture.workspaceId,
+          campaignId: "campaign-real-serialization",
+          directionId: "direction-real-serialization",
+        });
+        if (direction === undefined) {
+          throw new Error("Campaign direction disappeared during qualification.");
+        }
+        const board = await state.readCampaignBoard(
+          fixture.workspaceId,
+          "campaign-real-serialization",
+        );
+        const visibleCanvasIds =
+          board?.directions
+            .find((candidate) => candidate.id === direction.id)
+            ?.canvases.map((canvas) => canvas.id) ?? [];
+        await state.insertCampaignCanvas(
+          campaignCanvasInput(fixture, "canvas-real-second", "second", 1),
+        );
+        return visibleCanvasIds;
+      });
+
+      const secondBackendPid = await secondStarted.promise;
+      const waiting = await waitForPostgresLockWait(observerDatabase, secondBackendPid);
+      expect(waiting).toMatchObject({
+        application_name: "glyphkiln-postgres-qualification-campaign-second",
+        state: "active",
+        wait_event_type: "Lock",
+        has_ungranted_lock: true,
+      });
+
+      releaseFirst.resolve();
+      await firstAttachment;
+      await expect(secondAttachment).resolves.toEqual(["canvas-real-first"]);
+
+      const board = await new AppState(setupDatabase).readCampaignBoard(
+        fixture.workspaceId,
+        "campaign-real-serialization",
+      );
+      expect(board?.directions.at(0)?.canvases.map((canvas) => canvas.id)).toEqual([
+        "canvas-real-first",
+        "canvas-real-second",
+      ]);
+    } finally {
+      releaseFirst.resolve();
+      await Promise.allSettled(
+        [firstAttachment, secondAttachment].filter(
+          (operation): operation is Promise<void> | Promise<string[]> =>
+            operation !== undefined,
+        ),
+      );
+      await Promise.all([
+        setupDatabase.close(),
+        firstDatabase.close(),
+        secondDatabase.close(),
+        observerDatabase.close(),
+      ]);
+    }
+  }, 20_000);
+
   it("serializes concurrent installation-wide resource admission", async () => {
     const database = createPostgresDatabase(databaseUrl, {
       applicationName: "glyphkiln-postgres-qualification-resources",
@@ -240,6 +358,137 @@ function enqueueInput(
     idempotencyKey,
     createdAt: CREATED_AT,
     manifestCreationTimestamp: CREATED_AT,
+  };
+}
+
+function deferred<Value>(): {
+  promise: Promise<Value>;
+  resolve(value?: Value): void;
+} {
+  let resolvePromise: (value: Value | PromiseLike<Value>) => void = () => undefined;
+  const promise = new Promise<Value>((resolve) => {
+    resolvePromise = resolve;
+  });
+  return {
+    promise,
+    resolve(value) {
+      resolvePromise(value as Value);
+    },
+  };
+}
+
+type PostgresLockWaitObservation = {
+  application_name: string;
+  state: string;
+  wait_event_type: string | null;
+  wait_event: string | null;
+  has_ungranted_lock: boolean;
+};
+
+async function waitForPostgresLockWait(
+  database: ReturnType<typeof createPostgresDatabase>,
+  backendPid: number,
+): Promise<PostgresLockWaitObservation> {
+  const deadline = Date.now() + 5_000;
+  let lastObserved: PostgresLockWaitObservation | undefined;
+  while (Date.now() < deadline) {
+    const rows = await database.query<PostgresLockWaitObservation>(
+      `SELECT activity.application_name,
+              activity.state,
+              activity.wait_event_type,
+              activity.wait_event,
+              EXISTS (
+                SELECT 1
+                  FROM pg_locks waiting_lock
+                 WHERE waiting_lock.pid = activity.pid
+                   AND waiting_lock.granted = FALSE
+              ) AS has_ungranted_lock
+         FROM pg_stat_activity activity
+        WHERE activity.datname = current_database()
+          AND activity.pid = $1`,
+      [backendPid],
+    );
+    lastObserved = rows.at(0);
+    if (lastObserved?.wait_event_type === "Lock" && lastObserved.has_ungranted_lock) {
+      return lastObserved;
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error(
+    `Second campaign transaction did not wait on a PostgreSQL lock: ${JSON.stringify(lastObserved)}`,
+  );
+}
+
+async function seedCampaignDirection(
+  database: ReturnType<typeof createPostgresDatabase>,
+  fixture: Awaited<ReturnType<typeof seedRenderJobFixture>>,
+): Promise<void> {
+  await database.query(
+    `INSERT INTO campaigns (
+       id, workspace_id, name, brief, campaign_seed, family_id,
+       created_by, created_at, updated_at
+     ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6, $7, $7)`,
+    [
+      "campaign-real-serialization",
+      fixture.workspaceId,
+      "Real serialization campaign",
+      "Qualify the production direction lock around the first canvas baseline.",
+      "real-serialization-seed",
+      fixture.userId,
+      CREATED_AT,
+    ],
+  );
+  await database.query(
+    `INSERT INTO campaign_directions (
+       id, workspace_id, campaign_id, direction_key, name, created_by, created_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      "direction-real-serialization",
+      fixture.workspaceId,
+      "campaign-real-serialization",
+      "real-serialization",
+      "Real serialization direction",
+      fixture.userId,
+      CREATED_AT,
+    ],
+  );
+  await database.query(
+    `INSERT INTO campaign_direction_locks (
+       workspace_id, campaign_id, direction_id, lock_id, ordinal, created_at
+     ) VALUES ($1, $2, $3, 'copy', 0, $4)`,
+    [
+      fixture.workspaceId,
+      "campaign-real-serialization",
+      "direction-real-serialization",
+      CREATED_AT,
+    ],
+  );
+}
+
+function campaignCanvasInput(
+  fixture: Awaited<ReturnType<typeof seedRenderJobFixture>>,
+  id: string,
+  canvasKey: string,
+  ordinal: number,
+) {
+  return {
+    id,
+    workspaceId: fixture.workspaceId,
+    campaignId: "campaign-real-serialization",
+    directionId: "direction-real-serialization",
+    canvasKey,
+    designId: fixture.designId,
+    revisionId: fixture.revisionId,
+    templateId: fixture.document.template.id,
+    templateVersion: fixture.document.template.version,
+    format: fixture.document.format,
+    compositionVariantId: "focal-editorial" as const,
+    seedDerivationVersion: "sha256/canonical-scope-v1",
+    directionSeed: "a".repeat(64),
+    canvasSeed: id === "canvas-real-first" ? "b".repeat(64) : "c".repeat(64),
+    ordinal,
+    createdBy: fixture.userId,
+    createdAt: CREATED_AT,
   };
 }
 

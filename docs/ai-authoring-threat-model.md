@@ -1,6 +1,6 @@
 # AI-assisted authoring threat model
 
-Status: implemented infrastructure boundary; product acceptance remains pending
+Status: implemented workflow boundary; real-brief product acceptance remains pending
 
 Last reviewed: 2026-08-12
 
@@ -13,10 +13,11 @@ authority, or source of executable instructions. The complete manual workflow
 continues to work when the adapter is disabled.
 
 The implemented slice includes the provider-neutral response and lock
-boundaries plus one disabled-by-default OpenAI Responses adapter. It does not
-include the capability-protected campaign workflow, option-board interaction,
-immutable AI decision records, automatic resource resolution, or any path from
-a proposal to rendering, export, approval, or publication.
+boundaries, one disabled-by-default OpenAI Responses adapter, the
+capability-protected campaign workflow, option-board interaction, append-only
+AI evidence and decision records, exact resource resolution, Core proofs, and
+explicit human acceptance into a new immutable design revision. Proposals have
+no path to automatic campaign attachment, approval, export, or publication.
 
 The concrete adapter targets the OpenAI Responses API through a fixed
 server-owned endpoint. It uses `store: false`, an operator-selected model, and
@@ -37,7 +38,12 @@ and [Responses text generation](https://developers.openai.com/api/docs/guides/te
 
 ## Authority flow
 
-1. An operator explicitly configures and enables an App-owned provider adapter.
+1. After the production gates below are approved and the checked-in campaign
+   qualification is PASS, an operator explicitly sets
+   `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` and
+   `GLYPHKILN_AI_PROPOSALS=production-approved`, then configures an App-owned
+   provider adapter. Provider configuration alone remains inert, and AI
+   approval cannot bypass the campaign product gate.
 2. The adapter sends only operator-approved brief fields under a disclosed
    provider policy.
 3. Its parsed JSON response remains `unknown` and enters
@@ -47,11 +53,14 @@ and [Responses text generation](https://developers.openai.com/api/docs/guides/te
 5. Every well-shaped document passes through Core's normal candidate validator.
 6. The result has `authority: "proposal-only"`. A human may inspect it, but it
    cannot authorize resources, persistence, rendering, export, or publication.
-7. A future selective-regeneration workflow must load authenticated
-   server-owned locks and pass the stored base plus proposal through
-   `validateAuthoringLocks`.
-8. That workflow must still resolve exact workspace-owned resources, revalidate
-   the final document, and record the human decision before a save or render.
+7. The campaign workflow loads authenticated server-owned locks and passes the
+   stored base plus every proposal through `validateAuthoringLocks`.
+8. The App requires exact equality with the base document's human-selected
+   resource declarations, resolves their workspace-owned immutable bytes, and
+   produces a Core SVG/PNG proof before presenting an accept action.
+9. Human acceptance reloads the base, locks, candidate, and exact resources,
+   reruns validation and Core proof, records an append-only decision, and then
+   creates a new immutable design revision with a server-owned ID.
 
 Provider identity, model identity, prompt construction, response hashes,
 retention disclosures, workspace identity, resource hashes, and provenance are
@@ -85,11 +94,10 @@ trusted App/operator context. The model response cannot supply any of them.
 - The validation boundary performs no network, filesystem, dynamic import,
   code execution, resource lookup, rendering, persistence, or logging.
 
-Core validation proves document shape and document-level quality only. It does
-not prove that a model-selected asset ID, font declaration, hash, origin, or
-license belongs to a workspace. A proposal containing resource claims remains
-untrusted until a later server workflow replaces or verifies those claims
-against exact immutable workspace records.
+Core validation proves document shape and document-level quality only. The App
+therefore rejects any proposal whose asset or font declarations differ from
+the human-authored base, then resolves the retained declarations against exact
+workspace-qualified immutable records before proof or acceptance.
 
 ## Implemented adapter controls
 
@@ -117,18 +125,18 @@ against exact immutable workspace records.
 
 ## Threats and required treatment
 
-| Threat                                                                            | Current treatment                                                                         | Required before user-facing enablement                                                              |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Prompt injection asks for tools, code, URLs, paths, or publication                | Fixed instructions, inert JSON input, no tool authority, and strict output/Core contracts | Keep adapters tool-free and never execute or linkify response text                                  |
-| Oversized or deeply nested input/output consumes resources                        | Brief, request, response, candidate, rationale, timeout, and token limits are bounded     | Retain limits at every workflow and persistence boundary; monitor trusted timing/code metadata      |
-| Model spoofs provider, model, workspace, provenance, or retention policy          | Extra authority fields are rejected; output is `proposal-only`                            | Derive and immutably record these values from operator configuration and server state               |
-| Model forges asset/font hashes, origins, or licenses                              | Candidate validation grants no resource authority                                         | Resolve exact workspace-qualified immutable versions and revalidate before save/render              |
-| Rationale is presented as fact or provenance                                      | Rationale is typed as a model suggestion and excluded from Core documents/manifests       | Preserve that label in every option-board and audit view                                            |
-| Duplicate options create an illusion of choice                                    | Exact normalized duplicates are rejected deterministically                                | Human review with real briefs must assess meaningful visual distinctness                            |
-| Selective regeneration changes a human lock                                       | A pure closed lock contract compares Core-normalized proposals against a validated base   | Load locks/base from authorized immutable state and block regeneration/save/render/export on issues |
-| Sensitive brief data is retained or used for training                             | Adapter is disabled by default, uses `store: false`, and requires a disclosure            | Approve exact outbound fields and provider/account retention and training policy before submission  |
-| Invalid output is logged or reflected                                             | Fixed public issues do not echo rejected values or provider details                       | Logs may contain only request IDs, trusted adapter identity, timing, hashes, and stable codes       |
-| Valid proposal is saved, rendered, exported, approved, or published automatically | No workflow command consumes the result                                                   | Keep acceptance explicit and re-run authorization, resource resolution, Core validation, and locks  |
+| Threat                                                                            | Current treatment                                                                                                                              | Required before user-facing enablement                                                             |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Prompt injection asks for tools, code, URLs, paths, or publication                | Fixed instructions, inert JSON input, no tool authority, and strict output/Core contracts                                                      | Keep adapters tool-free and never execute or linkify response text                                 |
+| Oversized or deeply nested input/output consumes resources                        | Brief, request, response, candidate, rationale, timeout, and token limits are bounded                                                          | Retain limits at every workflow and persistence boundary; monitor trusted timing/code metadata     |
+| Model spoofs provider, model, workspace, provenance, or retention policy          | Extra authority fields are rejected; output is `proposal-only`                                                                                 | Derive and immutably record these values from operator configuration and server state              |
+| Model forges asset/font hashes, origins, or licenses                              | Proposals must retain the base declarations; the App resolves exact workspace-qualified immutable versions before proof and acceptance         | Continue rejecting any model-selected resource identity                                            |
+| Rationale is presented as fact or provenance                                      | Rationale is typed as a model suggestion and excluded from Core documents/manifests                                                            | Preserve that label in every option-board and audit view                                           |
+| Duplicate options create an illusion of choice                                    | Exact normalized duplicates are rejected deterministically                                                                                     | Human review with real briefs must assess meaningful visual distinctness                           |
+| Selective regeneration changes a human lock                                       | Stored locks/base are reloaded and checked at proposal, save, queued render, comparison, and export boundaries                                 | Validate with approved real selective-regeneration attempts                                        |
+| Sensitive brief data is retained or used for training                             | Adapter is disabled by default, uses `store: false`, and requires a disclosure                                                                 | Approve exact outbound fields and provider/account retention and training policy before submission |
+| Invalid output is logged or reflected                                             | Fixed public issues do not echo rejected values or provider details                                                                            | Logs may contain only request IDs, trusted adapter identity, timing, hashes, and stable codes      |
+| Valid proposal is saved, rendered, exported, approved, or published automatically | Core proof is allowed, but saving requires explicit human acceptance into a new design; no automatic attach/approve/export/publish path exists | Keep acceptance explicit and retain the separation between proposal proof and campaign authority   |
 
 ## Stable response and lock issues
 
@@ -163,22 +171,26 @@ Implemented now:
 
 - provider-neutral `BriefInterpreter` and strict response/lock validators;
 - one operator-configured OpenAI Responses adapter, disabled by default;
+- an independent fail-closed campaign product gate that AI enablement depends
+  on;
 - bounded runtime configuration, request input, response streaming, failure
   handling, and retention disclosure; and
-- campaign, exact-revision review, immutable resource, deterministic rendering,
-  and approval foundations that the later workflow can compose.
+- capability-protected campaign proposal commands and option-board UI;
+- exact base-resource pinning and resource-backed Core SVG/PNG proofs;
+- append-only provider/model, request/response hash, validation, proof metadata,
+  and human decision records;
+- explicit acceptance into a new immutable design revision; and
+- lock checks across proposal, revision, preview/export, queued-worker,
+  comparison, and campaign-handoff boundaries.
 
-Still required before enabling a user-facing AI workflow:
+Still required before enabling an adapter for production users:
 
-- a capability-protected campaign command and option-board interaction;
-- immutable persistence for provider/model IDs, canonical request/response
-  hashes, validation results, human decisions, and selected locks;
-- human selection of admitted resources and resource-backed Core proofs;
-- lock checks at regeneration, save, queued-render, approval, and export
-  boundaries;
-- audit and retention controls for stored AI metadata; and
-- acceptance against a real approved brief with at least three visibly distinct
-  valid directions.
+- operator approval of the exact outbound brief fields, provider account
+  retention/training policy, model allowlist, and operational monitoring;
+- interaction acceptance against a real approved brief with at least three
+  visibly distinct valid directions; and
+- documented recovery behavior when a provider returns too few usable
+  candidates or exact resources become unavailable.
 
 ## Open decision gate
 

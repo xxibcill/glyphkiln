@@ -94,6 +94,7 @@ export type AppCommand =
       workspaceId: string;
       brandSnapshotId: string;
       draft: ManualDraft;
+      baseRevision?: { designId: string; revisionId: string };
     }
   | {
       type: "design.create";
@@ -128,6 +129,14 @@ export type AppCommand =
       locks: AuthoringLockId[];
     }
   | {
+      type: "campaign.direction.branch";
+      workspaceId: string;
+      campaignId: string;
+      sourceDirectionId: string;
+      directionKey: string;
+      name: string;
+    }
+  | {
       type: "campaign.canvas.attach";
       workspaceId: string;
       campaignId: string;
@@ -137,6 +146,30 @@ export type AppCommand =
       revisionId: string;
       compositionVariantId: CampaignCompositionVariantId;
       ordinal: number;
+    }
+  | {
+      type: "campaign.proposals.request";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      baseCanvasId: string;
+      candidateCount: 3 | 4;
+    }
+  | {
+      type: "campaign.proposal.accept";
+      workspaceId: string;
+      campaignId: string;
+      runId: string;
+      candidateId: string;
+      designName: string;
+    }
+  | {
+      type: "campaign.proposal.reject";
+      workspaceId: string;
+      campaignId: string;
+      runId: string;
+      candidateId: string;
+      reason?: string;
     }
   | {
       type: "revision.review.submit";
@@ -185,6 +218,36 @@ export type AppQuery =
   | { type: "workspace.members"; workspaceId: string }
   | { type: "workspace.resources"; workspaceId: string }
   | { type: "campaign.board"; workspaceId: string; campaignId: string }
+  | {
+      type: "campaign.canvas.seed";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      canvasKey: string;
+      templateId: TemplateId;
+      format: FormatId;
+      compositionVariantId: CampaignCompositionVariantId;
+    }
+  | {
+      type: "campaign.proposal.run";
+      workspaceId: string;
+      campaignId: string;
+      runId: string;
+    }
+  | {
+      type: "campaign.handoff";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+    }
+  | {
+      type: "revision.compare";
+      workspaceId: string;
+      leftDesignId: string;
+      leftRevisionId: string;
+      rightDesignId: string;
+      rightRevisionId: string;
+    }
   | {
       type: "revision.review";
       workspaceId: string;
@@ -245,6 +308,29 @@ export type SessionGrant = {
   workspaces: WorkspaceMembershipSummary[];
 };
 
+export type DesignSavedReceipt = {
+  kind: "design-saved";
+  designId: string;
+  revisionId: string;
+  revisionNumber: number;
+  documentHash: string;
+  document: DesignDocument;
+};
+
+export type DesignRevisionProjection = {
+  kind: "design-revision";
+  designId: string;
+  designName: string;
+  revisionId: string;
+  revisionNumber: number;
+  parentRevisionId?: string;
+  brandSnapshotId: string;
+  documentHash: string;
+  document: DesignDocument;
+  createdAt: string;
+  changeNote?: string;
+};
+
 export type CommandReceipt =
   | SessionGrant
   | { kind: "session-revoked" }
@@ -284,14 +370,7 @@ export type CommandReceipt =
       evidence: RenderEvidence;
       outputs: RenderedArtifact[];
     }
-  | {
-      kind: "design-saved";
-      designId: string;
-      revisionId: string;
-      revisionNumber: number;
-      documentHash: string;
-      document: DesignDocument;
-    }
+  | DesignSavedReceipt
   | {
       kind: "campaign-created";
       campaign: CampaignSummary;
@@ -306,6 +385,16 @@ export type CommandReceipt =
       campaignId: string;
       directionId: string;
       canvas: CampaignCanvasProjection;
+    }
+  | { kind: "campaign-proposals-created"; run: CampaignProposalRunProjection }
+  | {
+      kind: "campaign-proposal-accepted";
+      decision: CampaignProposalDecisionProjection;
+      design: DesignSavedReceipt;
+    }
+  | {
+      kind: "campaign-proposal-rejected";
+      decision: CampaignProposalDecisionProjection;
     }
   | { kind: "revision-review-submitted"; review: RevisionReviewProjection }
   | {
@@ -348,6 +437,10 @@ export type QueryProjection =
       workspace: WorkspaceMembershipSummary;
       brandKits: BrandKitSummary[];
       designs: DesignSummary[];
+      campaigns: CampaignSummary[];
+      features: {
+        campaignWorkflow: boolean;
+      };
     }
   | {
       kind: "workspace-members";
@@ -361,6 +454,10 @@ export type QueryProjection =
       truncated: boolean;
     }
   | CampaignBoardProjection
+  | CampaignCanvasSeedProjection
+  | CampaignProposalRunProjection
+  | CampaignHandoffProjection
+  | RevisionComparisonProjection
   | RevisionReviewProjection
   | {
       kind: "brand-snapshot";
@@ -370,19 +467,7 @@ export type QueryProjection =
       canonicalHash: string;
       snapshot: BrandSnapshot;
     }
-  | {
-      kind: "design-revision";
-      designId: string;
-      designName: string;
-      revisionId: string;
-      revisionNumber: number;
-      parentRevisionId?: string;
-      brandSnapshotId: string;
-      documentHash: string;
-      document: DesignDocument;
-      createdAt: string;
-      changeNote?: string;
-    }
+  | DesignRevisionProjection
   | RenderJobProjection
   | {
       kind: "completed-render-jobs";
@@ -515,6 +600,23 @@ export type CampaignCanvasProjection = {
   createdAt: string;
 };
 
+export type CampaignCanvasSeedProjection = {
+  kind: "campaign-canvas-seed";
+  workspaceId: string;
+  campaignId: string;
+  directionId: string;
+  canvasKey: string;
+  template: {
+    id: TemplateId;
+    version: string;
+  };
+  format: FormatId;
+  compositionVariantId: CampaignCompositionVariantId;
+  seedDerivationVersion: string;
+  directionSeed: string;
+  canvasSeed: string;
+};
+
 export type CampaignDirectionProjection = {
   id: string;
   directionKey: string;
@@ -522,12 +624,111 @@ export type CampaignDirectionProjection = {
   locks: AuthoringLockId[];
   createdAt: string;
   canvases: CampaignCanvasProjection[];
+  proposalRuns: CampaignProposalRunSummaryProjection[];
+  proposalRunsTruncated: boolean;
 };
 
 export type CampaignBoardProjection = {
   kind: "campaign-board";
   campaign: CampaignSummary;
   directions: CampaignDirectionProjection[];
+};
+
+export type CampaignProposalIssueProjection = {
+  code: string;
+  message: string;
+  candidateIndex?: number;
+  lock?: AuthoringLockId;
+};
+
+export type CampaignProposalProofProjection = {
+  qualityIssues: QualityIssue[];
+  evidence: RenderEvidence;
+  outputs: CampaignProposalProofOutputProjection[];
+};
+
+export type CampaignProposalProofOutputProjection = Omit<RenderedArtifact, "base64"> & {
+  base64?: string;
+};
+
+export type CampaignProposalCandidateProjection = {
+  id: string;
+  index: number;
+  status: "proved" | "rejected";
+  rationale?: { kind: "model-suggestion"; text: string };
+  document?: DesignDocument;
+  canonicalHash?: string;
+  issues: CampaignProposalIssueProjection[];
+  proof?: CampaignProposalProofProjection;
+  decision?: CampaignProposalDecisionProjection;
+};
+
+export type CampaignProposalRunProjection = {
+  kind: "campaign-proposal-run";
+  id: string;
+  workspaceId: string;
+  campaignId: string;
+  directionId: string;
+  baseCanvasId: string;
+  baseDesignId: string;
+  baseRevisionId: string;
+  descriptor: {
+    providerId: string;
+    modelId: string;
+    retentionDisclosure: string;
+  };
+  inputHash: string;
+  responseHash: string;
+  locks: AuthoringLockId[];
+  createdAt: string;
+  candidates: CampaignProposalCandidateProjection[];
+};
+
+export type CampaignProposalRunSummaryProjection = {
+  id: string;
+  providerId: string;
+  modelId: string;
+  candidateCount: number;
+  decidedCount: number;
+  acceptedCount: number;
+  createdAt: string;
+};
+
+export type CampaignProposalDecisionProjection = {
+  id: string;
+  decision: "accepted" | "rejected";
+  reason?: string;
+  designId?: string;
+  revisionId?: string;
+  decidedBy: UserSummary;
+  createdAt: string;
+};
+
+export type RevisionComparisonSideProjection = {
+  revision: DesignRevisionProjection;
+  qualityIssues: QualityIssue[];
+  evidence: RenderEvidence;
+  outputs: RenderedArtifact[];
+};
+
+export type RevisionComparisonProjection = {
+  kind: "revision-comparison";
+  left: RevisionComparisonSideProjection;
+  right: RevisionComparisonSideProjection;
+};
+
+export type CampaignHandoffProjection = {
+  kind: "campaign-handoff";
+  campaignId: string;
+  directionId: string;
+  filename: string;
+  mediaType: "application/vnd.glyphkiln.campaign-handoff+json";
+  byteSize: number;
+  sha256: string;
+  base64: string;
+  fileCount: number;
+  approvedCanvasCount: number;
+  unapprovedCanvasCount: number;
 };
 
 export type RevisionReviewState = "in-review" | "changes-requested" | "approved";
@@ -608,6 +809,10 @@ export type AppFailureCode =
   | "INVALID_BRAND_SNAPSHOT"
   | "INVALID_DESIGN_DOCUMENT"
   | "INVALID_CAMPAIGN_CANVAS"
+  | "CAMPAIGN_LOCK_VIOLATION"
+  | "CAMPAIGN_WORKFLOW_DISABLED"
+  | "AI_AUTHORING_DISABLED"
+  | "AI_PROPOSAL_REJECTED"
   | "REVIEW_CONFLICT"
   | "UNSUPPORTED_MANUAL_RESOURCE"
   | "RENDER_REJECTED"

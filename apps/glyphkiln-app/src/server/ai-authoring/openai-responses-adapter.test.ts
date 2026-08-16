@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { hashCanonical } from "@glyphkiln/core";
+
 import { createPreviewDesign } from "@/test/preview-design";
 
 import {
@@ -36,7 +38,10 @@ describe("OpenAI Responses BriefInterpreter adapter", () => {
       fetch: providerFetch,
     });
 
-    await expect(interpreter.interpret(authoringInput())).resolves.toEqual(proposal);
+    const interpreted = await interpreter.interpret(authoringInput());
+    expect(interpreted.response).toEqual(proposal);
+    expect(interpreted.inputHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(interpreted.responseHash).toMatch(/^[0-9a-f]{64}$/);
     expect(interpreter.descriptor).toEqual({
       providerId: "openai-responses",
       modelId: "gpt-5.6-terra",
@@ -51,6 +56,7 @@ describe("OpenAI Responses BriefInterpreter adapter", () => {
       throw new Error("Expected the provider body to be JSON text.");
     }
     const body = JSON.parse(capturedInitialization.body) as Record<string, unknown>;
+    expect(interpreted.inputHash).toBe(hashCanonical(capturedInitialization.body));
     expect(body).toMatchObject({
       model: "gpt-5.6-terra",
       store: false,

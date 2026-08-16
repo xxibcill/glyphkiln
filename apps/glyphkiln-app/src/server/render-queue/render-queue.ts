@@ -77,6 +77,7 @@ export type RenderJobView = {
   readonly maxAttempts: number;
   readonly availableAt: Date;
   readonly createdAt: Date;
+  readonly manifestCreationTimestamp: Date;
   readonly updatedAt: Date;
   readonly finishedAt?: Date;
   readonly lastError?: RenderJobFailure;

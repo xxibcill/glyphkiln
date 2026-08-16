@@ -119,13 +119,15 @@ printf 'First-owner token: %s\n' "$GLYPHKILN_BOOTSTRAP_TOKEN"
 Keep the printed token private. You will enter it once in the browser. The
 token must contain 32–256 characters.
 
-Optional AI proposal infrastructure is disabled by default and is not required
-for any manual workflow. The current adapter foundation does not expose an AI
-command or automatically send workspace data. To make the configured adapter
-available to a future capability-protected server workflow, the operator must
-set every required value explicitly:
+Optional AI proposals are disabled by default and are not required for any
+manual workflow. Provider configuration alone cannot enable workspace-data
+egress. After the documented product, outbound-field, provider-account, and
+retention gates have been approved, the operator must set the exact production
+approval value together with every provider value:
 
 ```bash
+export GLYPHKILN_AI_PROPOSALS="production-approved"
+export GLYPHKILN_CAMPAIGN_WORKFLOW="product-qualified"
 export GLYPHKILN_AI_PROVIDER="openai-responses"
 export GLYPHKILN_OPENAI_API_KEY="operator-secret"
 export GLYPHKILN_AI_MODEL="operator-approved-model-snapshot"
@@ -143,7 +145,12 @@ responses remain unknown until strict App and Core validation, and model URLs,
 paths, hashes, provenance, and resource identities have no authority. See the
 [AI authoring threat model](../../docs/ai-authoring-threat-model.md) for the
 implemented boundary and remaining product gates. Leave
-`GLYPHKILN_AI_PROVIDER` absent or set it to `disabled` to keep the adapter off.
+`GLYPHKILN_AI_PROPOSALS` absent or set it to `disabled` to keep the adapter off;
+in that state, provider variables are inert. AI approval is accepted only with
+`GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified`; campaign persistence is
+otherwise dark-launched and hidden from the workshop. The current checked-in
+campaign qualification is pending, so the runtime rejects that enabling value
+until a reviewed PASS changes both the evidence record and runtime status.
 
 ### 5. Prepare the database and worker
 
@@ -258,13 +265,18 @@ The application APIs are same-origin, cookie-authenticated interfaces under
 workspace authorization. The legacy caller-authored `/api/preview` endpoint is
 retired and returns `410 Gone`.
 
-Campaign and review foundations use the same command/query boundary. Campaign
-canvases refer to exact immutable design revisions and Core-derived seeds.
-Review comments and state transitions are revision-bound; approval is restricted
-to owner/admin capability and snapshots the exact revision hash, resource pins,
-and completed-render output hashes/fingerprints. The current browser workshop
-does not yet expose option boards, visual revision comparison, or campaign
-handoff bundles.
+Campaign Studio uses the same command/query boundary to create and reopen option
+boards, prepare Core-derived canvas seeds, branch locked directions, attach exact
+immutable revisions, compare verified proofs, reopen bounded proposal history,
+and download deterministic campaign handoff bundles. Campaign mutations and
+handoffs remain hidden unless the checked-in qualification is PASS and the
+operator enables the product-qualified campaign gate.
+
+The Revision Review Station submits or resubmits an exact revision, compares it
+with its immutable parent, records revision-bound comments and change requests,
+and exposes approval only to owner/admin capability with a matching completed
+render. Approval receipts snapshot the exact revision hash, resource pins, and
+output hashes and fingerprints.
 
 ## Production build
 

@@ -4,7 +4,7 @@ Status: active
 
 Started: 2026-08-12
 
-Baseline: `origin/main` at `97f0de5`
+Baseline: `origin/main` at `60919f5`
 
 Primary tracks: `packages/glyphkiln-core`, `apps/glyphkiln-app`
 
@@ -29,7 +29,7 @@ workspace-qualified App metadata.
 
 ## Release 1: Core 0.6.0 contract foundation
 
-Status: release preparation implemented; full qualification pending
+Status: release qualification complete; signing and publication pending
 
 - [x] Publish immutable campaign-family metadata for exact template versions.
 - [x] Publish deterministic direction/canvas seed derivation with stable scope
@@ -45,8 +45,8 @@ Status: release preparation implemented; full qualification pending
 - [x] Complete Node `24.16.0` build, typecheck, lint/security, test, coverage,
       generated-artifact, packed-consumer, tarball-content, license, and audit
       qualification with npm `10.9.8`.
-- [ ] Repeat from a clean install on the minimum supported Node `22.22.2`
-      release; that exact runtime is not installed in the current workspace.
+- [x] Repeat from a clean install on the minimum supported Node `22.22.2`
+      release with npm `10.9.8`.
 - [ ] Create and verify the signed source tag.
 - [ ] Publish to npm only through the owner-approved protected workflow.
 
@@ -72,7 +72,7 @@ Status: started
 - [ ] Qualify the exact normalization vectors on the supported Node/platform
       release matrix; CMYK remains an explicit stable rejection until a bounded
       decoder exposes raw CMYK samples.
-- [ ] Finalize crop, safe-area, contrast, and text-bound evidence needed by the
+- [x] Finalize crop, safe-area, contrast, and text-bound evidence needed by the
       App overlay.
 
 ### App
@@ -98,21 +98,22 @@ produce approved landscape, square, and portrait outputs without Figma repair.
 
 ## Slice 3: manual campaign workflow
 
-Status: persistence and coordination foundation implemented; product gate pending
+Status: implementation complete; runtime and product gates closed pending a
+reviewed qualification record
 
 - [ ] Approve one campaign brief requiring at least four formats and a
       multi-slide series.
 - [x] Add workspace-qualified campaigns, directions, canvases, ordering, and
       lock metadata with forward/rollback migrations.
-- [ ] Add option boards, duplicate/branch, and side-by-side proof comparison.
+- [x] Add option boards, duplicate/branch, and side-by-side proof comparison.
 - [x] Persist canonical closed server-owned lock IDs separately from documents.
-- [ ] Enforce those locks at every future adaptation or proposal-acceptance
+- [x] Enforce those locks at every future adaptation or proposal-acceptance
       boundary.
 - [ ] Add brief-backed composition variants and content-length profiles only
       where the selected campaign demonstrates repeatable behavior.
 - [x] Coordinate exact format and carousel canvases while retaining one immutable
       revision per canvas.
-- [ ] Generate a deterministic batch proof and export bundle with stable names,
+- [x] Generate a deterministic batch proof and export bundle with stable names,
       exact documents, resource pins, SVG/PNG outputs, and manifests.
 
 Gate: one selected direction becomes a coherent four-format campaign and
@@ -121,7 +122,7 @@ the verified bundle is complete and stably named.
 
 ## Slice 4: optional AI-assisted authoring
 
-Status: adapter and validation foundation implemented; workflow gate pending
+Status: implementation complete; real-brief acceptance gate pending
 
 - [ ] Accept the implemented [AI-authoring threat model](../ai-authoring-threat-model.md)
       and an interaction prototype against a real brief.
@@ -129,12 +130,12 @@ Status: adapter and validation foundation implemented; workflow gate pending
       model selection, limits, timeout, and retention disclosure.
 - [x] Ask for three or four proposal-only directions using the published Core
       authoring contract.
-- [ ] Resolve only operator/human-selected admitted resources; never accept a
+- [x] Resolve only operator/human-selected admitted resources; never accept a
       model URL, path, trusted hash, provenance value, or storage identity.
-- [ ] Produce resource-backed Core proofs before a proposal can be accepted.
-- [ ] Persist provider/model IDs, prompt/response hashes, validation results,
+- [x] Produce resource-backed Core proofs before a proposal can be accepted.
+- [x] Persist provider/model IDs, prompt/response hashes, validation results,
       human decisions, and closed locks as App metadata.
-- [ ] Recheck locks at regeneration, save, queued render, and export boundaries.
+- [x] Recheck locks at regeneration, save, queued render, and export boundaries.
 - [x] Preserve the complete manual path and allow the adapter to remain disabled.
 
 Gate: one real brief yields at least three schema-valid, visibly distinct
@@ -146,12 +147,12 @@ bypasses admission, authorization, Core validation, or human acceptance.
 Status: exact-revision state and evidence foundation implemented
 
 - [x] Add revision-bound comments or bounded annotations.
-- [ ] Add exact visual revision comparison.
+- [x] Add exact visual revision comparison.
 - [x] Add `in-review`, `changes-requested`, and `approved` transitions with
       capability and stale-head checks.
 - [x] Bind approval to the exact revision, resource pins, fingerprints, and
       output hashes.
-- [ ] Include an approval receipt in the campaign bundle and label unapproved
+- [x] Include an approval receipt in the campaign bundle and label unapproved
       output accurately.
 
 ## Slice 6: market-led multilingual production
@@ -198,6 +199,19 @@ Text-layout data, fixtures, schema conformance, identity assets, reviewed
 examples, 31 production-license records, the fresh packed consumer, and the
 Core tarball dry run all verified. `npm audit --audit-level=low` reported zero
 vulnerabilities. No render baseline changed. PGlite migration and PostgreSQL
-adapter/queue tests passed in the App suite; the destructive opt-in real
-PostgreSQL qualification remains a release-environment check because no
-`GLYPHKILN_REAL_POSTGRES_DATABASE_URL` was configured.
+adapter/queue tests passed in the App suite. At that earlier snapshot, the
+destructive opt-in real PostgreSQL qualification remained a release-environment
+check because no `GLYPHKILN_REAL_POSTGRES_DATABASE_URL` was configured.
+
+The completed campaign/review slice's automated software gates were then
+qualified on both Node `24.16.0` and an exact disposable Node `22.22.2` runtime
+with npm `10.9.8`. This does not satisfy the still-pending real-brief product
+qualification. A clean
+`npm ci`, build, typecheck, security/lint/format, full tests, coverage,
+text-layout data, fixtures, schema conformance, identity, reviewed examples,
+licenses, packed consumer, and Core tarball dry run passed on the minimum
+runtime. The current suite covers 316 Core tests, 466 App tests with four
+intentional real-environment skips, and four showcase tests. Coverage completed
+at 84.13% Core statements, 86.75% App statements, and 92.27% showcase lines.
+Four destructive opt-in concurrency and isolation checks also passed against a
+disposable loopback PostgreSQL 15 qualification database.

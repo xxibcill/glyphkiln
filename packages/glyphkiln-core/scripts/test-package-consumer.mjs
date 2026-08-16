@@ -200,10 +200,41 @@ assert.equal(
   candidates.candidates[0].canonicalDocument,
   canonicalJson(candidates.candidates[0].document),
 );
-assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.0.0");
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.1.0");
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
   "1.0.0",
+);
+assert.deepEqual(
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[1],
+  {
+    template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+    formats: ["tiktok-photo-carousel"],
+    compositionVariants: [
+      {
+        id: "organic-photo-editorial",
+        label: "Organic photo editorial",
+        description:
+          "A compact 3:4 typography-first organic photo-carousel slide.",
+      },
+    ],
+    contentRoles: [
+      { layerType: "badge", required: true },
+      { layerType: "eyebrow", required: false },
+      { layerType: "headline", required: true },
+      { layerType: "subtitle", required: false },
+      { layerType: "statistic", required: false },
+      { layerType: "cta", required: false },
+      { layerType: "footer", required: false },
+    ],
+    assetRoles: [],
+    safeAreaPolicy: {
+      semanticContent: "brand-snapshot",
+      fullBleedAssetLayers: [],
+      exposesRenderEvidence: true,
+      guidance: "Honor compact top, action-side, and bottom interface insets.",
+    },
+  },
 );
 assert.equal(
   deriveCampaignSeeds({
@@ -356,7 +387,8 @@ const campaignFamily: CampaignFamilyDefinition =
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
 if (
   campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
-  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.0.0"
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.1.0" ||
+  campaignFamily.members[1]?.template.id !== "tiktok-carousel-slide"
 ) {
   throw new Error("campaign contract");
 }

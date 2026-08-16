@@ -19,6 +19,13 @@ import type {
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const BASE64_PATTERN =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+export const MAXIMUM_BROWSER_RENDER_PROOF_BYTES = 64 * 1024 * 1024;
+
+export type RenderProofProjection = {
+  qualityIssues: QualityIssue[];
+  evidence: RenderEvidence;
+  outputs: (Omit<PreviewOutput, "base64"> & { base64?: string })[];
+};
 
 export function parsePreviewResponse(
   input: unknown,
@@ -47,6 +54,42 @@ export function previewIntegrityPrerequisiteFailure(): PreviewFailure | null {
     detail:
       "Open the remote workshop over HTTPS, or use localhost on this machine, before rendering a proof.",
   };
+}
+
+export function isRenderProofProjection(
+  input: unknown,
+  document: DesignDocument,
+  expectedDocumentHash?: string,
+): input is RenderProofProjection {
+  if (
+    !isRecord(input) ||
+    !isQualityIssueArray(input.qualityIssues) ||
+    !isRenderEvidence(input.evidence) ||
+    !Array.isArray(input.outputs) ||
+    input.outputs.length !== 2 ||
+    !input.outputs.every(isPreviewProofOutput) ||
+    input.outputs.reduce((total, output) => total + output.byteSize, 0) >
+      MAXIMUM_BROWSER_RENDER_PROOF_BYTES
+  ) {
+    return false;
+  }
+  const formats = new Set(input.outputs.map((output) => output.format));
+  const byteModes = new Set(
+    input.outputs.map((output) => (output.base64 === undefined ? "metadata" : "bytes")),
+  );
+  return (
+    formats.size === 2 &&
+    formats.has("svg") &&
+    formats.has("png") &&
+    byteModes.size === 1 &&
+    input.outputs.every(
+      (output) =>
+        output.manifest.designDocumentId === document.id &&
+        (expectedDocumentHash === undefined ||
+          output.manifest.designDocumentHash === expectedDocumentHash) &&
+        output.manifest.renderFingerprint === output.fingerprint,
+    )
+  );
 }
 
 export async function verifyPreviewIntegrity(
@@ -404,6 +447,12 @@ function isPreviewFailure(input: unknown, httpStatus: number): input is PreviewF
 }
 
 function isPreviewOutput(input: unknown): input is PreviewOutput {
+  return isPreviewProofOutput(input) && input.base64 !== undefined;
+}
+
+function isPreviewProofOutput(
+  input: unknown,
+): input is Omit<PreviewOutput, "base64"> & { base64?: string } {
   if (!isRecord(input)) return false;
   const expectedMimeType =
     input.format === "svg"
@@ -414,16 +463,23 @@ function isPreviewOutput(input: unknown): input is PreviewOutput {
   if (
     expectedMimeType === undefined ||
     input.mimeType !== expectedMimeType ||
-    typeof input.base64 !== "string" ||
-    input.base64.length === 0 ||
-    !BASE64_PATTERN.test(input.base64) ||
     !isPositiveInteger(input.byteSize) ||
-    decodedByteLength(input.base64) !== input.byteSize ||
+    input.byteSize > MAXIMUM_BROWSER_RENDER_PROOF_BYTES ||
     typeof input.fingerprint !== "string" ||
     !SHA256_PATTERN.test(input.fingerprint) ||
     typeof input.filename !== "string" ||
     input.filename.length === 0 ||
     !isRenderManifest(input.manifest)
+  ) {
+    return false;
+  }
+  if (
+    input.base64 !== undefined &&
+    (typeof input.base64 !== "string" ||
+      input.base64.length === 0 ||
+      input.base64.length > Math.ceil(input.byteSize / 3) * 4 ||
+      !BASE64_PATTERN.test(input.base64) ||
+      decodedByteLength(input.base64) !== input.byteSize)
   ) {
     return false;
   }

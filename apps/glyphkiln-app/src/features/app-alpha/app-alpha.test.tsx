@@ -21,7 +21,12 @@ import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { constructManualDocument } from "@/server/app-workflow/document-factory";
 
 import { AppAlpha } from "./app-alpha";
-import type { ApiFailure, AppAlphaApi, DesignRevision } from "./api-client";
+import type {
+  ApiFailure,
+  AppAlphaApi,
+  CampaignBoard,
+  DesignRevision,
+} from "./api-client";
 import { buildBrandSnapshotDraft } from "./manual-state";
 
 vi.mock("@/features/project-preview/response-parser", async (importOriginal) => {
@@ -117,6 +122,12 @@ describe("AppAlpha", () => {
     expect(container.textContent).toContain("Edits not rendered");
     clickButton("Preview draft · does not save");
     await waitForText("Draft preview verified");
+
+    expect(api.previewDesign).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        baseRevision: { designId: "design-1", revisionId: "revision-1" },
+      }),
+    );
     clickButton("Save child revision");
     await waitForText("Revision 2 saved and reopened");
 
@@ -190,6 +201,59 @@ describe("AppAlpha", () => {
     ).toBe("Admin");
   });
 
+  it("applies a planned campaign canvas seed only to the unsaved draft", async () => {
+    const api = createWorkflowApi({ withCampaign: true });
+    act(() => {
+      root.render(<AppAlpha catalog={catalog} api={api} />);
+    });
+
+    await waitForText("Editorial A");
+    setSelect("#template", "image-led-campaign");
+    const before = {
+      template: controlValue("#template"),
+      format: controlValue("#format"),
+      headline: controlValue("#campaign-headline"),
+    };
+    setInput('input[name="canvasKey"]', "hero-landscape");
+    clickButton("Plan canvas seed");
+    await waitForText("sha256/canonical-scope-v1");
+    clickButton("Apply seed to draft");
+    await waitForText("remains unsaved and unrendered");
+
+    expect(api.campaignCanvasSeed).toHaveBeenCalledWith({
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign",
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    expect(controlValue("#seed")).toBe("b".repeat(64));
+    expect({
+      template: controlValue("#template"),
+      format: controlValue("#format"),
+      headline: controlValue("#campaign-headline"),
+    }).toEqual(before);
+    expect(api.createDesign).not.toHaveBeenCalled();
+    expect(api.reviseDesign).not.toHaveBeenCalled();
+    expect(api.attachCampaignCanvas).not.toHaveBeenCalled();
+  });
+
+  it("hides stored campaign controls while the product gate is closed", async () => {
+    const api = createWorkflowApi({
+      withCampaign: true,
+      campaignWorkflowEnabled: false,
+    });
+    act(() => {
+      root.render(<AppAlpha catalog={catalog} api={api} />);
+    });
+
+    await waitForText("Brand snapshot 1.0.0 loaded");
+    expect(container.textContent).not.toContain("Campaign coordination");
+    expect(container.textContent).not.toContain("Editorial A");
+  });
+
   function clickButton(label: string): void {
     const button = [...container.querySelectorAll("button")].find(
       (candidate) => candidate.textContent.trim() === label,
@@ -216,6 +280,28 @@ describe("AppAlpha", () => {
     });
   }
 
+  function setSelect(selector: string, value: string): void {
+    const select = container.querySelector<HTMLSelectElement>(selector);
+    if (select === null) throw new Error(`Select “${selector}” was not found.`);
+    const setter = Reflect.getOwnPropertyDescriptor(
+      HTMLSelectElement.prototype,
+      "value",
+    )?.set;
+    if (setter === undefined) throw new Error("Select value setter was not found.");
+    act(() => {
+      Reflect.apply(setter, select, [value]);
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  function controlValue(selector: string): string {
+    const control = container.querySelector<HTMLInputElement | HTMLSelectElement>(
+      selector,
+    );
+    if (control === null) throw new Error(`Control “${selector}” was not found.`);
+    return control.value;
+  }
+
   async function waitForText(text: string): Promise<void> {
     await vi.waitFor(async () => {
       await act(async () => {
@@ -230,6 +316,8 @@ function createWorkflowApi(
   options: {
     role?: "owner" | "admin" | "editor" | "viewer";
     hydrateCompletedExport?: boolean;
+    withCampaign?: boolean;
+    campaignWorkflowEnabled?: boolean;
   } = {},
 ): AppAlphaApi & {
   createDesign: ReturnType<typeof vi.fn<AppAlphaApi["createDesign"]>>;
@@ -240,6 +328,8 @@ function createWorkflowApi(
   renderJob: ReturnType<typeof vi.fn<AppAlphaApi["renderJob"]>>;
   completedRenderJobs: ReturnType<typeof vi.fn<AppAlphaApi["completedRenderJobs"]>>;
   createInvitation: ReturnType<typeof vi.fn<AppAlphaApi["createInvitation"]>>;
+  campaignCanvasSeed: ReturnType<typeof vi.fn<AppAlphaApi["campaignCanvasSeed"]>>;
+  attachCampaignCanvas: ReturnType<typeof vi.fn<AppAlphaApi["attachCampaignCanvas"]>>;
 } {
   let storedRevision: DesignRevision | undefined;
   const createDesign = vi.fn<AppAlphaApi["createDesign"]>((input) => {
@@ -350,6 +440,27 @@ function createWorkflowApi(
         : [];
     return Promise.resolve({ ok: true, value: jobs });
   });
+  const campaignCanvasSeed = vi.fn<AppAlphaApi["campaignCanvasSeed"]>((input) =>
+    Promise.resolve({
+      ok: true,
+      value: {
+        kind: "campaign-canvas-seed",
+        workspaceId: input.workspaceId,
+        campaignId: input.campaignId,
+        directionId: input.directionId,
+        canvasKey: input.canvasKey,
+        template: { id: input.templateId, version: "1.0.0" },
+        format: input.format,
+        compositionVariantId: input.compositionVariantId,
+        seedDerivationVersion: "sha256/canonical-scope-v1",
+        directionSeed: "a".repeat(64),
+        canvasSeed: "b".repeat(64),
+      },
+    }),
+  );
+  const attachCampaignCanvas = vi.fn<AppAlphaApi["attachCampaignCanvas"]>(() =>
+    Promise.resolve(missingResource()),
+  );
 
   return {
     currentSession: () =>
@@ -410,6 +521,11 @@ function createWorkflowApi(
                     updatedAt: storedRevision.createdAt,
                   },
                 ],
+          campaigns: options.withCampaign === true ? [campaignSummary()] : [],
+          features: {
+            campaignWorkflow:
+              options.campaignWorkflowEnabled ?? options.withCampaign === true,
+          },
         },
       }),
     resources: () =>
@@ -427,11 +543,12 @@ function createWorkflowApi(
           snapshot: brand,
         },
       }),
-    previewDesign: (input) =>
+    previewDesign: vi.fn((input: Parameters<AppAlphaApi["previewDesign"]>[0]) =>
       Promise.resolve({
-        ok: true,
+        ok: true as const,
         value: renderDocument(constructDocument("preview-test", input.draft)),
       }),
+    ),
     createDesign,
     reviseDesign,
     revision,
@@ -439,6 +556,26 @@ function createWorkflowApi(
     requestRevisionExport,
     renderJob,
     completedRenderJobs,
+    createCampaign: () => Promise.resolve(missingResource()),
+    campaignBoard: () =>
+      options.withCampaign === true
+        ? Promise.resolve({ ok: true, value: campaignBoard() })
+        : Promise.resolve(missingResource()),
+    campaignCanvasSeed,
+    createCampaignDirection: () => Promise.resolve(missingResource()),
+    branchCampaignDirection: () => Promise.resolve(missingResource()),
+    attachCampaignCanvas,
+    requestCampaignProposals: () => Promise.resolve(missingResource()),
+    campaignProposalRun: () => Promise.resolve(missingResource()),
+    acceptCampaignProposal: () => Promise.resolve(missingResource()),
+    rejectCampaignProposal: () => Promise.resolve(missingResource()),
+    campaignHandoff: () => Promise.resolve(missingResource()),
+    compareRevisions: () => Promise.resolve(missingResource()),
+    revisionReview: () => Promise.resolve(missingResource()),
+    submitRevisionReview: () => Promise.resolve(missingResource()),
+    commentRevisionReview: () => Promise.resolve(missingResource()),
+    requestRevisionChanges: () => Promise.resolve(missingResource()),
+    approveRevision: () => Promise.resolve(missingResource()),
   };
 }
 
@@ -473,6 +610,37 @@ function completedRenderJob(revision: DesignRevision) {
         manifestSha256: "d".repeat(64),
         manifestByteSize: 200,
         fingerprint: "durable-png-fingerprint",
+      },
+    ],
+  };
+}
+
+function campaignSummary() {
+  return {
+    id: "campaign-1",
+    name: "First firing",
+    brief: "Launch one admitted image across a coordinated campaign family.",
+    campaignSeed: "first-firing-2026",
+    familyId: "image-led-campaign" as const,
+    createdAt: "2026-08-12T01:00:00.000Z",
+    updatedAt: "2026-08-12T01:00:00.000Z",
+  };
+}
+
+function campaignBoard(): CampaignBoard {
+  return {
+    kind: "campaign-board" as const,
+    campaign: campaignSummary(),
+    directions: [
+      {
+        id: "direction-1",
+        directionKey: "editorial-a",
+        name: "Editorial A",
+        locks: ["copy", "image", "palette"],
+        createdAt: "2026-08-12T01:00:00.000Z",
+        canvases: [],
+        proposalRuns: [],
+        proposalRunsTruncated: false,
       },
     ],
   };

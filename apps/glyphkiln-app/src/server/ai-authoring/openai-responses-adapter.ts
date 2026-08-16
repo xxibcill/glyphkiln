@@ -4,6 +4,7 @@ import {
   AUTHORING_TEMPLATE_REGISTRY,
   canonicalJson,
   getDesignDocumentJsonSchema,
+  hashCanonical,
   validateDesignDocument,
 } from "@glyphkiln/core";
 
@@ -19,6 +20,7 @@ import {
   type BriefInterpreter,
   type BriefInterpreterDescriptor,
   type BriefInterpreterInput,
+  type BriefInterpreterResult,
 } from "./brief-interpreter";
 
 const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
@@ -82,27 +84,28 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
     });
   }
 
-  async interpret(input: BriefInterpreterInput): Promise<unknown> {
+  async interpret(input: BriefInterpreterInput): Promise<BriefInterpreterResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
     }, this.#timeoutMs);
     try {
       const serializedInput = providerInput(input);
+      const requestBody = canonicalJson({
+        model: this.descriptor.modelId,
+        store: false,
+        max_output_tokens: this.#maximumOutputTokens,
+        instructions: providerInstructions(input.candidateCount),
+        input: serializedInput,
+        text: { format: { type: "json_object" } },
+      });
       const response = await this.#fetch(OPENAI_RESPONSES_ENDPOINT, {
         method: "POST",
         headers: {
           authorization: `Bearer ${this.#apiKey}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          model: this.descriptor.modelId,
-          store: false,
-          max_output_tokens: this.#maximumOutputTokens,
-          instructions: providerInstructions(input.candidateCount),
-          input: serializedInput,
-          text: { format: { type: "json_object" } },
-        }),
+        body: requestBody,
         signal: controller.signal,
       });
       const responseText = await readBoundedResponseText(response);
@@ -112,7 +115,16 @@ export class OpenAIResponsesBriefInterpreter implements BriefInterpreter {
           "The configured authoring provider rejected the proposal request.",
         );
       }
-      return parseProviderEnvelope(responseText);
+      const parsedResponse = parseProviderEnvelope(responseText);
+      try {
+        return Object.freeze({
+          response: parsedResponse,
+          inputHash: hashCanonical(requestBody),
+          responseHash: hashCanonical(parsedResponse),
+        });
+      } catch {
+        throw invalidProviderResponse();
+      }
     } catch (error) {
       if (error instanceof BriefInterpreterProviderError) throw error;
       if (controller.signal.aborted || isAbortError(error)) {

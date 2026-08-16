@@ -727,6 +727,7 @@ function jobView(row: JobRow, outputs: readonly OutputRow[]): RenderJobView {
     maxAttempts: Number(row.max_attempts),
     availableAt: asDate(row.available_at),
     createdAt: asDate(row.created_at),
+    manifestCreationTimestamp: asDate(row.manifest_creation_timestamp),
     updatedAt: asDate(row.updated_at),
     ...(row.finished_at === null ? {} : { finishedAt: asDate(row.finished_at) }),
     ...(row.last_error_code === null || row.last_error_detail === null
