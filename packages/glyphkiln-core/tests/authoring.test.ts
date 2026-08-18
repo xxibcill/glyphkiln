@@ -83,7 +83,7 @@ describe("AI-ready authoring metadata", () => {
   });
 
   it("publishes every supported template version as immutable browser-safe data", () => {
-    expect(AUTHORING_CONTRACT_VERSION).toBe("1.0.0");
+    expect(AUTHORING_CONTRACT_VERSION).toBe("1.2.0");
     expect(AUTHORING_TEMPLATE_KEYS).toEqual([
       "product-announcement@1.1.1",
       "statistic-card@1.1.0",
@@ -92,7 +92,9 @@ describe("AI-ready authoring metadata", () => {
       "tiktok-carousel-slide@1.0.1",
       "tiktok-carousel-slide@1.0.2",
       "tiktok-carousel-slide@1.0.3",
+      "tiktok-carousel-slide@1.0.4",
       "image-led-campaign@1.0.0",
+      "image-led-campaign@1.0.1",
     ]);
     expect(Object.keys(AUTHORING_TEMPLATE_REGISTRY)).toEqual(AUTHORING_TEMPLATE_KEYS);
     expect(Object.isFrozen(AUTHORING_TEMPLATE_REGISTRY)).toBe(true);
@@ -116,6 +118,15 @@ describe("AI-ready authoring metadata", () => {
     expect(BROWSER_AUTHORING_CONTRACT_VERSION).toBe(AUTHORING_CONTRACT_VERSION);
     expect(BROWSER_AUTHORING_TEMPLATE_REGISTRY).toBe(AUTHORING_TEMPLATE_REGISTRY);
     expectDeepFrozen(AUTHORING_TEMPLATE_REGISTRY);
+    expect(
+      AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.4"].contentRoles.find(
+        ({ layerType }) => layerType === "headline",
+      )?.fields[0]?.recommendedCharacters,
+    ).toEqual({
+      minimum: 12,
+      maximum: 72,
+      evidence: "glyphkiln-advisory",
+    });
   });
 
   it("stays aligned with runtime template requirements and formats", () => {
@@ -156,7 +167,7 @@ describe("AI-ready authoring metadata", () => {
     }
 
     expect(
-      AUTHORING_TEMPLATE_REGISTRY["image-led-campaign@1.0.0"].compositionVariant.id,
+      AUTHORING_TEMPLATE_REGISTRY["image-led-campaign@1.0.1"].compositionVariant.id,
     ).toBe(
       CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].compositionVariants[0]
         .id,

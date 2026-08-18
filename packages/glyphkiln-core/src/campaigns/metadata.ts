@@ -4,7 +4,7 @@ import { AUTHORING_TEMPLATE_REGISTRY } from "../authoring/metadata.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../templates/image-led-campaign-contract.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
-export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.1.0" as const;
+export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.2.0" as const;
 
 export const CAMPAIGN_FAMILY_IDS = Object.freeze(["image-led-campaign"] as const);
 export type CampaignFamilyId = (typeof CAMPAIGN_FAMILY_IDS)[number];
@@ -77,7 +77,7 @@ export type CampaignFamilyDefinition = {
 };
 
 const carouselAuthoringContract =
-  AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.3"];
+  AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.4"];
 
 const imageLedContentRoles = IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers
   .filter(isImageLedContentLayerType)

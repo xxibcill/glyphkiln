@@ -2,7 +2,7 @@ import type { FormatId } from "../formats/index.js";
 import type { DesignLayer, ImageTreatmentId, TemplateId } from "../schema/index.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
-export const AUTHORING_CONTRACT_VERSION = "1.0.0" as const;
+export const AUTHORING_CONTRACT_VERSION = "1.2.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
 export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
@@ -13,7 +13,9 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "tiktok-carousel-slide@1.0.1",
   "tiktok-carousel-slide@1.0.2",
   "tiktok-carousel-slide@1.0.3",
+  "tiktok-carousel-slide@1.0.4",
   "image-led-campaign@1.0.0",
+  "image-led-campaign@1.0.1",
 ] as const);
 export type AuthoringTemplateKey = (typeof AUTHORING_TEMPLATE_KEYS)[number];
 
@@ -40,6 +42,11 @@ export type AuthoringContentField = {
   readonly required: boolean;
   readonly minimumCharacters: number;
   readonly maximumCharacters: number;
+  readonly recommendedCharacters?: {
+    readonly minimum: number;
+    readonly maximum: number;
+    readonly evidence: "glyphkiln-advisory";
+  };
 };
 
 export type AuthoringContentRole = {
@@ -169,6 +176,55 @@ const statisticFields = Object.freeze([
   { name: "label", required: true, minimumCharacters: 1, maximumCharacters: 240 },
   { name: "trend", required: false, minimumCharacters: 1, maximumCharacters: 80 },
 ] as const);
+const advisoryTextField = (minimum: number, maximum: number) =>
+  Object.freeze([
+    {
+      name: "text",
+      required: true,
+      minimumCharacters: 1,
+      maximumCharacters: 2_000,
+      recommendedCharacters: {
+        minimum,
+        maximum,
+        evidence: "glyphkiln-advisory",
+      },
+    },
+  ] as const);
+const tiktokStatisticFields = Object.freeze([
+  {
+    name: "value",
+    required: true,
+    minimumCharacters: 1,
+    maximumCharacters: 80,
+    recommendedCharacters: {
+      minimum: 1,
+      maximum: 12,
+      evidence: "glyphkiln-advisory",
+    },
+  },
+  {
+    name: "label",
+    required: true,
+    minimumCharacters: 1,
+    maximumCharacters: 240,
+    recommendedCharacters: {
+      minimum: 4,
+      maximum: 72,
+      evidence: "glyphkiln-advisory",
+    },
+  },
+  {
+    name: "trend",
+    required: false,
+    minimumCharacters: 1,
+    maximumCharacters: 80,
+    recommendedCharacters: {
+      minimum: 1,
+      maximum: 20,
+      evidence: "glyphkiln-advisory",
+    },
+  },
+] as const);
 const commonFormats = Object.freeze([
   "linkedin-landscape",
   "instagram-square",
@@ -247,23 +303,103 @@ function templateContract(
 }
 
 const tiktokContentRoles = Object.freeze([
-  contentRole("badge", true, "Use a short slide number or sequence label.", badgeField),
-  contentRole("eyebrow", false, "Use only for a compact series or category cue."),
-  contentRole("headline", true, "Write one clear hook that can fit in four lines."),
+  contentRole(
+    "badge",
+    true,
+    "Use a short slide number or sequence label.",
+    advisoryTextField(1, 12),
+  ),
+  contentRole(
+    "eyebrow",
+    false,
+    "Use only for a compact series or category cue.",
+    advisoryTextField(1, 36),
+  ),
+  contentRole(
+    "headline",
+    true,
+    "Write one clear hook that can fit in four lines.",
+    advisoryTextField(12, 72),
+  ),
   contentRole(
     "subtitle",
     false,
     "Use one supporting benefit; do not pair with a statistic.",
+    advisoryTextField(12, 120),
   ),
   contentRole(
     "statistic",
     false,
     "Use one structured metric; do not pair with a subtitle.",
-    statisticFields,
+    tiktokStatisticFields,
   ),
-  contentRole("cta", false, "Reserve for a short action or swipe cue."),
-  contentRole("footer", false, "Use for restrained supporting context."),
+  contentRole(
+    "cta",
+    false,
+    "Reserve for a short action or swipe cue.",
+    advisoryTextField(2, 32),
+  ),
+  contentRole(
+    "footer",
+    false,
+    "Use for restrained supporting context.",
+    advisoryTextField(1, 90),
+  ),
 ]);
+
+function imageLedCampaignContract(
+  key: "image-led-campaign@1.0.0" | "image-led-campaign@1.0.1",
+  version: "1.0.0" | "1.0.1",
+): AuthoringTemplateContract {
+  return templateContract({
+    key,
+    template: { id: "image-led-campaign", version },
+    compatibleSchemaVersions: currentSchemaVersions,
+    compatibleFormats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
+    compositionVariant: {
+      id: "focal-editorial",
+      label: "Focal editorial",
+      selection: "fixed-by-template-version",
+      guidance:
+        "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Use a compact category or campaign cue."),
+      contentRole("headline", true, "Write the primary message to fit in four lines."),
+      contentRole("subtitle", false, "Add one concise supporting statement."),
+      contentRole("cta", false, "Use a short action phrase."),
+    ],
+    assetRoles: [
+      assetRole(
+        "image",
+        true,
+        "Use an admitted full-bleed raster with an explicit focal point.",
+        {
+          supportedFits: ["cover"],
+          supportsFocalPoint: true,
+          supportedTreatments: ["none", "dark-scrim", "light-scrim"],
+        },
+      ),
+      assetRole(
+        "logo",
+        true,
+        "Use an admitted raster brand mark with sufficient quiet space.",
+        {
+          supportedFits: ["contain"],
+        },
+      ),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 4,
+    safeAreaGuidance:
+      "Keep logo and copy inside the safe area; only the focal image is full bleed.",
+    authoringGuidance: [
+      "Choose crop intent explicitly and review the returned crop evidence.",
+      "Choose a closed treatment and review composited contrast evidence.",
+      "Treat asset declarations as server-resolved references, never URLs or paths.",
+    ],
+  });
+}
 
 const authoringTemplateRegistry = {
   "product-announcement@1.1.1": templateContract({
@@ -475,54 +611,38 @@ const authoringTemplateRegistry = {
       "Use either one benefit or one metric, never both.",
     ],
   }),
-  "image-led-campaign@1.0.0": templateContract({
-    key: "image-led-campaign@1.0.0",
-    template: { id: "image-led-campaign", version: "1.0.0" },
-    compatibleSchemaVersions: currentSchemaVersions,
-    compatibleFormats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
+  "tiktok-carousel-slide@1.0.4": templateContract({
+    key: "tiktok-carousel-slide@1.0.4",
+    template: { id: "tiktok-carousel-slide", version: "1.0.4" },
+    compatibleSchemaVersions: ["1.3.0", "1.4.0"],
+    compatibleFormats: ["tiktok-photo-carousel"],
     compositionVariant: {
-      id: "focal-editorial",
-      label: "Focal editorial",
+      id: "organic-photo-editorial",
+      label: "Organic photo editorial",
       selection: "fixed-by-template-version",
       guidance:
-        "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
+        "A compact 3:4 organic composition with content-responsive spacing and optional deterministic pattern rails.",
     },
-    contentRoles: [
-      contentRole("eyebrow", false, "Use a compact category or campaign cue."),
-      contentRole("headline", true, "Write the primary message to fit in four lines."),
-      contentRole("subtitle", false, "Add one concise supporting statement."),
-      contentRole("cta", false, "Use a short action phrase."),
-    ],
-    assetRoles: [
-      assetRole(
-        "image",
-        true,
-        "Use an admitted full-bleed raster with an explicit focal point.",
-        {
-          supportedFits: ["cover"],
-          supportsFocalPoint: true,
-          supportedTreatments: ["none", "dark-scrim", "light-scrim"],
-        },
-      ),
-      assetRole(
-        "logo",
-        true,
-        "Use an admitted raster brand mark with sufficient quiet space.",
-        {
-          supportedFits: ["contain"],
-        },
-      ),
-    ],
-    optionalDecorativeLayers: ["background"],
+    contentRoles: tiktokContentRoles,
+    assetRoles: [],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
     headlineMaximumLines: 4,
-    safeAreaGuidance:
-      "Keep logo and copy inside the safe area; only the focal image is full bleed.",
+    mutuallyExclusiveRoles: [["subtitle", "statistic"]],
+    safeAreaGuidance: "Honor compact top, action-side, and bottom interface insets.",
     authoringGuidance: [
-      "Choose crop intent explicitly and review the returned crop evidence.",
-      "Choose a closed treatment and review composited contrast evidence.",
-      "Treat asset declarations as server-resolved references, never URLs or paths.",
+      "Use the 1.08 headline-leading floor; never repair collisions by hiding descenders.",
+      "Keep slide numbering visible, but reserve eyebrow and footer chrome for moments that need it.",
+      "Use procedural layers as purposeful sequence interrupts, not decoration on every slide.",
     ],
   }),
+  "image-led-campaign@1.0.0": imageLedCampaignContract(
+    "image-led-campaign@1.0.0",
+    "1.0.0",
+  ),
+  "image-led-campaign@1.0.1": imageLedCampaignContract(
+    "image-led-campaign@1.0.1",
+    "1.0.1",
+  ),
 } as const satisfies Record<AuthoringTemplateKey, AuthoringTemplateContract>;
 
 export const AUTHORING_TEMPLATE_REGISTRY = deepFreeze(authoringTemplateRegistry);

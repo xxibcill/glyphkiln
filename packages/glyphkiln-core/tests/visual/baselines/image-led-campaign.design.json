@@ -3,7 +3,7 @@
   "id": "example-image-led-campaign",
   "template": {
     "id": "image-led-campaign",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "format": "linkedin-landscape",
   "seed": "kilnform-light-01",

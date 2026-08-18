@@ -32,8 +32,8 @@ Supported templates:
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
-- `tiktok-carousel-slide@1.0.3`
-- `image-led-campaign@1.0.0`
+- `tiktok-carousel-slide@1.0.4` (`1.0.3` remains renderable)
+- `image-led-campaign@1.0.1` (`1.0.0` remains renderable)
 
 Supported procedural styles:
 
@@ -109,11 +109,13 @@ and fonts are byte-oriented caller inputs; the renderer performs no network
 access.
 
 Schema `1.4.0` adds bounded display/body/label typography roles and normalized
-focal points with closed image treatments. `image-led-campaign@1.0.0` renders
+focal points with closed image treatments. `image-led-campaign@1.0.1` renders
 one exact image/logo campaign across landscape, square, and portrait and returns
 bounded safe-area, text, crop, overflow, and composited-contrast proof in
-`result.evidence`. Core embeds the exact supplied raster bytes and never runs a
-silent color normalizer.
+`result.evidence`. It sizes the contained logo box to the admitted raster's
+aspect ratio so the visible logo slot begins at the safe-area column; saved
+`1.0.0` documents retain their original fixed-slot pixels. Core embeds the exact
+supplied raster bytes and never runs a silent color normalizer.
 
 For a deliberate admission-time conversion, `normalizeRasterColor` accepts only
 explicit bounded PNG/JPEG bytes and returns new canonical sRGB PNG bytes plus a
@@ -244,17 +246,26 @@ The X default is 16:9 at 1200 × 675: a practical current default that maps
 cleanly to common high-resolution preview surfaces. Applications can add new
 versioned registry entries without scattering dimensions through templates.
 The default organic TikTok photo carousel uses a high-resolution 1080 × 1440
-(3:4) canvas. `tiktok-carousel-slide@1.0.3` balances key content in that shorter
-in-feed viewport and avoids reserving the oversized caption region needed by a
-full-screen 9:16 canvas. Saved `1.0.2` documents remain exactly renderable with
-the 1080 × 1920 `tiktok-carousel` ad format. Both variants support packs of 3 or
-7–9 slides: open with a hook, give each slide one concise message or benefit,
-and close with an action aligned to the carousel's shared CTA. Each slide must
-also make sense independently because Smart Order may present a different slide
-first. The preserved ad variant follows the
-[TikTok Image Ads | Carousel Ads Playbook](https://ads.tiktok.com/business/library/Image_Ads_Carousel_Ads_Playbook.pdf),
-which recommends vertical 9:16 creative at 720p or higher, safe-zone placement,
-and concise, easy-to-read selling points.
+(3:4) Glyphkiln working canvas. `tiktok-carousel-slide@1.0.4` targets that
+organic path; TikTok does not publish one required organic Photo Mode canvas or
+stable universal safe zone. Saved `1.0.2` documents remain exactly renderable
+with the 1080 × 1920 `tiktok-carousel` paid-ad format. Smart Order, vertical
+720 × 1280 guidance, music requirements, and any 3/7–9 card recommendation
+belong only to the paid-ad workflow.
+
+The current organic template uses a 1.08 headline-leading floor, optional
+eyebrow/footer chrome, content-responsive type fields, and deterministic
+Core-owned pattern rails when a procedural layer is present. Saved `1.0.3`
+documents retain their original pixels.
+
+`DELIVERY_PROFILE_REGISTRY` separates Instagram native, Instagram API, TikTok
+native organic, TikTok Content Posting API, and TikTok paid-ad paths with dated sources and explicit evidence
+levels. `reviewCarouselSequence()` checks actual delivery and ordering failures
+while returning copy length, source coverage, accessibility, and composition
+rhythm as warnings. `createCarouselDeliverySidecar()` produces deterministic
+reading order, asset descriptions, source notes, and profile identity for
+handoff. These contracts are available from the main and browser entries and do
+not change template pixels.
 
 For AI-assisted authoring, prioritize typography: semantic copy, type
 hierarchy, color, and Core-owned layout or background primitives. Do not

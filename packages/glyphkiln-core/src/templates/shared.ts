@@ -243,6 +243,7 @@ export function addText(
     bounds: { ...actualBounds },
     lineCount: lines.length,
     maximumLines: options.maximumLines,
+    fontSize: fitted.fontSize,
     overflow: fitted.issues.some((issue) => issue.code === "TEXT_OVERFLOW"),
   });
   return element;

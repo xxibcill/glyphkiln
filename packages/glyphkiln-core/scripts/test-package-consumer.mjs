@@ -149,6 +149,9 @@ import {
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
+  CAROUSEL_SEQUENCE_VERSION,
+  DELIVERY_PROFILE_METADATA_VERSION,
+  DELIVERY_PROFILE_REGISTRY,
   canonicalJson,
   createRenderFingerprintPayload,
   mapQualityIssuesToAuthoringIssues,
@@ -171,7 +174,13 @@ const inertRecord = readExactInertDataRecord(
 assert.equal(inertRecord?.value, "safe");
 assert.equal(readInertArrayLength([inertRecord]), 1);
 assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
-assert.equal(AUTHORING_CONTRACT_VERSION, "1.0.0");
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.2.0");
+assert.equal(DELIVERY_PROFILE_METADATA_VERSION, "1.0.0");
+assert.equal(CAROUSEL_SEQUENCE_VERSION, "1.0.0");
+assert.equal(
+  DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum,
+  10,
+);
 assert.equal(
   AUTHORING_TEMPLATE_REGISTRY["article-cover@1.1.0"].template.version,
   "1.1.0",
@@ -200,22 +209,22 @@ assert.equal(
   candidates.candidates[0].canonicalDocument,
   canonicalJson(candidates.candidates[0].document),
 );
-assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.1.0");
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.2.0");
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
-  "1.0.0",
+  "1.0.1",
 );
 assert.deepEqual(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[1],
   {
-    template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+    template: { id: "tiktok-carousel-slide", version: "1.0.4" },
     formats: ["tiktok-photo-carousel"],
     compositionVariants: [
       {
         id: "organic-photo-editorial",
         label: "Organic photo editorial",
         description:
-          "A compact 3:4 typography-first organic photo-carousel slide.",
+          "A compact 3:4 organic composition with content-responsive spacing and optional deterministic pattern rails.",
       },
     ],
     contentRoles: [
@@ -242,7 +251,7 @@ assert.equal(
     familyId: "image-led-campaign",
     directionKey: createCampaignDirectionKey("direction-a"),
     canvasKey: createCampaignCanvasKey("landscape-01"),
-    template: { id: "image-led-campaign", version: "1.0.0" },
+    template: { id: "image-led-campaign", version: "1.0.1" },
     format: "linkedin-landscape",
     compositionVariantId: "focal-editorial",
   }).version,
@@ -339,6 +348,9 @@ import {
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
+  CAROUSEL_SEQUENCE_VERSION,
+  DELIVERY_PROFILE_METADATA_VERSION,
+  DELIVERY_PROFILE_REGISTRY,
   FOCAL_CROP_POLICY_VERSION,
   calculateFocalCrop,
   canonicalJson,
@@ -376,7 +388,7 @@ const campaignSeedInput = {
   familyId: "image-led-campaign",
   directionKey: createCampaignDirectionKey("direction-a"),
   canvasKey: createCampaignCanvasKey("portrait-01"),
-  template: { id: "image-led-campaign", version: "1.0.0" },
+  template: { id: "image-led-campaign", version: "1.0.1" },
   format: "instagram-portrait",
   compositionVariantId: "focal-editorial",
 } satisfies CampaignSeedDerivationInput;
@@ -387,7 +399,7 @@ const campaignFamily: CampaignFamilyDefinition =
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
 if (
   campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
-  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.1.0" ||
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.2.0" ||
   campaignFamily.members[1]?.template.id !== "tiktok-carousel-slide"
 ) {
   throw new Error("campaign contract");
@@ -407,7 +419,11 @@ const authoringQuality: AuthoringQualityIssueMapping =
     },
   ]);
 if (
-  AUTHORING_CONTRACT_VERSION !== "1.0.0" ||
+  AUTHORING_CONTRACT_VERSION !== "1.2.0" ||
+  DELIVERY_PROFILE_METADATA_VERSION !== "1.0.0" ||
+  CAROUSEL_SEQUENCE_VERSION !== "1.0.0" ||
+  DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum !==
+    10 ||
   authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||
   authoringQuality.issues[0]?.action !== "review-copy-rhythm" ||
   authoringTemplate.compositionVariant.selection !== "fixed-by-template-version" ||
@@ -423,7 +439,7 @@ const normalizedRaster: Promise<NormalizedRasterColor> = normalizeRasterColor({
 void [normalizedRaster, COLOR_NORMALIZATION_POLICY_VERSION];
 
 const carousel = createDesignDocument({
-  template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+  template: { id: "tiktok-carousel-slide", version: "1.0.4" },
   format: "tiktok-photo-carousel",
   seed: "strict-packed-consumer",
   brand: {
