@@ -1,0 +1,60 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_15d85c0070e8c47aa4581162",
+  "renderFingerprint": "15d85c0070e8c47aa4581162ab82acf2cef847b07d4e865aefcceb4b470ff456",
+  "designDocumentId": "qualification-carousel-01",
+  "designDocumentHash": "4d819c207bb795696d70fe70185259ecab6da3f7dbba5a6bd812ac19b461d4ec",
+  "seed": "c912e57bee35e16d7a3a4c362bb7db2b4526aa0600503d9d7168fb80b154af9f",
+  "template": {
+    "id": "tiktok-carousel-slide",
+    "version": "1.0.4"
+  },
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.4.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1440
+  },
+  "output": {
+    "format": "svg",
+    "sha256": "430f261d1e37f463302dab300c1783465076baaad74f2d3e0f3ff1646ef80ab3",
+    "byteSize": 80151
+  },
+  "creationTimestamp": "2026-08-18T14:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

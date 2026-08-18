@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<g ><path d="M112 420V224C112 126 170 64 256 64s144 62 144 160v196h-58V226c0-62-32-104-86-104s-86 42-86 104v194z" fill="#F3EBDD"/><path d="M256 166c-54 22-82 63-82 120 48-8 78-32 92-74 7 42 32 70 76 84 5-60-24-104-86-130z" fill="#B7673C"/><circle cx="256" cy="357" r="31" fill="#B7673C"/></g>
+
+</svg>

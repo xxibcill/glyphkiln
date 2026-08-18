@@ -1,0 +1,81 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_9de578f7b52f69e0cfe262c4",
+  "renderFingerprint": "9de578f7b52f69e0cfe262c41d244d9770bb4643d47d0ae88b965a1ba6d1b9d8",
+  "designDocumentId": "qualification-northline-works-instagram-square",
+  "designDocumentHash": "e1839fd55fbd1b741f9e9e199a7621839c3acada5f1e17b275af165a81c96b43",
+  "seed": "qualification-northline-rain-shift",
+  "template": {
+    "id": "image-led-campaign",
+    "version": "1.0.1"
+  },
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.4.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "northline-works-rain-commute",
+      "sha256": "65f8f0915764e9f83bd9486cc67fbfd09836d92450c266893637376c7ca51009",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Northline Works rain commute, canonical sRGB admission",
+        "sourceReference": "docs/qualification/brand-fidelity-2026-08-18/assets/images/northline-works-rain-commute.png",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    },
+    {
+      "id": "northline-works-mark",
+      "sha256": "6de937dd7d95b6a8e5d3f416db7cdf35f03658f9ca9e35e6b17d20c0f7b9d622",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Northline Works deterministic symbol",
+        "sourceReference": "docs/qualification/brand-fidelity-2026-08-18/assets/logos/northline-works-symbol.png",
+        "generativeImageModel": "deterministic project-authored vector"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Space Grotesk",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72"
+    },
+    {
+      "family": "Space Grotesk",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72"
+    },
+    {
+      "family": "Space Grotesk",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1080
+  },
+  "output": {
+    "format": "png",
+    "sha256": "d2766096bc5e9dc6a41346b80a9b733834b34fea7a8bb287fed064bdf9703a58",
+    "byteSize": 1520203
+  },
+  "creationTimestamp": "2026-08-18T12:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

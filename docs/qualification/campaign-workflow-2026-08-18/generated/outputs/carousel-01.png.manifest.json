@@ -1,0 +1,60 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_74a45cdab06a398ce46ed517",
+  "renderFingerprint": "74a45cdab06a398ce46ed5176e1130c532d615d151e57f0f0579d158ddb2a34d",
+  "designDocumentId": "qualification-carousel-01",
+  "designDocumentHash": "4d819c207bb795696d70fe70185259ecab6da3f7dbba5a6bd812ac19b461d4ec",
+  "seed": "c912e57bee35e16d7a3a4c362bb7db2b4526aa0600503d9d7168fb80b154af9f",
+  "template": {
+    "id": "tiktok-carousel-slide",
+    "version": "1.0.4"
+  },
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.4.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1440
+  },
+  "output": {
+    "format": "png",
+    "sha256": "522c77cc7851183d3c41b5fff19b0416db06a6c0bb51f01ecb263a38ebdaa4fe",
+    "byteSize": 60012
+  },
+  "creationTimestamp": "2026-08-18T14:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

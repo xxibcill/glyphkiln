@@ -1,0 +1,51 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_e72898b8949cedf0c72e30de",
+  "renderFingerprint": "e72898b8949cedf0c72e30de64128841650f19c80f8329665c41b9a390bda73b",
+  "designDocumentId": "sample-carousel-clinic-slide-05",
+  "designDocumentHash": "ec87b9d2e8ac33ca1eda114a87131aec02707099793f0000672a79160053bbbc",
+  "seed": "74a966deef3099f041f36a151501e21f36bd818a908e9201eccfb0b321e7bcdd",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": { "flow-field": "1.1.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1440 },
+  "output": {
+    "format": "png",
+    "sha256": "a1fd67062e2e22c554b1104cbd2417b269a94ce5f8b3cb4504705738e3de8eef",
+    "byteSize": 102027
+  },
+  "creationTimestamp": "2026-08-18T15:30:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "1.4.0",
+  "id": "sample-carousel-clinic-slide-06",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+  "format": "tiktok-photo-carousel",
+  "seed": "ac1b0a41f040d7527bebbcddf7ae9ff438e85dd14b74f6f424f7bf3c283f8576",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-glyphkiln-carousel-clinic-2026-08",
+    "version": "1.0.0",
+    "name": "Glyphkiln",
+    "palette": {
+      "primary": "#6C5CE7",
+      "secondary": "#00B894",
+      "accent": "#FDCB6E",
+      "neutrals": ["#0B1020", "#F7F8FC", "#47506A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#F7F8FC",
+        "surface": "#FFFFFF",
+        "text": "#0B1020",
+        "mutedText": "#47506A"
+      },
+      "dark": {
+        "background": "#0B1020",
+        "surface": "#171D32",
+        "text": "#F7F8FC",
+        "mutedText": "#B8C0D9"
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 16, 28],
+    "visualDensity": "balanced",
+    "preferredProceduralStyles": [
+      "recursive-subdivision",
+      "topographic-contours",
+      "layered-waves",
+      "flow-field"
+    ],
+    "safeArea": { "top": 0.07, "right": 0.07, "bottom": 0.07, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai"],
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Inter",
+          "weight": 800,
+          "lineHeight": 0.94,
+          "tracking": -0.035
+        },
+        "body": {
+          "family": "Inter",
+          "weight": 500,
+          "lineHeight": 1.2,
+          "tracking": 0
+        },
+        "label": {
+          "family": "Inter",
+          "weight": 700,
+          "lineHeight": 1,
+          "tracking": 0.075
+        }
+      }
+    }
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "metadata": {
+    "campaignId": "campaign-carousel-clinic-sample",
+    "campaignCanvasKey": "slide-06",
+    "slideIndex": 6,
+    "slideCount": 6,
+    "sample": "carousel-design-review-2026-08-18",
+    "reviewState": "in-review"
+  },
+  "layers": [
+    { "id": "background", "visible": true, "type": "background" },
+    {
+      "id": "slide-number",
+      "visible": true,
+      "type": "badge",
+      "text": "06 / 06"
+    },
+    {
+      "id": "headline",
+      "visible": true,
+      "type": "headline",
+      "text": "Shrink it. Swipe it. Source it."
+    },
+    {
+      "id": "cta",
+      "visible": true,
+      "type": "cta",
+      "text": "OPEN THE REVIEW RECORD →"
+    },
+    {
+      "id": "footer",
+      "visible": true,
+      "type": "footer",
+      "text": "GLYPHKILN · REVIEW BEFORE PUBLISHING"
+    }
+  ]
+}

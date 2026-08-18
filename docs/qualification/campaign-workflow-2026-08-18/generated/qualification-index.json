@@ -1,0 +1,392 @@
+{
+  "version": "1.0.0",
+  "status": "awaiting-human-visual-approval",
+  "creationTimestamp": "2026-08-18T14:00:00.000Z",
+  "generator": "scripts/generate-campaign-workflow-qualification.mjs",
+  "brief": {
+    "product": "@glyphkiln/core@0.6.0",
+    "campaign": "Glyphkiln Core 0.6 launch",
+    "selectedDirection": "Proof, not promises",
+    "claim": "Same brief. Same pixels.",
+    "requiredFormats": [
+      "linkedin-landscape",
+      "instagram-square",
+      "instagram-portrait",
+      "tiktok-photo-carousel"
+    ],
+    "carouselSlideCount": 4
+  },
+  "direction": {
+    "id": "direction-proof-not-promises",
+    "key": "proof-not-promises",
+    "seed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+    "locks": ["typography"],
+    "varying": ["copy", "image", "crop", "composition"],
+    "paletteAuthority": "one immutable brand snapshot on every canvas"
+  },
+  "rendererContract": {
+    "designSchema": "1.4.0",
+    "templates": ["image-led-campaign@1.0.1", "tiktok-carousel-slide@1.0.4"],
+    "renderer": "0.4.0",
+    "manifest": "1.2.0",
+    "campaignSeedDerivation": "sha256/canonical-scope-v1"
+  },
+  "resources": {
+    "font": {
+      "path": "packages/glyphkiln-core/assets/fonts/Inter-Variable.ttf",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+      "byteSize": 876576,
+      "weights": [400, 500, 600, 700, 800]
+    },
+    "logo": {
+      "path": "assets/brand/glyphkiln/glyphkiln-mark-on-ivory.svg",
+      "sha256": "c84a68deccb63b4dc034725d378f2752a0e0cf084126629db2ba53db09e78b36",
+      "byteSize": 44152,
+      "width": 1024,
+      "height": 1024,
+      "masters": {
+        "transparent": {
+          "path": "assets/brand/glyphkiln/glyphkiln-mark.svg",
+          "sha256": "31c8729c0ba2512d9ef8697fa8da711ac6337d6f63b80bf7aa92dfc34bc13ba9",
+          "byteSize": 2308
+        },
+        "campaignBackground": {
+          "path": "assets/brand/glyphkiln/glyphkiln-mark-on-ivory.svg",
+          "sha256": "2514f06f1a74f9d8f1ec826602ceb2dd339f498674cd1e7ca14961674e3732a3",
+          "byteSize": 1587
+        }
+      }
+    },
+    "campaignImage": {
+      "path": "docs/qualification/campaign-workflow-2026-08-18/assets/glyphkiln-proof-wall.png",
+      "sha256": "850d208fcbb3e9811f2456bd12143114b2e48f1985fbb8b60fed271dd6028df7",
+      "byteSize": 214954,
+      "width": 1536,
+      "height": 1024
+    }
+  },
+  "automatedChecks": {
+    "canvasCount": 7,
+    "uniqueFormatCount": 4,
+    "carouselSlideCount": 4,
+    "qualityIssueCount": 0,
+    "allTextWithinSafeArea": true,
+    "allContrastChecksPass": true,
+    "stableHandoffOrdering": true,
+    "exactReproduction": true
+  },
+  "cases": [
+    {
+      "ordinal": 0,
+      "canvasKey": "linkedin-hero",
+      "label": "LinkedIn landscape launch hero",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "format": "linkedin-landscape",
+      "compositionVariantId": "focal-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "00e0f14c00dbc3e135a4c9a9b1260a64be88922e375fe08ee5b95e6c3492a9fb",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/linkedin-hero.json",
+      "documentHash": "982759f1c906607beb5780c7a1fd537cfea1944b6e99a52efdbb04d65b7e47e0",
+      "revisionId": "revision-linkedin-hero-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-proof-wall",
+          "resourceKind": "raster-asset",
+          "ordinal": 0,
+          "contentHash": "850d208fcbb3e9811f2456bd12143114b2e48f1985fbb8b60fed271dd6028df7"
+        },
+        {
+          "resourceId": "glyphkiln-mark",
+          "resourceKind": "raster-asset",
+          "ordinal": 1,
+          "contentHash": "c84a68deccb63b4dc034725d378f2752a0e0cf084126629db2ba53db09e78b36"
+        },
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 2,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/linkedin-hero.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/linkedin-hero.svg.manifest.json",
+          "sha256": "9d7120f409b9a65477a7ee154c1f74c863a96d63d8682c5652187e04dd4db73c",
+          "byteSize": 416404,
+          "fingerprint": "f1950265f3d4d4e3fa1548119b59688e6cd257f399b5584bd11c49f5009845cc"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/linkedin-hero.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/linkedin-hero.png.manifest.json",
+          "sha256": "5f6ac1d0a8852d38e19127d2ae303e356e37d0c70c2f3bb50062bee783d53d39",
+          "byteSize": 112991,
+          "fingerprint": "57fce2c0722f351f3cc54dec0423ef6125d1abbdb9207f93b0182c2c92892345"
+        }
+      }
+    },
+    {
+      "ordinal": 1,
+      "canvasKey": "instagram-square-hero",
+      "label": "Instagram square launch hero",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "format": "instagram-square",
+      "compositionVariantId": "focal-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "8ea8c71298e6d75708f0614b0ec4ab43d88253267a545cbc01ce84bf6bd33868",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/instagram-square-hero.json",
+      "documentHash": "b731a688c159dd23092d21e0f600026c6680a021b1314a4fc681573659c6718d",
+      "revisionId": "revision-instagram-square-hero-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-proof-wall",
+          "resourceKind": "raster-asset",
+          "ordinal": 0,
+          "contentHash": "850d208fcbb3e9811f2456bd12143114b2e48f1985fbb8b60fed271dd6028df7"
+        },
+        {
+          "resourceId": "glyphkiln-mark",
+          "resourceKind": "raster-asset",
+          "ordinal": 1,
+          "contentHash": "c84a68deccb63b4dc034725d378f2752a0e0cf084126629db2ba53db09e78b36"
+        },
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 2,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-square-hero.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-square-hero.svg.manifest.json",
+          "sha256": "5519fee36ee2366c2d0de3347cf140b2711e37fd8dd8c4ce26e202b7a831e3c6",
+          "byteSize": 416485,
+          "fingerprint": "460af03a76b184f33de2dd19450c1413f58b0cf61bb4af2a278bb2a39be20e7c"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-square-hero.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-square-hero.png.manifest.json",
+          "sha256": "ab7f4337c997cc80a2b8a501dd2595686c4ebfdb7b1717e7566bdc9eeb6f02d5",
+          "byteSize": 173188,
+          "fingerprint": "6372f87a4aea6d7954dea1afb11fa6b5b8dce4c5a3875ba74bf9f2c27af84543"
+        }
+      }
+    },
+    {
+      "ordinal": 2,
+      "canvasKey": "instagram-portrait-hero",
+      "label": "Instagram portrait launch hero",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "format": "instagram-portrait",
+      "compositionVariantId": "focal-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "09363146c951ef804748b0e0b27bdbe90b6a67ed7048f554fd84ff4ed69e2bca",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/instagram-portrait-hero.json",
+      "documentHash": "4af2d51931b0fd30166596e3212805a3c5c9291a2c7d78a0d1294835c42815b0",
+      "revisionId": "revision-instagram-portrait-hero-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-proof-wall",
+          "resourceKind": "raster-asset",
+          "ordinal": 0,
+          "contentHash": "850d208fcbb3e9811f2456bd12143114b2e48f1985fbb8b60fed271dd6028df7"
+        },
+        {
+          "resourceId": "glyphkiln-mark",
+          "resourceKind": "raster-asset",
+          "ordinal": 1,
+          "contentHash": "c84a68deccb63b4dc034725d378f2752a0e0cf084126629db2ba53db09e78b36"
+        },
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 2,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-portrait-hero.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-portrait-hero.svg.manifest.json",
+          "sha256": "67735ea758cc72062f03ad500cb66946a1452ab1caab4b10509b9c6a22d45338",
+          "byteSize": 417168,
+          "fingerprint": "c7a872d0e95c6232ac7f850d248b70eb5fa9b919fc4572b43ee221fc64d2d679"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-portrait-hero.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/instagram-portrait-hero.png.manifest.json",
+          "sha256": "b62c3629e8728e0154615e07176b933deeca4d9d6f427e311bd08bc49a95fbc9",
+          "byteSize": 180083,
+          "fingerprint": "da2dd9af97cced400f0ef45edbc2ea38e24cc241e760a1b81b3a55c84318eb73"
+        }
+      }
+    },
+    {
+      "ordinal": 3,
+      "canvasKey": "carousel-01",
+      "label": "TikTok proof slide 1 of 4",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "format": "tiktok-photo-carousel",
+      "compositionVariantId": "organic-photo-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "c912e57bee35e16d7a3a4c362bb7db2b4526aa0600503d9d7168fb80b154af9f",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/carousel-01.json",
+      "documentHash": "4d819c207bb795696d70fe70185259ecab6da3f7dbba5a6bd812ac19b461d4ec",
+      "revisionId": "revision-carousel-01-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 0,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-01.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-01.svg.manifest.json",
+          "sha256": "430f261d1e37f463302dab300c1783465076baaad74f2d3e0f3ff1646ef80ab3",
+          "byteSize": 80151,
+          "fingerprint": "15d85c0070e8c47aa4581162ab82acf2cef847b07d4e865aefcceb4b470ff456"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-01.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-01.png.manifest.json",
+          "sha256": "522c77cc7851183d3c41b5fff19b0416db06a6c0bb51f01ecb263a38ebdaa4fe",
+          "byteSize": 60012,
+          "fingerprint": "74a45cdab06a398ce46ed5176e1130c532d615d151e57f0f0579d158ddb2a34d"
+        }
+      }
+    },
+    {
+      "ordinal": 4,
+      "canvasKey": "carousel-02",
+      "label": "TikTok proof slide 2 of 4",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "format": "tiktok-photo-carousel",
+      "compositionVariantId": "organic-photo-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "ed103c1671f09708d89f169cf180e9a80ea49b7d9f2dd81af6e4b258f65b7818",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/carousel-02.json",
+      "documentHash": "f7938353d285e825d58392734757b9127c04ce9f3db8f2ac0d3faaa9a214168a",
+      "revisionId": "revision-carousel-02-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 0,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-02.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-02.svg.manifest.json",
+          "sha256": "a2bec4153ba9776d1bcfba40d7f90e27a40c953ca7431d969d1ef924453a83ba",
+          "byteSize": 83654,
+          "fingerprint": "a351d3b1fe6170da95bce6927aaa03d46ee55dc43c07af30c3d4c4a6e303444e"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-02.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-02.png.manifest.json",
+          "sha256": "d95977dbf8c16e0f0decfe38dfc6d58b4790e22a05b060fecfdcfdcbf6b3fefd",
+          "byteSize": 58380,
+          "fingerprint": "a93b0c2671e65b8b4e072d1413f775ccf4efac589b4325963edffeaf18ddc980"
+        }
+      }
+    },
+    {
+      "ordinal": 5,
+      "canvasKey": "carousel-03",
+      "label": "TikTok proof slide 3 of 4",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "format": "tiktok-photo-carousel",
+      "compositionVariantId": "organic-photo-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "2a4c9278a2700dd84bfe2b706848b7cf3f6d8efe9f06bfd6dca95df5d99ee781",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/carousel-03.json",
+      "documentHash": "1ecc149df2383711f6da426a0817606d83a4831bdf2c3bf8eb014a3091eac9a2",
+      "revisionId": "revision-carousel-03-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 0,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-03.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-03.svg.manifest.json",
+          "sha256": "7f122ac3cd54a626be3cb553cdac37768cbcdd8ccab884f4830adda68d44607c",
+          "byteSize": 86000,
+          "fingerprint": "1fae562303467dab0141880e541d4fc5f7356bfb2db83699c05eb3ca7e17251a"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-03.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-03.png.manifest.json",
+          "sha256": "e94a75b2eba170920c3dbf0fef75065aeaec0fefc497a44b3d6f8c343742b1f9",
+          "byteSize": 57938,
+          "fingerprint": "c0049c5109b2e7f9c78b7b995e460d37777bb3aefde6580c3c430e46d6ecee81"
+        }
+      }
+    },
+    {
+      "ordinal": 6,
+      "canvasKey": "carousel-04",
+      "label": "TikTok proof slide 4 of 4",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "format": "tiktok-photo-carousel",
+      "compositionVariantId": "organic-photo-editorial",
+      "directionSeed": "4b42549d43e99dcf3d9f78f819361688cc9b000039b37bd4c88c6a6757325ff7",
+      "canvasSeed": "d277c27d91128a82d9325ca54a2cf1d685157066fec924ab183b7a031984645c",
+      "documentPath": "docs/qualification/campaign-workflow-2026-08-18/generated/designs/carousel-04.json",
+      "documentHash": "86f74802d23fb805eeed9c1d813a553992e6bb43623ba8fc048918ef127efbd1",
+      "revisionId": "revision-carousel-04-r1",
+      "resourcePins": [
+        {
+          "resourceId": "glyphkiln-inter-variable",
+          "resourceKind": "font",
+          "ordinal": 0,
+          "contentHash": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+        }
+      ],
+      "outputs": {
+        "svg": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-04.svg",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-04.svg.manifest.json",
+          "sha256": "9a12a20b28b9bc393ee4aaa43ca7670827040e3baa9aa7cdbdc1a838270b2fa4",
+          "byteSize": 84465,
+          "fingerprint": "d74a76e7825494b4c2cfac430a612906f387c323aa65e0930a16198d453169f6"
+        },
+        "png": {
+          "path": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-04.png",
+          "manifestPath": "docs/qualification/campaign-workflow-2026-08-18/generated/outputs/carousel-04.png.manifest.json",
+          "sha256": "28d73c79a6fb59004f280e36b01fbc6c1fb8d92ee6474b4323ed8f2f1e196584",
+          "byteSize": 57246,
+          "fingerprint": "862f61cef55b937703baf7d9944ee8002fb0b2e7cf8e4992146a743435b9e3ab"
+        }
+      }
+    }
+  ],
+  "reviewBoard": {
+    "svg": "docs/qualification/campaign-workflow-2026-08-18/generated/campaign-review-board.svg",
+    "png": "docs/qualification/campaign-workflow-2026-08-18/generated/campaign-review-board.png",
+    "sha256": "290c7bcd7474f07213dc6ce00be424c338804a9af43a954021712cd55d6e0052",
+    "byteSize": 470399
+  },
+  "handoff": {
+    "status": "unapproved",
+    "path": "docs/qualification/campaign-workflow-2026-08-18/generated/glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
+    "filename": "glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
+    "mediaType": "application/vnd.glyphkiln.campaign-handoff+json",
+    "sha256": "f61b5e53ca970b3f7d929bc8a264cf3ae08ebeb5a4e21e8f89919dec9ce457e7",
+    "byteSize": 3131340,
+    "fileCount": 49,
+    "approvedCanvasCount": 0,
+    "unapprovedCanvasCount": 7
+  }
+}

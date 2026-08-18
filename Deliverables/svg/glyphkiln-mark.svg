@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="552" viewBox="0 0 720 552" role="img" aria-labelledby="title desc">
+  <title id="title">Interlocking GK monogram logo</title>
+  <desc id="desc">A geometric charcoal monogram composed of four interlocking vector shapes.</desc>
+  <defs>
+    <linearGradient id="charcoal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0" stop-color="#3b3e41"/>
+      <stop offset="1" stop-color="#34373a"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(-273 -325)" fill="url(#charcoal)">
+    <!-- Outer C / frame -->
+    <path d="M289 335
+             H715
+             Q721 335 721 341
+             V462
+             Q721 468 715 468
+             H640
+             Q633 468 633 461
+             V432
+             Q633 426 627 426
+             H378
+             Q372 426 372 432
+             V647
+             Q372 653 378 653
+             H501
+             Q507 653 507 659
+             V744
+             Q507 750 501 750
+             H289
+             Q283 750 283 744
+             V341
+             Q283 335 289 335 Z"/>
+
+    <!-- Upper inner bar / angled connector -->
+    <path d="M443 486
+             H715
+             Q721 486 721 492
+             V567
+             Q721 572 717 576
+             L643 651
+             Q636 658 635 648
+             L632 587
+             Q632 581 626 581
+             H443
+             Q436 581 436 574
+             V493
+             Q436 486 443 486 Z"/>
+
+    <!-- K -->
+    <path d="M823 486
+             H942
+             Q951 486 945 493
+             L786 653
+             Q782 657 786 661
+             L981 856
+             Q989 865 977 867
+             H855
+             Q851 867 848 864
+             L716 728
+             L680 763
+             Q678 765 674 765
+             H642
+             Q635 765 635 758
+             V681
+             Q635 677 638 674
+             L819 489
+             Q821 486 823 486 Z"/>
+
+    <!-- L -->
+    <path d="M530 597
+             H611
+             Q617 597 617 603
+             V773
+             Q617 780 624 780
+             H715
+             Q721 780 721 786
+             V861
+             Q721 867 715 867
+             H530
+             Q524 867 524 861
+             V603
+             Q524 597 530 597 Z"/>
+  </g>
+</svg>

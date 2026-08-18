@@ -1,0 +1,775 @@
+{
+  "version": "1.0.0",
+  "status": "awaiting-human-visual-approval",
+  "creationTimestamp": "2026-08-18T15:30:00.000Z",
+  "generator": "scripts/generate-carousel-review-sample.mjs",
+  "campaign": {
+    "id": "campaign-carousel-clinic-sample",
+    "title": "Carousel clinic: build a reading path",
+    "brief": "Demonstrate an attractive, legible carousel sequence without engagement promises or unsupported platform rules.",
+    "campaignSeed": "carousel-clinic-tiktok-organic-2026-08",
+    "directionKey": "editorial-reading-path"
+  },
+  "deliveryProfile": {
+    "id": "tiktok-organic-photo",
+    "label": "TikTok Photo Mode · organic",
+    "platform": "tiktok",
+    "publishingPath": "organic",
+    "compatibleFormats": ["tiktok-photo-carousel"],
+    "slideCount": {
+      "value": { "minimum": 1, "maximum": 35 },
+      "evidence": "platform-requirement",
+      "sourceIds": ["tiktok-making-a-post"],
+      "note": "Glyphkiln still treats two or more slides as a carousel sequence; there is no universal optimal count."
+    },
+    "acceptedImageMediaTypes": {
+      "value": ["image/jpeg", "image/png"],
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "TikTok's native help does not publish an exact file-type contract; verify the target device picker."
+    },
+    "aspectRatio": {
+      "value": { "sameAcrossSequence": false },
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "3:4 is a Glyphkiln working canvas, not an official organic Photo Mode requirement."
+    },
+    "raster": {
+      "value": { "targetWidth": 1080 },
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "1080 px is a Glyphkiln working target, not a universal native Photo Mode requirement."
+    },
+    "accessibility": {
+      "value": { "creatorAltText": true, "maximumAltTextCharacters": 300 },
+      "evidence": "platform-capability",
+      "sourceIds": ["tiktok-accessibility"],
+      "note": "Supply alt text for every meaningful image in the sequence."
+    },
+    "surfaceOverlay": {
+      "version": "2026-08-18",
+      "evidence": "glyphkiln-advisory",
+      "insets": { "top": 0.08, "right": 0.18, "bottom": 0.2, "left": 0.06 },
+      "note": "No stable first-party organic Photo Mode safe zone is published; verify against captured live UI."
+    },
+    "authoringNotes": [
+      "Do not import Smart Order, 9:16, or 3/7–9 slide advice from the paid-ad path.",
+      "Proof the advisory overlay against current device captures before publishing."
+    ]
+  },
+  "deliverySources": [
+    {
+      "id": "tiktok-making-a-post",
+      "publisher": "TikTok",
+      "title": "Making a post",
+      "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/making-a-post",
+      "retrievedAt": "2026-08-18"
+    },
+    {
+      "id": "glyphkiln-carousel-validation",
+      "publisher": "Glyphkiln",
+      "title": "Carousel design research validation",
+      "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md",
+      "retrievedAt": "2026-08-18"
+    },
+    {
+      "id": "tiktok-accessibility",
+      "publisher": "TikTok",
+      "title": "Accessibility for your videos",
+      "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/accessibility",
+      "retrievedAt": "2026-08-18"
+    }
+  ],
+  "contractNotes": {
+    "platformCapability": "TikTok's current organic Photo Mode documentation supports up to 35 photos.",
+    "glyphkilnAdvisories": [
+      "The 1080 × 1440 canvas is a Glyphkiln working format, not an official universal TikTok requirement.",
+      "The dashed surface overlay is dated advisory guidance and needs live-device verification before publishing."
+    ]
+  },
+  "sequenceReview": {
+    "version": "1.0.0",
+    "deliveryProfileId": "tiktok-organic-photo",
+    "success": true,
+    "issues": [
+      {
+        "code": "COMPOSITION_RHYTHM_REVIEW",
+        "severity": "warning",
+        "message": "Every slide uses the same composition variant; review visual rhythm without weakening brand continuity."
+      }
+    ]
+  },
+  "warningDispositions": [
+    {
+      "code": "COMPOSITION_RHYTHM_REVIEW",
+      "disposition": "Accepted for this sample: the registered template exposes one composition contract, while content-responsive field alignment, color mode, evidence treatment, and deterministic pattern rails deliberately vary the visual rhythm. The warning remains conservative because the composition metadata identifier is shared."
+    }
+  ],
+  "rendererContract": {
+    "designSchema": "1.4.0",
+    "template": "tiktok-carousel-slide@1.0.4",
+    "format": "tiktok-photo-carousel",
+    "compositionVariantId": "organic-photo-editorial"
+  },
+  "deviceProofWidths": [360, 390, 430],
+  "slides": [
+    {
+      "ordinal": 0,
+      "canvasKey": "slide-01",
+      "narrativeRole": "hook",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-01.json",
+      "documentHash": "eacd144acd4a69d480e86790021b7474a06dca1ff8a7405548ccdbe87c95ed85",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "3ebe6b518fe62f2b7099cd91b1055d77b587de8d40681f23fdd94142bb3e9acd",
+      "sourceNotes": [
+        {
+          "label": "Carousel design research validation",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md"
+        }
+      ],
+      "altText": "Slide 1 of 6, hook. Dark navy editorial card reading: Your carousel isn't boring. It lacks hierarchy. Purple frame and mint accents establish the sequence.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "eyebrow",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 114.80000000000001,
+              "width": 417.70450484317945,
+              "height": 26
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 26,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.667, "390": 9.389, "430": 10.352 }
+          },
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 810.6585114735753,
+              "y": 113.80000000000001,
+              "width": 82.28297705284918,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 236.8,
+              "width": 726.6756882724292,
+              "height": 298.08000000000004
+            },
+            "lineCount": 3,
+            "maximumLines": 4,
+            "fontSize": 92,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 30.667,
+              "390": 33.222,
+              "430": 36.63
+            }
+          },
+          {
+            "layerId": "cta",
+            "bounds": {
+              "x": 165.60000000000002,
+              "y": 751.8,
+              "width": 391.16691449601956,
+              "height": 30
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 30,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 10, "390": 10.833, "430": 11.944 }
+          },
+          {
+            "layerId": "footer",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 1270.8,
+              "width": 486.71627432317104,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-01.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-01.svg.manifest.json",
+          "sha256": "88fde38521c4aa809bf45bf0b5ced11322b24b8df4c1dd83dc7ba32ea370cfd9",
+          "byteSize": 65220,
+          "fingerprint": "a803de77d510d6839a5611f2ecbae488c5495ec528f65a81a826855e0bce06a6"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-01.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-01.png.manifest.json",
+          "sha256": "cb65c713371ed354131ad082b9d9ec6a6b9c49839a8a2f3f81c5679790221801",
+          "byteSize": 60273,
+          "fingerprint": "4936886e357eb7fc8291493438a54c86a2f1d78cf52438d6371eb9f620b92fb5"
+        }
+      }
+    },
+    {
+      "ordinal": 1,
+      "canvasKey": "slide-02",
+      "narrativeRole": "context",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-02.json",
+      "documentHash": "88c6e6b343ae2702067bff7def9e1166ad1b80ecbbfbbc91869288a0957f22d2",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "2e0d8b925731cd1994356f6559b412801adbf49c3c2977d81bb6e2dc7da129d5",
+      "sourceNotes": [
+        {
+          "label": "Carousel design research validation",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md"
+        }
+      ],
+      "altText": "Slide 2 of 6, context. Light editorial card reading: Four focal points erase the focus. It explains that a headline, image, badge, and call to action should not compete at the same visual scale.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 808.1787756821377,
+              "y": 113.80000000000001,
+              "width": 87.24244863572446,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 222.8,
+              "width": 579.8661063377327,
+              "height": 151.20000000000002
+            },
+            "lineCount": 2,
+            "maximumLines": 4,
+            "fontSize": 70,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 23.333,
+              "390": 25.278,
+              "430": 27.87
+            }
+          },
+          {
+            "layerId": "subtitle",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 402,
+              "width": 540.4747227957164,
+              "height": 122.39999999999999
+            },
+            "lineCount": 3,
+            "maximumLines": 5,
+            "fontSize": 34,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 11.333,
+              "390": 12.278,
+              "430": 13.537
+            }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-02.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-02.svg.manifest.json",
+          "sha256": "8f1de6042b8877ad3a109eb90704255f4332100edf248b43a600f84fd5596b5f",
+          "byteSize": 81003,
+          "fingerprint": "748b3a943bc897f2e8d0c6f1120f58f9d358e838abf81496fdddffc9cf687c92"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-02.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-02.png.manifest.json",
+          "sha256": "15378c4e9e209c277c3476a3954c154ee7a70b37632699c98b2ad694781c4b93",
+          "byteSize": 51449,
+          "fingerprint": "84d52addce8d676d7ce19102631ce9684f53427636273ed2f2f59a45c8ab6d52"
+        }
+      }
+    },
+    {
+      "ordinal": 2,
+      "canvasKey": "slide-03",
+      "narrativeRole": "evidence",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-03.json",
+      "documentHash": "df4514c5d46410aaaab2546af768d3ce6a364b24bf0bc2bfc411e1598b5bcc59",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "4e26179b893902771f8a5f24aac4bed4867555ed213c4239282381f7f2ced554",
+      "sourceNotes": [
+        {
+          "label": "Glyphkiln carousel review workflow",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/.agents/skills/create-glyphkiln-carousel/references/carousel-workflow.md"
+        }
+      ],
+      "altText": "Slide 3 of 6, evidence. Dark editorial card stating that proof happens at phone size and naming three review widths: 360, 390, and 430 pixels.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 807.9822415845338,
+              "y": 113.80000000000001,
+              "width": 87.63551683093232,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 222.8,
+              "width": 588.5612436107721,
+              "height": 151.20000000000002
+            },
+            "lineCount": 2,
+            "maximumLines": 4,
+            "fontSize": 70,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 23.333,
+              "390": 25.278,
+              "430": 27.87
+            }
+          },
+          {
+            "layerId": "proof-statistic-value",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 402,
+              "width": 99.80956524641442,
+              "height": 152
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 152,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 50.667,
+              "390": 54.889,
+              "430": 60.519
+            }
+          },
+          {
+            "layerId": "proof-statistic-label",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 572,
+              "width": 500.69490021003384,
+              "height": 37.199999999999996
+            },
+            "lineCount": 1,
+            "maximumLines": 3,
+            "fontSize": 31,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 10.333,
+              "390": 11.194,
+              "430": 12.343
+            }
+          },
+          {
+            "layerId": "proof-statistic-trend",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 832.8,
+              "width": 156.78743329450495,
+              "height": 22
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 22,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 7.333, "390": 7.944, "430": 8.759 }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-03.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-03.svg.manifest.json",
+          "sha256": "614c5bab3e6cfd98c97854ba99739f26618493bc07c73ee0c7eb4a6cb5560c43",
+          "byteSize": 115236,
+          "fingerprint": "14670a051953eb2b356cabdda78dc0e8d6a72020c67c5b14084e6093af253c38"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-03.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-03.png.manifest.json",
+          "sha256": "e8e857cba6e5dc29e52df8df8b7f369a68a0175a11625e7a34eb305d1bb7077f",
+          "byteSize": 182336,
+          "fingerprint": "dcbcd38f8e307e453db9cccc0dd821712723e6d2a30d980e54b0f7b5171599bb"
+        }
+      }
+    },
+    {
+      "ordinal": 3,
+      "canvasKey": "slide-04",
+      "narrativeRole": "explanation",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-04.json",
+      "documentHash": "468e27db0cabf0f526f6dd374f1a6a489090a5591d90df5ea2801c6712420e66",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "41d635107a7abc52c34efb523a336bb6cffdc6f7ca54ac46b69c2f8a75cec8ec",
+      "sourceNotes": [
+        {
+          "label": "Glyphkiln carousel review workflow",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/.agents/skills/create-glyphkiln-carousel/references/carousel-workflow.md"
+        }
+      ],
+      "altText": "Slide 4 of 6, explanation. Light editorial card listing six narrative jobs: hook, frame, prove, explain, recap, and act.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 807.5952783957491,
+              "y": 113.80000000000001,
+              "width": 88.40944320850159,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 274.24,
+              "y": 222.8,
+              "width": 418.75362731728717,
+              "height": 151.20000000000002
+            },
+            "lineCount": 2,
+            "maximumLines": 4,
+            "fontSize": 70,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 23.333,
+              "390": 25.278,
+              "430": 27.87
+            }
+          },
+          {
+            "layerId": "subtitle",
+            "bounds": {
+              "x": 274.24,
+              "y": 402,
+              "width": 308.33600347831486,
+              "height": 122.39999999999999
+            },
+            "lineCount": 3,
+            "maximumLines": 5,
+            "fontSize": 34,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 11.333,
+              "390": 12.278,
+              "430": 13.537
+            }
+          },
+          {
+            "layerId": "cta",
+            "bounds": {
+              "x": 304.24,
+              "y": 827.8,
+              "width": 547.7948659235361,
+              "height": 28
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 28,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 9.333,
+              "390": 10.111,
+              "430": 11.148
+            }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-04.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-04.svg.manifest.json",
+          "sha256": "065aef53e7c567ee94772730b2e7e202c85df34782394c991adf1592b8ebbe76",
+          "byteSize": 58862,
+          "fingerprint": "c82f8f4ffeb9956827bcb3fcd3aa4db99fb1fe780a24e7fab89dba1aa55063d3"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-04.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-04.png.manifest.json",
+          "sha256": "f3df3f9b6c8f7ca5adf485f2a80c912145a5ec3c354bb54f08fd2c03ca3a9851",
+          "byteSize": 78703,
+          "fingerprint": "6cc28dd75d29f650b22affdc01051938956554f18afae0d78b8e80a3c1761bdc"
+        }
+      }
+    },
+    {
+      "ordinal": 4,
+      "canvasKey": "slide-05",
+      "narrativeRole": "recap",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-05.json",
+      "documentHash": "ec87b9d2e8ac33ca1eda114a87131aec02707099793f0000672a79160053bbbc",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "74a966deef3099f041f36a151501e21f36bd818a908e9201eccfb0b321e7bcdd",
+      "sourceNotes": [
+        {
+          "label": "Carousel design research validation",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md"
+        }
+      ],
+      "altText": "Slide 5 of 6, recap. Dark editorial card recommending a stable palette, grid, and type system with varied scale, density, and evidence treatment.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 808.2742336527699,
+              "y": 113.80000000000001,
+              "width": 87.05153269446002,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 274.24,
+              "y": 222.8,
+              "width": 590.849829958327,
+              "height": 136.08
+            },
+            "lineCount": 2,
+            "maximumLines": 4,
+            "fontSize": 63,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 21, "390": 22.75, "430": 25.083 }
+          },
+          {
+            "layerId": "subtitle",
+            "bounds": {
+              "x": 274.24,
+              "y": 386.88,
+              "width": 540.443105355508,
+              "height": 126.48
+            },
+            "lineCount": 3,
+            "maximumLines": 5,
+            "fontSize": 34,
+            "overflow": false,
+            "deliveredFontSizePx": {
+              "360": 11.333,
+              "390": 12.278,
+              "430": 13.537
+            }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-05.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-05.svg.manifest.json",
+          "sha256": "2a1132ecfc168978ee46dba6204b869cb86dcc745a5531e4970508fc08f5ae57",
+          "byteSize": 125221,
+          "fingerprint": "4ec3a34eeb7b3758a337377b6569464f0db6f536ef73dc89cc3866165ae98575"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-05.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-05.png.manifest.json",
+          "sha256": "a1fd67062e2e22c554b1104cbd2417b269a94ce5f8b3cb4504705738e3de8eef",
+          "byteSize": 102027,
+          "fingerprint": "e72898b8949cedf0c72e30de64128841650f19c80f8329665c41b9a390bda73b"
+        }
+      }
+    },
+    {
+      "ordinal": 5,
+      "canvasKey": "slide-06",
+      "narrativeRole": "action",
+      "documentPath": "docs/samples/carousel-design-review-2026-08-18/generated/designs/slide-06.json",
+      "documentHash": "34b6cf6249cd5c7a04fa0c56a46fc1eb3ac3850c1568b817fbc2ea06c704b196",
+      "directionSeed": "63b3a793e93751bb0f573ed0d5f66a86e16fd48069e320dc785bac295e7e7862",
+      "canvasSeed": "ac1b0a41f040d7527bebbcddf7ae9ff438e85dd14b74f6f424f7bf3c283f8576",
+      "sourceNotes": [
+        {
+          "label": "Glyphkiln carousel review workflow",
+          "url": "https://github.com/xxibcill/glyphkiln/blob/main/.agents/skills/create-glyphkiln-carousel/references/carousel-workflow.md"
+        }
+      ],
+      "altText": "Slide 6 of 6, action. Light closing card reading: Shrink it. Swipe it. Source it. It asks the reviewer to inspect the sequence and delivery record.",
+      "qualityIssues": [],
+      "evidence": {
+        "version": "1.1.0",
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 100.80000000000001,
+          "width": 853.1999999999999,
+          "height": 1224
+        },
+        "crops": [],
+        "contrast": [],
+        "text": [
+          {
+            "layerId": "slide-number",
+            "bounds": {
+              "x": 807.9286525086345,
+              "y": 113.80000000000001,
+              "width": 87.7426949827308,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          },
+          {
+            "layerId": "headline",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 222.8,
+              "width": 483.4350125519721,
+              "height": 330.48
+            },
+            "lineCount": 3,
+            "maximumLines": 4,
+            "fontSize": 102,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 34, "390": 36.833, "430": 40.611 }
+          },
+          {
+            "layerId": "cta",
+            "bounds": {
+              "x": 165.60000000000002,
+              "y": 737.8,
+              "width": 444.0483616690356,
+              "height": 30
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 30,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 10, "390": 10.833, "430": 11.944 }
+          },
+          {
+            "layerId": "footer",
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 1270.8,
+              "width": 520.2316028081609,
+              "height": 25
+            },
+            "lineCount": 1,
+            "maximumLines": 1,
+            "fontSize": 25,
+            "overflow": false,
+            "deliveredFontSizePx": { "360": 8.333, "390": 9.028, "430": 9.954 }
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-06.svg",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-06.svg.manifest.json",
+          "sha256": "2e8c5ce5483507665f641b9d91aa8a93cb38b4cfd406335c79c930c7ed2785ee",
+          "byteSize": 46588,
+          "fingerprint": "0507c028b91f9bd6190f1610cee7cf4e90a7535e8b286e73a95bb6181cb3efdd"
+        },
+        "png": {
+          "path": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-06.png",
+          "manifestPath": "docs/samples/carousel-design-review-2026-08-18/generated/outputs/slide-06.png.manifest.json",
+          "sha256": "5897acdfbbaabfe5d9ffc22975b4310c0a0f853680088d77903c4cca31dfc796",
+          "byteSize": 48614,
+          "fingerprint": "ac039c2b62fe8810cde78ba8e449de3e564fb5990f305d150901a47f8e481690"
+        }
+      }
+    }
+  ],
+  "reviewBoard": {
+    "svg": "docs/samples/carousel-design-review-2026-08-18/generated/carousel-review-board.svg",
+    "png": "docs/samples/carousel-design-review-2026-08-18/generated/carousel-review-board.png",
+    "sha256": "c3bce47424203f5f43ad6cb72790123419e6db65ca1c3f1dcd98818243a18c5f",
+    "byteSize": 574066
+  }
+}

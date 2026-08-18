@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "deliveryProfileId": "tiktok-organic-photo",
+  "caption": "A carousel is a reading path before it is a collection of graphics. This six-slide review sample shows how Glyphkiln plans, proofs, and hands off that path.",
+  "slides": [
+    {
+      "documentId": "sample-carousel-clinic-slide-01",
+      "ordinal": 0,
+      "narrativeRole": "hook",
+      "altText": "Slide 1 of 6, hook. Dark navy editorial card reading: Your carousel isn't boring. It lacks hierarchy. Purple frame and mint accents establish the sequence."
+    },
+    {
+      "documentId": "sample-carousel-clinic-slide-02",
+      "ordinal": 1,
+      "narrativeRole": "context",
+      "altText": "Slide 2 of 6, context. Light editorial card reading: Four focal points erase the focus. It explains that a headline, image, badge, and call to action should not compete at the same visual scale."
+    },
+    {
+      "documentId": "sample-carousel-clinic-slide-03",
+      "ordinal": 2,
+      "narrativeRole": "evidence",
+      "altText": "Slide 3 of 6, evidence. Dark editorial card stating that proof happens at phone size and naming three review widths: 360, 390, and 430 pixels."
+    },
+    {
+      "documentId": "sample-carousel-clinic-slide-04",
+      "ordinal": 3,
+      "narrativeRole": "explanation",
+      "altText": "Slide 4 of 6, explanation. Light editorial card listing six narrative jobs: hook, frame, prove, explain, recap, and act."
+    },
+    {
+      "documentId": "sample-carousel-clinic-slide-05",
+      "ordinal": 4,
+      "narrativeRole": "recap",
+      "altText": "Slide 5 of 6, recap. Dark editorial card recommending a stable palette, grid, and type system with varied scale, density, and evidence treatment."
+    },
+    {
+      "documentId": "sample-carousel-clinic-slide-06",
+      "ordinal": 5,
+      "narrativeRole": "action",
+      "altText": "Slide 6 of 6, action. Light closing card reading: Shrink it. Swipe it. Source it. It asks the reviewer to inspect the sequence and delivery record."
+    }
+  ]
+}

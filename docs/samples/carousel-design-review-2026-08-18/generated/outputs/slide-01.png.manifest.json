@@ -1,0 +1,51 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_4936886e357eb7fc82914934",
+  "renderFingerprint": "4936886e357eb7fc8291493438a54c86a2f1d78cf52438d6371eb9f620b92fb5",
+  "designDocumentId": "sample-carousel-clinic-slide-01",
+  "designDocumentHash": "eacd144acd4a69d480e86790021b7474a06dca1ff8a7405548ccdbe87c95ed85",
+  "seed": "3ebe6b518fe62f2b7099cd91b1055d77b587de8d40681f23fdd94142bb3e9acd",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1440 },
+  "output": {
+    "format": "png",
+    "sha256": "cb65c713371ed354131ad082b9d9ec6a6b9c49839a8a2f3f81c5679790221801",
+    "byteSize": 60273
+  },
+  "creationTimestamp": "2026-08-18T15:30:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}
