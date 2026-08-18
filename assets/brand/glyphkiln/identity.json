@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "brand": "Glyphkiln",
+  "status": "current",
+  "approvedAt": "2026-08-18",
+  "provenance": "Project-owner-provided SVGs explicitly approved as the current official logo.",
+  "primary": {
+    "path": "glyphkiln-mark.svg",
+    "mediaType": "image/svg+xml",
+    "background": "transparent",
+    "byteSize": 2308,
+    "sha256": "31c8729c0ba2512d9ef8697fa8da711ac6337d6f63b80bf7aa92dfc34bc13ba9"
+  },
+  "variants": [
+    {
+      "id": "on-ivory",
+      "path": "glyphkiln-mark-on-ivory.svg",
+      "mediaType": "image/svg+xml",
+      "background": "warm-ivory",
+      "byteSize": 1587,
+      "sha256": "2514f06f1a74f9d8f1ec826602ceb2dd339f498674cd1e7ca14961674e3732a3"
+    }
+  ]
+}

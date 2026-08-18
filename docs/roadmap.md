@@ -7,9 +7,9 @@ are available and the supported App Alpha topology is qualified. Core `0.6.0`
 contains the non-pixel-affecting campaign coordination, explicit color
 normalization, and AI-ready authoring contracts. Dual-runtime qualification,
 source signing, signature verification, and the GitHub source release are
-complete; owner-approved npm publication remains optional and runs only through
-the local signed-tag release script. GitHub Actions is disabled for this
-repository.
+complete. The owner published and verified `@glyphkiln/core@0.6.0` from signed
+tag `v0.6.0` through the local release script. GitHub Actions is disabled for
+this repository.
 
 On `main`, the App implements immutable resource selectors, image-led
 focal/treatment controls, admitted font-family and typography-role binding,
@@ -17,16 +17,22 @@ Core-owned proof overlays, workspace-qualified campaigns/directions/canvases/
 locks, option boards, branching and comparison, deterministic campaign bundles,
 a disabled-by-default provider-neutral AI proposal adapter with stored human
 decisions, cross-boundary lock enforcement, and exact-revision review/comments/
-approval receipts. Product acceptance still requires the reviewed multi-brand
-image-led gate, an approved real four-format and multi-slide campaign brief, and
-the real-brief AI interaction/threat-model gate.
+approval receipts. A controlled two-brief, three-brand image-led board now
+identified a shared fixed-slot logo alignment defect. The versioned
+`image-led-campaign@1.0.1` correction and regenerated board pass automated proof
+and reproduction checks, and the project owner approved the board on 2026-08-18.
+The real Glyphkiln Core 0.6 brief now has a generated four-format, four-slide,
+seven-canvas exact revision with zero Core quality issues and a deterministic
+unapproved handoff. Product acceptance still requires project-owner visual
+approval of that exact board and the separate real-brief AI
+interaction/threat-model gate.
 
 The Core `0.6.0` release passed clean Node `24.16.0` and minimum Node `22.22.2`
 qualification with npm `10.9.8`, including build, typecheck, lint/security,
 tests, standalone packaging, coverage, generated-artifact verification, packed
 consumption, license inventory, and a zero-vulnerability npm audit. The signed
-tag and source release are complete. Owner-approved npm publication remains the
-only optional release action and does not use GitHub Actions; exact evidence is recorded in the
+tag, source release, and owner-approved local npm publication are complete; no
+GitHub Actions workflow was used. Exact release evidence is recorded in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
 
 The active product sequence is tracked in the
@@ -115,7 +121,7 @@ limitations remain tracked in [the App Alpha plan](plans/app-alpha.md).
    typography roles, template variants, and proof overlays practical in the
    manual workflow. Resource selectors, focal/treatment controls, immutable
    typography-role binding, and evidence overlays are implemented; multi-brand
-   acceptance remains.
+   qualification and human visual acceptance are complete.
 2. Campaign systems: option boards, duplicate/branch, side-by-side comparison,
    lock/vary controls, coordinated format/carousel packs, and batch proof/export
    bundles while retaining one immutable design revision per canvas. The

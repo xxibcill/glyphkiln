@@ -1,0 +1,5 @@
+interface:
+  display_name: "Create Glyphkiln Carousel"
+  short_description: "Author and ship verified social carousels"
+  brand_color: "#A4462A"
+  default_prompt: "Use $create-glyphkiln-carousel to author, proof, and package a platform-specific carousel campaign."

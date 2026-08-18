@@ -8,7 +8,7 @@ export bundles.
 ## Family metadata
 
 `CAMPAIGN_FAMILY_REGISTRY` is an immutable, browser-safe catalog with metadata
-version `1.1.0`. Its first family, `image-led-campaign`, records:
+version `1.2.0`. Its first family, `image-led-campaign`, records:
 
 - exact member template IDs and versions;
 - compatible output formats;
@@ -17,21 +17,44 @@ version `1.1.0`. Its first family, `image-led-campaign`, records:
 - named composition variants; and
 - safe-area and render-evidence behavior.
 
-The family coordinates `image-led-campaign@1.0.0` across landscape, square, and
-portrait plus `tiktok-carousel-slide@1.0.3` for exact 3:4 carousel slides. Each
+The family coordinates `image-led-campaign@1.0.1` across landscape, square, and
+portrait plus `tiktok-carousel-slide@1.0.4` for exact 3:4 carousel slides. Each
 member carries its own roles, composition variant, and safe-area policy.
-`image-led-campaign@1.0.0` uses `focal-editorial` with required image and logo
-assets; `tiktok-carousel-slide@1.0.3` uses its authoritative
-`organic-photo-editorial` typography-first contract with no asset roles. Neither
-coordination value adds a document field or changes template pixels. Distinct
-carousel canvas keys produce distinct slide seeds while retaining the direction
-seed. Metadata drift is tested against the authoritative authoring, template,
-and treatment registries.
+`image-led-campaign@1.0.1` uses `focal-editorial` with required image and logo
+assets; `tiktok-carousel-slide@1.0.4` uses its authoritative
+`organic-photo-editorial` typography-first contract with no asset roles. It adds
+content-responsive fields, optional sequence chrome, and deterministic pattern
+rails without changing the composition identifier. Neither coordination value
+adds a document field. Distinct carousel canvas keys produce distinct slide
+seeds while retaining the direction seed. Metadata drift is tested against the
+authoritative authoring, template, and treatment registries.
 
 The registry is exported from both `@glyphkiln/core` and
 `@glyphkiln/core/browser`. The browser export contains static data only and
 does not import the Node renderer, hashing, raster decoding, or filesystem
 adapters.
+
+## Carousel sequence and delivery contracts
+
+`DELIVERY_PROFILE_REGISTRY` keeps five publishing paths separate:
+`instagram-native-carousel`, `instagram-api-carousel`,
+`tiktok-organic-photo`, `tiktok-content-posting-photo`, and
+`tiktok-carousel-ad`. Each profile carries exact
+compatible formats, item and raster constraints, a dated advisory surface
+overlay, portable sources, and an evidence label for every value. Native and API
+limits are never merged.
+
+`reviewCarouselSequence()` accepts one selected delivery profile and ordered
+slides with explicit `hook`, `context`, `evidence`, `explanation`, `recap`, or
+`action` roles. Incompatible formats, actual profile limits, mixed required
+aspect ratios, and invalid ordinals are errors. Copy length, hook/close shape,
+composition rhythm, generic alt text, and missing statistic sources are warnings
+for review—not engagement promises or renderer failures.
+
+`createCarouselDeliverySidecar()` deterministically records each slide's reading
+order, meaningful asset descriptions, source notes, narrative role, and exact
+delivery-profile metadata version. Neither sequence metadata nor a delivery
+sidecar enters the document fingerprint or changes pixels.
 
 ## Seed derivation
 
@@ -57,7 +80,7 @@ const seeds = deriveCampaignSeeds({
   familyId: "image-led-campaign",
   directionKey: createCampaignDirectionKey("direction-a"),
   canvasKey: createCampaignCanvasKey("hero-square"),
-  template: { id: "image-led-campaign", version: "1.0.0" },
+  template: { id: "image-led-campaign", version: "1.0.1" },
   format: "instagram-square",
   compositionVariantId: "focal-editorial",
 });
@@ -71,19 +94,24 @@ manifest unless the caller places the returned `canvasSeed` in a document.
 ## Version and pixel impact
 
 Campaign-family metadata and seed derivation have independent version labels.
-This contract slice does not change the design schema, templates, renderer,
-procedural algorithms, manifest, fingerprints, SVG, or PNG output.
+Metadata `1.2.0` selects the aspect-ratio-aligned image-led template `1.0.1` and
+the collision-safe organic carousel template `1.0.4`; saved
+`image-led-campaign@1.0.0` and `tiktok-carousel-slide@1.0.3` documents remain
+exactly renderable outside the current family members. The renderer, design
+schema, procedural algorithms, and manifest versions do not change.
 
-Further content-length profiles and composition variants remain gated on a
-reviewed brief requiring at least four formats and a multi-slide series. Locks,
-grouping, ordering, review state, and revision identity remain App metadata and
-must not enter Core pixel fingerprints.
+Role-specific content recommendations and carousel delivery profiles are
+separately versioned metadata and do not affect saved-document rendering. Locks,
+grouping, ordering, narrative role, review state, and revision identity remain
+App metadata and must not enter Core pixel fingerprints.
 
 ## App campaign workflow
 
 The App persists workspace-qualified campaigns, directions, immutable lock
-rows, and exact revision canvases. A direction branch copies its closed lock
-selection but no canvases or hidden creative state. Attach, revision, preview,
+rows, and exact revision canvases. Every canvas stores a closed narrative role,
+so the option board exposes the intended sequence instead of a flat file list. A
+direction branch copies its closed lock selection but no canvases or hidden
+creative state. Attach, revision, preview,
 queued render, proposal acceptance, comparison, and handoff paths reload the
 stored revisions and fail closed when a selected lock no longer matches the
 direction baseline.
@@ -116,7 +144,8 @@ AI approval cannot bypass this campaign gate.
 canonical JSON archive with stable sorted paths for only that direction. The
 direction identifier is bound into both the response receipt and archive. Each
 selected canvas contributes its exact design document, immutable resource pins,
-SVG and PNG bytes, both render manifests, and an approval record. The record is
+SVG and PNG bytes, both render manifests, a deterministic delivery sidecar when
+the format has a default profile, and an approval record. The record is
 an exact approval receipt only when the included artifact hashes, manifest
 hashes, fingerprints, revision hash, and resource pins match that receipt. A
 missing or mismatched receipt produces an explicit `unapproved` record. The

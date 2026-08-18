@@ -19,8 +19,15 @@
 - Template `1.1.x` is semantic and constrained; arbitrary freeform positions,
   arbitrary charts, uploaded SVG, and custom icons are intentionally absent.
 - Exact PNG baselines are guaranteed only in the pinned renderer environment.
+- Core currently emits SVG and PNG proofs. Instagram's publishing API and
+  TikTok's Content Posting API may require JPEG or WebP delivery media; callers
+  must perform and verify that explicit conversion without mislabeling the Core
+  PNG proof as publish-ready.
+- Platform-surface overlays are dated Glyphkiln review advisories. In particular,
+  TikTok does not publish one stable universal organic Photo Mode safe zone;
+  target-device captures remain part of release proofing.
 - Existing solid-surface templates calculate contrast against their owned
-  surface color. `image-led-campaign@1.0.0` uses a conservative fixed 5 × 5
+  surface color. `image-led-campaign@1.0.x` uses a conservative fixed 5 × 5
   composed-raster sample grid; it is not color-profile normalization or a
   perceptual image-quality metric.
 - C2PA signing, accessibility metadata beyond SVG title/description, and ICC
