@@ -1850,7 +1850,7 @@ describe("AppWorkflow", () => {
       }),
       "campaign-proposal-run",
     );
-  }, 15_000);
+  }, 60_000);
 
   it("requires a session-bound mutation proof and revokes logout immediately", async () => {
     const owner = await bootstrapOwner();

@@ -2,28 +2,31 @@
 
 ## Current execution status
 
-As of 2026-08-12, signed Core `v0.5.0` and App `v0.1.0-alpha` are released and
-the supported App Alpha topology is qualified. Core `0.6.0` release preparation
-is in progress for the merged, non-pixel-affecting campaign coordination and
-AI-ready authoring contracts. The package version and changelog are prepared;
-qualification, signing, and any owner-approved npm publication remain release
-gates.
+As of 2026-08-18, signed Core `v0.6.0` and App `v0.1.0-alpha` source releases
+are available and the supported App Alpha topology is qualified. Core `0.6.0`
+contains the non-pixel-affecting campaign coordination, explicit color
+normalization, and AI-ready authoring contracts. Dual-runtime qualification,
+source signing, signature verification, and the GitHub source release are
+complete; owner-approved npm publication remains optional and runs only through
+the local signed-tag release script. GitHub Actions is disabled for this
+repository.
 
-On the active milestone branch, the App now has focused-test-passing foundations
-for immutable resource selectors, image-led focal/treatment controls, admitted
-font-family and typography-role binding, Core-owned proof overlays,
-workspace-qualified campaigns/directions/canvases/locks, a disabled-by-default
-provider-neutral AI proposal adapter, and exact-revision review/comments/
-approval receipts. These foundations are not yet release-qualified product
-acceptance: option boards, visual revision comparison, campaign bundles, stored
-AI decisions, cross-boundary lock enforcement, and real-brief gates remain.
+On `main`, the App implements immutable resource selectors, image-led
+focal/treatment controls, admitted font-family and typography-role binding,
+Core-owned proof overlays, workspace-qualified campaigns/directions/canvases/
+locks, option boards, branching and comparison, deterministic campaign bundles,
+a disabled-by-default provider-neutral AI proposal adapter with stored human
+decisions, cross-boundary lock enforcement, and exact-revision review/comments/
+approval receipts. Product acceptance still requires the reviewed multi-brand
+image-led gate, an approved real four-format and multi-slide campaign brief, and
+the real-brief AI interaction/threat-model gate.
 
-The 2026-08-12 Node 24/npm 10 qualification passes build, typecheck,
-lint/security, tests, standalone packaging, coverage, generated-artifact
-verification, packed consumption, license inventory, and a zero-vulnerability
-npm audit. Minimum-Node clean-install qualification, the opt-in real PostgreSQL
-destructive matrix, source signing, and owner-approved publication remain
-release gates; exact evidence is recorded in the
+The Core `0.6.0` release passed clean Node `24.16.0` and minimum Node `22.22.2`
+qualification with npm `10.9.8`, including build, typecheck, lint/security,
+tests, standalone packaging, coverage, generated-artifact verification, packed
+consumption, license inventory, and a zero-vulnerability npm audit. The signed
+tag and source release are complete. Owner-approved npm publication remains the
+only optional release action and does not use GitHub Actions; exact evidence is recorded in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
 
 The active product sequence is tracked in the
@@ -116,17 +119,19 @@ limitations remain tracked in [the App Alpha plan](plans/app-alpha.md).
 2. Campaign systems: option boards, duplicate/branch, side-by-side comparison,
    lock/vary controls, coordinated format/carousel packs, and batch proof/export
    bundles while retaining one immutable design revision per canvas. The
-   workspace-qualified persistence and exact-revision canvas foundation is
-   implemented; the interaction and bundle layers remain.
+   workspace-qualified persistence, interaction, exact-revision canvas, lock
+   enforcement, and bundle layers are implemented; real-brief product
+   qualification remains.
 3. Optional LLM brief interpretation as an untrusted producer of several
    structured candidate directions. Manual mode remains first-class; every
    candidate passes Core validation, and selective regeneration preserves human
-   locks independently of model claims.
+   locks independently of model claims. The disabled-by-default adapter and
+   stored decision boundary are implemented; real-brief acceptance remains.
 4. Review and approval: comments or annotations, exact visual revision
    comparison, approval state tied to a fingerprinted revision, and an approval
-   receipt in the campaign handoff. Exact-revision comments, transitions, and
-   immutable approval evidence are implemented; visual comparison and campaign
-   handoff inclusion remain.
+   receipt in the campaign handoff. The exact-revision comments, transitions,
+   comparison, immutable approval evidence, and handoff inclusion are
+   implemented.
 5. Operator administration and retention controls for completed jobs, artifacts,
    resource admissions, and audit export.
 6. A multi-host object-storage adapter only when a supported deployment needs

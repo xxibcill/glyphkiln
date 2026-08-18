@@ -16,6 +16,10 @@ licensed under Apache-2.0.
 5. Run `npx changeset` for user-visible behavior.
 6. Open a pull request describing deterministic-output impact.
 
+GitHub Actions is disabled for this repository. Contributors and reviewers run
+the complete local gate with `npm run verify:release`; release owners repeat it
+under both supported Node release lines before signing a release.
+
 Commit messages use Conventional Commits, for example `feat: add a format`,
 `fix: reject unresolved logos`, or `docs: clarify font licensing`.
 

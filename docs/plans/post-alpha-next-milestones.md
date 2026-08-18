@@ -29,7 +29,7 @@ workspace-qualified App metadata.
 
 ## Release 1: Core 0.6.0 contract foundation
 
-Status: release qualification complete; signing and publication pending
+Status: signed source release complete; optional local npm publication pending
 
 - [x] Publish immutable campaign-family metadata for exact template versions.
 - [x] Publish deterministic direction/canvas seed derivation with stable scope
@@ -47,8 +47,10 @@ Status: release qualification complete; signing and publication pending
       qualification with npm `10.9.8`.
 - [x] Repeat from a clean install on the minimum supported Node `22.22.2`
       release with npm `10.9.8`.
-- [ ] Create and verify the signed source tag.
-- [ ] Publish to npm only through the owner-approved protected workflow.
+- [x] Create and verify the signed source tag. Signed `v0.6.0` points to
+      qualified commit `60919f5` and is published as a GitHub source release.
+- [ ] Publish to npm only through the owner-approved local signed-tag script;
+      GitHub Actions is disabled for this repository.
 
 This release deliberately changes no design schema, template pixels, renderer,
 manifest, fingerprint, SVG, or PNG output.
@@ -69,9 +71,11 @@ Status: started
       a new immutable resource admission and document.
 - [x] Run focused unit, security, license, build, and fresh packed-consumer
       verification for the Node child-process boundary.
-- [ ] Qualify the exact normalization vectors on the supported Node/platform
+- [x] Qualify the exact normalization vectors on the supported Node/platform
       release matrix; CMYK remains an explicit stable rejection until a bounded
-      decoder exposes raw CMYK samples.
+      decoder exposes raw CMYK samples. Evidence is recorded in the
+      [color-normalization qualification](../qualification/color-normalization-2026-08-16.md);
+      the record passed reviewer sign-off on 2026-08-18.
 - [x] Finalize crop, safe-area, contrast, and text-bound evidence needed by the
       App overlay.
 
