@@ -1009,6 +1009,12 @@ textarea:focus-visible {
   stroke-dasharray: 7 5;
 }
 
+.evidence-surface-area {
+  stroke: #d98cff;
+  stroke-width: 2;
+  stroke-dasharray: 3 6;
+}
+
 .evidence-text-bounds {
   stroke: #57d6e8;
   stroke-width: 1.5;
@@ -1079,6 +1085,110 @@ textarea:focus-visible {
 .proof-overlay-legend li[data-evidence="contrast"]::before {
   color: #64db89;
   border-radius: 50%;
+}
+
+.proof-overlay-legend li[data-evidence="surface"]::before {
+  color: #d98cff;
+  border-style: dashed;
+}
+
+.delivery-profile-picker {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--paper-3);
+  font-family: var(--font-code);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.delivery-profile-picker select {
+  min-width: 13rem;
+}
+
+.delivery-profile-summary,
+.delivered-type-review {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--ink-1) 18%, transparent);
+  background: color-mix(in srgb, var(--paper-0) 92%, var(--clay));
+}
+
+.delivery-profile-summary > div:first-child,
+.delivered-type-review > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.delivery-profile-summary span,
+.delivered-type-review span,
+.delivery-profile-summary small,
+.delivered-type-review p {
+  color: var(--paper-3);
+  font-family: var(--font-code);
+  font-size: 0.68rem;
+}
+
+.delivery-profile-summary p,
+.delivered-type-review p {
+  margin: 0;
+}
+
+.delivery-profile-summary dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.delivery-profile-summary dl > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.delivery-profile-summary dt,
+.delivered-type-review th {
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.delivery-profile-summary dd {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.delivered-type-table-wrap {
+  overflow-x: auto;
+}
+
+.delivered-type-review table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+}
+
+.delivered-type-review th,
+.delivered-type-review td {
+  padding: 0.45rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-1) 12%, transparent);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.delivered-type-review th:first-child {
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  .delivery-profile-summary dl {
+    grid-template-columns: 1fr;
+  }
 }
 
 .rendered-proof figcaption {

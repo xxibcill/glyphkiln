@@ -424,7 +424,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("hero-landscape"),
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -451,7 +451,7 @@ describe("AppWorkflow", () => {
       campaignId: campaign.id,
       directionId: direction.id,
       canvasKey: "hero-landscape",
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
       seedDerivationVersion: expected.version,
@@ -665,6 +665,7 @@ describe("AppWorkflow", () => {
         designId: "blocked-design",
         revisionId: "blocked-revision",
         compositionVariantId: "focal-editorial",
+        narrativeRole: "context",
         ordinal: 0,
       },
       {
@@ -784,7 +785,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("hero-landscape"),
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -805,7 +806,7 @@ describe("AppWorkflow", () => {
       "campaign-canvas-seed",
     );
     expect(seedAdvice).toMatchObject({
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       seedDerivationVersion: expectedSeeds.version,
       directionSeed: expectedSeeds.directionSeed,
       canvasSeed: expectedSeeds.canvasSeed,
@@ -827,7 +828,7 @@ describe("AppWorkflow", () => {
       "campaign-canvas-seed",
     );
     expect(carouselSeedAdvice).toMatchObject({
-      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
       format: "tiktok-photo-carousel",
       directionSeed: seedAdvice.directionSeed,
     });
@@ -941,6 +942,7 @@ describe("AppWorkflow", () => {
           designId: revision.designId,
           revisionId: revision.revisionId,
           compositionVariantId: "focal-editorial",
+          narrativeRole: "hook",
           ordinal: 0,
         },
       }),
@@ -1005,7 +1007,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(branched.directionKey),
       canvasKey: createCampaignCanvasKey("hero-square"),
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       format: "instagram-square",
       compositionVariantId: "focal-editorial",
     });
@@ -1037,11 +1039,42 @@ describe("AppWorkflow", () => {
           designId: branchedRevision.designId,
           revisionId: branchedRevision.revisionId,
           compositionVariantId: "focal-editorial",
+          narrativeRole: "hook",
           ordinal: 0,
         },
       }),
       "campaign-canvas-attached",
     );
+    const instagramHandoff = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+        },
+      }),
+      "campaign-handoff",
+    );
+    expect(instagramHandoff.fileCount).toBe(8);
+    const instagramArchive = parseTestJson(
+      Buffer.from(instagramHandoff.base64, "base64").toString("utf8"),
+    ) as { files: { path: string; base64: string }[] };
+    const deliveryFile = instagramArchive.files.find((file) =>
+      file.path.endsWith(".delivery.json"),
+    );
+    if (deliveryFile === undefined) throw new Error("Delivery sidecar missing.");
+    expect(
+      parseTestJson(Buffer.from(deliveryFile.base64, "base64").toString("utf8")),
+    ).toMatchObject({
+      version: "1.0.0",
+      deliveryProfile: {
+        id: "instagram-native-carousel",
+        metadataVersion: "1.0.0",
+      },
+      slides: [{ ordinal: 0, narrativeRole: "hook" }],
+    });
 
     const copyViolation = imageLedCampaignDraft(seedAdvice.canvasSeed);
     const lockedHeadline = copyViolation.layers.find(
@@ -1555,6 +1588,7 @@ describe("AppWorkflow", () => {
           designId: accepted.design.designId,
           revisionId: accepted.design.revisionId,
           compositionVariantId: attached.compositionVariantId,
+          narrativeRole: "hook",
           ordinal: 0,
         },
       }),
@@ -1632,7 +1666,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("concurrent-copy-variant"),
-      template: { id: "image-led-campaign", version: "1.0.0" },
+      template: { id: "image-led-campaign", version: "1.0.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -1697,6 +1731,7 @@ describe("AppWorkflow", () => {
           designId: revision.designId,
           revisionId: revision.revisionId,
           compositionVariantId: attached.compositionVariantId,
+          narrativeRole: "hook",
           ordinal: 0,
         },
       }),
@@ -1711,6 +1746,7 @@ describe("AppWorkflow", () => {
           designId: competingRevision.designId,
           revisionId: competingRevision.revisionId,
           compositionVariantId: "focal-editorial",
+          narrativeRole: "context",
           ordinal: 1,
         },
       }),

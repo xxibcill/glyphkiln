@@ -5,7 +5,11 @@ import type {
   RenderEvidence,
   RenderManifest,
 } from "@glyphkiln/core";
-import { canonicalJson, createRenderFingerprintPayload } from "@glyphkiln/core/browser";
+import {
+  RENDER_EVIDENCE_VERSION,
+  canonicalJson,
+  createRenderFingerprintPayload,
+} from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -311,7 +315,7 @@ function isPreviewSuccess(input: unknown): input is PreviewSuccess {
 function isRenderEvidence(input: unknown): input is RenderEvidence {
   if (
     !isRecord(input) ||
-    input.version !== "1.0.0" ||
+    input.version !== RENDER_EVIDENCE_VERSION ||
     !isBounds(input.safeArea) ||
     !Array.isArray(input.text) ||
     input.text.length > 100 ||
@@ -336,8 +340,13 @@ function isTextBoundsEvidence(input: unknown): boolean {
     isBounds(input.bounds) &&
     isNonNegativeInteger(input.lineCount) &&
     isPositiveInteger(input.maximumLines) &&
+    isFinitePositiveNumber(input.fontSize) &&
     typeof input.overflow === "boolean"
   );
+}
+
+function isFinitePositiveNumber(input: unknown): input is number {
+  return typeof input === "number" && Number.isFinite(input) && input > 0;
 }
 
 function isImageCropEvidence(input: unknown): boolean {

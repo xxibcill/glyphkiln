@@ -449,7 +449,7 @@ function createWorkflowApi(
         campaignId: input.campaignId,
         directionId: input.directionId,
         canvasKey: input.canvasKey,
-        template: { id: input.templateId, version: "1.0.0" },
+        template: { id: input.templateId, version: "1.0.1" },
         format: input.format,
         compositionVariantId: input.compositionVariantId,
         seedDerivationVersion: "sha256/canonical-scope-v1",
@@ -693,7 +693,7 @@ function renderDocument(document: DesignDocument): PreviewSuccess {
     document,
     qualityIssues: [],
     evidence: {
-      version: "1.0.0",
+      version: "1.1.0",
       safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
       text: [],
       crops: [],

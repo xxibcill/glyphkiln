@@ -1,4 +1,5 @@
 import type { SyntheticEvent } from "react";
+import { CAROUSEL_NARRATIVE_ROLE_IDS } from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
@@ -213,6 +214,7 @@ export function CampaignOptionBoard({
                 <li key={canvas.id}>
                   <span>{canvas.ordinal.toString().padStart(3, "0")}</span>
                   <strong>{canvas.canvasKey}</strong>
+                  <em>{canvas.narrativeRole}</em>
                   <small>
                     {canvas.format} · {canvas.revisionId.slice(0, 8)}
                   </small>
@@ -350,6 +352,16 @@ export function CampaignCanvasAttachment({
             onCanvasKeyChange(event.currentTarget.value);
           }}
         />
+      </label>
+      <label>
+        Narrative role
+        <select name="narrativeRole" defaultValue="context" required>
+          {CAROUSEL_NARRATIVE_ROLE_IDS.map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         Order

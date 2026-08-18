@@ -2,6 +2,7 @@ import type {
   BrandSnapshot,
   CampaignCompositionVariantId,
   CampaignFamilyId,
+  CarouselNarrativeRole,
   DesignDocument,
   FormatId,
   TemplateId,
@@ -1365,6 +1366,7 @@ export class AppState {
     templateVersion: string;
     format: FormatId;
     compositionVariantId: CampaignCompositionVariantId;
+    narrativeRole: CarouselNarrativeRole;
     seedDerivationVersion: string;
     directionSeed: string;
     canvasSeed: string;
@@ -1376,11 +1378,11 @@ export class AppState {
       `INSERT INTO campaign_canvases (
          id, workspace_id, campaign_id, direction_id, canvas_key,
          design_id, revision_id, template_id, template_version, format_id,
-         composition_variant_id, seed_derivation_version, direction_seed,
-         canvas_seed, ordinal, created_by, created_at
+         composition_variant_id, narrative_role, seed_derivation_version,
+         direction_seed, canvas_seed, ordinal, created_by, created_at
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-         $14, $15, $16, $17
+         $14, $15, $16, $17, $18
        )
        RETURNING id`,
       [
@@ -1395,6 +1397,7 @@ export class AppState {
         input.templateVersion,
         input.format,
         input.compositionVariantId,
+        input.narrativeRole,
         input.seedDerivationVersion,
         input.directionSeed,
         input.canvasSeed,
@@ -1446,6 +1449,7 @@ export class AppState {
       template_version: string;
       format_id: FormatId;
       composition_variant_id: CampaignCompositionVariantId;
+      narrative_role: CarouselNarrativeRole;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1454,7 +1458,7 @@ export class AppState {
     }>(
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
-              composition_variant_id, seed_derivation_version,
+              composition_variant_id, narrative_role, seed_derivation_version,
               direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
@@ -1593,6 +1597,7 @@ export class AppState {
       template_version: string;
       format_id: FormatId;
       composition_variant_id: CampaignCompositionVariantId;
+      narrative_role: CarouselNarrativeRole;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1601,7 +1606,7 @@ export class AppState {
     }>(
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
-              composition_variant_id, seed_derivation_version,
+              composition_variant_id, narrative_role, seed_derivation_version,
               direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
@@ -2464,6 +2469,7 @@ function toCampaignCanvasProjection(row: {
   template_version: string;
   format_id: FormatId;
   composition_variant_id: CampaignCompositionVariantId;
+  narrative_role: CarouselNarrativeRole;
   seed_derivation_version: string;
   direction_seed: string;
   canvas_seed: string;
@@ -2478,6 +2484,7 @@ function toCampaignCanvasProjection(row: {
     template: { id: row.template_id, version: row.template_version },
     format: row.format_id,
     compositionVariantId: row.composition_variant_id,
+    narrativeRole: row.narrative_role,
     seedDerivationVersion: row.seed_derivation_version,
     directionSeed: row.direction_seed,
     canvasSeed: row.canvas_seed,

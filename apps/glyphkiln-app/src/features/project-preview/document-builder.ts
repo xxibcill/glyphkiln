@@ -113,6 +113,8 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
     resources: {
       assetIds: [],
       fontIds: [],
+      imageAlt: "",
+      logoAlt: "",
     },
   };
 }
@@ -279,7 +281,7 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
         type: "image",
         visible: true,
         assetId: state.resources.imageAssetId ?? "missing-campaign-image",
-        alt: "Selected campaign image.",
+        alt: state.resources.imageAlt?.trim() ?? "",
         fit: "cover",
         focalPoint: { ...state.composition.imageFocalPoint },
         treatment: state.composition.imageTreatment,
@@ -289,7 +291,7 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
         type: "logo",
         visible: true,
         assetId: state.resources.logoAssetId ?? "missing-brand-logo",
-        alt: "Selected brand logo.",
+        alt: state.resources.logoAlt?.trim() ?? "",
         fit: "contain",
       });
       addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);

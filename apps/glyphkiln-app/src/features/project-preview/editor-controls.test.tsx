@@ -166,8 +166,10 @@ describe("EditorControls", () => {
     );
 
     expect(markup).toContain('id="campaign-image-resource"');
+    expect(markup).toContain('id="campaign-image-alt"');
     expect(markup).toContain("Campaign still · 1536×1024");
     expect(markup).toContain('id="campaign-logo-resource"');
+    expect(markup).toContain('id="campaign-logo-alt"');
     expect(markup).toContain('id="campaign-focal-x"');
     expect(markup).toContain('id="campaign-focal-y"');
     expect(markup).toContain('id="campaign-treatment"');

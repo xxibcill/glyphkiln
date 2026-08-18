@@ -3,7 +3,9 @@ import {
   CAMPAIGN_FAMILY_REGISTRY,
   canonicalJson,
   createCampaignCanvasKey,
+  createCarouselDeliverySidecar,
   createCampaignDirectionKey,
+  defaultDeliveryProfileForFormat,
   deriveCampaignSeeds,
   hashCanonical,
   sha256,
@@ -1654,6 +1656,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         templateVersion: revision.document.template.version,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
+        narrativeRole: command.narrativeRole,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -1676,6 +1679,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           seedDerivationVersion: derivedSeed.seedDerivationVersion,
           directionSeed: derivedSeed.directionSeed,
           canvasSeed: derivedSeed.canvasSeed,
+          narrativeRole: command.narrativeRole,
         },
         createdAt: now,
       });
@@ -1687,6 +1691,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         template: { ...revision.document.template },
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
+        narrativeRole: command.narrativeRole,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -2368,6 +2373,27 @@ class AppWorkflowImplementation implements AppWorkflow {
           approvalStatus,
         ),
       );
+      const deliveryProfile = defaultDeliveryProfileForFormat(revision.document.format);
+      if (deliveryProfile !== undefined) {
+        addCampaignHandoffFiles(
+          archive,
+          handoffJsonFile(
+            `${canvasPrefix}.delivery.json`,
+            createCarouselDeliverySidecar({
+              deliveryProfileId: deliveryProfile.id,
+              slides: [
+                {
+                  document: revision.document,
+                  ordinal: canvas.ordinal,
+                  narrativeRole: canvas.narrativeRole,
+                  compositionVariantId: canvas.compositionVariantId,
+                },
+              ],
+            }),
+            approvalStatus,
+          ),
+        );
+      }
       for (const output of proof.outputs) {
         const bytes = Buffer.from(output.base64, "base64");
         addCampaignHandoffFiles(

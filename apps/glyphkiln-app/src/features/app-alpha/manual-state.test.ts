@@ -219,7 +219,7 @@ describe("manual App Alpha state", () => {
     const document = structuredClone(candidate);
     Object.assign(document.template, {
       id: "image-led-campaign",
-      version: "1.0.0",
+      version: "1.0.1",
     });
 
     expect(() => formFromStoredDocument(document, catalog)).toThrow(

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { SyntheticEvent } from "react";
+import { CAROUSEL_NARRATIVE_ROLE_IDS } from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
@@ -268,6 +269,10 @@ export function CampaignStudio({
       return;
     }
     const form = new FormData(event.currentTarget);
+    const narrativeRole = CAROUSEL_NARRATIVE_ROLE_IDS.find(
+      (role) => role === requiredFormText(form, "narrativeRole"),
+    );
+    if (narrativeRole === undefined) return;
     setBusy("canvas");
     setFailure(undefined);
     const result = await api.attachCampaignCanvas({
@@ -278,6 +283,7 @@ export function CampaignStudio({
       designId: openRevision.designId,
       revisionId: openRevision.revisionId,
       ordinal: Number(requiredFormText(form, "canvasOrdinal")),
+      narrativeRole,
       compositionVariantId: currentCanvasSeedPlan.scope.compositionVariantId,
     });
     if (result.ok) {

@@ -7,6 +7,7 @@ import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { createProjectPreview } from "@/lib/project-preview/render-preview";
 import { createPreviewDesign } from "@/test/preview-design";
 
+import { buildPreviewDocument, createInitialPreviewForm } from "./document-builder";
 import { PreviewStage } from "./preview-stage";
 
 describe("PreviewStage", () => {
@@ -44,5 +45,34 @@ describe("PreviewStage", () => {
     expect(staleMarkup).toContain("Last rendered downloads");
     expect(staleMarkup).toContain("Download last SVG");
     expect(staleMarkup).toContain("before the current control changes");
+  });
+
+  it("shows path-specific advisory overlays and delivered phone-size type", async () => {
+    const catalog = createPreviewCatalog();
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "tiktok-carousel-slide";
+    state.composition.formatId = "tiktok-photo-carousel";
+    const document = buildPreviewDocument(state, catalog);
+    const result = await createProjectPreview(document, {
+      render: async (candidate, options) => renderGraphic(candidate, options),
+      now: () => new Date("2026-08-18T06:00:00.000Z"),
+    });
+    if (!result.body.ok) throw new Error("Expected a rendered carousel preview.");
+
+    const markup = renderToStaticMarkup(
+      <PreviewStage
+        catalog={catalog}
+        document={document}
+        proof={result.body}
+        isRendering={false}
+        hasUnrenderedEdits={false}
+      />,
+    );
+
+    expect(markup).toContain("TikTok Photo Mode · organic");
+    expect(markup).toContain("Advisory surface overlay");
+    expect(markup).toContain("Delivered-size type proof");
+    expect(markup).toContain("360px");
+    expect(markup).toContain("not a universal platform pass/fail threshold");
   });
 });

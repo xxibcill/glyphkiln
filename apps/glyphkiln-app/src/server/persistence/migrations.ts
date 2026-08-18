@@ -123,6 +123,17 @@ const MIGRATION_FILES = [
     ),
     version: "202608130012_campaign_carousel_variant",
   },
+  {
+    down: new URL(
+      "./migrations/202608180013_campaign_narrative_role.down.sql",
+      import.meta.url,
+    ),
+    up: new URL(
+      "./migrations/202608180013_campaign_narrative_role.up.sql",
+      import.meta.url,
+    ),
+    version: "202608180013_campaign_narrative_role",
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

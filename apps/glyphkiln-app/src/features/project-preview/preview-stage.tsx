@@ -3,6 +3,11 @@
 import { useState } from "react";
 
 import type { DesignDocument, RenderEvidence } from "@glyphkiln/core";
+import {
+  deliveryProfilesForFormat,
+  type DeliveryProfile,
+  type DeliveryProfileId,
+} from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -37,6 +42,13 @@ export function PreviewStage({
   const template = catalog.templates.find(
     (candidate) => candidate.id === previewDocument.template.id,
   );
+  const deliveryProfiles = deliveryProfilesForFormat(previewDocument.format);
+  const [selectedDeliveryProfileId, setSelectedDeliveryProfileId] = useState<
+    DeliveryProfileId | undefined
+  >();
+  const deliveryProfile =
+    deliveryProfiles.find(({ id }) => id === selectedDeliveryProfileId) ??
+    deliveryProfiles.at(0);
 
   return (
     <section className="preview-column" aria-labelledby="canvas-title">
@@ -57,6 +69,26 @@ export function PreviewStage({
             >
               {showEvidence ? "Hide Core evidence" : "Show Core evidence"}
             </button>
+          )}
+          {deliveryProfile === undefined ? null : (
+            <label className="delivery-profile-picker">
+              Delivery path
+              <select
+                value={deliveryProfile.id}
+                onChange={(event) => {
+                  const selected = deliveryProfiles.find(
+                    ({ id }) => id === event.currentTarget.value,
+                  );
+                  setSelectedDeliveryProfileId(selected?.id);
+                }}
+              >
+                {deliveryProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
           <ProofStatus
             hasProof={proof !== null}
@@ -92,6 +124,7 @@ export function PreviewStage({
             isStale={hasUnrenderedEdits}
             evidence={proof?.evidence}
             showEvidence={showEvidence}
+            deliveryProfile={deliveryProfile}
           />
         )}
 
@@ -107,6 +140,10 @@ export function PreviewStage({
           </div>
         ) : null}
       </div>
+
+      {deliveryProfile === undefined ? null : (
+        <DeliveryProfileSummary profile={deliveryProfile} />
+      )}
 
       <div className="proof-caption">
         <div>
@@ -147,6 +184,7 @@ function RenderedProof({
   isStale,
   evidence,
   showEvidence,
+  deliveryProfile,
 }: {
   document: DesignDocument;
   format: PreviewCatalogFormat | undefined;
@@ -155,6 +193,7 @@ function RenderedProof({
   isStale: boolean;
   evidence: RenderEvidence | undefined;
   showEvidence: boolean;
+  deliveryProfile: DeliveryProfile | undefined;
 }) {
   const source = `data:${output.mimeType};base64,${output.base64}`;
   const dimensions = output.manifest.dimensions;
@@ -175,7 +214,11 @@ function RenderedProof({
           alt={`${templateLabel} proof in ${format?.label ?? document.format} format`}
         />
         {showEvidence && evidence !== undefined ? (
-          <EvidenceOverlay evidence={evidence} dimensions={dimensions} />
+          <EvidenceOverlay
+            evidence={evidence}
+            dimensions={dimensions}
+            deliveryProfile={deliveryProfile}
+          />
         ) : null}
       </div>
       {showEvidence && evidence !== undefined ? (
@@ -184,6 +227,9 @@ function RenderedProof({
           <li data-evidence="text">Text bounds</li>
           <li data-evidence="crop">Crop destination</li>
           <li data-evidence="contrast">Contrast samples</li>
+          {deliveryProfile === undefined ? null : (
+            <li data-evidence="surface">Advisory surface overlay</li>
+          )}
         </ul>
       ) : null}
       <figcaption>
@@ -193,6 +239,9 @@ function RenderedProof({
         </span>
         <span title={output.fingerprint}>{shortHash(output.fingerprint)}</span>
       </figcaption>
+      {evidence === undefined ? null : (
+        <DeliveredTypeReview evidence={evidence} canvasWidth={dimensions.width} />
+      )}
     </figure>
   );
 }
@@ -200,9 +249,11 @@ function RenderedProof({
 function EvidenceOverlay({
   evidence,
   dimensions,
+  deliveryProfile,
 }: {
   evidence: RenderEvidence;
   dimensions: { width: number; height: number };
+  deliveryProfile: DeliveryProfile | undefined;
 }) {
   return (
     <svg
@@ -217,6 +268,25 @@ function EvidenceOverlay({
         width={evidence.safeArea.width}
         height={evidence.safeArea.height}
       />
+      {deliveryProfile === undefined ? null : (
+        <rect
+          className="evidence-surface-area"
+          x={deliveryProfile.surfaceOverlay.insets.left * dimensions.width}
+          y={deliveryProfile.surfaceOverlay.insets.top * dimensions.height}
+          width={
+            dimensions.width *
+            (1 -
+              deliveryProfile.surfaceOverlay.insets.left -
+              deliveryProfile.surfaceOverlay.insets.right)
+          }
+          height={
+            dimensions.height *
+            (1 -
+              deliveryProfile.surfaceOverlay.insets.top -
+              deliveryProfile.surfaceOverlay.insets.bottom)
+          }
+        />
+      )}
       {evidence.crops.map((crop) => (
         <rect
           className="evidence-crop-bounds"
@@ -241,7 +311,7 @@ function EvidenceOverlay({
             height={text.bounds.height}
           />
           <text x={text.bounds.x + 4} y={text.bounds.y + 14}>
-            {text.layerId}
+            {text.layerId} · {text.fontSize.toFixed(1)}px
           </text>
         </g>
       ))}
@@ -261,6 +331,95 @@ function EvidenceOverlay({
         )),
       )}
     </svg>
+  );
+}
+
+const REPRESENTATIVE_PHONE_WIDTHS = [360, 390, 430] as const;
+
+function DeliveredTypeReview({
+  evidence,
+  canvasWidth,
+}: {
+  evidence: RenderEvidence;
+  canvasWidth: number;
+}) {
+  if (evidence.text.length === 0) return null;
+  return (
+    <section className="delivered-type-review" aria-labelledby="delivered-type-title">
+      <header>
+        <strong id="delivered-type-title">Delivered-size type proof</strong>
+        <span>Equivalent CSS px when the complete image fits the listed width</span>
+      </header>
+      <div className="delivered-type-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Layer</th>
+              <th scope="col">Canvas</th>
+              {REPRESENTATIVE_PHONE_WIDTHS.map((width) => (
+                <th key={width} scope="col">
+                  {width}px
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {evidence.text.map((entry) => (
+              <tr key={entry.layerId}>
+                <th scope="row">{entry.layerId}</th>
+                <td>{entry.fontSize.toFixed(1)}px</td>
+                {REPRESENTATIVE_PHONE_WIDTHS.map((width) => (
+                  <td key={width}>
+                    {((entry.fontSize * width) / canvasWidth).toFixed(1)}px
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Review on a real device. These values expose scale; they are not a universal
+        platform pass/fail threshold.
+      </p>
+    </section>
+  );
+}
+
+function DeliveryProfileSummary({ profile }: { profile: DeliveryProfile }) {
+  const pngAccepted = profile.acceptedImageMediaTypes.value.some(
+    (mediaType) => mediaType === "image/png",
+  );
+  return (
+    <aside className="delivery-profile-summary" aria-label="Selected delivery profile">
+      <div>
+        <span>
+          {profile.platform} · {profile.publishingPath}
+        </span>
+        <strong>{profile.label}</strong>
+      </div>
+      <p>{profile.surfaceOverlay.note}</p>
+      <dl>
+        <div>
+          <dt>Items</dt>
+          <dd>
+            {profile.slideCount.value.minimum}–{profile.slideCount.value.maximum}
+          </dd>
+        </div>
+        <div>
+          <dt>Raster</dt>
+          <dd>{profile.acceptedImageMediaTypes.value.join(" · ")}</dd>
+        </div>
+        <div>
+          <dt>PNG proof</dt>
+          <dd>{pngAccepted ? "Accepted" : "Convert for delivery"}</dd>
+        </div>
+      </dl>
+      <small>
+        Platform facts and Glyphkiln advisories are labeled separately in delivery
+        profile metadata v1.0.0.
+      </small>
+    </aside>
   );
 }
 

@@ -593,7 +593,7 @@ describe("App Alpha API client", () => {
       proof: {
         qualityIssues: [],
         evidence: {
-          version: "1.0.0",
+          version: "1.1.0",
           safeArea: { x: 0, y: 0, width: 1, height: 1 },
           text: [],
           crops: [],
@@ -705,7 +705,7 @@ function campaignCanvasSeedFixture() {
     campaignId: "campaign-1",
     directionId: "direction-1",
     canvasKey: "hero-landscape",
-    template: { id: "image-led-campaign" as const, version: "1.0.0" },
+    template: { id: "image-led-campaign" as const, version: "1.0.1" },
     format: "linkedin-landscape" as const,
     compositionVariantId: "focal-editorial" as const,
     seedDerivationVersion: "sha256/canonical-scope-v1",

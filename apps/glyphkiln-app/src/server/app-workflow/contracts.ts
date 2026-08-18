@@ -2,6 +2,7 @@ import type {
   AssetOrigin,
   BrandSnapshot,
   CampaignCompositionVariantId,
+  CarouselNarrativeRole,
   CampaignFamilyId,
   DesignDocument,
   FormatId,
@@ -145,6 +146,7 @@ export type AppCommand =
       designId: string;
       revisionId: string;
       compositionVariantId: CampaignCompositionVariantId;
+      narrativeRole: CarouselNarrativeRole;
       ordinal: number;
     }
   | {
@@ -593,6 +595,7 @@ export type CampaignCanvasProjection = {
   };
   format: FormatId;
   compositionVariantId: CampaignCompositionVariantId;
+  narrativeRole: CarouselNarrativeRole;
   seedDerivationVersion: string;
   directionSeed: string;
   canvasSeed: string;

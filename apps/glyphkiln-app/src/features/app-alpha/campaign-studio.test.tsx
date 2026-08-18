@@ -409,6 +409,7 @@ describe("CampaignStudio", () => {
       revisionId: "revision-seeded",
       ordinal: 0,
       compositionVariantId: "focal-editorial",
+      narrativeRole: "context",
     });
   });
 
@@ -497,7 +498,7 @@ describe("CampaignStudio", () => {
           success(200, {
             ...campaignCanvasSeedFixture(),
             canvasKey: "carousel-01",
-            template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+            template: { id: "tiktok-carousel-slide", version: "1.0.4" },
             format: "tiktok-photo-carousel",
             compositionVariantId: "organic-photo-editorial",
           }),
@@ -618,9 +619,10 @@ function campaignBoardFixture(): CampaignBoard {
             canvasKey: "hero-landscape",
             designId: "design-1",
             revisionId: "revision-1",
-            template: { id: "image-led-campaign", version: "1.0.0" },
+            template: { id: "image-led-campaign", version: "1.0.1" },
             format: "linkedin-landscape",
             compositionVariantId: "focal-editorial",
+            narrativeRole: "hook",
             seedDerivationVersion: "1.0.0",
             directionSeed: "a".repeat(64),
             canvasSeed: "b".repeat(64),
@@ -652,7 +654,7 @@ function campaignCanvasSeedFixture() {
     campaignId: CAMPAIGN.id,
     directionId: "direction-1",
     canvasKey: "hero-landscape",
-    template: { id: "image-led-campaign" as const, version: "1.0.0" },
+    template: { id: "image-led-campaign" as const, version: "1.0.1" },
     format: "linkedin-landscape" as const,
     compositionVariantId: "focal-editorial" as const,
     seedDerivationVersion: "sha256/canonical-scope-v1",
@@ -843,7 +845,7 @@ function proposalProofFixture(): PreviewSuccess {
     document,
     qualityIssues: [],
     evidence: {
-      version: "1.0.0",
+      version: "1.1.0",
       safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
       text: [],
       crops: [],

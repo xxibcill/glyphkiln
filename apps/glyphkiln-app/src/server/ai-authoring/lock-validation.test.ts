@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it } from "vitest";
 
 import type { DesignDocument, DesignLayer } from "@glyphkiln/core";
@@ -331,6 +333,67 @@ describe("server-owned authoring lock validation", () => {
       ),
     ).toBe(true);
     expect(Object.isFrozen(AUTHORING_LOCK_LIMITS)).toBe(true);
+  });
+
+  it("preserves the selected typography lock across the exact four-format campaign qualification", async () => {
+    const canvasKeys = [
+      "linkedin-hero",
+      "instagram-square-hero",
+      "instagram-portrait-hero",
+      "carousel-01",
+      "carousel-02",
+      "carousel-03",
+      "carousel-04",
+    ];
+    const documents = await Promise.all(
+      canvasKeys.map(
+        async (canvasKey) =>
+          JSON.parse(
+            await readFile(
+              new URL(
+                `../../../../../docs/qualification/campaign-workflow-2026-08-18/generated/designs/${canvasKey}.json`,
+                import.meta.url,
+              ),
+              "utf8",
+            ),
+          ) as DesignDocument,
+      ),
+    );
+    const baseline = documents.at(0);
+    if (baseline === undefined) throw new Error("Campaign baseline is missing.");
+
+    for (const candidate of documents) {
+      expect(validateAuthoringLocks(baseline, candidate, ["typography"])).toMatchObject(
+        {
+          success: true,
+          locks: ["typography"],
+          issues: [],
+          baseValidation: { status: "valid" },
+          candidateValidation: { status: "valid" },
+        },
+      );
+    }
+
+    const changedTypography = structuredClone(documents.at(-1));
+    if (changedTypography === undefined) {
+      throw new Error("Campaign descendant is missing.");
+    }
+    const typography = changedTypography.brand.typography;
+    if (!("roles" in typography)) {
+      throw new Error("Campaign typography role contract is missing.");
+    }
+    const roles = typography.roles;
+    if (roles === undefined) throw new Error("Campaign typography roles are missing.");
+    if (roles.display === undefined) {
+      throw new Error("Campaign display typography role is missing.");
+    }
+    roles.display.weight = 700;
+    expect(
+      validateAuthoringLocks(baseline, changedTypography, ["typography"]),
+    ).toMatchObject({
+      success: false,
+      issues: [{ code: "TYPOGRAPHY_LOCK_VIOLATED", lock: "typography" }],
+    });
   });
 });
 
