@@ -1,6 +1,6 @@
 # ADR 0016: Explicit canonical sRGB raster normalization
 
-Status: accepted; cross-platform release qualification pending
+Status: accepted; cross-platform release qualification complete
 
 ## Context
 
@@ -116,3 +116,7 @@ decompression-bomb, high-entropy output-limit, and stable CMYK-rejection
 fixtures. App integration retains both hashes and never replaces an existing
 admission in place. A positive CMYK vector is deferred until the raw
 sample-decoder gate above is satisfied.
+
+The matrix passed with reviewer sign-off on 2026-08-18. Exact CI, local runtime,
+digest, decoded-pixel, rejection, and App-boundary evidence is recorded in the
+[dated qualification record](../qualification/color-normalization-2026-08-16.md).
