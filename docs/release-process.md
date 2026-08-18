@@ -1,8 +1,9 @@
 # Release process
 
 1. Ensure every user-visible pull request contains a Changeset.
-2. Verify CI with npm 10.9.8 on the minimum supported Node 22.22.2 release and
-   the current Node 24 release: clean install, build, typecheck, lint/security
+2. Run `npm run verify:release` locally with npm 10.9.8 on the minimum
+   supported Node 22.22.2 release and the current Node 24 release: clean
+   install, build, typecheck, lint/security
    scan, tests, standalone runtime, isolation, text-layout data verification,
    diagnostic determinism, fixtures, dependency licenses, audit, packing, and
    coverage.
@@ -20,24 +21,29 @@
    establishes source and local-tarball readiness even when registry
    publication is paused.
 
-   The tag must contain both `.github/workflows/publish-core.yml` and
-   `.github/release-allowed-signers`. The existing `v0.5.0` tag predates those
-   files and is intentionally ineligible for registry publication; do not move
-   or recreate it. Begin npm publication with the next versioned release tagged
-   after this workflow reaches `main`.
+   The tag must contain `.github/release-allowed-signers` and a release
+   verification script. The existing `v0.5.0` tag predates those files and is
+   intentionally ineligible for registry publication; do not move or recreate
+   it. `v0.6.0` contains the legacy verification-script location supported by
+   the local publisher.
 
-9. If approved by the owner, manually dispatch the `Publish Core to npm`
-   workflow at the signed tag ref, passing the same tag as its input:
+9. GitHub Actions is disabled for this repository. If npm publication is
+   approved by the owner, authenticate interactively on the release machine
+   with `npm login`, run a dry run, then set the single-command approval flag:
 
    ```sh
-   gh workflow run publish-core.yml --ref vX.Y.Z -f tag=vX.Y.Z
+   npm run publish:core -- --dry-run vX.Y.Z
+   GLYPHKILN_APPROVE_NPM_PUBLISH=1 npm run publish:core -- vX.Y.Z
    ```
 
-   The protected `npm` environment must require owner approval and provide
-   `NPM_TOKEN`. The workflow rejects a branch-ref dispatch, re-runs the release
-   checks, publishes from the signed tag with GitHub OIDC provenance, and
-   repeats the installed-package checks against the published archive.
+   The publisher verifies the annotated tag against the allowed-signers file
+   stored in that tag, requires the tagged commit to be in `origin/main`,
+   rejects mismatched versions and unmaterialized Changesets, creates an
+   isolated detached worktree, repeats the release checks, and verifies the
+   installed package after registry publication. Local publication explicitly
+   omits CI provenance because no supported CI identity is involved. Never
+   place npm credentials in the repository or command history.
 
 This repository does not publish on push or release creation. The publish
-workflow is manual and environment-gated; npm publication remains optional and
-is not required for a signed source release or verified local tarball.
+script is local and owner-gated; npm publication remains optional and is not
+required for a signed source release or verified local tarball.

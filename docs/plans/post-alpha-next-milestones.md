@@ -29,7 +29,7 @@ workspace-qualified App metadata.
 
 ## Release 1: Core 0.6.0 contract foundation
 
-Status: signed source release complete; npm publication pending
+Status: signed source release complete; optional local npm publication pending
 
 - [x] Publish immutable campaign-family metadata for exact template versions.
 - [x] Publish deterministic direction/canvas seed derivation with stable scope
@@ -49,7 +49,8 @@ Status: signed source release complete; npm publication pending
       release with npm `10.9.8`.
 - [x] Create and verify the signed source tag. Signed `v0.6.0` points to
       qualified commit `60919f5` and is published as a GitHub source release.
-- [ ] Publish to npm only through the owner-approved protected workflow.
+- [ ] Publish to npm only through the owner-approved local signed-tag script;
+      GitHub Actions is disabled for this repository.
 
 This release deliberately changes no design schema, template pixels, renderer,
 manifest, fingerprint, SVG, or PNG output.

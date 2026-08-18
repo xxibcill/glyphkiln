@@ -48,6 +48,8 @@
     "test:package-consumer": "npm run test:package-consumer --workspace @glyphkiln/core",
     "pack:core": "npm pack --workspace @glyphkiln/core",
     "pack:core:dry-run": "npm pack --workspace @glyphkiln/core --dry-run",
+    "verify:release": "bash scripts/verify-release.sh",
+    "publish:core": "bash scripts/publish-core.sh",
     "changeset": "changeset",
     "version-packages": "changeset version"
   },

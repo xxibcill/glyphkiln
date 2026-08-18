@@ -7,7 +7,9 @@ are available and the supported App Alpha topology is qualified. Core `0.6.0`
 contains the non-pixel-affecting campaign coordination, explicit color
 normalization, and AI-ready authoring contracts. Dual-runtime qualification,
 source signing, signature verification, and the GitHub source release are
-complete; owner-approved npm publication remains optional and protected.
+complete; owner-approved npm publication remains optional and runs only through
+the local signed-tag release script. GitHub Actions is disabled for this
+repository.
 
 On `main`, the App implements immutable resource selectors, image-led
 focal/treatment controls, admitted font-family and typography-role binding,
@@ -24,7 +26,7 @@ qualification with npm `10.9.8`, including build, typecheck, lint/security,
 tests, standalone packaging, coverage, generated-artifact verification, packed
 consumption, license inventory, and a zero-vulnerability npm audit. The signed
 tag and source release are complete. Owner-approved npm publication remains the
-only optional release action; exact evidence is recorded in the
+only optional release action and does not use GitHub Actions; exact evidence is recorded in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
 
 The active product sequence is tracked in the

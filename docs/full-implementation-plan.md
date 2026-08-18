@@ -326,7 +326,7 @@ Cloud-specific capabilities should integrate through:
 - ESLint
 - Prettier
 - Changesets
-- GitHub Actions
+- Local dual-runtime verification and signed-tag release scripts
 - Exact direct dependency versions
 - Committed lockfile
 

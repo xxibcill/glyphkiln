@@ -66,6 +66,14 @@ npm test
 npm run test:coverage
 ```
 
+GitHub Actions is disabled for this repository. Run the extended local gate,
+including generated artifacts, audit, packing, and fresh-package consumption,
+with:
+
+```bash
+npm run verify:release
+```
+
 Build and run the production application locally:
 
 ```bash
