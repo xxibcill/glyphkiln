@@ -1,7 +1,18 @@
-import { FORMAT_REGISTRY } from "../formats/index.js";
-import type { DesignDocument, DesignLayer } from "../schema/index.js";
-import type { CampaignCompositionVariantId } from "../campaigns/index.js";
+import { z } from "zod";
+
 import {
+  CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  type CampaignCompositionVariantId,
+} from "../campaigns/index.js";
+import { FORMAT_REGISTRY } from "../formats/index.js";
+import { GlyphkilnError } from "../domain/types.js";
+import {
+  validateDesignDocument,
+  type DesignDocument,
+  type DesignLayer,
+} from "../schema/index.js";
+import {
+  DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
   type DeliveryProfile,
@@ -92,6 +103,44 @@ export type CarouselDeliverySidecar = {
   }[];
 };
 
+const CAROUSEL_SEQUENCE_LIMITS = Object.freeze({
+  slides: 64,
+  sourceNotesPerSlide: 32,
+  sourceNoteLabelCharacters: 500,
+  sourceNoteUrlCharacters: 2_048,
+} as const);
+
+const CarouselSourceNoteSchema = z
+  .object({
+    label: z.string().min(1).max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
+  })
+  .strict();
+
+const CarouselSlideEnvelopeSchema = z
+  .object({
+    document: z.unknown(),
+    ordinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(CAROUSEL_SEQUENCE_LIMITS.slides - 1),
+    narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    sourceNotes: z
+      .array(CarouselSourceNoteSchema)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
+      .optional(),
+  })
+  .strict();
+
+const CarouselSequenceEnvelopeSchema = z
+  .object({
+    deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS),
+    slides: z.array(CarouselSlideEnvelopeSchema).max(CAROUSEL_SEQUENCE_LIMITS.slides),
+  })
+  .strict();
+
 const ADVISORY_COPY_MAXIMUMS = Object.freeze({
   badge: 12,
   eyebrow: 36,
@@ -114,9 +163,8 @@ const ADVISORY_TEXT_MAXIMUM_BY_LAYER = Object.freeze({
   attribution: ADVISORY_COPY_MAXIMUMS.attribution,
 } as const satisfies Partial<Record<DesignLayer["type"], number>>);
 
-export function reviewCarouselSequence(
-  sequence: CarouselSequence,
-): CarouselSequenceReview {
+export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
+  const sequence = parseCarouselSequence(input);
   const profile: DeliveryProfile =
     DELIVERY_PROFILE_REGISTRY[sequence.deliveryProfileId];
   const slides = [...sequence.slides].sort(
@@ -231,9 +279,8 @@ export function reviewCarouselSequence(
   };
 }
 
-export function createCarouselDeliverySidecar(
-  sequence: CarouselSequence,
-): CarouselDeliverySidecar {
+export function createCarouselDeliverySidecar(input: unknown): CarouselDeliverySidecar {
+  const sequence = parseCarouselSequence(input);
   return {
     version: CAROUSEL_DELIVERY_SIDECAR_VERSION,
     deliveryProfile: {
@@ -251,6 +298,113 @@ export function createCarouselDeliverySidecar(
         sourceNotes: [...(slide.sourceNotes ?? [])],
       })),
   };
+}
+
+function parseCarouselSequence(input: unknown): CarouselSequence {
+  const boundProblems = preflightCarouselSequenceBounds(input);
+  if (boundProblems.length > 0) throwInvalidCarouselSequence(boundProblems);
+
+  const result = CarouselSequenceEnvelopeSchema.safeParse(input);
+  if (!result.success) {
+    throwInvalidCarouselSequence(
+      result.error.issues.map((issue) => ({
+        path: formatProblemPath(issue.path),
+        code: issue.code,
+        message: issue.message,
+      })),
+    );
+  }
+
+  const problems: CarouselValidationProblem[] = [];
+  const slides: CarouselSlide[] = [];
+  for (const [index, slide] of result.data.slides.entries()) {
+    const validation = validateDesignDocument(slide.document);
+    if (!validation.success) {
+      problems.push(
+        ...validation.problems.map((problem) => ({
+          ...problem,
+          path: `slides[${index.toString()}].document.${problem.path}`,
+        })),
+      );
+      continue;
+    }
+    slides.push({
+      document: validation.data,
+      ordinal: slide.ordinal,
+      narrativeRole: slide.narrativeRole,
+      compositionVariantId: slide.compositionVariantId,
+      ...(slide.sourceNotes === undefined
+        ? {}
+        : {
+            sourceNotes: slide.sourceNotes.map((note) => ({
+              label: note.label,
+              ...(note.url === undefined ? {} : { url: note.url }),
+            })),
+          }),
+    });
+  }
+  if (problems.length > 0) throwInvalidCarouselSequence(problems);
+
+  return {
+    deliveryProfileId: result.data.deliveryProfileId,
+    slides,
+  };
+}
+
+type CarouselValidationProblem = {
+  readonly path: string;
+  readonly code: string;
+  readonly message: string;
+};
+
+function preflightCarouselSequenceBounds(input: unknown): CarouselValidationProblem[] {
+  if (!isRecord(input) || !Array.isArray(input["slides"])) return [];
+  const slides = input["slides"];
+  if (slides.length > CAROUSEL_SEQUENCE_LIMITS.slides) {
+    return [
+      {
+        path: "slides",
+        code: "too_big",
+        message: `Carousel sequences support at most ${CAROUSEL_SEQUENCE_LIMITS.slides.toString()} slides.`,
+      },
+    ];
+  }
+  for (const [index, slide] of slides.entries()) {
+    if (!isRecord(slide) || !Array.isArray(slide["sourceNotes"])) continue;
+    if (slide["sourceNotes"].length > CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide) {
+      return [
+        {
+          path: `slides[${index.toString()}].sourceNotes`,
+          code: "too_big",
+          message: `Carousel slides support at most ${CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide.toString()} source notes.`,
+        },
+      ];
+    }
+  }
+  return [];
+}
+
+function throwInvalidCarouselSequence(
+  problems: readonly CarouselValidationProblem[],
+): never {
+  throw new GlyphkilnError(
+    "Carousel sequence validation failed.",
+    "INVALID_CAROUSEL_SEQUENCE",
+    { problems },
+  );
+}
+
+function formatProblemPath(path: readonly PropertyKey[]): string {
+  if (path.length === 0) return "$";
+  return path.reduce<string>((output, part) => {
+    if (typeof part === "number") return `${output}[${part.toString()}]`;
+    const segment = String(part);
+    return output.length === 0 ? segment : `${output}.${segment}`;
+  }, "");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function reviewSlideCopy(slide: CarouselSlide, issues: CarouselReviewIssue[]): void {

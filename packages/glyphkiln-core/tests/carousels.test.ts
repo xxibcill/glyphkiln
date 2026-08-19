@@ -7,6 +7,7 @@ import {
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
+  GlyphkilnError,
   createCarouselDeliverySidecar,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
@@ -67,6 +68,49 @@ describe("carousel delivery profiles", () => {
 });
 
 describe("carousel sequence review and sidecars", () => {
+  it("rejects malformed and unbounded public input with a stable error", async () => {
+    expect(() =>
+      reviewCarouselSequence({ deliveryProfileId: "not-a-profile", slides: [] }),
+    ).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+
+    const sequence = await organicSequence();
+    let oversizedError: unknown;
+    try {
+      createCarouselDeliverySidecar({
+        ...sequence,
+        slides: Array.from({ length: 65 }, () => sequence.slides[0]),
+      });
+    } catch (error) {
+      oversizedError = error;
+    }
+    expect(oversizedError).toBeInstanceOf(GlyphkilnError);
+    if (!(oversizedError instanceof GlyphkilnError)) return;
+    expect(oversizedError.code).toBe("INVALID_CAROUSEL_SEQUENCE");
+    expect(oversizedError.details?.["problems"]).toEqual([
+      expect.objectContaining({ path: "slides", code: "too_big" }),
+    ]);
+
+    expect(() =>
+      reviewCarouselSequence({
+        ...sequence,
+        slides: [
+          {
+            ...sequence.slides[0],
+            document: { ...sequence.slides[0]?.document, format: "unknown-format" },
+          },
+        ],
+      }),
+    ).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+  });
+
   it("reviews a valid ordered organic sequence without inventing hard design rules", async () => {
     const sequence = await organicSequence();
     const review = reviewCarouselSequence(sequence);
