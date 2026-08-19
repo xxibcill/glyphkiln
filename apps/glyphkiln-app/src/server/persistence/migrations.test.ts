@@ -429,6 +429,91 @@ describe("App Alpha PostgreSQL migration", () => {
     expect(singletonRows).toEqual([{ count: 1 }]);
   });
 
+  it("backfills delivery profiles while preserving populated canvases as append-only", async () => {
+    const migrations = await loadMigrations();
+    const deliveryProfileMigration = migrations.find(
+      (migration) => migration.version === "202608190014_campaign_delivery_profile",
+    );
+    if (deliveryProfileMigration === undefined) {
+      throw new Error("Campaign delivery-profile migration missing.");
+    }
+    for (const migration of migrations) {
+      if (migration === deliveryProfileMigration) break;
+      for (const statement of migration.upStatements) {
+        await database.query(statement);
+      }
+    }
+
+    await seedBrandAndDesignState(database);
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-a",
+      documentName: "Existing Instagram canvas",
+      id: "revision-existing-instagram",
+      revisionNumber: 1,
+    });
+    await database.query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id, created_by
+       ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6)`,
+      [
+        "campaign-existing-instagram",
+        "workspace-a",
+        "Existing Instagram campaign",
+        "Upgrade an existing append-only canvas.",
+        "existing-instagram-seed",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        "direction-existing-instagram",
+        "workspace-a",
+        "campaign-existing-instagram",
+        "existing-instagram",
+        "Existing Instagram direction",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_canvases (
+         id, workspace_id, campaign_id, direction_id, canvas_key,
+         design_id, revision_id, template_id, template_version, format_id,
+         composition_variant_id, narrative_role, seed_derivation_version,
+         direction_seed, canvas_seed, ordinal, created_by
+       ) VALUES (
+         $1, 'workspace-a', 'campaign-existing-instagram',
+         'direction-existing-instagram', 'instagram-hero', 'design-a',
+         'revision-existing-instagram', 'image-led-campaign', '1.0.1',
+         'instagram-square', 'focal-editorial', 'hook',
+         'sha256/canonical-scope-v1', $2, $3, 0, 'user-a'
+       )`,
+      ["canvas-existing-instagram", HASH_A, HASH_B],
+    );
+
+    for (const statement of deliveryProfileMigration.upStatements) {
+      await database.query(statement);
+    }
+
+    await expect(
+      database.query(
+        `SELECT delivery_profile_id
+           FROM campaign_canvases
+          WHERE id = 'canvas-existing-instagram'`,
+      ),
+    ).resolves.toEqual([{ delivery_profile_id: "instagram-native-carousel" }]);
+    await expect(
+      database.query(
+        `UPDATE campaign_canvases
+            SET narrative_role = 'context'
+          WHERE id = 'canvas-existing-instagram'`,
+      ),
+    ).rejects.toHaveProperty("code", "55000");
+  });
+
   it("persists authoritative carousel composition and narrative roles", async () => {
     await migrateDatabase(database);
     await seedBrandAndDesignState(database);

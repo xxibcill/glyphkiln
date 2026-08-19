@@ -2,6 +2,9 @@ ALTER TABLE campaign_canvases
   ADD COLUMN delivery_profile_id text;
 -- glyphkiln:statement-break
 
+DROP TRIGGER campaign_canvases_append_only ON campaign_canvases;
+-- glyphkiln:statement-break
+
 UPDATE campaign_canvases
    SET delivery_profile_id = CASE
      WHEN format_id IN ('instagram-square', 'instagram-portrait')
@@ -12,6 +15,11 @@ UPDATE campaign_canvases
        THEN 'tiktok-carousel-ad'
      ELSE NULL
    END;
+-- glyphkiln:statement-break
+
+CREATE TRIGGER campaign_canvases_append_only
+  BEFORE UPDATE OR DELETE ON campaign_canvases
+  FOR EACH ROW EXECUTE FUNCTION glyphkiln_reject_append_only_change();
 -- glyphkiln:statement-break
 
 ALTER TABLE campaign_canvases
