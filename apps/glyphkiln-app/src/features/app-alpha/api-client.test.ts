@@ -10,8 +10,7 @@ import {
   RENDERER_NAME,
   RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
-  DELIVERY_PROFILE_REGISTRY,
-  DELIVERY_SOURCES,
+  createCarouselDeliverySidecar,
   hashCanonical,
 } from "@glyphkiln/core";
 import type { DesignDocument, RenderManifest } from "@glyphkiln/core";
@@ -628,22 +627,19 @@ describe("App Alpha API client", () => {
         success: true,
         issues: [],
       },
-      deliverySidecar: {
-        version: "1.2.0",
-        deliveryProfile: {
-          id: "instagram-native-carousel",
-          metadataVersion: "1.0.0",
-          profile: DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"],
-          sources: [
-            DELIVERY_SOURCES["glyphkiln-carousel-validation"],
-            DELIVERY_SOURCES["instagram-creators-carousel-limit"],
-            DELIVERY_SOURCES["meta-instagram-alt-text"],
-            DELIVERY_SOURCES["meta-instagram-carousel"],
-            DELIVERY_SOURCES["meta-instagram-photo-resolution"],
-          ],
-        },
-        slides: [],
-      },
+      deliverySidecar: createCarouselDeliverySidecar({
+        deliveryProfileId: "instagram-native-carousel",
+        slides: [
+          {
+            document,
+            ordinal: 0,
+            narrativeRole: canvas.narrativeRole,
+            compositionVariantId: canvas.compositionVariantId,
+            altText: canvas.altText,
+            sourceNotes: canvas.sourceNotes,
+          },
+        ],
+      }),
       slides: [
         {
           canvas,
@@ -684,7 +680,65 @@ describe("App Alpha API client", () => {
       },
     });
 
-    value.deliverySidecar.deliveryProfile.sources = [];
+    (
+      value.deliverySidecar.deliveryProfile as unknown as { sources: unknown[] }
+    ).sources = [];
+    await expect(
+      createAppAlphaApi(fetchMock).campaignCarouselReview({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        sequenceKey: "launch-carousel",
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+
+    value.deliverySidecar = createCarouselDeliverySidecar({
+      deliveryProfileId: "instagram-native-carousel",
+      slides: [
+        {
+          document,
+          ordinal: 0,
+          narrativeRole: canvas.narrativeRole,
+          compositionVariantId: canvas.compositionVariantId,
+          altText: canvas.altText,
+          sourceNotes: canvas.sourceNotes,
+        },
+      ],
+    });
+    (
+      value.deliverySidecar.deliveryProfile as { metadataVersion: string }
+    ).metadataVersion = "0.0.0";
+    await expect(
+      createAppAlphaApi(fetchMock).campaignCarouselReview({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        sequenceKey: "launch-carousel",
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
+    });
+
+    value.deliverySidecar = createCarouselDeliverySidecar({
+      deliveryProfileId: "instagram-native-carousel",
+      slides: [
+        {
+          document,
+          ordinal: 0,
+          narrativeRole: canvas.narrativeRole,
+          compositionVariantId: canvas.compositionVariantId,
+          altText: canvas.altText,
+          sourceNotes: canvas.sourceNotes,
+        },
+      ],
+    });
+    (value.deliverySidecar as unknown as { slides: unknown[] }).slides = [];
     await expect(
       createAppAlphaApi(fetchMock).campaignCarouselReview({
         workspaceId: "workspace-1",
