@@ -1047,6 +1047,27 @@ describe("AppWorkflow", () => {
       422,
       "INVALID_CAMPAIGN_CANVAS",
     );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square",
+          designId: branchedRevision.designId,
+          revisionId: branchedRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          narrativeRole: "hook",
+          deliveryProfileId: "instagram-api-carousel",
+          carouselSequenceKey: "launch-carousel",
+          ordinal: 0,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
     const instagramCanvas = expectReceipt(
       await workflow.execute({
         evidence: ownerEvidence(owner),
@@ -1062,6 +1083,8 @@ describe("AppWorkflow", () => {
           narrativeRole: "hook",
           deliveryProfileId: "instagram-api-carousel",
           carouselSequenceKey: "launch-carousel",
+          altText:
+            "Opening square carousel slide showing the campaign product and promise.",
           sourceNotes: [
             {
               label: "Product launch brief",
@@ -1076,6 +1099,8 @@ describe("AppWorkflow", () => {
     expect(instagramCanvas).toMatchObject({
       deliveryProfileId: "instagram-api-carousel",
       carouselSequenceKey: "launch-carousel",
+      altText:
+        "Opening square carousel slide showing the campaign product and promise.",
       sourceNotes: [
         {
           label: "Product launch brief",
@@ -1137,6 +1162,7 @@ describe("AppWorkflow", () => {
           narrativeRole: "action",
           deliveryProfileId: "instagram-native-carousel",
           carouselSequenceKey: "launch-carousel",
+          altText: "Closing square carousel slide with the final campaign action.",
           ordinal: 1,
         },
       }),
@@ -1158,6 +1184,7 @@ describe("AppWorkflow", () => {
           narrativeRole: "action",
           deliveryProfileId: "instagram-api-carousel",
           carouselSequenceKey: "launch-carousel",
+          altText: "Closing square carousel slide with the final campaign action.",
           sourceNotes: [{ label: "Approved closing copy" }],
           ordinal: 1,
         },
@@ -1187,7 +1214,7 @@ describe("AppWorkflow", () => {
     expect(
       parseTestJson(Buffer.from(deliveryFile.base64, "base64").toString("utf8")),
     ).toMatchObject({
-      version: "1.0.0",
+      version: "1.1.0",
       deliveryProfile: {
         id: "instagram-api-carousel",
         metadataVersion: "1.0.0",
@@ -1196,6 +1223,8 @@ describe("AppWorkflow", () => {
         {
           ordinal: 0,
           narrativeRole: "hook",
+          altText:
+            "Opening square carousel slide showing the campaign product and promise.",
           sourceNotes: [
             {
               label: "Product launch brief",
@@ -1206,6 +1235,7 @@ describe("AppWorkflow", () => {
         {
           ordinal: 1,
           narrativeRole: "action",
+          altText: "Closing square carousel slide with the final campaign action.",
           sourceNotes: [{ label: "Approved closing copy" }],
         },
       ],

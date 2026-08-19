@@ -181,6 +181,11 @@ const CampaignCanvasSchema = z
       .max(120)
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
       .optional(),
+    altText: z
+      .string()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters)
+      .optional(),
     sourceNotes: z
       .array(CarouselSourceNoteSchema)
       .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
@@ -951,6 +956,7 @@ export type AppAlphaApi = {
     narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
     deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
     carouselSequenceKey?: z.infer<typeof CampaignCanvasSchema>["carouselSequenceKey"];
+    altText?: z.infer<typeof CampaignCanvasSchema>["altText"];
     sourceNotes?: z.infer<typeof CampaignCanvasSchema>["sourceNotes"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {

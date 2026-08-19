@@ -233,6 +233,7 @@ export function CampaignOptionBoard({
                     {canvas.carouselSequenceKey === undefined
                       ? ""
                       : `· sequence ${canvas.carouselSequenceKey} `}
+                    {canvas.altText === undefined ? "" : "· publisher alt ready "}
                     {canvas.sourceNotes === undefined
                       ? ""
                       : `· ${canvas.sourceNotes.length.toString()} source note${canvas.sourceNotes.length === 1 ? "" : "s"} `}
@@ -344,6 +345,12 @@ export function CampaignCanvasAttachment({
   onApplySeed: () => void;
   onAttachCanvas: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
+  const selectedDeliveryProfile = deliveryProfiles.find(
+    ({ id }) => id === selectedDeliveryProfileId,
+  );
+  const publisherAltTextLimit =
+    selectedDeliveryProfile?.accessibility.value.maximumAltTextCharacters ??
+    CAROUSEL_SEQUENCE_LIMITS.altTextCharacters;
   return (
     <form className="canvas-attachment" onSubmit={onAttachCanvas}>
       <span>04 / ATTACH EXACT REVISION</span>
@@ -424,6 +431,21 @@ export function CampaignCanvasAttachment({
           <small id="carousel-sequence-hint">
             Use one key for every slide in a reviewed sequence; leave blank for a
             standalone canvas.
+          </small>
+          <label>
+            Publisher alt text
+            <textarea
+              name="altText"
+              rows={3}
+              maxLength={publisherAltTextLimit}
+              disabled={isBusy}
+              aria-describedby="carousel-alt-text-hint"
+            />
+          </label>
+          <small id="carousel-alt-text-hint">
+            Describe the complete slide for the publishing destination. Required with a
+            sequence key; up to {publisherAltTextLimit.toString()} characters for this
+            path.
           </small>
           <label>
             Slide source notes

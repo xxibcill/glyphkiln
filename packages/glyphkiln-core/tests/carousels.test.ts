@@ -160,7 +160,7 @@ describe("carousel sequence review and sidecars", () => {
     const sequence = await organicSequence();
     const review = reviewCarouselSequence(sequence);
 
-    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.0.0");
+    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.1.0");
     expect(CAROUSEL_NARRATIVE_ROLE_IDS).toEqual([
       "hook",
       "context",
@@ -174,6 +174,7 @@ describe("carousel sequence review and sidecars", () => {
       sourceNotesPerSlide: 32,
       sourceNoteLabelCharacters: 500,
       sourceNoteUrlCharacters: 2_048,
+      altTextCharacters: 2_000,
     });
     expect(BROWSER_CAROUSEL_SEQUENCE_LIMITS).toBe(CAROUSEL_SEQUENCE_LIMITS);
     expect(review.success).toBe(true);
@@ -222,6 +223,25 @@ describe("carousel sequence review and sidecars", () => {
       expect.objectContaining({
         code: "FORMAT_INCOMPATIBLE",
         severity: "error",
+      }),
+    );
+  });
+
+  it("blocks publisher alt text that exceeds the selected profile", async () => {
+    const sequence = await organicSequence();
+    const first = sequence.slides[0];
+    if (first === undefined) throw new Error("Expected a first organic slide.");
+    const review = reviewCarouselSequence({
+      ...sequence,
+      slides: [{ ...first, altText: "a".repeat(301) }, ...sequence.slides.slice(1)],
+    });
+
+    expect(review.success).toBe(false);
+    expect(review.issues).toContainEqual(
+      expect.objectContaining({
+        code: "ALT_TEXT_OUTSIDE_PROFILE",
+        severity: "error",
+        slideId: first.document.id,
       }),
     );
   });
@@ -277,6 +297,8 @@ describe("carousel sequence review and sidecars", () => {
           ordinal: 0,
           narrativeRole: "hook",
           compositionVariantId: "focal-editorial",
+          altText:
+            "Portrait launch slide featuring a cobalt ceramic table lamp and campaign copy.",
           sourceNotes: [{ label: "Product launch brief" }],
         },
         {
@@ -284,12 +306,13 @@ describe("carousel sequence review and sidecars", () => {
           ordinal: 1,
           narrativeRole: "action",
           compositionVariantId: "focal-editorial",
+          altText: "Closing campaign slide with a cobalt table lamp and action copy.",
         },
       ],
     };
 
     const sidecar = createCarouselDeliverySidecar(sequence);
-    expect(CAROUSEL_DELIVERY_SIDECAR_VERSION).toBe("1.0.0");
+    expect(CAROUSEL_DELIVERY_SIDECAR_VERSION).toBe("1.1.0");
     expect(sidecar.deliveryProfile).toEqual({
       id: "instagram-native-carousel",
       metadataVersion: "1.0.0",
@@ -307,6 +330,9 @@ describe("carousel sequence review and sidecars", () => {
       },
       { layerId: "brand-mark", alt: "Kilnform arch mark." },
     ]);
+    expect(sidecar.slides[0]?.altText).toBe(
+      "Portrait launch slide featuring a cobalt ceramic table lamp and campaign copy.",
+    );
     expect(createCarouselDeliverySidecar(sequence)).toEqual(sidecar);
   });
 });
@@ -325,12 +351,14 @@ async function organicSequence(): Promise<CarouselSequence> {
         ordinal: 0,
         narrativeRole: "hook",
         compositionVariantId: "organic-photo-editorial",
+        altText: "Opening organic carousel slide introducing the sequence.",
       },
       {
         document: second,
         ordinal: 1,
         narrativeRole: "action",
         compositionVariantId: "organic-photo-editorial",
+        altText: "Closing organic carousel slide with the final action.",
       },
     ],
   };

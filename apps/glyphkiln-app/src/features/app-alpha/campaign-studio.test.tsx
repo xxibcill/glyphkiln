@@ -403,6 +403,10 @@ describe("CampaignStudio", () => {
     expect(button("Attach revision").disabled).toBe(false);
     await setInput('input[name="carouselSequenceKey"]', "launch-carousel");
     await setTextarea(
+      'textarea[name="altText"]',
+      "Square launch slide showing the campaign product and its core promise.",
+    );
+    await setTextarea(
       'textarea[name="sourceNotes"]',
       "Product launch brief | https://example.com/launch-brief",
     );
@@ -420,6 +424,7 @@ describe("CampaignStudio", () => {
       narrativeRole: "context",
       deliveryProfileId: "instagram-api-carousel",
       carouselSequenceKey: "launch-carousel",
+      altText: "Square launch slide showing the campaign product and its core promise.",
       sourceNotes: [
         {
           label: "Product launch brief",

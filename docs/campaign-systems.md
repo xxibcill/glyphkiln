@@ -46,15 +46,17 @@ limits are never merged.
 
 `reviewCarouselSequence()` accepts one selected delivery profile and ordered
 slides with explicit `hook`, `context`, `evidence`, `explanation`, `recap`, or
-`action` roles. Incompatible formats, actual profile limits, mixed required
-aspect ratios, and invalid ordinals are errors. Copy length, hook/close shape,
-composition rhythm, generic alt text, and missing statistic sources are warnings
-for review—not engagement promises or renderer failures.
+`action` roles plus whole-slide publisher alt text. Incompatible formats, actual
+profile limits (including a published alt-text cap), mixed required aspect
+ratios, and invalid ordinals are errors. Copy length, hook/close shape,
+composition rhythm, generic asset alt text, and missing statistic sources are
+warnings for review—not engagement promises or renderer failures.
 
 `createCarouselDeliverySidecar()` deterministically records each slide's reading
-order, meaningful asset descriptions, source notes, narrative role, and exact
-delivery-profile metadata version. Neither sequence metadata nor a delivery
-sidecar enters the document fingerprint or changes pixels.
+order, whole-slide publisher alt text, meaningful per-layer asset descriptions,
+source notes, narrative role, and exact delivery-profile metadata version.
+Neither sequence metadata nor a delivery sidecar enters the document fingerprint
+or changes pixels.
 
 ## Seed derivation
 
@@ -140,7 +142,10 @@ publishable sequence; canvases without a key remain standalone variants. Every
 canvas under one key must share a delivery profile. Campaign Studio also accepts
 bounded slide source notes as a label with an optional absolute URL. Those notes
 are stored with the immutable canvas attachment and carried into the sequence
-delivery sidecar instead of being reconstructed during handoff.
+delivery sidecar instead of being reconstructed during handoff. Every keyed
+carousel canvas also requires whole-slide publisher alt text; the App stores it
+separately from layer-level asset descriptions and applies the selected profile's
+published character cap before attachment.
 
 Campaign persistence is dark-launched until a reviewed real-brief
 qualification passes the four-format and multi-slide gate below. The runtime

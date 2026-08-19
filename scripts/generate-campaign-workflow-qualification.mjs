@@ -645,6 +645,7 @@ function createUnapprovedHandoff(campaign, cases) {
       ordinal,
       narrativeRole: qualificationNarrativeRole(entry),
       compositionVariantId: entry.compositionVariantId,
+      altText: `${entry.label}. ${entry.copy.headline.replaceAll("\n", " ")} ${entry.copy.subtitle}`,
       sourceNotes: [
         {
           label: "Glyphkiln campaign workflow qualification",

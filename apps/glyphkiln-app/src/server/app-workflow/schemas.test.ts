@@ -17,6 +17,7 @@ describe("App campaign canvas command schema", () => {
     narrativeRole: "evidence" as const,
     deliveryProfileId: "instagram-api-carousel" as const,
     carouselSequenceKey: "launch-carousel",
+    altText: "Launch slide with the product promise and supporting campaign image.",
     ordinal: 0,
   };
 
@@ -59,6 +60,12 @@ describe("App campaign canvas command schema", () => {
             label: "x".repeat(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters + 1),
           },
         ],
+      }).success,
+    ).toBe(false);
+    expect(
+      AppCommandSchema.safeParse({
+        ...command,
+        altText: "x".repeat(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters + 1),
       }).success,
     ).toBe(false);
   });

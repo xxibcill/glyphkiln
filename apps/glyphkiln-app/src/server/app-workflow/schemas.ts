@@ -240,6 +240,12 @@ const AttachCampaignCanvasSchema = z
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
     carouselSequenceKey: identifier.optional(),
+    altText: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters)
+      .optional(),
     sourceNotes: z
       .array(carouselSourceNote)
       .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)

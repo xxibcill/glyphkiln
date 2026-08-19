@@ -28,8 +28,9 @@ from a generic social-media prompt.
 - [x] Add a first-class carousel sequence contract with narrative roles, stable
       ordering, composition-rhythm review, aspect-ratio checks, source checks, and
       accessibility checks.
-- [x] Add deterministic delivery sidecars containing reading order, image alt text,
-      source notes, and selected delivery-profile metadata.
+- [x] Add deterministic delivery sidecars containing whole-slide publisher alt
+      text, reading order, per-layer asset descriptions, source notes, and selected
+      delivery-profile metadata.
 - [x] Extend render evidence with exact fitted font sizes and show representative
       delivered-phone-size equivalents in the App.
 - [x] Add versioned, explicitly advisory platform-surface overlays to preview; do

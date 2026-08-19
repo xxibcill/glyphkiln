@@ -263,9 +263,9 @@ native organic, TikTok Content Posting API, and TikTok paid-ad paths with dated 
 levels. `reviewCarouselSequence()` checks actual delivery and ordering failures
 while returning copy length, source coverage, accessibility, and composition
 rhythm as warnings. `createCarouselDeliverySidecar()` produces deterministic
-reading order, asset descriptions, source notes, and profile identity for
-handoff. These contracts are available from the main and browser entries and do
-not change template pixels.
+whole-slide publisher alt text, reading order, per-layer asset descriptions,
+source notes, and profile identity for handoff. These contracts are available
+from the main and browser entries and do not change template pixels.
 
 For AI-assisted authoring, prioritize typography: semantic copy, type
 hierarchy, color, and Core-owned layout or background primitives. Do not

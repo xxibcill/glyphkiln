@@ -152,6 +152,7 @@ export type AppCommand =
       narrativeRole: CarouselNarrativeRole;
       deliveryProfileId?: DeliveryProfileId;
       carouselSequenceKey?: string;
+      altText?: string;
       sourceNotes?: readonly CarouselSourceNote[];
       ordinal: number;
     }
@@ -604,6 +605,7 @@ export type CampaignCanvasProjection = {
   narrativeRole: CarouselNarrativeRole;
   deliveryProfileId?: DeliveryProfileId;
   carouselSequenceKey?: string;
+  altText?: string;
   sourceNotes?: readonly CarouselSourceNote[];
   seedDerivationVersion: string;
   directionSeed: string;

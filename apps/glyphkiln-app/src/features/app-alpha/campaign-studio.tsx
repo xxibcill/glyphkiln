@@ -291,6 +291,11 @@ export function CampaignStudio({
       typeof rawCarouselSequenceKey === "string" && rawCarouselSequenceKey.trim() !== ""
         ? rawCarouselSequenceKey.trim()
         : undefined;
+    const rawAltText = form.get("altText");
+    const altText =
+      typeof rawAltText === "string" && rawAltText.trim() !== ""
+        ? rawAltText.trim()
+        : undefined;
     const sourceNotes = parseSourceNotes(form.get("sourceNotes"));
     setBusy("canvas");
     setFailure(undefined);
@@ -308,6 +313,7 @@ export function CampaignStudio({
         ? {}
         : { deliveryProfileId: selectedDeliveryProfile.id }),
       ...(carouselSequenceKey === undefined ? {} : { carouselSequenceKey }),
+      ...(altText === undefined ? {} : { altText }),
       ...(sourceNotes.length === 0 ? {} : { sourceNotes }),
     });
     if (result.ok) {

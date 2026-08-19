@@ -1,6 +1,7 @@
 import { BrandSnapshotSchema } from "@glyphkiln/core/schema";
 import {
   CAMPAIGN_FAMILY_REGISTRY,
+  CAROUSEL_SEQUENCE_LIMITS,
   canonicalJson,
   createCampaignCanvasKey,
   createCarouselDeliverySidecar,
@@ -1623,6 +1624,31 @@ class AppWorkflowImplementation implements AppWorkflow {
         revision.document.format,
         command.deliveryProfileId,
       );
+      const altText = command.altText?.trim();
+      if (
+        altText !== undefined &&
+        (altText.length === 0 ||
+          altText.length > CAROUSEL_SEQUENCE_LIMITS.altTextCharacters)
+      ) {
+        throw invalidCampaignCanvas("Publisher alt text is outside the App limit.");
+      }
+      const deliveryProfile =
+        deliveryProfileId === undefined
+          ? undefined
+          : deliveryProfilesForFormat(revision.document.format).find(
+              ({ id }) => id === deliveryProfileId,
+            );
+      const maximumAltTextCharacters =
+        deliveryProfile?.accessibility.value.maximumAltTextCharacters;
+      if (
+        altText !== undefined &&
+        maximumAltTextCharacters !== undefined &&
+        altText.length > maximumAltTextCharacters
+      ) {
+        throw invalidCampaignCanvas(
+          `${deliveryProfile?.label ?? "The selected delivery profile"} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
+        );
+      }
       const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {
         canvasKey: command.canvasKey,
         templateId: revision.document.template.id,
@@ -1652,6 +1678,11 @@ class AppWorkflowImplementation implements AppWorkflow {
         if (deliveryProfileId === undefined) {
           throw invalidCampaignCanvas(
             "A carousel sequence requires a compatible delivery profile.",
+          );
+        }
+        if (altText === undefined) {
+          throw invalidCampaignCanvas(
+            "Every carousel slide requires whole-slide publisher alt text.",
           );
         }
         const mismatchedSequenceCanvas = boardDirection.canvases.find(
@@ -1694,6 +1725,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         narrativeRole: command.narrativeRole,
         deliveryProfileId,
         carouselSequenceKey: command.carouselSequenceKey,
+        altText,
         sourceNotes: command.sourceNotes,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
@@ -1718,6 +1750,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           directionSeed: derivedSeed.directionSeed,
           canvasSeed: derivedSeed.canvasSeed,
           narrativeRole: command.narrativeRole,
+          hasPublisherAltText: altText !== undefined,
           sourceNoteCount: command.sourceNotes?.length ?? 0,
           ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
           ...(command.carouselSequenceKey === undefined
@@ -1739,6 +1772,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         ...(command.carouselSequenceKey === undefined
           ? {}
           : { carouselSequenceKey: command.carouselSequenceKey }),
+        ...(altText === undefined ? {} : { altText }),
         ...(command.sourceNotes === undefined || command.sourceNotes.length === 0
           ? {}
           : {
@@ -3292,15 +3326,23 @@ function addCampaignHandoffSequenceFiles(
     );
     const sequence = {
       deliveryProfileId,
-      slides: orderedCanvases.map(({ canvas, document }, ordinal) => ({
-        document,
-        ordinal,
-        narrativeRole: canvas.narrativeRole,
-        compositionVariantId: canvas.compositionVariantId,
-        ...(canvas.sourceNotes === undefined
-          ? {}
-          : { sourceNotes: canvas.sourceNotes }),
-      })),
+      slides: orderedCanvases.map(({ canvas, document }, ordinal) => {
+        if (canvas.altText === undefined) {
+          throw invalidCampaignCanvas(
+            `Carousel sequence ${sequenceKey} requires publisher alt text for every slide.`,
+          );
+        }
+        return {
+          document,
+          ordinal,
+          narrativeRole: canvas.narrativeRole,
+          compositionVariantId: canvas.compositionVariantId,
+          altText: canvas.altText,
+          ...(canvas.sourceNotes === undefined
+            ? {}
+            : { sourceNotes: canvas.sourceNotes }),
+        };
+      }),
     };
     const review = reviewCarouselSequence(sequence);
     if (!review.success) {

@@ -69,6 +69,7 @@ const MIGRATION_VERSIONS = [
   "202608190014_campaign_delivery_profile",
   "202608190015_campaign_carousel_sequence",
   "202608190016_campaign_canvas_source_notes",
+  "202608190017_campaign_canvas_alt_text",
 ] as const;
 
 type TableNameRow = {
@@ -562,19 +563,20 @@ describe("App Alpha PostgreSQL migration", () => {
       ordinal: number,
       carouselSequenceKey: string | null = null,
       sourceNotes: readonly { label: string; url?: string }[] = [],
+      altText: string | null = null,
     ) =>
       database.query(
         `INSERT INTO campaign_canvases (
            id, workspace_id, campaign_id, direction_id, canvas_key,
            design_id, revision_id, template_id, template_version, format_id,
            composition_variant_id, narrative_role, delivery_profile_id,
-           carousel_sequence_key, source_notes, seed_derivation_version,
-           direction_seed, canvas_seed, ordinal, created_by
+           carousel_sequence_key, publisher_alt_text, source_notes,
+           seed_derivation_version, direction_seed, canvas_seed, ordinal, created_by
          ) VALUES (
            $1, 'workspace-a', 'campaign-carousel-a', 'direction-carousel-a', $2,
            'design-a', 'revision-carousel-a', 'tiktok-carousel-slide', '1.0.3',
-           'tiktok-photo-carousel', $3, $4, $5, $6, $7::jsonb,
-           'sha256/canonical-scope-v1', $8, $9, $10,
+           'tiktok-photo-carousel', $3, $4, $5, $6, $7, $8::jsonb,
+           'sha256/canonical-scope-v1', $9, $10, $11,
            'user-a'
          )`,
         [
@@ -584,6 +586,7 @@ describe("App Alpha PostgreSQL migration", () => {
           narrativeRole,
           deliveryProfileId,
           carouselSequenceKey,
+          altText,
           sourceNotes,
           HASH_A,
           HASH_B,
@@ -606,6 +609,7 @@ describe("App Alpha PostgreSQL migration", () => {
             url: "https://example.com/launch-research",
           },
         ],
+        "Opening proof slide describing the deterministic campaign contract.",
       ),
     ).resolves.toEqual([]);
     await expect(
@@ -631,7 +635,7 @@ describe("App Alpha PostgreSQL migration", () => {
     await expect(
       database.query(
         `SELECT narrative_role, delivery_profile_id, carousel_sequence_key,
-                source_notes
+                publisher_alt_text, source_notes
            FROM campaign_canvases
           WHERE id = 'canvas-carousel-a'`,
       ),
@@ -640,6 +644,8 @@ describe("App Alpha PostgreSQL migration", () => {
         narrative_role: "hook",
         delivery_profile_id: "tiktok-content-posting-photo",
         carousel_sequence_key: "proof-series",
+        publisher_alt_text:
+          "Opening proof slide describing the deterministic campaign contract.",
         source_notes: [
           {
             label: "Launch research",
@@ -656,6 +662,19 @@ describe("App Alpha PostgreSQL migration", () => {
         "context",
         "instagram-api-carousel",
         3,
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      insertCanvas(
+        "canvas-alt-too-long-a",
+        "slide-07",
+        "organic-photo-editorial",
+        "context",
+        "tiktok-organic-photo",
+        6,
+        "proof-series",
+        [],
+        "x".repeat(2001),
       ),
     ).rejects.toHaveProperty("code", "23514");
     await expect(

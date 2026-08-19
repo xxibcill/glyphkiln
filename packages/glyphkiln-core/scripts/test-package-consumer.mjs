@@ -176,7 +176,7 @@ assert.equal(readInertArrayLength([inertRecord]), 1);
 assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
 assert.equal(AUTHORING_CONTRACT_VERSION, "1.2.0");
 assert.equal(DELIVERY_PROFILE_METADATA_VERSION, "1.0.0");
-assert.equal(CAROUSEL_SEQUENCE_VERSION, "1.0.0");
+assert.equal(CAROUSEL_SEQUENCE_VERSION, "1.1.0");
 assert.equal(
   DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum,
   10,
@@ -421,7 +421,7 @@ const authoringQuality: AuthoringQualityIssueMapping =
 if (
   AUTHORING_CONTRACT_VERSION !== "1.2.0" ||
   DELIVERY_PROFILE_METADATA_VERSION !== "1.0.0" ||
-  CAROUSEL_SEQUENCE_VERSION !== "1.0.0" ||
+  CAROUSEL_SEQUENCE_VERSION !== "1.1.0" ||
   DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum !==
     10 ||
   authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||

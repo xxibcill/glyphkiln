@@ -29,7 +29,7 @@ does not claim that 3:4 is an official universal TikTok requirement.
 ## Review records
 
 - [Sequence review](generated/sequence-review.json)
-- [Delivery sidecar](generated/delivery-sidecar.json)
+- [Delivery sidecar with publisher alt text](generated/delivery-sidecar.json)
 - [Publishing copy and per-image alt text](generated/publishing-copy.json)
 - [Complete render and device-proof record](generated/review-record.json)
 

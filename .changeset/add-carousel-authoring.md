@@ -10,4 +10,4 @@ organic carousel composition with collision-safe headline leading, optional
 sequence chrome, content-responsive spacing, and deterministic pattern rails.
 Extend Campaign Studio with stored narrative roles, delivery profiles, and
 per-slide source notes, plus carousel review evidence, accessibility copy, and
-verified delivery sidecars in handoffs.
+verified delivery sidecars with whole-slide publisher alt text in handoffs.

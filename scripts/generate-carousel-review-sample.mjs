@@ -206,6 +206,7 @@ const sequence = {
     ordinal: slideEntry.ordinal,
     narrativeRole: slideEntry.narrativeRole,
     compositionVariantId: COMPOSITION_VARIANT_ID,
+    altText: slideEntry.altText,
     sourceNotes: slideEntry.sourceNotes,
   })),
 };
@@ -673,7 +674,7 @@ ${slideRows}
 ## Review records
 
 - [Sequence review](generated/sequence-review.json)
-- [Delivery sidecar](generated/delivery-sidecar.json)
+- [Delivery sidecar with publisher alt text](generated/delivery-sidecar.json)
 - [Publishing copy and per-image alt text](generated/publishing-copy.json)
 - [Complete render and device-proof record](generated/review-record.json)
 

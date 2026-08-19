@@ -27,8 +27,8 @@ import {
   type DeliveryProfileId,
 } from "../delivery/index.js";
 
-export const CAROUSEL_SEQUENCE_VERSION = "1.0.0" as const;
-export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.0.0" as const;
+export const CAROUSEL_SEQUENCE_VERSION = "1.1.0" as const;
+export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.1.0" as const;
 
 export const CAROUSEL_NARRATIVE_ROLE_IDS = Object.freeze([
   "hook",
@@ -50,6 +50,7 @@ export type CarouselSlide = {
   readonly ordinal: number;
   readonly narrativeRole: CarouselNarrativeRole;
   readonly compositionVariantId: CampaignCompositionVariantId;
+  readonly altText: string;
   readonly sourceNotes?: readonly CarouselSourceNote[];
 };
 
@@ -71,6 +72,7 @@ export const CAROUSEL_REVIEW_ISSUE_CODES = Object.freeze([
   "COMPOSITION_RHYTHM_REVIEW",
   "COPY_LENGTH_REVIEW",
   "STATISTIC_SOURCE_REVIEW",
+  "ALT_TEXT_OUTSIDE_PROFILE",
   "ALT_TEXT_REVIEW",
 ] as const);
 export type CarouselReviewIssueCode = (typeof CAROUSEL_REVIEW_ISSUE_CODES)[number];
@@ -100,6 +102,7 @@ export type CarouselDeliverySidecar = {
     readonly documentId: string;
     readonly ordinal: number;
     readonly narrativeRole: CarouselNarrativeRole;
+    readonly altText: string;
     readonly readingOrder: readonly {
       readonly layerId: string;
       readonly text: string;
@@ -117,6 +120,7 @@ export const CAROUSEL_SEQUENCE_LIMITS = Object.freeze({
   sourceNotesPerSlide: 32,
   sourceNoteLabelCharacters: 500,
   sourceNoteUrlCharacters: 2_048,
+  altTextCharacters: 2_000,
 } as const);
 
 const CarouselSourceNoteSchema = z
@@ -136,6 +140,7 @@ const CarouselSlideEnvelopeSchema = z
       .max(CAROUSEL_SEQUENCE_LIMITS.slides - 1),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    altText: z.string().trim().min(1).max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters),
     sourceNotes: z
       .array(CarouselSourceNoteSchema)
       .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
@@ -230,7 +235,7 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
     }
     compositionVariants.push(reviewCompositionVariant(slide, issues));
     reviewSlideCopy(slide, issues);
-    reviewSlideAccessibility(slide, issues);
+    reviewSlideAccessibility(slide, profile, issues);
   }
 
   if (profile.aspectRatio.value.sameAcrossSequence && aspectRatios.size > 1) {
@@ -324,6 +329,7 @@ export function createCarouselDeliverySidecar(input: unknown): CarouselDeliveryS
         documentId: slide.document.id,
         ordinal: slide.ordinal,
         narrativeRole: slide.narrativeRole,
+        altText: slide.altText,
         readingOrder: slide.document.layers.flatMap(readingOrderEntry),
         visualDescriptions: slide.document.layers.flatMap(visualDescriptionEntry),
         sourceNotes: [...(slide.sourceNotes ?? [])],
@@ -365,6 +371,7 @@ function parseCarouselSequence(input: unknown): CarouselSequence {
       ordinal: slide.ordinal,
       narrativeRole: slide.narrativeRole,
       compositionVariantId: slide.compositionVariantId,
+      altText: slide.altText,
       ...(slide.sourceNotes === undefined
         ? {}
         : {
@@ -422,6 +429,7 @@ const CAROUSEL_SLIDE_ENVELOPE_KEYS = new Set([
   "ordinal",
   "narrativeRole",
   "compositionVariantId",
+  "altText",
   "sourceNotes",
 ]);
 const CAROUSEL_SLIDE_REQUIRED_KEYS = new Set([
@@ -429,6 +437,7 @@ const CAROUSEL_SLIDE_REQUIRED_KEYS = new Set([
   "ordinal",
   "narrativeRole",
   "compositionVariantId",
+  "altText",
 ]);
 const CAROUSEL_SOURCE_NOTE_KEYS = new Set(["label", "url"]);
 const CAROUSEL_SOURCE_NOTE_REQUIRED_KEYS = new Set(["label"]);
@@ -473,6 +482,7 @@ function readInertCarouselSlide(input: unknown): unknown {
     ordinal: slide["ordinal"],
     narrativeRole: slide["narrativeRole"],
     compositionVariantId: slide["compositionVariantId"],
+    altText: slide["altText"],
     ...(sourceNotes === undefined ? {} : { sourceNotes }),
   };
 }
@@ -577,8 +587,22 @@ function reviewSlideCopy(slide: CarouselSlide, issues: CarouselReviewIssue[]): v
 
 function reviewSlideAccessibility(
   slide: CarouselSlide,
+  profile: DeliveryProfile,
   issues: CarouselReviewIssue[],
 ): void {
+  const maximumAltTextCharacters = profile.accessibility.value.maximumAltTextCharacters;
+  if (
+    maximumAltTextCharacters !== undefined &&
+    slide.altText.length > maximumAltTextCharacters
+  ) {
+    issues.push(
+      error(
+        "ALT_TEXT_OUTSIDE_PROFILE",
+        `${profile.label} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
+        slide.document.id,
+      ),
+    );
+  }
   const hasStatistic = slide.document.layers.some(
     (layer) => layer.visible && layer.type === "statistic",
   );
