@@ -153,6 +153,46 @@ describe("carousel sequence review and sidecars", () => {
     );
   });
 
+  it("derives composition rhythm from the document family contract", async () => {
+    const sequence = await organicSequence();
+    const source = sequence.slides[0];
+    if (source === undefined) throw new Error("Expected an organic source slide.");
+    const review = reviewCarouselSequence({
+      ...sequence,
+      slides: [
+        source,
+        {
+          ...source,
+          document: { ...cloneDocument(source.document), id: "spoofed-rhythm" },
+          ordinal: 1,
+          narrativeRole: "context",
+          compositionVariantId: "focal-editorial",
+        },
+        {
+          ...source,
+          document: { ...cloneDocument(source.document), id: "organic-close" },
+          ordinal: 2,
+          narrativeRole: "action",
+        },
+      ],
+    });
+
+    expect(review.success).toBe(false);
+    expect(review.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "COMPOSITION_VARIANT_INCOMPATIBLE",
+          severity: "error",
+          slideId: "spoofed-rhythm",
+        }),
+        expect.objectContaining({
+          code: "COMPOSITION_RHYTHM_REVIEW",
+          severity: "warning",
+        }),
+      ]),
+    );
+  });
+
   it("creates a deterministic reading-order, alt-text, and source sidecar", async () => {
     const document = await loadNormalizedExample("image-led-campaign");
     document.format = "instagram-portrait";

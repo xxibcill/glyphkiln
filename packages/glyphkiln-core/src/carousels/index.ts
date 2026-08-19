@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CAROUSEL_COPY_ADVISORY } from "../authoring/carousel-copy-policy.js";
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAMPAIGN_FAMILY_REGISTRY,
   type CampaignCompositionVariantId,
 } from "../campaigns/index.js";
 import { FORMAT_REGISTRY } from "../formats/index.js";
@@ -60,6 +61,7 @@ export const CAROUSEL_REVIEW_ISSUE_CODES = Object.freeze([
   "ORDINAL_SEQUENCE_INVALID",
   "HOOK_ROLE_RECOMMENDED",
   "CLOSING_ROLE_RECOMMENDED",
+  "COMPOSITION_VARIANT_INCOMPATIBLE",
   "COMPOSITION_RHYTHM_REVIEW",
   "COPY_LENGTH_REVIEW",
   "STATISTIC_SOURCE_REVIEW",
@@ -176,6 +178,7 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
   }
 
   const aspectRatios = new Set<string>();
+  const compositionVariants: string[] = [];
   for (const [index, slide] of slides.entries()) {
     const expectedOrdinal = index;
     if (slide.ordinal !== expectedOrdinal) {
@@ -213,6 +216,7 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
         ),
       );
     }
+    compositionVariants.push(reviewCompositionVariant(slide, issues));
     reviewSlideCopy(slide, issues);
     reviewSlideAccessibility(slide, issues);
   }
@@ -249,10 +253,7 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
       ),
     );
   }
-  if (
-    slides.length >= 3 &&
-    new Set(slides.map((slide) => slide.compositionVariantId)).size === 1
-  ) {
+  if (slides.length >= 3 && new Set(compositionVariants).size === 1) {
     issues.push(
       warning(
         "COMPOSITION_RHYTHM_REVIEW",
@@ -266,6 +267,35 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
     success: !issues.some((issue) => issue.severity === "error"),
     issues,
   };
+}
+
+function reviewCompositionVariant(
+  slide: CarouselSlide,
+  issues: CarouselReviewIssue[],
+): string {
+  const member = Object.values(CAMPAIGN_FAMILY_REGISTRY)
+    .flatMap((family) => family.members)
+    .find(
+      (candidate) =>
+        candidate.template.id === slide.document.template.id &&
+        candidate.template.version === slide.document.template.version &&
+        candidate.formats.some((format) => format === slide.document.format),
+    );
+  if (member === undefined) return slide.compositionVariantId;
+
+  const declaredVariant = member.compositionVariants.find(
+    ({ id }) => id === slide.compositionVariantId,
+  );
+  if (declaredVariant !== undefined) return member.compositionVariants[0].id;
+
+  issues.push(
+    error(
+      "COMPOSITION_VARIANT_INCOMPATIBLE",
+      `${slide.compositionVariantId} is not a composition variant for ${member.template.id}@${member.template.version} in ${slide.document.format}.`,
+      slide.document.id,
+    ),
+  );
+  return member.compositionVariants[0].id;
 }
 
 export function createCarouselDeliverySidecar(input: unknown): CarouselDeliverySidecar {
