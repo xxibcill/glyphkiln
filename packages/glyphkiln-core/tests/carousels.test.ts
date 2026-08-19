@@ -332,11 +332,31 @@ describe("carousel sequence review and sidecars", () => {
     };
 
     const sidecar = createCarouselDeliverySidecar(sequence);
-    expect(CAROUSEL_DELIVERY_SIDECAR_VERSION).toBe("1.1.0");
-    expect(sidecar.deliveryProfile).toEqual({
+    expect(CAROUSEL_DELIVERY_SIDECAR_VERSION).toBe("1.2.0");
+    expect(sidecar.deliveryProfile).toMatchObject({
       id: "instagram-native-carousel",
       metadataVersion: "1.0.0",
+      profile: {
+        id: "instagram-native-carousel",
+        publishingPath: "native",
+        slideCount: { value: { minimum: 2, maximum: 20 } },
+      },
     });
+    expect(sidecar.deliveryProfile.sources.map(({ id }) => id)).toEqual([
+      "glyphkiln-carousel-validation",
+      "instagram-creators-carousel-limit",
+      "meta-instagram-alt-text",
+      "meta-instagram-carousel",
+      "meta-instagram-photo-resolution",
+    ]);
+    expect(sidecar.deliveryProfile.sources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: "https://www.facebook.com/help/instagram/503708446705527",
+          retrievedAt: "2026-08-18",
+        }),
+      ]),
+    );
     expect(sidecar.slides[0]?.readingOrder.map(({ layerId }) => layerId)).toEqual([
       "eyebrow",
       "headline",

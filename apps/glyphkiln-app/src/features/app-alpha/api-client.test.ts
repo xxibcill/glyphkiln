@@ -10,6 +10,8 @@ import {
   RENDERER_NAME,
   RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
+  DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
   hashCanonical,
 } from "@glyphkiln/core";
 import type { DesignDocument, RenderManifest } from "@glyphkiln/core";
@@ -627,10 +629,18 @@ describe("App Alpha API client", () => {
         issues: [],
       },
       deliverySidecar: {
-        version: "1.1.0",
+        version: "1.2.0",
         deliveryProfile: {
           id: "instagram-native-carousel",
           metadataVersion: "1.0.0",
+          profile: DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"],
+          sources: [
+            DELIVERY_SOURCES["glyphkiln-carousel-validation"],
+            DELIVERY_SOURCES["instagram-creators-carousel-limit"],
+            DELIVERY_SOURCES["meta-instagram-alt-text"],
+            DELIVERY_SOURCES["meta-instagram-carousel"],
+            DELIVERY_SOURCES["meta-instagram-photo-resolution"],
+          ],
         },
         slides: [],
       },
@@ -672,6 +682,20 @@ describe("App Alpha API client", () => {
           },
         ],
       },
+    });
+
+    value.deliverySidecar.deliveryProfile.sources = [];
+    await expect(
+      createAppAlphaApi(fetchMock).campaignCarouselReview({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        sequenceKey: "launch-carousel",
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      status: 502,
+      error: { code: "INVALID_APP_RESPONSE" },
     });
   });
 

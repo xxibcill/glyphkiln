@@ -1,8 +1,78 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "deliveryProfile": {
     "id": "tiktok-organic-photo",
-    "metadataVersion": "1.0.0"
+    "metadataVersion": "1.0.0",
+    "profile": {
+      "id": "tiktok-organic-photo",
+      "label": "TikTok Photo Mode · organic",
+      "platform": "tiktok",
+      "publishingPath": "organic",
+      "compatibleFormats": ["tiktok-photo-carousel"],
+      "slideCount": {
+        "value": { "minimum": 1, "maximum": 35 },
+        "evidence": "platform-requirement",
+        "sourceIds": ["tiktok-making-a-post"],
+        "note": "Glyphkiln still treats two or more slides as a carousel sequence; there is no universal optimal count."
+      },
+      "acceptedImageMediaTypes": {
+        "value": ["image/jpeg", "image/png"],
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "TikTok's native help does not publish an exact file-type contract; verify the target device picker."
+      },
+      "aspectRatio": {
+        "value": { "sameAcrossSequence": false },
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "3:4 is a Glyphkiln working canvas, not an official organic Photo Mode requirement."
+      },
+      "raster": {
+        "value": { "targetWidth": 1080 },
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "1080 px is a Glyphkiln working target, not a universal native Photo Mode requirement."
+      },
+      "accessibility": {
+        "value": { "creatorAltText": true, "maximumAltTextCharacters": 300 },
+        "evidence": "platform-capability",
+        "sourceIds": ["tiktok-accessibility"],
+        "note": "Supply alt text for every meaningful image in the sequence."
+      },
+      "surfaceOverlay": {
+        "version": "2026-08-18",
+        "evidence": "glyphkiln-advisory",
+        "insets": { "top": 0.08, "right": 0.18, "bottom": 0.2, "left": 0.06 },
+        "note": "No stable first-party organic Photo Mode safe zone is published; verify against captured live UI."
+      },
+      "authoringNotes": [
+        "Do not import Smart Order, 9:16, or 3/7–9 slide advice from the paid-ad path.",
+        "Proof the advisory overlay against current device captures before publishing."
+      ]
+    },
+    "sources": [
+      {
+        "id": "glyphkiln-carousel-validation",
+        "publisher": "Glyphkiln",
+        "title": "Carousel design research validation",
+        "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md",
+        "retrievedAt": "2026-08-18"
+      },
+      {
+        "id": "tiktok-accessibility",
+        "publisher": "TikTok",
+        "title": "Accessibility for your videos",
+        "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/accessibility",
+        "retrievedAt": "2026-08-18"
+      },
+      {
+        "id": "tiktok-making-a-post",
+        "publisher": "TikTok",
+        "title": "Making a post",
+        "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/making-a-post",
+        "retrievedAt": "2026-08-18"
+      }
+    ]
   },
   "slides": [
     {

@@ -1283,13 +1283,22 @@ describe("AppWorkflow", () => {
       file.path.endsWith("sequence-launch-carousel.delivery.json"),
     );
     if (deliveryFile === undefined) throw new Error("Delivery sidecar missing.");
-    expect(
-      parseTestJson(Buffer.from(deliveryFile.base64, "base64").toString("utf8")),
-    ).toMatchObject({
-      version: "1.1.0",
+    const deliverySidecar = parseTestJson(
+      Buffer.from(deliveryFile.base64, "base64").toString("utf8"),
+    ) as {
+      deliveryProfile: {
+        sources: { url: string; retrievedAt: string }[];
+      };
+    };
+    expect(deliverySidecar).toMatchObject({
+      version: "1.2.0",
       deliveryProfile: {
         id: "instagram-api-carousel",
         metadataVersion: "1.0.0",
+        profile: {
+          id: "instagram-api-carousel",
+          publishingPath: "api",
+        },
       },
       slides: [
         {
@@ -1312,6 +1321,14 @@ describe("AppWorkflow", () => {
         },
       ],
     });
+    expect(
+      deliverySidecar.deliveryProfile.sources.some(
+        (source) =>
+          source.url ===
+            "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/content-publishing" &&
+          source.retrievedAt === "2026-08-18",
+      ),
+    ).toBe(true);
     const sequenceReviewFile = instagramArchive.files.find((file) =>
       file.path.endsWith("sequence-launch-carousel.review.json"),
     );

@@ -23,13 +23,15 @@ import {
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
   isBlockingDeliveryEvidence,
   type DeliveryProfile,
   type DeliveryProfileId,
+  type DeliverySource,
 } from "../delivery/index.js";
 
 export const CAROUSEL_SEQUENCE_VERSION = "1.2.0" as const;
-export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.1.0" as const;
+export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.2.0" as const;
 
 export const CAROUSEL_NARRATIVE_ROLE_IDS = Object.freeze([
   "hook",
@@ -98,6 +100,8 @@ export type CarouselDeliverySidecar = {
   readonly deliveryProfile: {
     readonly id: DeliveryProfileId;
     readonly metadataVersion: typeof DELIVERY_PROFILE_METADATA_VERSION;
+    readonly profile: DeliveryProfile;
+    readonly sources: readonly DeliverySource[];
   };
   readonly slides: readonly {
     readonly documentId: string;
@@ -318,11 +322,14 @@ function reviewCompositionVariant(
 
 export function createCarouselDeliverySidecar(input: unknown): CarouselDeliverySidecar {
   const sequence = parseCarouselSequence(input);
+  const profile = DELIVERY_PROFILE_REGISTRY[sequence.deliveryProfileId];
   return {
     version: CAROUSEL_DELIVERY_SIDECAR_VERSION,
     deliveryProfile: {
       id: sequence.deliveryProfileId,
       metadataVersion: DELIVERY_PROFILE_METADATA_VERSION,
+      profile,
+      sources: deliverySourcesForProfile(profile),
     },
     slides: [...sequence.slides]
       .sort((left, right) => left.ordinal - right.ordinal)
@@ -336,6 +343,31 @@ export function createCarouselDeliverySidecar(input: unknown): CarouselDeliveryS
         sourceNotes: [...(slide.sourceNotes ?? [])],
       })),
   };
+}
+
+function deliverySourcesForProfile(
+  profile: DeliveryProfile,
+): readonly DeliverySource[] {
+  const sourceIds = [
+    ...profile.slideCount.sourceIds,
+    ...profile.acceptedImageMediaTypes.sourceIds,
+    ...profile.aspectRatio.sourceIds,
+    ...profile.raster.sourceIds,
+    ...profile.accessibility.sourceIds,
+  ];
+  const sources: Readonly<Record<string, DeliverySource | undefined>> =
+    DELIVERY_SOURCES;
+  return [...new Set(sourceIds)].sort(compareStrings).map((sourceId) => {
+    const source = sources[sourceId];
+    if (source === undefined) {
+      throw new Error(`Unknown delivery-profile source: ${sourceId}`);
+    }
+    return source;
+  });
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function parseCarouselSequence(input: unknown): CarouselSequence {

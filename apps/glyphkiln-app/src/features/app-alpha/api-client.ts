@@ -8,6 +8,8 @@ import {
   CAROUSEL_SEQUENCE_LIMITS,
   CAROUSEL_SEQUENCE_VERSION,
   DELIVERY_PROFILE_IDS,
+  DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
   canonicalJson,
 } from "@glyphkiln/core/browser";
 import { z } from "zod";
@@ -303,11 +305,13 @@ const CampaignCarouselReviewSchema = z
       .strict(),
     deliverySidecar: z
       .object({
-        version: z.literal("1.1.0"),
+        version: z.literal("1.2.0"),
         deliveryProfile: z
           .object({
             id: z.enum(DELIVERY_PROFILE_IDS),
             metadataVersion: z.string().min(1),
+            profile: z.unknown(),
+            sources: z.array(z.unknown()),
           })
           .strict(),
         slides: z.array(z.unknown()),
@@ -1538,7 +1542,8 @@ async function parseCampaignCarouselReview(
     value.campaignId !== expected.campaignId ||
     value.directionId !== expected.directionId ||
     value.sequenceKey !== expected.sequenceKey ||
-    value.review.deliveryProfileId !== value.deliverySidecar.deliveryProfile.id
+    value.review.deliveryProfileId !== value.deliverySidecar.deliveryProfile.id ||
+    !hasPortableDeliveryProfile(value.deliverySidecar.deliveryProfile)
   ) {
     return malformedResponse();
   }
@@ -1587,12 +1592,36 @@ async function parseCampaignCarouselReview(
     ok: true,
     value: {
       ...value,
-      review: value.review as CampaignCarouselReview["review"],
+      review: value.review,
       deliverySidecar:
         value.deliverySidecar as CampaignCarouselReview["deliverySidecar"],
       slides,
     },
   };
+}
+
+function hasPortableDeliveryProfile(input: {
+  id: (typeof DELIVERY_PROFILE_IDS)[number];
+  metadataVersion: string;
+  profile: unknown;
+  sources: readonly unknown[];
+}): boolean {
+  const profile = DELIVERY_PROFILE_REGISTRY[input.id];
+  const sourceIds = [
+    ...profile.slideCount.sourceIds,
+    ...profile.acceptedImageMediaTypes.sourceIds,
+    ...profile.aspectRatio.sourceIds,
+    ...profile.raster.sourceIds,
+    ...profile.accessibility.sourceIds,
+  ];
+  const deliverySources: Readonly<Record<string, unknown>> = DELIVERY_SOURCES;
+  const expectedSources = [...new Set(sourceIds)]
+    .sort()
+    .map((sourceId) => deliverySources[sourceId]);
+  return (
+    canonicalJson(input.profile) === canonicalJson(profile) &&
+    canonicalJson(input.sources) === canonicalJson(expectedSources)
+  );
 }
 
 async function parseCampaignHandoff(

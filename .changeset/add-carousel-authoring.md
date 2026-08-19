@@ -15,3 +15,5 @@ Keep recommendation-backed accessibility lengths advisory while enforcing only
 platform requirements and capabilities as blocking constraints.
 Add a pre-handoff sequence review in Campaign Studio with the exact slide copy,
 source notes, Core review issues, render evidence, manifests, hashes, and previews.
+Embed the selected delivery-profile snapshot and its dated source records in every
+portable carousel delivery sidecar.

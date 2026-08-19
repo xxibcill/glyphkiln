@@ -9,6 +9,8 @@ import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
   hashCanonical,
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
@@ -209,6 +211,7 @@ describe("CampaignStudio", () => {
       ],
     });
     const proof = proposalProofFixture();
+    const deliveryProfile = DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"];
     const carouselReview: CampaignCarouselReview = {
       kind: "campaign-carousel-review",
       workspaceId: "workspace-1",
@@ -223,10 +226,18 @@ describe("CampaignStudio", () => {
         issues: [],
       },
       deliverySidecar: {
-        version: "1.1.0",
+        version: "1.2.0",
         deliveryProfile: {
           id: "instagram-native-carousel",
           metadataVersion: "1.0.0",
+          profile: deliveryProfile,
+          sources: [
+            DELIVERY_SOURCES["glyphkiln-carousel-validation"],
+            DELIVERY_SOURCES["instagram-creators-carousel-limit"],
+            DELIVERY_SOURCES["meta-instagram-alt-text"],
+            DELIVERY_SOURCES["meta-instagram-carousel"],
+            DELIVERY_SOURCES["meta-instagram-photo-resolution"],
+          ],
         },
         slides: [
           {
