@@ -4,7 +4,18 @@ import { createHash } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  MANIFEST_VERSION,
+  PRODUCT_CLAIM,
+  RENDERER_NAME,
+  RENDERER_VERSION,
+  TYPOGRAPHY_POLICY,
+  hashCanonical,
+} from "@glyphkiln/core";
+import type { DesignDocument, RenderManifest } from "@glyphkiln/core";
+
 import type { CampaignProposalRunProjection } from "@/server/app-workflow";
+import type { PreviewSuccess } from "@/features/project-preview/types";
 import { createPreviewDesign } from "@/test/preview-design";
 
 import { createAppAlphaApi } from "./api-client";
@@ -580,6 +591,90 @@ describe("App Alpha API client", () => {
     });
   });
 
+  it("validates exact pre-handoff carousel review evidence", async () => {
+    const document = createPreviewDesign();
+    const rendered = carouselReviewProof(document);
+    const canvas = {
+      id: "canvas-1",
+      canvasKey: "slide-01",
+      designId: "design-1",
+      revisionId: "revision-1",
+      template: document.template,
+      format: document.format,
+      compositionVariantId: "focal-editorial" as const,
+      narrativeRole: "hook" as const,
+      deliveryProfileId: "instagram-native-carousel" as const,
+      carouselSequenceKey: "launch-carousel",
+      altText: "Opening launch slide with a product announcement.",
+      sourceNotes: [{ label: "Launch brief", url: "https://example.com/launch-brief" }],
+      seedDerivationVersion: "sha256/canonical-scope-v1",
+      directionSeed: "a".repeat(64),
+      canvasSeed: "b".repeat(64),
+      ordinal: 0,
+      createdAt: "2026-08-12T01:00:00.000Z",
+    };
+    const value = {
+      kind: "campaign-carousel-review",
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      directionKey: "editorial-a",
+      sequenceKey: "launch-carousel",
+      review: {
+        version: "1.2.0",
+        deliveryProfileId: "instagram-native-carousel",
+        success: true,
+        issues: [],
+      },
+      deliverySidecar: {
+        version: "1.1.0",
+        deliveryProfile: {
+          id: "instagram-native-carousel",
+          metadataVersion: "1.0.0",
+        },
+        slides: [],
+      },
+      slides: [
+        {
+          canvas,
+          documentHash: hashCanonical(document),
+          proof: {
+            document: rendered.document,
+            qualityIssues: rendered.qualityIssues,
+            evidence: rendered.evidence,
+            outputs: rendered.outputs,
+          },
+        },
+      ],
+    };
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(jsonResponse({ ok: true, status: 200, value }, 200)),
+    );
+
+    await expect(
+      createAppAlphaApi(fetchMock).campaignCarouselReview({
+        workspaceId: "workspace-1",
+        campaignId: "campaign-1",
+        directionId: "direction-1",
+        sequenceKey: "launch-carousel",
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        review: { success: true },
+        slides: [
+          {
+            canvas: {
+              altText: "Opening launch slide with a product announcement.",
+              sourceNotes: [{ label: "Launch brief" }],
+            },
+            proof: { ok: true, outputs: [{ format: "svg" }, { format: "png" }] },
+          },
+        ],
+      },
+    });
+  });
+
   it("rejects a proved proposal whose browser proof is incomplete", async () => {
     document.cookie = "gk_csrf=csrf-token-123; Path=/";
     const run = proposalRunFixture();
@@ -630,6 +725,68 @@ describe("App Alpha API client", () => {
     });
   });
 });
+
+function carouselReviewProof(document: DesignDocument): PreviewSuccess {
+  const documentHash = hashCanonical(document);
+  const fingerprint = "a".repeat(64);
+  const sharedManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
+    manifestVersion: MANIFEST_VERSION,
+    renderId: `render_${fingerprint.slice(0, 24)}`,
+    renderFingerprint: fingerprint,
+    designDocumentId: document.id,
+    designDocumentHash: documentHash,
+    seed: document.seed,
+    template: document.template,
+    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: TYPOGRAPHY_POLICY,
+    proceduralAlgorithmVersions: { "layered-waves": "1.1.0" },
+    assets: [],
+    fonts: document.fonts.map((font) => ({
+      family: font.family,
+      weight: font.weight,
+      style: font.style,
+      sha256: font.sha256 ?? "d".repeat(64),
+    })),
+    dimensions: { width: 1_200, height: 627 },
+    creationTimestamp: "2026-08-12T01:00:00.000Z",
+    compositionGenerativeImageModelUsed: false,
+    includedGenerativeAssetUsed: false,
+    qualityIssues: [],
+    productClaim: PRODUCT_CLAIM,
+  };
+  const outputs = (["svg", "png"] as const).map((format) => {
+    const bytes = new TextEncoder().encode(`${format}-review-proof`);
+    return {
+      format,
+      mimeType: format === "svg" ? ("image/svg+xml" as const) : ("image/png" as const),
+      base64: bytesToBase64(bytes),
+      byteSize: bytes.byteLength,
+      fingerprint,
+      filename: `${document.id}.${format}`,
+      manifest: {
+        ...sharedManifest,
+        output: { format, sha256: sha256(bytes), byteSize: bytes.byteLength },
+        renderingMethod:
+          format === "svg"
+            ? ("deterministic-code-rendering/direct-svg" as const)
+            : ("deterministic-code-rendering/resvg" as const),
+      },
+    };
+  });
+  return {
+    ok: true,
+    document,
+    qualityIssues: [],
+    evidence: {
+      version: "1.1.0",
+      safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
+      text: [],
+      crops: [],
+      contrast: [],
+    },
+    outputs,
+  };
+}
 
 function campaignHandoffFixture(
   overrides: Partial<{

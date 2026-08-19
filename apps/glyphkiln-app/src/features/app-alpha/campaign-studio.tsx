@@ -16,6 +16,7 @@ import type {
   AppAlphaApi,
   CampaignBoard,
   CampaignCanvas,
+  CampaignCarouselReview,
   CampaignCanvasSeedInput,
   CampaignProposalRun,
   DesignRevision,
@@ -37,6 +38,7 @@ import {
 } from "./campaign-studio-model";
 import {
   CampaignCanvasAttachment,
+  CampaignCarouselReviewPanel,
   CampaignCommandRail,
   CampaignDirectionComposer,
   CampaignOptionBoard,
@@ -75,6 +77,7 @@ export function CampaignStudio({
   const [board, setBoard] = useState<CampaignBoard>();
   const [proposalRun, setProposalRun] = useState<CampaignProposalRun>();
   const [comparison, setComparison] = useState<RevisionComparison>();
+  const [carouselReview, setCarouselReview] = useState<CampaignCarouselReview>();
   const [leftCanvasId, setLeftCanvasId] = useState("");
   const [rightCanvasId, setRightCanvasId] = useState("");
   const [handoffDirectionId, setHandoffDirectionId] = useState("");
@@ -165,6 +168,7 @@ export function CampaignStudio({
     if (result.ok) {
       setBoard(result.value);
       setProposalRun(undefined);
+      setCarouselReview(undefined);
       setCanvasSeedPlan(undefined);
       synchronizeBoardSelections(result.value);
       setMessage(
@@ -485,6 +489,32 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
+  async function reviewCarousel(
+    directionId: string,
+    sequenceKey: string,
+  ): Promise<void> {
+    if (board === undefined || busy !== undefined) return;
+    setBusy("carousel-review");
+    setFailure(undefined);
+    const result = await api.campaignCarouselReview({
+      workspaceId,
+      campaignId: board.campaign.id,
+      directionId,
+      sequenceKey,
+    });
+    if (result.ok) {
+      setCarouselReview(result.value);
+      setMessage(
+        result.value.review.success
+          ? `Sequence ${sequenceKey} passed pre-handoff review.`
+          : `Sequence ${sequenceKey} has blocking pre-handoff issues.`,
+      );
+    } else {
+      setFailure(result);
+    }
+    setBusy(undefined);
+  }
+
   const isBusy = busy !== undefined;
   return (
     <section className="campaign-studio" aria-labelledby="campaign-studio-title">
@@ -539,7 +569,11 @@ export function CampaignStudio({
               void requestProposals(base, directionId)
             }
             onOpenProposalRun={(runId) => void openProposalRun(runId)}
+            onReviewCarousel={(directionId, sequenceKey) =>
+              void reviewCarousel(directionId, sequenceKey)
+            }
           />
+          <CampaignCarouselReviewPanel carouselReview={carouselReview} />
           <CampaignCanvasAttachment
             board={board}
             openRevision={openRevision}

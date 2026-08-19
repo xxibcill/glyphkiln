@@ -11,6 +11,7 @@ import type { CampaignSummary } from "@/server/app-workflow";
 import type {
   CampaignBoard,
   CampaignCanvas,
+  CampaignCarouselReview,
   CampaignProposalRun,
   DesignRevision,
   RevisionComparison,
@@ -179,6 +180,7 @@ export function CampaignOptionBoard({
   onOpenDesign,
   onRequestProposals,
   onOpenProposalRun,
+  onReviewCarousel,
 }: {
   board: CampaignBoard;
   canCoordinate: boolean;
@@ -187,6 +189,7 @@ export function CampaignOptionBoard({
   onOpenDesign: (designId: string, revisionId?: string) => void;
   onRequestProposals: (base: CampaignCanvas, directionId: string) => void;
   onOpenProposalRun: (runId: string) => void;
+  onReviewCarousel: (directionId: string, sequenceKey: string) => void;
 }) {
   return (
     <div className="option-board" aria-label="Campaign option board">
@@ -252,6 +255,24 @@ export function CampaignOptionBoard({
                 </li>
               ))}
             </ol>
+            {campaignCarouselSequenceKeys(direction).length === 0 ? null : (
+              <div className="carousel-sequence-actions">
+                <strong>Carousel sequences</strong>
+                {campaignCarouselSequenceKeys(direction).map((sequenceKey) => (
+                  <button
+                    key={sequenceKey}
+                    type="button"
+                    className="text-action"
+                    disabled={isBusy}
+                    onClick={() => {
+                      onReviewCarousel(direction.id, sequenceKey);
+                    }}
+                  >
+                    Review sequence {sequenceKey}
+                  </button>
+                ))}
+              </div>
+            )}
             {direction.canvases.at(0) === undefined ? null : (
               <button
                 type="button"
@@ -300,6 +321,143 @@ export function CampaignOptionBoard({
         ))
       )}
     </div>
+  );
+}
+
+function campaignCarouselSequenceKeys(
+  direction: CampaignBoard["directions"][number],
+): string[] {
+  return [
+    ...new Set(
+      direction.canvases.flatMap((canvas) =>
+        canvas.carouselSequenceKey === undefined ? [] : [canvas.carouselSequenceKey],
+      ),
+    ),
+  ].sort();
+}
+
+export function CampaignCarouselReviewPanel({
+  carouselReview,
+}: {
+  carouselReview?: CampaignCarouselReview;
+}) {
+  if (carouselReview === undefined) return null;
+  return (
+    <section
+      className="campaign-carousel-review"
+      aria-labelledby="carousel-review-title"
+    >
+      <header>
+        <div>
+          <span>SEQUENCE REVIEW</span>
+          <h3 id="carousel-review-title">{carouselReview.sequenceKey}</h3>
+        </div>
+        <strong data-status={carouselReview.review.success ? "pass" : "blocked"}>
+          {carouselReview.review.success ? "READY FOR HANDOFF" : "BLOCKED"}
+        </strong>
+      </header>
+      <p>
+        {carouselReview.directionKey} · {carouselReview.review.deliveryProfileId} ·{" "}
+        {carouselReview.slides.length.toString()} slides
+      </p>
+      {carouselReview.review.issues.length === 0 ? (
+        <p>No sequence issues found.</p>
+      ) : (
+        <ul className="carousel-review-issues">
+          {carouselReview.review.issues.map((issue, index) => (
+            <li
+              key={`${issue.code}-${issue.slideId ?? "sequence"}-${index.toString()}`}
+            >
+              <strong>{issue.severity.toUpperCase()}</strong>
+              <code>{issue.code}</code>
+              <span>{issue.message}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <ol className="carousel-review-slides">
+        {carouselReview.slides.map(({ canvas, proof }) => {
+          const preview = proof.outputs.find((output) => output.format === "png");
+          return (
+            <li key={canvas.id}>
+              <header>
+                <span>{canvas.ordinal.toString().padStart(2, "0")}</span>
+                <div>
+                  <strong>{canvas.canvasKey}</strong>
+                  <small>
+                    {canvas.narrativeRole} · {canvas.format}
+                  </small>
+                </div>
+              </header>
+              {preview === undefined ? null : (
+                // The proof is trusted in-memory output; there is no optimizable URL.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`data:${preview.mimeType};base64,${preview.base64}`}
+                  alt={`Exact rendered proof for ${canvas.canvasKey}.`}
+                />
+              )}
+              <div className="carousel-review-copy">
+                <strong>Publisher alt text</strong>
+                <p>{canvas.altText}</p>
+              </div>
+              <div className="carousel-review-sources">
+                <strong>Source notes</strong>
+                {canvas.sourceNotes === undefined ? (
+                  <p>None recorded.</p>
+                ) : (
+                  <ul>
+                    {canvas.sourceNotes.map((note, index) => (
+                      <li key={`${note.label}-${index.toString()}`}>
+                        {note.url === undefined ? (
+                          note.label
+                        ) : (
+                          <a href={note.url} target="_blank" rel="noreferrer">
+                            {note.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <details>
+                <summary>Exact render evidence</summary>
+                <p>
+                  Safe area {proof.evidence.safeArea.width.toString()} ×{" "}
+                  {proof.evidence.safeArea.height.toString()}
+                </p>
+                <ul>
+                  {proof.evidence.text.map((entry) => (
+                    <li key={entry.layerId}>
+                      {entry.layerId} · {entry.fontSize.toString()}px
+                    </li>
+                  ))}
+                </ul>
+                <ul>
+                  {proof.outputs.map((output) => (
+                    <li key={output.format}>
+                      <strong>{output.format.toUpperCase()}</strong> ·{" "}
+                      {output.byteSize.toString()} bytes · {output.fingerprint} · sha256{" "}
+                      {output.manifest.output.sha256}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+              {proof.qualityIssues.length === 0 ? null : (
+                <ul className="carousel-proof-issues">
+                  {proof.qualityIssues.map((issue, index) => (
+                    <li key={`${issue.code}-${index.toString()}`}>
+                      {issue.severity} · {issue.code} · {issue.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 

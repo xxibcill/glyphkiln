@@ -2,7 +2,9 @@ import type {
   AssetOrigin,
   BrandSnapshot,
   CampaignCompositionVariantId,
+  CarouselDeliverySidecar,
   CarouselNarrativeRole,
+  CarouselSequenceReview,
   CarouselSourceNote,
   CampaignFamilyId,
   DesignDocument,
@@ -247,6 +249,13 @@ export type AppQuery =
       runId: string;
     }
   | {
+      type: "campaign.carousel.review";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      sequenceKey: string;
+    }
+  | {
       type: "campaign.handoff";
       workspaceId: string;
       campaignId: string;
@@ -467,6 +476,7 @@ export type QueryProjection =
     }
   | CampaignBoardProjection
   | CampaignCanvasSeedProjection
+  | CampaignCarouselReviewProjection
   | CampaignProposalRunProjection
   | CampaignHandoffProjection
   | RevisionComparisonProjection
@@ -749,6 +759,27 @@ export type CampaignHandoffProjection = {
   fileCount: number;
   approvedCanvasCount: number;
   unapprovedCanvasCount: number;
+};
+
+export type CampaignCarouselReviewProjection = {
+  kind: "campaign-carousel-review";
+  workspaceId: string;
+  campaignId: string;
+  directionId: string;
+  directionKey: string;
+  sequenceKey: string;
+  review: CarouselSequenceReview;
+  deliverySidecar: CarouselDeliverySidecar;
+  slides: readonly {
+    canvas: CampaignCanvasProjection;
+    documentHash: string;
+    proof: {
+      document: DesignDocument;
+      qualityIssues: readonly QualityIssue[];
+      evidence: RenderEvidence;
+      outputs: readonly RenderedArtifact[];
+    };
+  }[];
 };
 
 export type RevisionReviewState = "in-review" | "changes-requested" | "approved";

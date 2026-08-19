@@ -429,6 +429,15 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
     .strict(),
   z
     .object({
+      type: z.literal("campaign.carousel.review"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      directionId: identifier,
+      sequenceKey: identifier,
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("campaign.handoff"),
       workspaceId: identifier,
       campaignId: identifier,

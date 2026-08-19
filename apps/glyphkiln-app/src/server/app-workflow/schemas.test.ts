@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CAROUSEL_SEQUENCE_LIMITS } from "@glyphkiln/core";
 
-import { AppCommandSchema } from "./schemas";
+import { AppCommandSchema, AppQuerySchema } from "./schemas";
 
 describe("App campaign canvas command schema", () => {
   const command = {
@@ -67,6 +67,22 @@ describe("App campaign canvas command schema", () => {
         ...command,
         altText: "x".repeat(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters + 1),
       }).success,
+    ).toBe(false);
+  });
+});
+
+describe("App campaign carousel review query schema", () => {
+  it("accepts only a bounded sequence scope", () => {
+    const query = {
+      type: "campaign.carousel.review" as const,
+      workspaceId: "workspace-a",
+      campaignId: "campaign-a",
+      directionId: "direction-a",
+      sequenceKey: "launch-carousel",
+    };
+    expect(AppQuerySchema.parse(query)).toEqual(query);
+    expect(
+      AppQuerySchema.safeParse({ ...query, sequenceKey: "../launch-carousel" }).success,
     ).toBe(false);
   });
 });

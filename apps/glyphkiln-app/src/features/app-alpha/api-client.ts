@@ -4,7 +4,9 @@ import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schem
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_REVIEW_ISSUE_CODES,
   CAROUSEL_SEQUENCE_LIMITS,
+  CAROUSEL_SEQUENCE_VERSION,
   DELIVERY_PROFILE_IDS,
   canonicalJson,
 } from "@glyphkiln/core/browser";
@@ -15,6 +17,7 @@ import type {
   AppFailure,
   AppQuery,
   BrandSnapshotDraft,
+  CampaignCarouselReviewProjection,
   CampaignHandoffProjection,
   CampaignProposalRunProjection,
   ManualDraft,
@@ -269,6 +272,63 @@ const CampaignCanvasAttachedSchema = z
     campaignId: z.string().min(1),
     directionId: z.string().min(1),
     canvas: CampaignCanvasSchema,
+  })
+  .strict();
+
+const CampaignCarouselReviewSchema = z
+  .object({
+    kind: z.literal("campaign-carousel-review"),
+    workspaceId: z.string().min(1),
+    campaignId: z.string().min(1),
+    directionId: z.string().min(1),
+    directionKey: z.string().min(1),
+    sequenceKey: z.string().min(1).max(120),
+    review: z
+      .object({
+        version: z.literal(CAROUSEL_SEQUENCE_VERSION),
+        deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS),
+        success: z.boolean(),
+        issues: z.array(
+          z
+            .object({
+              code: z.enum(CAROUSEL_REVIEW_ISSUE_CODES),
+              severity: z.enum(["error", "warning"]),
+              message: z.string().min(1),
+              slideId: z.string().min(1).optional(),
+              layerId: z.string().min(1).optional(),
+            })
+            .strict(),
+        ),
+      })
+      .strict(),
+    deliverySidecar: z
+      .object({
+        version: z.literal("1.1.0"),
+        deliveryProfile: z
+          .object({
+            id: z.enum(DELIVERY_PROFILE_IDS),
+            metadataVersion: z.string().min(1),
+          })
+          .strict(),
+        slides: z.array(z.unknown()),
+      })
+      .strict(),
+    slides: z.array(
+      z
+        .object({
+          canvas: CampaignCanvasSchema,
+          documentHash: z.string().regex(/^[0-9a-f]{64}$/),
+          proof: z
+            .object({
+              document: DesignDocumentSchema,
+              qualityIssues: z.unknown(),
+              evidence: z.unknown(),
+              outputs: z.unknown(),
+            })
+            .strict(),
+        })
+        .strict(),
+    ),
   })
   .strict();
 
@@ -829,6 +889,16 @@ export type CampaignProposalDecision = z.infer<typeof ProposalDecisionSchema>;
 export type CampaignHandoff = Omit<CampaignHandoffProjection, "base64"> & {
   bytes: Uint8Array;
 };
+export type CampaignCarouselReview = Omit<
+  CampaignCarouselReviewProjection,
+  "slides"
+> & {
+  slides: readonly {
+    canvas: CampaignCanvas;
+    documentHash: string;
+    proof: PreviewSuccess;
+  }[];
+};
 export type RevisionReview = z.infer<typeof RevisionReviewSchema>;
 export type RevisionComparison = {
   left: { revision: DesignRevision; proof: PreviewSuccess };
@@ -971,6 +1041,12 @@ export type AppAlphaApi = {
     campaignId: string;
     runId: string;
   }) => Promise<ApiResult<CampaignProposalRun>>;
+  campaignCarouselReview: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    sequenceKey: string;
+  }) => Promise<ApiResult<CampaignCarouselReview>>;
   acceptCampaignProposal: (input: {
     workspaceId: string;
     campaignId: string;
@@ -1342,6 +1418,12 @@ export function createAppAlphaApi(
         input,
       );
     },
+    async campaignCarouselReview(input) {
+      return parseCampaignCarouselReview(
+        await query({ type: "campaign.carousel.review", ...input }),
+        input,
+      );
+    },
     async compareRevisions(input) {
       return parseRevisionComparison(
         await query({ type: "revision.compare", ...input }),
@@ -1437,6 +1519,80 @@ async function parseProposalRun<Schema extends z.ZodType>(
     }
   }
   return { ok: true, value: run as CampaignProposalRun };
+}
+
+async function parseCampaignCarouselReview(
+  result: RawResult,
+  expected: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    sequenceKey: string;
+  },
+): Promise<ApiResult<CampaignCarouselReview>> {
+  const parsed = parseValue(result, CampaignCarouselReviewSchema, (value) => value);
+  if (!parsed.ok) return parsed;
+  const value = parsed.value;
+  if (
+    value.workspaceId !== expected.workspaceId ||
+    value.campaignId !== expected.campaignId ||
+    value.directionId !== expected.directionId ||
+    value.sequenceKey !== expected.sequenceKey ||
+    value.review.deliveryProfileId !== value.deliverySidecar.deliveryProfile.id
+  ) {
+    return malformedResponse();
+  }
+
+  const slides: CampaignCarouselReview["slides"][number][] = [];
+  for (const slide of value.slides) {
+    if (
+      slide.canvas.carouselSequenceKey !== value.sequenceKey ||
+      slide.canvas.deliveryProfileId !== value.review.deliveryProfileId ||
+      !isRenderProofProjection(slide.proof, slide.proof.document, slide.documentHash)
+    ) {
+      return malformedResponse();
+    }
+    if (
+      (await sha256Bytes(
+        new TextEncoder().encode(canonicalJson(slide.proof.document)),
+      )) !== slide.documentHash
+    ) {
+      return malformedResponse();
+    }
+    const proof = slide.proof as RenderProofProjection;
+    if (proof.evidence.version !== "1.1.0") return malformedResponse();
+    for (const output of proof.outputs) {
+      if (output.base64 === undefined) return malformedResponse();
+      const bytes = decodeBase64(output.base64, output.byteSize);
+      if (
+        bytes === undefined ||
+        (await sha256Bytes(bytes)) !== output.manifest.output.sha256
+      ) {
+        return malformedResponse();
+      }
+    }
+    slides.push({
+      canvas: slide.canvas,
+      documentHash: slide.documentHash,
+      proof: {
+        ok: true,
+        document: slide.proof.document,
+        qualityIssues: proof.qualityIssues,
+        evidence: proof.evidence,
+        outputs: proof.outputs as PreviewSuccess["outputs"],
+      },
+    });
+  }
+  return {
+    ok: true,
+    value: {
+      ...value,
+      review: value.review as CampaignCarouselReview["review"],
+      deliverySidecar:
+        value.deliverySidecar as CampaignCarouselReview["deliverySidecar"],
+      slides,
+    },
+  };
 }
 
 async function parseCampaignHandoff(

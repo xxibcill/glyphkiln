@@ -3270,6 +3270,139 @@ textarea:focus-visible {
   margin-top: var(--space-4);
 }
 
+.carousel-sequence-actions {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule-strong);
+}
+
+.carousel-sequence-actions > strong {
+  color: var(--clay-dark);
+  font-family: var(--font-code);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+}
+
+.campaign-carousel-review {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5) clamp(1rem, 3.2vw, 3rem);
+  border-bottom: 1px solid var(--ink-1);
+  background: var(--paper-2);
+}
+
+.campaign-carousel-review > header,
+.campaign-carousel-review article > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.campaign-carousel-review h3 {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.campaign-carousel-review > header span,
+.campaign-carousel-review > header strong,
+.campaign-carousel-review details,
+.carousel-review-slides small {
+  font-family: var(--font-code);
+  font-size: 0.64rem;
+}
+
+.campaign-carousel-review > header strong[data-status="pass"] {
+  color: var(--sage);
+}
+
+.campaign-carousel-review > header strong[data-status="blocked"],
+.carousel-review-issues li > strong {
+  color: var(--error);
+}
+
+.carousel-review-issues,
+.carousel-review-slides,
+.carousel-review-sources ul,
+.campaign-carousel-review details ul,
+.carousel-proof-issues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carousel-review-issues {
+  display: grid;
+  gap: 1px;
+  background: var(--rule-strong);
+}
+
+.carousel-review-issues li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--paper-0);
+  font-size: 0.72rem;
+}
+
+.carousel-review-slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 1px;
+  background: var(--ink-1);
+}
+
+.carousel-review-slides > li {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--paper-0);
+}
+
+.carousel-review-slides > li > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.carousel-review-slides > li > header > span {
+  color: var(--ink-3);
+  font-family: var(--font-code);
+  font-size: 0.65rem;
+}
+
+.carousel-review-slides img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule-strong);
+}
+
+.carousel-review-copy,
+.carousel-review-sources {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 0.72rem;
+}
+
+.carousel-review-copy p,
+.carousel-review-sources p {
+  margin: 0;
+}
+
+.campaign-carousel-review details li,
+.carousel-proof-issues li {
+  overflow-wrap: anywhere;
+}
+
 .canvas-attachment {
   border-bottom: 1px solid var(--ink-1);
   background: var(--clay-light);

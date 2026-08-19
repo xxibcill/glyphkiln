@@ -23,7 +23,11 @@ import { constructManualDocument } from "@/server/app-workflow/document-factory"
 import { createPreviewDesign } from "@/test/preview-design";
 import type { PreviewSuccess } from "@/features/project-preview/types";
 
-import { createAppAlphaApi, type CampaignBoard } from "./api-client";
+import {
+  createAppAlphaApi,
+  type CampaignBoard,
+  type CampaignCarouselReview,
+} from "./api-client";
 import { CampaignStudio } from "./campaign-studio";
 
 const CAMPAIGN: CampaignSummary = {
@@ -188,6 +192,95 @@ describe("CampaignStudio", () => {
       campaignId: "campaign-1",
       directionId: "direction-2",
     });
+  });
+
+  it("opens the exact sequence evidence before handoff", async () => {
+    const board = campaignBoardFixture();
+    const canvas = board.directions[0].canvases[0];
+    Object.assign(canvas, {
+      deliveryProfileId: "instagram-native-carousel" as const,
+      carouselSequenceKey: "launch-carousel",
+      altText: "Opening launch slide with a cobalt product on an ivory field.",
+      sourceNotes: [
+        {
+          label: "Approved launch brief",
+          url: "https://example.com/launch-brief",
+        },
+      ],
+    });
+    const proof = proposalProofFixture();
+    const carouselReview: CampaignCarouselReview = {
+      kind: "campaign-carousel-review",
+      workspaceId: "workspace-1",
+      campaignId: CAMPAIGN.id,
+      directionId: "direction-1",
+      directionKey: "editorial-a",
+      sequenceKey: "launch-carousel",
+      review: {
+        version: "1.2.0",
+        deliveryProfileId: "instagram-native-carousel",
+        success: true,
+        issues: [],
+      },
+      deliverySidecar: {
+        version: "1.1.0",
+        deliveryProfile: {
+          id: "instagram-native-carousel",
+          metadataVersion: "1.0.0",
+        },
+        slides: [
+          {
+            documentId: proof.document.id,
+            ordinal: 0,
+            narrativeRole: "hook",
+            altText: canvas.altText ?? "",
+            readingOrder: [],
+            visualDescriptions: [],
+            sourceNotes: canvas.sourceNotes ?? [],
+          },
+        ],
+      },
+      slides: [{ canvas, documentHash: hashCanonical(proof.document), proof }],
+    };
+    const reviewSequence = vi.fn(() =>
+      Promise.resolve({ ok: true as const, value: carouselReview }),
+    );
+    const api = {
+      ...createAppAlphaApi(vi.fn(() => Promise.resolve(success(200, board)))),
+      campaignBoard: () => Promise.resolve({ ok: true as const, value: board }),
+      campaignCarouselReview: reviewSequence,
+    };
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={api}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas()}
+          canCoordinate
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    await clickButton("Review sequence launch-carousel");
+    expect(reviewSequence).toHaveBeenCalledWith({
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      sequenceKey: "launch-carousel",
+    });
+    expect(container.textContent).toContain("READY FOR HANDOFF");
+    expect(container.textContent).toContain(
+      "Opening launch slide with a cobalt product on an ivory field.",
+    );
+    expect(container.textContent).toContain("Approved launch brief");
+    expect(container.textContent).toContain("Exact render evidence");
+    expect(container.querySelectorAll(".carousel-review-slides img")).toHaveLength(1);
   });
 
   it("does not hard-limit publisher alt text to a recommendation", async () => {

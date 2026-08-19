@@ -569,6 +569,7 @@ function createWorkflowApi(
     campaignProposalRun: () => Promise.resolve(missingResource()),
     acceptCampaignProposal: () => Promise.resolve(missingResource()),
     rejectCampaignProposal: () => Promise.resolve(missingResource()),
+    campaignCarouselReview: () => Promise.resolve(missingResource()),
     campaignHandoff: () => Promise.resolve(missingResource()),
     compareRevisions: () => Promise.resolve(missingResource()),
     revisionReview: () => Promise.resolve(missingResource()),

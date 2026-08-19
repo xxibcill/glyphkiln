@@ -1108,6 +1108,46 @@ describe("AppWorkflow", () => {
         },
       ],
     });
+    const incompleteCarouselReview = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.carousel.review",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          sequenceKey: "launch-carousel",
+        },
+      }),
+      "campaign-carousel-review",
+    );
+    expect(incompleteCarouselReview.review).toMatchObject({
+      deliveryProfileId: "instagram-api-carousel",
+      success: false,
+      issues: [
+        expect.objectContaining({
+          code: "SLIDE_COUNT_OUTSIDE_PROFILE",
+          severity: "error",
+        }),
+      ],
+    });
+    expect(incompleteCarouselReview.slides[0]).toMatchObject({
+      canvas: {
+        id: instagramCanvas.id,
+        altText:
+          "Opening square carousel slide showing the campaign product and promise.",
+        sourceNotes: [
+          {
+            label: "Product launch brief",
+            url: "https://example.com/launch-brief",
+          },
+        ],
+      },
+      proof: {
+        document: { id: branchedRevision.document.id },
+        outputs: [{ format: "svg" }, { format: "png" }],
+      },
+    });
     expectFailure(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
@@ -1191,6 +1231,38 @@ describe("AppWorkflow", () => {
       }),
       "campaign-canvas-attached",
     );
+    const completeCarouselReview = expectProjection(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.carousel.review",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          sequenceKey: "launch-carousel",
+        },
+      }),
+      "campaign-carousel-review",
+    );
+    expect(completeCarouselReview).toMatchObject({
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: branched.id,
+      sequenceKey: "launch-carousel",
+      review: { success: true },
+      deliverySidecar: {
+        deliveryProfile: { id: "instagram-api-carousel" },
+      },
+    });
+    expect(completeCarouselReview.slides).toHaveLength(2);
+    expect(
+      completeCarouselReview.slides.every(
+        ({ canvas, proof }) =>
+          canvas.altText !== undefined &&
+          proof.outputs.length === 2 &&
+          proof.outputs.every((output) => output.base64.length > 0),
+      ),
+    ).toBe(true);
     const instagramHandoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
