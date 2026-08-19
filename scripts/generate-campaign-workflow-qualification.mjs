@@ -37,11 +37,6 @@ const QUALIFICATION_ROOT = resolve(
 const BRAND_ROOT = resolve(REPOSITORY_ROOT, "assets/brand/glyphkiln");
 const ASSET_ROOT = resolve(QUALIFICATION_ROOT, "assets");
 const GENERATED_ROOT = resolve(QUALIFICATION_ROOT, "generated");
-const DELIVERABLE_ROOTS = {
-  json: resolve(REPOSITORY_ROOT, "Deliverables/json/campaign-workflow"),
-  png: resolve(REPOSITORY_ROOT, "Deliverables/png/campaign-workflow"),
-  svg: resolve(REPOSITORY_ROOT, "Deliverables/svg/campaign-workflow"),
-};
 const VERIFY = process.argv.includes("--verify");
 const { emit, repositoryPath } = createQualificationEmitter({
   repositoryRoot: REPOSITORY_ROOT,
@@ -172,10 +167,6 @@ for (const [ordinal, spec] of canvasSpecs.entries()) {
     parser: "json",
   });
   await emit(documentPath, formattedDocument);
-  await emit(
-    resolve(DELIVERABLE_ROOTS.json, `${spec.canvasKey}.json`),
-    formattedDocument,
-  );
 
   const outputs = {};
   for (const output of result.outputs) {
@@ -187,10 +178,6 @@ for (const [ordinal, spec] of canvasSpecs.entries()) {
     const manifestBytes = `${JSON.stringify(output.manifest, null, 2)}\n`;
     await emit(outputPath, output.bytes);
     await emit(`${outputPath}.manifest.json`, manifestBytes);
-    await emit(
-      resolve(DELIVERABLE_ROOTS[output.format], `${spec.canvasKey}.${output.format}`),
-      output.bytes,
-    );
     outputs[output.format] = {
       bytes: output.bytes,
       path: repositoryPath(outputPath),
@@ -238,8 +225,6 @@ const reviewBoardSvgPath = resolve(GENERATED_ROOT, "campaign-review-board.svg");
 const reviewBoardPngPath = resolve(GENERATED_ROOT, "campaign-review-board.png");
 await emit(reviewBoardSvgPath, reviewBoardSvg);
 await emit(reviewBoardPngPath, reviewBoardPng);
-await emit(resolve(DELIVERABLE_ROOTS.svg, "campaign-review-board.svg"), reviewBoardSvg);
-await emit(resolve(DELIVERABLE_ROOTS.png, "campaign-review-board.png"), reviewBoardPng);
 
 const campaign = {
   id: CAMPAIGN_ID,
@@ -254,7 +239,6 @@ const campaign = {
 const handoff = createUnapprovedHandoff(campaign, renderedCases);
 const handoffPath = resolve(GENERATED_ROOT, HANDOFF_FILENAME);
 await emit(handoffPath, handoff.bytes);
-await emit(resolve(DELIVERABLE_ROOTS.json, HANDOFF_FILENAME), handoff.bytes);
 
 const index = {
   version: "1.0.0",
@@ -372,7 +356,6 @@ const index = {
 };
 const indexBytes = await prettier.format(JSON.stringify(index), { parser: "json" });
 await emit(resolve(GENERATED_ROOT, "qualification-index.json"), indexBytes);
-await emit(resolve(DELIVERABLE_ROOTS.json, "qualification-index.json"), indexBytes);
 
 process.stdout.write(
   `${VERIFY ? "Verified" : "Generated"} ${renderedCases.length.toString()} campaign canvases across ${uniqueFormats.size.toString()} formats, including ${carouselSlides.length.toString()} carousel slides.\n`,

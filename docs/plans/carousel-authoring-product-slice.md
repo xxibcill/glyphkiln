@@ -99,6 +99,6 @@ from a generic social-media prompt.
 - Build, typecheck, lint, security, formatting, examples, fixtures, schema
   conformance, Unicode data, identities, brand and campaign qualifications,
   licenses, fresh packed-package consumers, and Core dry-run packaging: passed.
-- Six-slide sample and Deliverables copy: exact-byte verification passed with no
-  blocking sequence issue and one documented conservative composition-rhythm
-  advisory.
+- Six-slide review sample: exact-byte verification passed with no blocking
+  sequence issue and one documented conservative composition-rhythm advisory.
+  The review candidate remains under `docs/samples/` pending human approval.

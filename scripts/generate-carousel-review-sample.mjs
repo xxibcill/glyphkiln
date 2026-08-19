@@ -28,18 +28,6 @@ const SAMPLE_ROOT = resolve(
   "docs/samples/carousel-design-review-2026-08-18",
 );
 const GENERATED_ROOT = resolve(SAMPLE_ROOT, "generated");
-const DELIVERABLE_JSON_ROOT = resolve(
-  REPOSITORY_ROOT,
-  "Deliverables/json/carousel-review-sample",
-);
-const DELIVERABLE_PNG_ROOT = resolve(
-  REPOSITORY_ROOT,
-  "Deliverables/png/carousel-review-sample",
-);
-const DELIVERABLE_SVG_ROOT = resolve(
-  REPOSITORY_ROOT,
-  "Deliverables/svg/carousel-review-sample",
-);
 const VERIFY = process.argv.includes("--verify");
 const { emit, repositoryPath } = createQualificationEmitter({
   repositoryRoot: REPOSITORY_ROOT,
@@ -152,10 +140,6 @@ for (const [ordinal, spec] of slideSpecs.entries()) {
 
   const designPath = resolve(GENERATED_ROOT, "designs", `${canvasKey}.json`);
   await emitJson(designPath, result.document);
-  await emitJson(
-    resolve(DELIVERABLE_JSON_ROOT, `${canvasKey}.design.json`),
-    result.document,
-  );
   const outputs = {};
   for (const output of result.outputs) {
     const outputPath = resolve(
@@ -165,17 +149,6 @@ for (const [ordinal, spec] of slideSpecs.entries()) {
     );
     await emit(outputPath, output.bytes);
     await emitJson(`${outputPath}.manifest.json`, output.manifest);
-    await emit(
-      resolve(
-        output.format === "png" ? DELIVERABLE_PNG_ROOT : DELIVERABLE_SVG_ROOT,
-        `${canvasKey}.${output.format}`,
-      ),
-      output.bytes,
-    );
-    await emitJson(
-      resolve(DELIVERABLE_JSON_ROOT, `${canvasKey}.${output.format}.manifest.json`),
-      output.manifest,
-    );
     outputs[output.format] = {
       bytes: output.bytes,
       path: repositoryPath(outputPath),
@@ -250,17 +223,9 @@ const reviewBoardSvgPath = resolve(GENERATED_ROOT, "carousel-review-board.svg");
 const reviewBoardPngPath = resolve(GENERATED_ROOT, "carousel-review-board.png");
 await emit(reviewBoardSvgPath, reviewBoardSvg);
 await emit(reviewBoardPngPath, reviewBoardPng);
-await emit(resolve(DELIVERABLE_SVG_ROOT, "carousel-review-board.svg"), reviewBoardSvg);
-await emit(resolve(DELIVERABLE_PNG_ROOT, "carousel-review-board.png"), reviewBoardPng);
 await emitJson(resolve(GENERATED_ROOT, "sequence-review.json"), sequenceReview);
 await emitJson(resolve(GENERATED_ROOT, "delivery-sidecar.json"), deliverySidecar);
 await emitJson(resolve(GENERATED_ROOT, "publishing-copy.json"), publishingCopy);
-await emitJson(resolve(DELIVERABLE_JSON_ROOT, "sequence-review.json"), sequenceReview);
-await emitJson(
-  resolve(DELIVERABLE_JSON_ROOT, "delivery-sidecar.json"),
-  deliverySidecar,
-);
-await emitJson(resolve(DELIVERABLE_JSON_ROOT, "publishing-copy.json"), publishingCopy);
 
 const profile = DELIVERY_PROFILE_REGISTRY[DELIVERY_PROFILE_ID];
 const profileSourceIds = new Set([
@@ -353,7 +318,6 @@ const reviewRecord = {
   },
 };
 await emitJson(resolve(GENERATED_ROOT, "review-record.json"), reviewRecord);
-await emitJson(resolve(DELIVERABLE_JSON_ROOT, "review-record.json"), reviewRecord);
 const readme = await prettier.format(createReadme(reviewRecord), {
   parser: "markdown",
 });

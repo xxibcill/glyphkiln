@@ -168,8 +168,9 @@ The generator lives at
 [`scripts/generate-campaign-workflow-qualification.mjs`](../../scripts/generate-campaign-workflow-qualification.mjs).
 It uses only explicit local bytes and the public `@glyphkiln/core` API. It does
 not fetch resources or execute user-provided code. The generated candidate
-handoff is available under `Deliverables/json/campaign-workflow/`; preview PNGs
-and exact SVGs are grouped under the matching `Deliverables` directories.
+handoff, preview PNGs, and exact SVGs remain under
+`docs/qualification/campaign-workflow-2026-08-18/generated/` until a human
+reviewer approves the exact final bytes for promotion to `Deliverables/`.
 
 Optional AI proposals remain gated as a dependent campaign capability and are
 not exercised by this manual qualification.
