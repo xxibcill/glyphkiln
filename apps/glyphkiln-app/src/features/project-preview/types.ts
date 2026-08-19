@@ -216,5 +216,7 @@ export type PreviewFormState = {
     fontIds: string[];
     imageAssetId?: string;
     logoAssetId?: string;
+    imageAlt?: string;
+    logoAlt?: string;
   };
 };

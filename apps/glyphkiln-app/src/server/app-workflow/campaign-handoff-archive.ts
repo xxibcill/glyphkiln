@@ -1,30 +1,17 @@
 import { canonicalJson } from "@glyphkiln/core";
 
-import { compareCanonicalStrings } from "@/lib/deterministic-order";
+import {
+  encodeCampaignHandoff,
+  type CampaignHandoffFile,
+} from "./campaign-handoff-format.mjs";
+
+export {
+  campaignHandoffCanvasPrefix,
+  campaignHandoffSequencePrefix,
+} from "./campaign-handoff-format.mjs";
+export type { CampaignHandoffFile } from "./campaign-handoff-format.mjs";
 
 export const MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES = 64 * 1024 * 1024;
-
-export type CampaignHandoffFile = {
-  path: string;
-  mediaType: string;
-  byteSize: number;
-  sha256: string;
-  base64: string;
-  approvalStatus: "approved" | "unapproved";
-};
-
-export function campaignHandoffCanvasPrefix(input: {
-  campaignPrefix: string;
-  directionKey: string;
-  canvasOrdinal: number;
-  canvasKey: string;
-}): string {
-  return [
-    input.campaignPrefix,
-    `direction-${input.directionKey}`,
-    `${input.canvasOrdinal.toString().padStart(3, "0")}-${input.canvasKey}`,
-  ].join("/");
-}
 
 type CampaignHandoffSummary = {
   readonly approvedCanvasCount: number;
@@ -71,18 +58,10 @@ export class CampaignHandoffArchive {
     readonly directionId: string;
     readonly summary: CampaignHandoffSummary;
   }): { readonly files: CampaignHandoffFile[]; readonly bytes: Uint8Array } {
-    const files = [...this.#files].sort((left, right) =>
-      compareCanonicalStrings(left.path, right.path),
-    );
-    const bytes = new TextEncoder().encode(
-      `${canonicalJson({
-        version: "1.0.0",
-        campaign: input.campaign,
-        directionId: input.directionId,
-        files,
-        summary: input.summary,
-      })}\n`,
-    );
+    const { files, bytes } = encodeCampaignHandoff({
+      ...input,
+      files: this.#files,
+    });
     if (bytes.byteLength > this.#maximumBytes) {
       throw new CampaignHandoffArchiveLimitError(this.#maximumBytes);
     }

@@ -20,157 +20,183 @@ import {
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "./image-led-campaign-contract.js";
 import type { TemplateRenderContext, TemplateDefinition } from "./types.js";
 
-export const imageLedCampaignTemplate: TemplateDefinition = {
-  id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
-  version: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version,
-  requiredLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
-  supportedLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
-  supportedFormats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
-  requiredAssetFits: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
-  constraints: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.constraints,
-  render(context) {
-    const canvas = createTemplateCanvas(context);
-    const image = findLayer(context.document.layers, "image")!;
-    const logo = findLayer(context.document.layers, "logo")!;
-    const headline = findLayer(context.document.layers, "headline")!;
-    const eyebrow = findLayer(context.document.layers, "eyebrow");
-    const subtitle = findLayer(context.document.layers, "subtitle");
-    const cta = findLayer(context.document.layers, "cta");
-    const dimensions = canvas.scene.dimensions;
-    const fullCanvas = { x: 0, y: 0, ...dimensions };
-    const focal = addFocalImage(canvas, context, image, fullCanvas);
-    const contrastRaster = decodeRasterForContrast(context.assets.get(image.assetId));
-    const treatment = imageTreatment(image);
-    addTreatment(canvas, image.id, treatment, fullCanvas);
+type LogoBoxPolicy = "fixed-slot" | "asset-aspect-ratio";
 
-    const safe = canvas.safeArea;
-    const landscape = dimensions.width / dimensions.height > 1.35;
-    const unit = Math.min(dimensions.width, dimensions.height) / 1_080;
-    const copyWidth = landscape ? safe.width * 0.56 : safe.width * 0.82;
-    const logoHeight = 70 * unit;
-    addAsset(canvas, context, logo, {
-      x: safe.x,
-      y: safe.y,
-      width: Math.min(copyWidth * 0.3, 112 * unit),
-      height: logoHeight,
-    });
-    addDecorativeBar(
-      canvas,
-      {
+export const imageLedCampaignV1_0_0Template = createImageLedCampaignTemplate(
+  "1.0.0",
+  "fixed-slot",
+);
+
+export const imageLedCampaignTemplate = createImageLedCampaignTemplate(
+  IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.version,
+  "asset-aspect-ratio",
+);
+
+function createImageLedCampaignTemplate(
+  version: TemplateDefinition["version"],
+  logoBoxPolicy: LogoBoxPolicy,
+): TemplateDefinition {
+  return {
+    id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
+    version,
+    requiredLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredLayers,
+    supportedLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
+    supportedFormats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
+    requiredAssetFits: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
+    constraints: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.constraints,
+    render(context) {
+      const canvas = createTemplateCanvas(context);
+      const image = findLayer(context.document.layers, "image")!;
+      const logo = findLayer(context.document.layers, "logo")!;
+      const headline = findLayer(context.document.layers, "headline")!;
+      const eyebrow = findLayer(context.document.layers, "eyebrow");
+      const subtitle = findLayer(context.document.layers, "subtitle");
+      const cta = findLayer(context.document.layers, "cta");
+      const dimensions = canvas.scene.dimensions;
+      const fullCanvas = { x: 0, y: 0, ...dimensions };
+      const focal = addFocalImage(canvas, context, image, fullCanvas);
+      const contrastRaster = decodeRasterForContrast(context.assets.get(image.assetId));
+      const treatment = imageTreatment(image);
+      addTreatment(canvas, image.id, treatment, fullCanvas);
+
+      const safe = canvas.safeArea;
+      const landscape = dimensions.width / dimensions.height > 1.35;
+      const unit = Math.min(dimensions.width, dimensions.height) / 1_080;
+      const copyWidth = landscape ? safe.width * 0.56 : safe.width * 0.82;
+      const logoHeight = 70 * unit;
+      const maximumLogoWidth = Math.min(copyWidth * 0.3, 112 * unit);
+      const logoAsset = context.assets.get(logo.assetId);
+      const logoWidth =
+        logoBoxPolicy === "fixed-slot"
+          ? maximumLogoWidth
+          : Math.min(
+              maximumLogoWidth,
+              logoHeight * (logoAsset.width / logoAsset.height),
+            );
+      addAsset(canvas, context, logo, {
         x: safe.x,
-        y: safe.y + logoHeight + 28 * unit,
-        width: 64 * unit,
-        height: 7 * unit,
-      },
-      "image-led-accent",
-    );
+        y: safe.y,
+        width: logoWidth,
+        height: logoHeight,
+      });
+      addDecorativeBar(
+        canvas,
+        {
+          x: safe.x,
+          y: safe.y + logoHeight + 28 * unit,
+          width: 64 * unit,
+          height: 7 * unit,
+        },
+        "image-led-accent",
+      );
 
-    const roles = typographyRoles(context);
-    let copyY = safe.y + logoHeight + 58 * unit;
-    if (eyebrow !== undefined) {
-      const element = addRoleText(
+      const roles = typographyRoles(context);
+      let copyY = safe.y + logoHeight + 58 * unit;
+      if (eyebrow !== undefined) {
+        const element = addRoleText(
+          canvas,
+          context,
+          eyebrow,
+          {
+            x: safe.x,
+            y: copyY,
+            width: copyWidth,
+            height: 42 * unit,
+          },
+          roles.label,
+          {
+            preferredFontSize: 22 * unit,
+            minimumFontSize: 14,
+            maximumLines: 1,
+            fallbackFamily: context.document.brand.typography.bodyFamily,
+            fallbackWeight: 700,
+            fallbackLineHeight: 1,
+          },
+        );
+        addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
+        copyY += 62 * unit;
+      }
+
+      const headlineElement = addRoleText(
         canvas,
         context,
-        eyebrow,
+        headline,
         {
           x: safe.x,
           y: copyY,
           width: copyWidth,
-          height: 42 * unit,
+          height: landscape ? safe.height * 0.47 : safe.height * 0.43,
         },
-        roles.label,
+        roles.display,
         {
-          preferredFontSize: 22 * unit,
-          minimumFontSize: 14,
-          maximumLines: 1,
-          fallbackFamily: context.document.brand.typography.bodyFamily,
-          fallbackWeight: 700,
-          fallbackLineHeight: 1,
+          preferredFontSize: landscape ? 72 * unit : 82 * unit,
+          minimumFontSize: 30,
+          maximumLines: 4,
+          fallbackFamily: context.document.brand.typography.headlineFamily,
+          fallbackWeight: 800,
+          fallbackLineHeight: 0.98,
         },
       );
-      addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
-      copyY += 62 * unit;
-    }
-
-    const headlineElement = addRoleText(
-      canvas,
-      context,
-      headline,
-      {
-        x: safe.x,
-        y: copyY,
-        width: copyWidth,
-        height: landscape ? safe.height * 0.47 : safe.height * 0.43,
-      },
-      roles.display,
-      {
-        preferredFontSize: landscape ? 72 * unit : 82 * unit,
-        minimumFontSize: 30,
-        maximumLines: 4,
-        fallbackFamily: context.document.brand.typography.headlineFamily,
-        fallbackWeight: 800,
-        fallbackLineHeight: 0.98,
-      },
-    );
-    addCompositedContrast(
-      canvas,
-      contrastRaster,
-      focal.crop,
-      treatment,
-      headlineElement,
-    );
-
-    if (subtitle !== undefined) {
-      const element = addRoleText(
+      addCompositedContrast(
         canvas,
-        context,
-        subtitle,
-        {
-          x: safe.x,
-          y: copyY + headlineElement.bounds.height + 26 * unit,
-          width: copyWidth * 0.92,
-          height: 110 * unit,
-        },
-        roles.body,
-        {
-          preferredFontSize: 27 * unit,
-          minimumFontSize: 17,
-          maximumLines: 3,
-          fallbackFamily: context.document.brand.typography.bodyFamily,
-          fallbackWeight: 400,
-          fallbackLineHeight: 1.24,
-        },
+        contrastRaster,
+        focal.crop,
+        treatment,
+        headlineElement,
       );
-      addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
-    }
 
-    if (cta !== undefined) {
-      const element = addRoleText(
-        canvas,
-        context,
-        cta,
-        {
-          x: safe.x,
-          y: safe.y + safe.height - 44 * unit,
-          width: copyWidth,
-          height: 38 * unit,
-        },
-        roles.label,
-        {
-          preferredFontSize: 20 * unit,
-          minimumFontSize: 14,
-          maximumLines: 1,
-          fallbackFamily: context.document.brand.typography.bodyFamily,
-          fallbackWeight: 700,
-          fallbackLineHeight: 1,
-        },
-      );
-      addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
-    }
+      if (subtitle !== undefined) {
+        const element = addRoleText(
+          canvas,
+          context,
+          subtitle,
+          {
+            x: safe.x,
+            y: copyY + headlineElement.bounds.height + 26 * unit,
+            width: copyWidth * 0.92,
+            height: 110 * unit,
+          },
+          roles.body,
+          {
+            preferredFontSize: 27 * unit,
+            minimumFontSize: 17,
+            maximumLines: 3,
+            fallbackFamily: context.document.brand.typography.bodyFamily,
+            fallbackWeight: 400,
+            fallbackLineHeight: 1.24,
+          },
+        );
+        addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
+      }
 
-    return finishTemplate(canvas);
-  },
-};
+      if (cta !== undefined) {
+        const element = addRoleText(
+          canvas,
+          context,
+          cta,
+          {
+            x: safe.x,
+            y: safe.y + safe.height - 44 * unit,
+            width: copyWidth,
+            height: 38 * unit,
+          },
+          roles.label,
+          {
+            preferredFontSize: 20 * unit,
+            minimumFontSize: 14,
+            maximumLines: 1,
+            fallbackFamily: context.document.brand.typography.bodyFamily,
+            fallbackWeight: 700,
+            fallbackLineHeight: 1,
+          },
+        );
+        addCompositedContrast(canvas, contrastRaster, focal.crop, treatment, element);
+      }
+
+      return finishTemplate(canvas);
+    },
+  };
+}
 
 type RoleSet = {
   display: BrandTypographyRole | undefined;

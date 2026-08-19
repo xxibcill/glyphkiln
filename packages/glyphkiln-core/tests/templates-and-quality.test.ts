@@ -12,6 +12,7 @@ import {
   type DesignLayer,
   type ResolvedAsset,
 } from "../src/index.js";
+import { TIKTOK_ORGANIC_HEADLINE_LINE_HEIGHT_MINIMUM } from "../src/templates/tiktok-carousel-slide-v1-0-4.js";
 import { cloneDocument, loadExample, loadExampleAssets } from "./helpers.js";
 
 const unsupportedLayerCases = [
@@ -191,6 +192,45 @@ function svgTextYBounds(
   return { top: Math.min(...yCoordinates), bottom: Math.max(...yCoordinates) };
 }
 
+function svgTextLineYBounds(
+  markup: string,
+  layerId: string,
+  lineIndex: number,
+): { top: number; bottom: number } {
+  const path = new RegExp(
+    `<path id="${layerId}-line-${lineIndex.toString()}" d="([^"]+)"`,
+  ).exec(markup)?.[1];
+  if (path === undefined) {
+    throw new Error(`Missing SVG text line "${layerId}-line-${lineIndex.toString()}".`);
+  }
+  const coordinates = [...path.matchAll(/-?(?:\d+\.?\d*|\.\d+)/g)].map((value) =>
+    Number(value[0]),
+  );
+  const yCoordinates = coordinates.filter((_, index) => index % 2 === 1);
+  if (yCoordinates.length === 0) {
+    throw new Error(
+      `SVG text line "${layerId}-line-${lineIndex.toString()}" has no outline coordinates.`,
+    );
+  }
+  return { top: Math.min(...yCoordinates), bottom: Math.max(...yCoordinates) };
+}
+
+function svgImageBox(
+  markup: string,
+  layerId: string,
+): { x: number; y: number; width: number; height: number } {
+  const group = new RegExp(
+    `<g id="${layerId}">[\\s\\S]*?<image x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"`,
+  ).exec(markup);
+  if (group === null) throw new Error(`Missing SVG image group "${layerId}".`);
+  return {
+    x: Number(group[1]),
+    y: Number(group[2]),
+    width: Number(group[3]),
+    height: Number(group[4]),
+  };
+}
+
 describe("template registry", () => {
   it("contains six stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
@@ -206,8 +246,8 @@ describe("template registry", () => {
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.3",
-      "image-led-campaign": "1.0.0",
+      "tiktok-carousel-slide": "1.0.4",
+      "image-led-campaign": "1.0.1",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -245,12 +285,12 @@ describe("template registry", () => {
     {
       treatment: "none",
       mode: "dark",
-      outputHash: "accb227c2e11dbdfcf861cbb1c27e1d9d3bb3115cc88f77e8aca266eafe35393",
+      outputHash: "4f7447fde0994d36be68f7c7ad1242d63cc47e700b6839eab6fcb2e156c733a9",
     },
     {
       treatment: "light-scrim",
       mode: "light",
-      outputHash: "684c2aa6c52143980c3d15e6cb0608446fe991cd0fd283c6dd54dfa21548d34d",
+      outputHash: "49aa5ce32acb2e48bc0d78c885a3250883a06757af25cf9dcc052d3373c97212",
     },
   ] as const)(
     "pins exact image-led $treatment output pixels",
@@ -322,7 +362,7 @@ describe("template registry", () => {
     expect(markup).toContain('id="campaign-image-treatment"');
     expect(markup).toContain('id="brand-mark"');
     expect(result.evidence).toMatchObject({
-      version: "1.0.0",
+      version: "1.1.0",
       crops: [
         expect.objectContaining({
           layerId: "campaign-image",
@@ -338,6 +378,7 @@ describe("template registry", () => {
       "subtitle",
       "cta",
     ]);
+    expect(result.evidence.text.every((entry) => entry.fontSize > 0)).toBe(true);
     expect(result.evidence.contrast).toHaveLength(4);
     expect(
       result.evidence.contrast.every(
@@ -346,6 +387,50 @@ describe("template registry", () => {
       ),
     ).toBe(true);
     expect(result.outputs[0]!.manifest.includedGenerativeAssetUsed).toBe(true);
+  });
+
+  it.each([
+    { format: "linkedin-landscape", width: 1200, height: 627 },
+    { format: "instagram-square", width: 1080, height: 1080 },
+    { format: "instagram-portrait", width: 1080, height: 1350 },
+  ] as const)(
+    "anchors a square logo to the safe-area column in $format",
+    async ({ format, width, height }) => {
+      const document = cloneDocument(await loadExample("image-led-campaign"));
+      const assets = await loadExampleAssets(document);
+      document.format = format;
+
+      const result = await renderGraphic(document, { formats: ["svg"], assets });
+      const markup = new TextDecoder().decode(result.outputs[0]!.bytes);
+      const box = svgImageBox(markup, "brand-mark");
+      const unit = Math.min(width, height) / 1_080;
+
+      expect(box.x).toBeCloseTo(width * document.brand.safeArea.left, 3);
+      expect(box.width).toBeCloseTo(70 * unit, 3);
+      expect(box.height).toBeCloseTo(70 * unit, 3);
+    },
+  );
+
+  it("keeps saved image-led 1.0.0 pixels exactly renderable", async () => {
+    const { document, assets } = await loadImageLedRasterFixture();
+    document.id = "image-led-none-pixel-contract";
+    document.template.version = "1.0.0";
+    document.mode = "dark";
+    const image = document.layers.find((layer) => layer.type === "image");
+    if (image?.type !== "image" || !("treatment" in image)) {
+      throw new Error("Expected a current image treatment.");
+    }
+    image.treatment = "none";
+
+    const result = await renderGraphic(document, {
+      formats: ["png"],
+      assets,
+      creationTimestamp: "2026-07-31T00:00:00.000Z",
+    });
+
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "accb227c2e11dbdfcf861cbb1c27e1d9d3bb3115cc88f77e8aca266eafe35393",
+    );
   });
 
   it("falls back to semantic headline and body families when roles are omitted", async () => {
@@ -423,6 +508,16 @@ describe("template registry", () => {
     );
   });
 
+  it("keeps saved TikTok 1.0.3 organic slides exactly renderable", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.template.version = "1.0.3";
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    expect(result.outputs[0]?.manifest.output.sha256).toBe(
+      "0a24615661422e8b395cfa19c87a9accc81ef3f106157fc2afa59697a9eeb7a1",
+    );
+  });
+
   it("keeps the reviewed TikTok starter typography-first and free of visual assets", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
     const template = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
@@ -468,7 +563,7 @@ describe("template registry", () => {
     expect(result.evidence.safeArea.width).toBeCloseTo(853.2);
     expect(result.evidence.safeArea.height).toBeCloseTo(1_224);
     expect(markup).toContain('<rect id="slide-number-background" x="774.8" y="100.8"');
-    expect(markup).toContain('<rect id="cta-rule" x="119.6" y="956.8"');
+    expect(markup).toContain('<rect id="cta-rule" x="135.6" y="822.8"');
   });
 
   it.each([0.15, 0.16, 0.18, 0.2])(
@@ -522,7 +617,7 @@ describe("template registry", () => {
       narrativeResult.outputs[0]?.bytes,
     );
     expect(metricResult.outputs[0]?.manifest.output.sha256).toBe(
-      "d8b10716091efab468ceef6e5a57d04849d9b003f0444d0ace1dc076ddc667f8",
+      "899d91245e3857c4bca253426e94dc458cb8f7e901db3891654157b66c3c1679",
     );
 
     metric.layers.push({
@@ -564,6 +659,68 @@ describe("template registry", () => {
     const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
     expect(markup).toContain("slide-number");
     expect(markup).not.toContain("carousel-progress-");
+  });
+
+  it("keeps adjacent multiline TikTok headline glyph outlines separate", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    const headline = document.layers.find((layer) => layer.type === "headline");
+    if (headline?.type !== "headline") {
+      throw new Error("The carousel example must include a headline.");
+    }
+    headline.text = "Keep the\ngrammar.\nChange the beat.";
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+    const lines = [0, 1, 2].map((lineIndex) =>
+      svgTextLineYBounds(markup, "headline", lineIndex),
+    );
+
+    expect(TIKTOK_ORGANIC_HEADLINE_LINE_HEIGHT_MINIMUM).toBeGreaterThanOrEqual(1.08);
+    expect(lines[0]!.bottom).toBeLessThan(lines[1]!.top);
+    expect(lines[1]!.bottom).toBeLessThan(lines[2]!.top);
+  });
+
+  it("omits repeated TikTok header and footer chrome when the layers are absent", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.layers = document.layers.filter(
+      (layer) => layer.type !== "eyebrow" && layer.type !== "footer",
+    );
+
+    const result = await renderGraphic(document, { formats: ["svg"] });
+    const markup = new TextDecoder().decode(result.outputs[0]?.bytes);
+
+    expect(markup).not.toContain("carousel-header-rule");
+    expect(markup).not.toContain('id="footer"');
+    expect(markup).toContain("slide-number");
+  });
+
+  it("renders deterministic Core-owned pattern interrupts", async () => {
+    const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
+    document.layers.splice(1, 0, {
+      id: "pattern-interrupt",
+      type: "procedural-decoration",
+      style: "topographic-contours",
+      intensity: 0.38,
+      density: 0.54,
+      complexity: 0.5,
+      contrast: 0.28,
+      quietRegion: { x: 0.07, y: 0.12, width: 0.58, height: 0.58 },
+      visible: true,
+    });
+
+    const options = {
+      formats: ["svg"] as const,
+      creationTimestamp: "2026-08-18T15:30:00.000Z",
+    };
+    const first = await renderGraphic(document, options);
+    const second = await renderGraphic(document, options);
+    const markup = new TextDecoder().decode(first.outputs[0]?.bytes);
+
+    expect(first.outputs[0]?.bytes).toEqual(second.outputs[0]?.bytes);
+    expect(markup).toContain("carousel-pattern-ring-3");
+    expect(first.outputs[0]?.manifest.proceduralAlgorithmVersions).toEqual({
+      "topographic-contours": "1.1.0",
+    });
   });
 
   it("enforces the declared TikTok headline line limit", async () => {

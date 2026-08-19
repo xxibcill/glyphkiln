@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.4.0",
   "id": "schema-conformance-current-valid",
-  "template": { "id": "image-led-campaign", "version": "1.0.0" },
+  "template": { "id": "image-led-campaign", "version": "1.0.1" },
   "format": "linkedin-landscape",
   "seed": "kilnform-light-01",
   "mode": "dark",

@@ -37,7 +37,7 @@ type ImageLedCampaignTemplateContract = Pick<
 
 export const IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT = deepFreeze({
   id: "image-led-campaign",
-  version: "1.0.0",
+  version: "1.0.1",
   requiredLayers: ["image", "logo", "headline"],
   supportedLayers: [
     "background",

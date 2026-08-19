@@ -65,6 +65,11 @@ const MIGRATION_VERSIONS = [
   "202608120010_resource_color_normalization_provenance",
   "202608120011_campaign_proposals",
   "202608130012_campaign_carousel_variant",
+  "202608180013_campaign_narrative_role",
+  "202608190014_campaign_delivery_profile",
+  "202608190015_campaign_carousel_sequence",
+  "202608190016_campaign_canvas_source_notes",
+  "202608190017_campaign_canvas_alt_text",
 ] as const;
 
 type TableNameRow = {
@@ -427,7 +432,92 @@ describe("App Alpha PostgreSQL migration", () => {
     expect(singletonRows).toEqual([{ count: 1 }]);
   });
 
-  it("persists the authoritative carousel composition variant", async () => {
+  it("backfills delivery profiles while preserving populated canvases as append-only", async () => {
+    const migrations = await loadMigrations();
+    const deliveryProfileMigration = migrations.find(
+      (migration) => migration.version === "202608190014_campaign_delivery_profile",
+    );
+    if (deliveryProfileMigration === undefined) {
+      throw new Error("Campaign delivery-profile migration missing.");
+    }
+    for (const migration of migrations) {
+      if (migration === deliveryProfileMigration) break;
+      for (const statement of migration.upStatements) {
+        await database.query(statement);
+      }
+    }
+
+    await seedBrandAndDesignState(database);
+    await insertRevision(database, {
+      brandSnapshotId: "snapshot-a",
+      designId: "design-a",
+      documentName: "Existing Instagram canvas",
+      id: "revision-existing-instagram",
+      revisionNumber: 1,
+    });
+    await database.query(
+      `INSERT INTO campaigns (
+         id, workspace_id, name, brief, campaign_seed, family_id, created_by
+       ) VALUES ($1, $2, $3, $4, $5, 'image-led-campaign', $6)`,
+      [
+        "campaign-existing-instagram",
+        "workspace-a",
+        "Existing Instagram campaign",
+        "Upgrade an existing append-only canvas.",
+        "existing-instagram-seed",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_directions (
+         id, workspace_id, campaign_id, direction_key, name, created_by
+       ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        "direction-existing-instagram",
+        "workspace-a",
+        "campaign-existing-instagram",
+        "existing-instagram",
+        "Existing Instagram direction",
+        "user-a",
+      ],
+    );
+    await database.query(
+      `INSERT INTO campaign_canvases (
+         id, workspace_id, campaign_id, direction_id, canvas_key,
+         design_id, revision_id, template_id, template_version, format_id,
+         composition_variant_id, narrative_role, seed_derivation_version,
+         direction_seed, canvas_seed, ordinal, created_by
+       ) VALUES (
+         $1, 'workspace-a', 'campaign-existing-instagram',
+         'direction-existing-instagram', 'instagram-hero', 'design-a',
+         'revision-existing-instagram', 'image-led-campaign', '1.0.1',
+         'instagram-square', 'focal-editorial', 'hook',
+         'sha256/canonical-scope-v1', $2, $3, 0, 'user-a'
+       )`,
+      ["canvas-existing-instagram", HASH_A, HASH_B],
+    );
+
+    for (const statement of deliveryProfileMigration.upStatements) {
+      await database.query(statement);
+    }
+
+    await expect(
+      database.query(
+        `SELECT delivery_profile_id
+           FROM campaign_canvases
+          WHERE id = 'canvas-existing-instagram'`,
+      ),
+    ).resolves.toEqual([{ delivery_profile_id: "instagram-native-carousel" }]);
+    await expect(
+      database.query(
+        `UPDATE campaign_canvases
+            SET narrative_role = 'context'
+          WHERE id = 'canvas-existing-instagram'`,
+      ),
+    ).rejects.toHaveProperty("code", "55000");
+  });
+
+  it("persists authoritative carousel composition and narrative roles", async () => {
     await migrateDatabase(database);
     await seedBrandAndDesignState(database);
     await insertRevision(database, {
@@ -468,28 +558,149 @@ describe("App Alpha PostgreSQL migration", () => {
       id: string,
       canvasKey: string,
       compositionVariantId: string,
+      narrativeRole: string,
+      deliveryProfileId: string,
       ordinal: number,
+      carouselSequenceKey: string | null = null,
+      sourceNotes: readonly { label: string; url?: string }[] = [],
+      altText: string | null = null,
     ) =>
       database.query(
         `INSERT INTO campaign_canvases (
            id, workspace_id, campaign_id, direction_id, canvas_key,
            design_id, revision_id, template_id, template_version, format_id,
-           composition_variant_id, seed_derivation_version, direction_seed,
-           canvas_seed, ordinal, created_by
+           composition_variant_id, narrative_role, delivery_profile_id,
+           carousel_sequence_key, publisher_alt_text, source_notes,
+           seed_derivation_version, direction_seed, canvas_seed, ordinal, created_by
          ) VALUES (
            $1, 'workspace-a', 'campaign-carousel-a', 'direction-carousel-a', $2,
            'design-a', 'revision-carousel-a', 'tiktok-carousel-slide', '1.0.3',
-           'tiktok-carousel-3x4', $3, 'sha256/canonical-scope-v1', $4, $5, $6,
+           'tiktok-photo-carousel', $3, $4, $5, $6, $7, $8::jsonb,
+           'sha256/canonical-scope-v1', $9, $10, $11,
            'user-a'
          )`,
-        [id, canvasKey, compositionVariantId, HASH_A, HASH_B, ordinal],
+        [
+          id,
+          canvasKey,
+          compositionVariantId,
+          narrativeRole,
+          deliveryProfileId,
+          carouselSequenceKey,
+          altText,
+          sourceNotes,
+          HASH_A,
+          HASH_B,
+          ordinal,
+        ],
       );
 
     await expect(
-      insertCanvas("canvas-carousel-a", "slide-01", "organic-photo-editorial", 0),
+      insertCanvas(
+        "canvas-carousel-a",
+        "slide-01",
+        "organic-photo-editorial",
+        "hook",
+        "tiktok-content-posting-photo",
+        0,
+        "proof-series",
+        [
+          {
+            label: "Launch research",
+            url: "https://example.com/launch-research",
+          },
+        ],
+        "Opening proof slide describing the deterministic campaign contract.",
+      ),
     ).resolves.toEqual([]);
     await expect(
-      insertCanvas("canvas-unknown-a", "slide-02", "unknown-variant", 1),
+      insertCanvas(
+        "canvas-unknown-a",
+        "slide-02",
+        "unknown-variant",
+        "context",
+        "tiktok-organic-photo",
+        1,
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      insertCanvas(
+        "canvas-unknown-role-a",
+        "slide-03",
+        "organic-photo-editorial",
+        "unknown-role",
+        "tiktok-organic-photo",
+        2,
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      database.query(
+        `SELECT narrative_role, delivery_profile_id, carousel_sequence_key,
+                publisher_alt_text, source_notes
+           FROM campaign_canvases
+          WHERE id = 'canvas-carousel-a'`,
+      ),
+    ).resolves.toEqual([
+      {
+        narrative_role: "hook",
+        delivery_profile_id: "tiktok-content-posting-photo",
+        carousel_sequence_key: "proof-series",
+        publisher_alt_text:
+          "Opening proof slide describing the deterministic campaign contract.",
+        source_notes: [
+          {
+            label: "Launch research",
+            url: "https://example.com/launch-research",
+          },
+        ],
+      },
+    ]);
+    await expect(
+      insertCanvas(
+        "canvas-incompatible-profile-a",
+        "slide-04",
+        "organic-photo-editorial",
+        "context",
+        "instagram-api-carousel",
+        3,
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      insertCanvas(
+        "canvas-alt-too-long-a",
+        "slide-07",
+        "organic-photo-editorial",
+        "context",
+        "tiktok-organic-photo",
+        6,
+        "proof-series",
+        [],
+        "x".repeat(2001),
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      insertCanvas(
+        "canvas-too-many-source-notes-a",
+        "slide-06",
+        "organic-photo-editorial",
+        "context",
+        "tiktok-organic-photo",
+        5,
+        "proof-series",
+        Array.from({ length: 33 }, (_, index) => ({
+          label: `Source ${(index + 1).toString()}`,
+        })),
+      ),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(
+      insertCanvas(
+        "canvas-invalid-sequence-a",
+        "slide-05",
+        "organic-photo-editorial",
+        "context",
+        "tiktok-organic-photo",
+        4,
+        "not a key",
+      ),
     ).rejects.toHaveProperty("code", "23514");
 
     const constraints = await database.query<ConstraintRow>(

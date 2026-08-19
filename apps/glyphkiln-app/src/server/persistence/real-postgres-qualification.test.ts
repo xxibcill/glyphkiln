@@ -483,6 +483,8 @@ function campaignCanvasInput(
     templateVersion: fixture.document.template.version,
     format: fixture.document.format,
     compositionVariantId: "focal-editorial" as const,
+    narrativeRole: "context" as const,
+    deliveryProfileId: undefined,
     seedDerivationVersion: "sha256/canonical-scope-v1",
     directionSeed: "a".repeat(64),
     canvasSeed: id === "canvas-real-first" ? "b".repeat(64) : "c".repeat(64),

@@ -15,6 +15,45 @@ export {
   CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY,
 } from "./campaigns/metadata.js";
+export {
+  DELIVERY_PROFILE_IDS,
+  DELIVERY_PROFILE_METADATA_VERSION,
+  DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
+  defaultDeliveryProfileForFormat,
+  deliveryProfilesForFormat,
+  deliverySourcesForProfile,
+  isBlockingDeliveryEvidence,
+} from "./delivery/index.js";
+export type {
+  DeliveryEvidenceLevel,
+  DeliveryFact,
+  DeliveryProfile,
+  DeliveryProfileId,
+  DeliverySource,
+  DeliverySurfaceOverlay,
+} from "./delivery/index.js";
+export {
+  CAROUSEL_DELIVERY_SIDECAR_VERSION,
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_REVIEW_ISSUE_CODES,
+  CAROUSEL_SEQUENCE_LIMITS,
+  CAROUSEL_SEQUENCE_VERSION,
+  createCarouselDeliverySidecar,
+  createCarouselSequenceKey,
+  reviewCarouselSequence,
+} from "./carousels/index.js";
+export type {
+  CarouselDeliverySidecar,
+  CarouselNarrativeRole,
+  CarouselReviewIssue,
+  CarouselReviewIssueCode,
+  CarouselSequence,
+  CarouselSequenceKey,
+  CarouselSequenceReview,
+  CarouselSlide,
+  CarouselSourceNote,
+} from "./carousels/index.js";
 export type {
   CampaignAssetRole,
   CampaignCompositionVariant,
@@ -46,10 +85,16 @@ export type {
   AuthoringTemplateKey,
 } from "./authoring/metadata.js";
 export {
+  CAROUSEL_COPY_ADVISORY,
+  CAROUSEL_COPY_ADVISORY_VERSION,
+} from "./authoring/carousel-copy-policy.js";
+export type { CarouselCopyAdvisoryRange } from "./authoring/carousel-copy-policy.js";
+export {
   AUTHORING_QUALITY_ISSUE_LIMITS,
   AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   mapQualityIssuesToAuthoringIssues,
 } from "./authoring/issues.js";
+export { RENDER_EVIDENCE_VERSION } from "./renderer/evidence.js";
 export type {
   AuthoringQualityIssueMapping,
   CandidateDocumentIssue,

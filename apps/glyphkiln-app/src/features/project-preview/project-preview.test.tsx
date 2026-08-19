@@ -274,7 +274,7 @@ function createPreviewSuccess(document: PreviewSuccess["document"]): PreviewSucc
     document,
     qualityIssues: [],
     evidence: {
-      version: "1.0.0",
+      version: "1.1.0",
       safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
       text: [
         {
@@ -282,6 +282,7 @@ function createPreviewSuccess(document: PreviewSuccess["document"]): PreviewSucc
           bounds: { x: 120, y: 140, width: 620, height: 180 },
           lineCount: 2,
           maximumLines: 3,
+          fontSize: 72,
           overflow: false,
         },
       ],

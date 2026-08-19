@@ -61,6 +61,23 @@ describe("parsePreviewResponse", () => {
     expect(isRenderProofProjection(oversized, proof.document)).toBe(false);
   });
 
+  it("accepts immutable render-evidence v1.0 proposal proofs", async () => {
+    const proof = await renderSuccess();
+    const legacyProof = structuredClone(proof) as unknown as {
+      evidence: {
+        version: string;
+        text: Record<string, unknown>[];
+      };
+    };
+    legacyProof.evidence.version = "1.0.0";
+    for (const entry of legacyProof.evidence.text) delete entry.fontSize;
+
+    expect(isRenderProofProjection(legacyProof, proof.document)).toBe(true);
+
+    legacyProof.evidence.version = "1.1.0";
+    expect(isRenderProofProjection(legacyProof, proof.document)).toBe(false);
+  });
+
   it("accepts a manifest that uses an exact declared custom font", async () => {
     const document = createPreviewDesign();
     const developmentFont = createDevelopmentFont();

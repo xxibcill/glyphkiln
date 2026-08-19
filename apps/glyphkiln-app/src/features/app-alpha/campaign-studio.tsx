@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { SyntheticEvent } from "react";
+import {
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  deliveryProfilesForFormat,
+  type CarouselSourceNote,
+  type DeliveryProfileId,
+} from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
@@ -10,6 +16,7 @@ import type {
   AppAlphaApi,
   CampaignBoard,
   CampaignCanvas,
+  CampaignCarouselReview,
   CampaignCanvasSeedInput,
   CampaignProposalRun,
   DesignRevision,
@@ -31,6 +38,7 @@ import {
 } from "./campaign-studio-model";
 import {
   CampaignCanvasAttachment,
+  CampaignCarouselReviewPanel,
   CampaignCommandRail,
   CampaignDirectionComposer,
   CampaignOptionBoard,
@@ -45,6 +53,8 @@ type CampaignStudioProps = {
   draftCanvas: CampaignDraftCanvas;
   openRevision?: DesignRevision;
   canCoordinate: boolean;
+  selectedDeliveryProfileId?: DeliveryProfileId;
+  onDeliveryProfileChange?: (profileId: DeliveryProfileId) => void;
   onApplyCanvasSeed: (seed: string) => void;
   onCampaignChanged: () => Promise<void>;
   onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
@@ -57,6 +67,8 @@ export function CampaignStudio({
   draftCanvas,
   openRevision,
   canCoordinate,
+  selectedDeliveryProfileId,
+  onDeliveryProfileChange,
   onApplyCanvasSeed,
   onCampaignChanged,
   onOpenDesign,
@@ -65,6 +77,7 @@ export function CampaignStudio({
   const [board, setBoard] = useState<CampaignBoard>();
   const [proposalRun, setProposalRun] = useState<CampaignProposalRun>();
   const [comparison, setComparison] = useState<RevisionComparison>();
+  const [carouselReview, setCarouselReview] = useState<CampaignCarouselReview>();
   const [leftCanvasId, setLeftCanvasId] = useState("");
   const [rightCanvasId, setRightCanvasId] = useState("");
   const [handoffDirectionId, setHandoffDirectionId] = useState("");
@@ -108,6 +121,10 @@ export function CampaignStudio({
     sameCanvasSeedScope(canvasSeedPlan.scope, currentCanvasScope)
       ? canvasSeedPlan
       : undefined;
+  const deliveryProfiles = deliveryProfilesForFormat(draftCanvas.format);
+  const selectedDeliveryProfile =
+    deliveryProfiles.find(({ id }) => id === selectedDeliveryProfileId) ??
+    deliveryProfiles.at(0);
   const draftMatchesCanvasSeed = draftMatchesSeedPlan(
     draftCanvas,
     currentCanvasSeedPlan,
@@ -151,6 +168,7 @@ export function CampaignStudio({
     if (result.ok) {
       setBoard(result.value);
       setProposalRun(undefined);
+      setCarouselReview(undefined);
       setCanvasSeedPlan(undefined);
       synchronizeBoardSelections(result.value);
       setMessage(
@@ -268,6 +286,21 @@ export function CampaignStudio({
       return;
     }
     const form = new FormData(event.currentTarget);
+    const narrativeRole = CAROUSEL_NARRATIVE_ROLE_IDS.find(
+      (role) => role === requiredFormText(form, "narrativeRole"),
+    );
+    if (narrativeRole === undefined) return;
+    const rawCarouselSequenceKey = form.get("carouselSequenceKey");
+    const carouselSequenceKey =
+      typeof rawCarouselSequenceKey === "string" && rawCarouselSequenceKey.trim() !== ""
+        ? rawCarouselSequenceKey.trim()
+        : undefined;
+    const rawAltText = form.get("altText");
+    const altText =
+      typeof rawAltText === "string" && rawAltText.trim() !== ""
+        ? rawAltText.trim()
+        : undefined;
+    const sourceNotes = parseSourceNotes(form.get("sourceNotes"));
     setBusy("canvas");
     setFailure(undefined);
     const result = await api.attachCampaignCanvas({
@@ -278,7 +311,14 @@ export function CampaignStudio({
       designId: openRevision.designId,
       revisionId: openRevision.revisionId,
       ordinal: Number(requiredFormText(form, "canvasOrdinal")),
+      narrativeRole,
       compositionVariantId: currentCanvasSeedPlan.scope.compositionVariantId,
+      ...(selectedDeliveryProfile === undefined
+        ? {}
+        : { deliveryProfileId: selectedDeliveryProfile.id }),
+      ...(carouselSequenceKey === undefined ? {} : { carouselSequenceKey }),
+      ...(altText === undefined ? {} : { altText }),
+      ...(sourceNotes.length === 0 ? {} : { sourceNotes }),
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);
@@ -449,6 +489,32 @@ export function CampaignStudio({
     setBusy(undefined);
   }
 
+  async function reviewCarousel(
+    directionId: string,
+    sequenceKey: string,
+  ): Promise<void> {
+    if (board === undefined || busy !== undefined) return;
+    setBusy("carousel-review");
+    setFailure(undefined);
+    const result = await api.campaignCarouselReview({
+      workspaceId,
+      campaignId: board.campaign.id,
+      directionId,
+      sequenceKey,
+    });
+    if (result.ok) {
+      setCarouselReview(result.value);
+      setMessage(
+        result.value.review.success
+          ? `Sequence ${sequenceKey} passed pre-handoff review.`
+          : `Sequence ${sequenceKey} has blocking pre-handoff issues.`,
+      );
+    } else {
+      setFailure(result);
+    }
+    setBusy(undefined);
+  }
+
   const isBusy = busy !== undefined;
   return (
     <section className="campaign-studio" aria-labelledby="campaign-studio-title">
@@ -503,7 +569,11 @@ export function CampaignStudio({
               void requestProposals(base, directionId)
             }
             onOpenProposalRun={(runId) => void openProposalRun(runId)}
+            onReviewCarousel={(directionId, sequenceKey) =>
+              void reviewCarousel(directionId, sequenceKey)
+            }
           />
+          <CampaignCarouselReviewPanel carouselReview={carouselReview} />
           <CampaignCanvasAttachment
             board={board}
             openRevision={openRevision}
@@ -517,6 +587,9 @@ export function CampaignStudio({
             canCoordinate={canCoordinate}
             canAttachCanvas={canAttachCanvas}
             isBusy={isBusy}
+            deliveryProfiles={deliveryProfiles}
+            selectedDeliveryProfileId={selectedDeliveryProfile?.id}
+            onDeliveryProfileChange={onDeliveryProfileChange}
             onDirectionChange={(directionId) => {
               setCanvasDirectionId(directionId);
               setCanvasSeedPlan(undefined);
@@ -561,6 +634,21 @@ export function CampaignStudio({
       </p>
     </section>
   );
+}
+
+function parseSourceNotes(value: FormDataEntryValue | null): CarouselSourceNote[] {
+  if (typeof value !== "string") return [];
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "")
+    .map((line) => {
+      const separatorIndex = line.lastIndexOf(" | ");
+      if (separatorIndex < 0) return { label: line };
+      const label = line.slice(0, separatorIndex).trim();
+      const url = line.slice(separatorIndex + 3).trim();
+      return url === "" ? { label } : { label, url };
+    });
 }
 
 function countCampaignCanvases(board: CampaignBoard): number {

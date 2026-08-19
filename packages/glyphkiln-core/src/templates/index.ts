@@ -1,13 +1,17 @@
 import { GlyphkilnError, type QualityIssue } from "../domain/types.js";
 import type { DesignDocument, TemplateId } from "../schema/index.js";
 import { articleCoverTemplate } from "./article-cover.js";
-import { imageLedCampaignTemplate } from "./image-led-campaign.js";
+import {
+  imageLedCampaignTemplate,
+  imageLedCampaignV1_0_0Template,
+} from "./image-led-campaign.js";
 import { productAnnouncementTemplate } from "./product-announcement.js";
 import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
 import { tiktokCarouselSlideTemplate } from "./tiktok-carousel-slide.js";
 import { tiktokCarouselSlideV1_0_1Template } from "./tiktok-carousel-slide-v1-0-1.js";
 import { tiktokCarouselSlideV1_0_3Template } from "./tiktok-carousel-slide-v1-0-3.js";
+import { tiktokCarouselSlideV1_0_4Template } from "./tiktok-carousel-slide-v1-0-4.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -16,7 +20,7 @@ export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>>
     "statistic-card": statisticCardTemplate,
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
-    "tiktok-carousel-slide": tiktokCarouselSlideV1_0_3Template,
+    "tiktok-carousel-slide": tiktokCarouselSlideV1_0_4Template,
     "image-led-campaign": imageLedCampaignTemplate,
   });
 
@@ -31,8 +35,12 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     tiktokCarouselSlideV1_0_1Template,
     tiktokCarouselSlideTemplate,
     tiktokCarouselSlideV1_0_3Template,
+    tiktokCarouselSlideV1_0_4Template,
   ]),
-  "image-led-campaign": Object.freeze([imageLedCampaignTemplate]),
+  "image-led-campaign": Object.freeze([
+    imageLedCampaignV1_0_0Template,
+    imageLedCampaignTemplate,
+  ]),
 });
 
 export function getTemplate(document: DesignDocument): TemplateDefinition {

@@ -1,11 +1,18 @@
 import type {
   Bounds,
+  ContrastEvidence,
   DesignDocument,
+  ImageCropEvidence,
   QualityIssue,
   RenderEvidence,
   RenderManifest,
+  TextBoundsEvidence,
 } from "@glyphkiln/core";
-import { canonicalJson, createRenderFingerprintPayload } from "@glyphkiln/core/browser";
+import {
+  RENDER_EVIDENCE_VERSION,
+  canonicalJson,
+  createRenderFingerprintPayload,
+} from "@glyphkiln/core/browser";
 
 import type {
   PreviewCatalog,
@@ -23,9 +30,19 @@ export const MAXIMUM_BROWSER_RENDER_PROOF_BYTES = 64 * 1024 * 1024;
 
 export type RenderProofProjection = {
   qualityIssues: QualityIssue[];
-  evidence: RenderEvidence;
+  evidence: CompatibleRenderEvidence;
   outputs: (Omit<PreviewOutput, "base64"> & { base64?: string })[];
 };
+
+export type CompatibleRenderEvidence =
+  | RenderEvidence
+  | {
+      version: "1.0.0";
+      safeArea: Bounds;
+      text: Omit<TextBoundsEvidence, "fontSize">[];
+      crops: ImageCropEvidence[];
+      contrast: ContrastEvidence[];
+    };
 
 export function parsePreviewResponse(
   input: unknown,
@@ -64,7 +81,7 @@ export function isRenderProofProjection(
   if (
     !isRecord(input) ||
     !isQualityIssueArray(input.qualityIssues) ||
-    !isRenderEvidence(input.evidence) ||
+    !isCompatibleRenderEvidence(input.evidence) ||
     !Array.isArray(input.outputs) ||
     input.outputs.length !== 2 ||
     !input.outputs.every(isPreviewProofOutput) ||
@@ -294,7 +311,7 @@ function isPreviewSuccess(input: unknown): input is PreviewSuccess {
   const document = input.document;
   if (!isDesignDocument(document)) return false;
   if (!isQualityIssueArray(input.qualityIssues)) return false;
-  if (!isRenderEvidence(input.evidence)) return false;
+  if (!isCurrentRenderEvidence(input.evidence)) return false;
   if (!Array.isArray(input.outputs) || input.outputs.length !== 2) return false;
   if (!input.outputs.every(isPreviewOutput)) return false;
 
@@ -308,14 +325,30 @@ function isPreviewSuccess(input: unknown): input is PreviewSuccess {
   );
 }
 
-function isRenderEvidence(input: unknown): input is RenderEvidence {
+function isCompatibleRenderEvidence(input: unknown): input is CompatibleRenderEvidence {
+  if (!hasRenderEvidenceCollections(input)) return false;
+  if (input.version === RENDER_EVIDENCE_VERSION) {
+    return input.text.every(isCurrentTextBoundsEvidence);
+  }
+  return input.version === "1.0.0" && input.text.every(isLegacyTextBoundsEvidence);
+}
+
+function isCurrentRenderEvidence(input: unknown): input is RenderEvidence {
+  return (
+    hasRenderEvidenceCollections(input) &&
+    input.version === RENDER_EVIDENCE_VERSION &&
+    input.text.every(isCurrentTextBoundsEvidence)
+  );
+}
+
+function hasRenderEvidenceCollections(
+  input: unknown,
+): input is Record<string, unknown> & { text: unknown[] } {
   if (
     !isRecord(input) ||
-    input.version !== "1.0.0" ||
     !isBounds(input.safeArea) ||
     !Array.isArray(input.text) ||
     input.text.length > 100 ||
-    !input.text.every(isTextBoundsEvidence) ||
     !Array.isArray(input.crops) ||
     input.crops.length > 100 ||
     !input.crops.every(isImageCropEvidence) ||
@@ -328,7 +361,15 @@ function isRenderEvidence(input: unknown): input is RenderEvidence {
   return true;
 }
 
-function isTextBoundsEvidence(input: unknown): boolean {
+function isCurrentTextBoundsEvidence(input: unknown): boolean {
+  return (
+    isLegacyTextBoundsEvidence(input) &&
+    isRecord(input) &&
+    isFinitePositiveNumber(input.fontSize)
+  );
+}
+
+function isLegacyTextBoundsEvidence(input: unknown): boolean {
   return (
     isRecord(input) &&
     typeof input.layerId === "string" &&
@@ -338,6 +379,10 @@ function isTextBoundsEvidence(input: unknown): boolean {
     isPositiveInteger(input.maximumLines) &&
     typeof input.overflow === "boolean"
   );
+}
+
+function isFinitePositiveNumber(input: unknown): input is number {
+  return typeof input === "number" && Number.isFinite(input) && input > 0;
 }
 
 function isImageCropEvidence(input: unknown): boolean {

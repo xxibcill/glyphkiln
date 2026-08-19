@@ -24,14 +24,14 @@ import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led
 
 describe("campaign-family metadata", () => {
   it("publishes the exact image-led family contract", () => {
-    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.1.0");
+    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.2.0");
     expect(CAMPAIGN_FAMILY_REGISTRY).toEqual({
       "image-led-campaign": {
         id: "image-led-campaign",
         label: "Image-led campaign",
         members: [
           {
-            template: { id: "image-led-campaign", version: "1.0.0" },
+            template: { id: "image-led-campaign", version: "1.0.1" },
             formats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
             compositionVariants: [
               {
@@ -72,14 +72,14 @@ describe("campaign-family metadata", () => {
             },
           },
           {
-            template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+            template: { id: "tiktok-carousel-slide", version: "1.0.4" },
             formats: ["tiktok-photo-carousel"],
             compositionVariants: [
               {
                 id: "organic-photo-editorial",
                 label: "Organic photo editorial",
                 description:
-                  "A compact 3:4 typography-first organic photo-carousel slide.",
+                  "A compact 3:4 organic composition with content-responsive spacing and optional deterministic pattern rails.",
               },
             ],
             contentRoles: [
@@ -154,7 +154,7 @@ describe("campaign-family metadata", () => {
     });
     expect(carouselMember.formats).toEqual(carouselTemplate.supportedFormats);
     const carouselAuthoring =
-      AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.3"];
+      AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.4"];
     expect(carouselMember.formats).toBe(carouselAuthoring.compatibleFormats);
     expect(carouselMember.compositionVariants[0].id).toBe(
       carouselAuthoring.compositionVariant.id,
@@ -185,7 +185,7 @@ describe("campaign seed derivation", () => {
     familyId: "image-led-campaign",
     directionKey: createCampaignDirectionKey("direction-a"),
     canvasKey: createCampaignCanvasKey("hero"),
-    template: { id: "image-led-campaign", version: "1.0.0" },
+    template: { id: "image-led-campaign", version: "1.0.1" },
     format: "linkedin-landscape",
     compositionVariantId: "focal-editorial",
   } as const;
@@ -214,7 +214,7 @@ describe("campaign seed derivation", () => {
     expect(deriveCampaignSeeds(baseInput)).toEqual({
       version: "sha256/canonical-scope-v1",
       directionSeed: "9a44bb92d118d8105fe2dc80b5a268b0b62f75bdcbfd3e874c6be1ab79d701d3",
-      canvasSeed: "7bf2eb088098d6f8cd10649d888fbfa75dd177d9649e5dfedf351abe5f97db60",
+      canvasSeed: "752586c5bd763628854c7c0adab9e2e5a3b2e1b1a1814a1609142a7561aa6762",
     });
   });
 
@@ -251,14 +251,14 @@ describe("campaign seed derivation", () => {
     const firstSlide = deriveCampaignSeeds({
       ...baseInput,
       canvasKey: createCampaignCanvasKey("carousel-01"),
-      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
       format: "tiktok-photo-carousel",
       compositionVariantId: "organic-photo-editorial",
     });
     const secondSlide = deriveCampaignSeeds({
       ...baseInput,
       canvasKey: createCampaignCanvasKey("carousel-02"),
-      template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
       format: "tiktok-photo-carousel",
       compositionVariantId: "organic-photo-editorial",
     });

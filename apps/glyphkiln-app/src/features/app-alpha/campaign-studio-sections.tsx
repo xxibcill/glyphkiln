@@ -1,10 +1,17 @@
 import type { SyntheticEvent } from "react";
+import {
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
+  isBlockingDeliveryEvidence,
+} from "@glyphkiln/core/browser";
+import type { DeliveryProfile, DeliveryProfileId } from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
 import type {
   CampaignBoard,
   CampaignCanvas,
+  CampaignCarouselReview,
   CampaignProposalRun,
   DesignRevision,
   RevisionComparison,
@@ -15,6 +22,12 @@ import {
   type CampaignDraftCanvas,
 } from "./campaign-studio-model";
 import { RevisionProofFigure } from "./revision-proof-figure";
+
+const MAXIMUM_SOURCE_NOTES_TEXT_CHARACTERS =
+  CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide *
+  (CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters +
+    CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters +
+    4);
 
 type CampaignCanvasEntry = {
   direction: CampaignBoard["directions"][number];
@@ -167,6 +180,7 @@ export function CampaignOptionBoard({
   onOpenDesign,
   onRequestProposals,
   onOpenProposalRun,
+  onReviewCarousel,
 }: {
   board: CampaignBoard;
   canCoordinate: boolean;
@@ -175,6 +189,7 @@ export function CampaignOptionBoard({
   onOpenDesign: (designId: string, revisionId?: string) => void;
   onRequestProposals: (base: CampaignCanvas, directionId: string) => void;
   onOpenProposalRun: (runId: string) => void;
+  onReviewCarousel: (directionId: string, sequenceKey: string) => void;
 }) {
   return (
     <div className="option-board" aria-label="Campaign option board">
@@ -213,8 +228,20 @@ export function CampaignOptionBoard({
                 <li key={canvas.id}>
                   <span>{canvas.ordinal.toString().padStart(3, "0")}</span>
                   <strong>{canvas.canvasKey}</strong>
+                  <em>{canvas.narrativeRole}</em>
                   <small>
-                    {canvas.format} · {canvas.revisionId.slice(0, 8)}
+                    {canvas.format}
+                    {canvas.deliveryProfileId === undefined
+                      ? ""
+                      : ` · ${canvas.deliveryProfileId}`}{" "}
+                    {canvas.carouselSequenceKey === undefined
+                      ? ""
+                      : `· sequence ${canvas.carouselSequenceKey} `}
+                    {canvas.altText === undefined ? "" : "· publisher alt ready "}
+                    {canvas.sourceNotes === undefined
+                      ? ""
+                      : `· ${canvas.sourceNotes.length.toString()} source note${canvas.sourceNotes.length === 1 ? "" : "s"} `}
+                    · {canvas.revisionId.slice(0, 8)}
                   </small>
                   <button
                     type="button"
@@ -228,6 +255,24 @@ export function CampaignOptionBoard({
                 </li>
               ))}
             </ol>
+            {campaignCarouselSequenceKeys(direction).length === 0 ? null : (
+              <div className="carousel-sequence-actions">
+                <strong>Carousel sequences</strong>
+                {campaignCarouselSequenceKeys(direction).map((sequenceKey) => (
+                  <button
+                    key={sequenceKey}
+                    type="button"
+                    className="text-action"
+                    disabled={isBusy}
+                    onClick={() => {
+                      onReviewCarousel(direction.id, sequenceKey);
+                    }}
+                  >
+                    Review sequence {sequenceKey}
+                  </button>
+                ))}
+              </div>
+            )}
             {direction.canvases.at(0) === undefined ? null : (
               <button
                 type="button"
@@ -279,6 +324,143 @@ export function CampaignOptionBoard({
   );
 }
 
+function campaignCarouselSequenceKeys(
+  direction: CampaignBoard["directions"][number],
+): string[] {
+  return [
+    ...new Set(
+      direction.canvases.flatMap((canvas) =>
+        canvas.carouselSequenceKey === undefined ? [] : [canvas.carouselSequenceKey],
+      ),
+    ),
+  ].sort();
+}
+
+export function CampaignCarouselReviewPanel({
+  carouselReview,
+}: {
+  carouselReview?: CampaignCarouselReview;
+}) {
+  if (carouselReview === undefined) return null;
+  return (
+    <section
+      className="campaign-carousel-review"
+      aria-labelledby="carousel-review-title"
+    >
+      <header>
+        <div>
+          <span>SEQUENCE REVIEW</span>
+          <h3 id="carousel-review-title">{carouselReview.sequenceKey}</h3>
+        </div>
+        <strong data-status={carouselReview.review.success ? "pass" : "blocked"}>
+          {carouselReview.review.success ? "READY FOR HANDOFF" : "BLOCKED"}
+        </strong>
+      </header>
+      <p>
+        {carouselReview.directionKey} · {carouselReview.review.deliveryProfileId} ·{" "}
+        {carouselReview.slides.length.toString()} slides
+      </p>
+      {carouselReview.review.issues.length === 0 ? (
+        <p>No sequence issues found.</p>
+      ) : (
+        <ul className="carousel-review-issues">
+          {carouselReview.review.issues.map((issue, index) => (
+            <li
+              key={`${issue.code}-${issue.slideId ?? "sequence"}-${index.toString()}`}
+            >
+              <strong>{issue.severity.toUpperCase()}</strong>
+              <code>{issue.code}</code>
+              <span>{issue.message}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <ol className="carousel-review-slides">
+        {carouselReview.slides.map(({ canvas, proof }) => {
+          const preview = proof.outputs.find((output) => output.format === "png");
+          return (
+            <li key={canvas.id}>
+              <header>
+                <span>{canvas.ordinal.toString().padStart(2, "0")}</span>
+                <div>
+                  <strong>{canvas.canvasKey}</strong>
+                  <small>
+                    {canvas.narrativeRole} · {canvas.format}
+                  </small>
+                </div>
+              </header>
+              {preview === undefined ? null : (
+                // The proof is trusted in-memory output; there is no optimizable URL.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`data:${preview.mimeType};base64,${preview.base64}`}
+                  alt={`Exact rendered proof for ${canvas.canvasKey}.`}
+                />
+              )}
+              <div className="carousel-review-copy">
+                <strong>Publisher alt text</strong>
+                <p>{canvas.altText}</p>
+              </div>
+              <div className="carousel-review-sources">
+                <strong>Source notes</strong>
+                {canvas.sourceNotes === undefined ? (
+                  <p>None recorded.</p>
+                ) : (
+                  <ul>
+                    {canvas.sourceNotes.map((note, index) => (
+                      <li key={`${note.label}-${index.toString()}`}>
+                        {note.url === undefined ? (
+                          note.label
+                        ) : (
+                          <a href={note.url} target="_blank" rel="noreferrer">
+                            {note.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <details>
+                <summary>Exact render evidence</summary>
+                <p>
+                  Safe area {proof.evidence.safeArea.width.toString()} ×{" "}
+                  {proof.evidence.safeArea.height.toString()}
+                </p>
+                <ul>
+                  {proof.evidence.text.map((entry) => (
+                    <li key={entry.layerId}>
+                      {entry.layerId} · {entry.fontSize.toString()}px
+                    </li>
+                  ))}
+                </ul>
+                <ul>
+                  {proof.outputs.map((output) => (
+                    <li key={output.format}>
+                      <strong>{output.format.toUpperCase()}</strong> ·{" "}
+                      {output.byteSize.toString()} bytes · {output.fingerprint} · sha256{" "}
+                      {output.manifest.output.sha256}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+              {proof.qualityIssues.length === 0 ? null : (
+                <ul className="carousel-proof-issues">
+                  {proof.qualityIssues.map((issue, index) => (
+                    <li key={`${issue.code}-${index.toString()}`}>
+                      {issue.severity} · {issue.code} · {issue.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export function CampaignCanvasAttachment({
   board,
   openRevision,
@@ -292,6 +474,9 @@ export function CampaignCanvasAttachment({
   canCoordinate,
   canAttachCanvas,
   isBusy,
+  deliveryProfiles,
+  selectedDeliveryProfileId,
+  onDeliveryProfileChange,
   onDirectionChange,
   onCanvasKeyChange,
   onPlanSeed,
@@ -310,12 +495,27 @@ export function CampaignCanvasAttachment({
   canCoordinate: boolean;
   canAttachCanvas: boolean;
   isBusy: boolean;
+  deliveryProfiles: readonly DeliveryProfile[];
+  selectedDeliveryProfileId?: DeliveryProfileId;
+  onDeliveryProfileChange?: (profileId: DeliveryProfileId) => void;
   onDirectionChange: (directionId: string) => void;
   onCanvasKeyChange: (canvasKey: string) => void;
   onPlanSeed: () => void;
   onApplySeed: () => void;
   onAttachCanvas: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
+  const selectedDeliveryProfile = deliveryProfiles.find(
+    ({ id }) => id === selectedDeliveryProfileId,
+  );
+  const profileAltTextMaximum =
+    selectedDeliveryProfile?.accessibility.value.maximumAltTextCharacters;
+  const profileAltTextMaximumIsBlocking =
+    selectedDeliveryProfile !== undefined &&
+    isBlockingDeliveryEvidence(selectedDeliveryProfile.accessibility.evidence);
+  const publisherAltTextLimit =
+    profileAltTextMaximumIsBlocking && profileAltTextMaximum !== undefined
+      ? profileAltTextMaximum
+      : CAROUSEL_SEQUENCE_LIMITS.altTextCharacters;
   return (
     <form className="canvas-attachment" onSubmit={onAttachCanvas}>
       <span>04 / ATTACH EXACT REVISION</span>
@@ -351,6 +551,85 @@ export function CampaignCanvasAttachment({
           }}
         />
       </label>
+      <label>
+        Narrative role
+        <select name="narrativeRole" defaultValue="context" required>
+          {CAROUSEL_NARRATIVE_ROLE_IDS.map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
+        </select>
+      </label>
+      {selectedDeliveryProfileId === undefined ? null : (
+        <>
+          <label>
+            Delivery path
+            <select
+              name="deliveryProfileId"
+              value={selectedDeliveryProfileId}
+              disabled={isBusy}
+              onChange={(event) => {
+                const profile = deliveryProfiles.find(
+                  ({ id }) => id === event.currentTarget.value,
+                );
+                if (profile !== undefined) onDeliveryProfileChange?.(profile.id);
+              }}
+            >
+              {deliveryProfiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Carousel sequence key
+            <input
+              name="carouselSequenceKey"
+              pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*"
+              maxLength={120}
+              disabled={isBusy}
+              aria-describedby="carousel-sequence-hint"
+            />
+          </label>
+          <small id="carousel-sequence-hint">
+            Use one key for every slide in a reviewed sequence; leave blank for a
+            standalone canvas.
+          </small>
+          <label>
+            Publisher alt text
+            <textarea
+              name="altText"
+              rows={3}
+              maxLength={publisherAltTextLimit}
+              disabled={isBusy}
+              aria-describedby="carousel-alt-text-hint"
+            />
+          </label>
+          <small id="carousel-alt-text-hint">
+            Describe the complete slide for the publishing destination. Required with a
+            sequence key; up to {publisherAltTextLimit.toString()} characters
+            {profileAltTextMaximum === undefined || profileAltTextMaximumIsBlocking
+              ? " for this path."
+              : ` in Glyphkiln; this path recommends ${profileAltTextMaximum.toString()}.`}
+          </small>
+          <label>
+            Slide source notes
+            <textarea
+              name="sourceNotes"
+              rows={3}
+              maxLength={MAXIMUM_SOURCE_NOTES_TEXT_CHARACTERS}
+              disabled={isBusy}
+              aria-describedby="carousel-source-notes-hint"
+            />
+          </label>
+          <small id="carousel-source-notes-hint">
+            One note per line: label, or label | absolute URL. Up to{" "}
+            {CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide.toString()} notes.
+          </small>
+        </>
+      )}
       <label>
         Order
         <input

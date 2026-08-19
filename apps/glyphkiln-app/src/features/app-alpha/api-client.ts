@@ -3,7 +3,18 @@
 import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schema";
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
+  CAROUSEL_DELIVERY_SIDECAR_VERSION,
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_REVIEW_ISSUE_CODES,
+  CAROUSEL_SEQUENCE_LIMITS,
+  CAROUSEL_SEQUENCE_VERSION,
+  DELIVERY_PROFILE_IDS,
+  DELIVERY_PROFILE_METADATA_VERSION,
+  DELIVERY_PROFILE_REGISTRY,
   canonicalJson,
+  createCarouselDeliverySidecar,
+  createCarouselSequenceKey,
+  deliverySourcesForProfile,
 } from "@glyphkiln/core/browser";
 import { z } from "zod";
 
@@ -12,6 +23,7 @@ import type {
   AppFailure,
   AppQuery,
   BrandSnapshotDraft,
+  CampaignCarouselReviewProjection,
   CampaignHandoffProjection,
   CampaignProposalRunProjection,
   ManualDraft,
@@ -155,6 +167,18 @@ const AuthoringLockSchema = z.enum([
   "palette",
   "composition",
 ]);
+const CarouselSourceNoteSchema = z
+  .object({
+    label: z.string().min(1).max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
+  })
+  .strict();
+const CarouselSequenceKeySchema = z
+  .string()
+  .min(1)
+  .max(CAROUSEL_SEQUENCE_LIMITS.sequenceKeyCharacters)
+  .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
+  .transform(createCarouselSequenceKey);
 const CampaignCanvasSchema = z
   .object({
     id: z.string().min(1),
@@ -164,6 +188,18 @@ const CampaignCanvasSchema = z
     template: z.object({ id: z.string().min(1), version: z.string().min(1) }).strict(),
     format: z.string().min(1),
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
+    carouselSequenceKey: CarouselSequenceKeySchema.optional(),
+    altText: z
+      .string()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters)
+      .optional(),
+    sourceNotes: z
+      .array(CarouselSourceNoteSchema)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
+      .optional(),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -243,6 +279,203 @@ const CampaignCanvasAttachedSchema = z
     campaignId: z.string().min(1),
     directionId: z.string().min(1),
     canvas: CampaignCanvasSchema,
+  })
+  .strict();
+
+const DeliveryEvidenceLevelSchema = z.enum([
+  "platform-requirement",
+  "platform-capability",
+  "platform-recommendation",
+  "glyphkiln-advisory",
+]);
+const DeliverySourceSchema = z
+  .object({
+    id: z.string().min(1).max(120),
+    publisher: z.enum(["Meta", "TikTok", "W3C", "Glyphkiln"]),
+    title: z.string().min(1).max(500),
+    url: z.url().max(2_048),
+    retrievedAt: z.literal("2026-08-18"),
+  })
+  .strict();
+const DeliverySourceIdsSchema = z.array(z.string().min(1).max(120)).max(32);
+const DeliveryFactSchema = <ValueSchema extends z.ZodType>(value: ValueSchema) =>
+  z
+    .object({
+      value,
+      evidence: DeliveryEvidenceLevelSchema,
+      sourceIds: DeliverySourceIdsSchema,
+      note: z.string().min(1).max(2_000),
+    })
+    .strict();
+const DeliveryProfileSchema = z
+  .object({
+    id: z.enum(DELIVERY_PROFILE_IDS),
+    label: z.string().min(1).max(200),
+    platform: z.enum(["instagram", "tiktok"]),
+    publishingPath: z.enum(["native", "api", "organic", "content-api", "paid-ad"]),
+    compatibleFormats: z.array(z.string().min(1).max(120)).max(16),
+    slideCount: DeliveryFactSchema(
+      z
+        .object({
+          minimum: z.number().int().min(1),
+          maximum: z.number().int().min(1),
+        })
+        .strict(),
+    ),
+    acceptedImageMediaTypes: DeliveryFactSchema(
+      z.array(z.string().min(1).max(120)).max(16),
+    ),
+    aspectRatio: DeliveryFactSchema(
+      z
+        .object({
+          minimumWidthPerHeight: z.number().positive().optional(),
+          maximumWidthPerHeight: z.number().positive().optional(),
+          sameAcrossSequence: z.boolean(),
+        })
+        .strict(),
+    ),
+    raster: DeliveryFactSchema(
+      z
+        .object({
+          targetWidth: z.number().int().positive().optional(),
+          minimumWidth: z.number().int().positive().optional(),
+          maximumWidth: z.number().int().positive().optional(),
+          maximumBytesPerImage: z.number().int().positive().optional(),
+          colorSpace: z.literal("sRGB").optional(),
+        })
+        .strict(),
+    ),
+    accessibility: DeliveryFactSchema(
+      z
+        .object({
+          creatorAltText: z.boolean(),
+          maximumAltTextCharacters: z.number().int().positive().optional(),
+        })
+        .strict(),
+    ),
+    surfaceOverlay: z
+      .object({
+        version: z.literal("2026-08-18"),
+        evidence: z.literal("glyphkiln-advisory"),
+        insets: z
+          .object({
+            top: z.number().min(0).max(1),
+            right: z.number().min(0).max(1),
+            bottom: z.number().min(0).max(1),
+            left: z.number().min(0).max(1),
+          })
+          .strict(),
+        note: z.string().min(1).max(2_000),
+      })
+      .strict(),
+    authoringNotes: z.array(z.string().min(1).max(2_000)).max(32),
+  })
+  .strict();
+const PortableDeliveryProfileSchema = z
+  .object({
+    id: z.enum(DELIVERY_PROFILE_IDS),
+    metadataVersion: z.literal(DELIVERY_PROFILE_METADATA_VERSION),
+    profile: DeliveryProfileSchema,
+    sources: z.array(DeliverySourceSchema).max(32),
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (!hasPortableDeliveryProfile(profile)) {
+      context.addIssue({
+        code: "custom",
+        message: "Delivery profile metadata does not match the Core snapshot.",
+      });
+    }
+  });
+const DeliverySidecarSlideSchema = z
+  .object({
+    documentId: z.string().min(1).max(120),
+    ordinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(CAROUSEL_SEQUENCE_LIMITS.slides - 1),
+    narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    altText: z.string().min(1).max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters),
+    readingOrder: z
+      .array(
+        z
+          .object({
+            layerId: z.string().min(1).max(120),
+            text: z.string().min(1).max(2_000),
+          })
+          .strict(),
+      )
+      .max(100),
+    visualDescriptions: z
+      .array(
+        z
+          .object({
+            layerId: z.string().min(1).max(120),
+            alt: z.string().min(1).max(500),
+          })
+          .strict(),
+      )
+      .max(100),
+    sourceNotes: z
+      .array(CarouselSourceNoteSchema)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide),
+  })
+  .strict();
+
+const CampaignCarouselReviewSchema = z
+  .object({
+    kind: z.literal("campaign-carousel-review"),
+    workspaceId: z.string().min(1),
+    campaignId: z.string().min(1),
+    directionId: z.string().min(1),
+    directionKey: z.string().min(1),
+    sequenceKey: CarouselSequenceKeySchema,
+    review: z
+      .object({
+        version: z.literal(CAROUSEL_SEQUENCE_VERSION),
+        deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS),
+        success: z.boolean(),
+        issues: z.array(
+          z
+            .object({
+              code: z.enum(CAROUSEL_REVIEW_ISSUE_CODES),
+              severity: z.enum(["error", "warning"]),
+              message: z.string().min(1),
+              slideId: z.string().min(1).optional(),
+              layerId: z.string().min(1).optional(),
+            })
+            .strict(),
+        ),
+      })
+      .strict(),
+    deliverySidecar: z
+      .object({
+        version: z.literal(CAROUSEL_DELIVERY_SIDECAR_VERSION),
+        deliveryProfile: PortableDeliveryProfileSchema,
+        slides: z
+          .array(DeliverySidecarSlideSchema)
+          .max(CAROUSEL_SEQUENCE_LIMITS.slides),
+      })
+      .strict(),
+    slides: z
+      .array(
+        z
+          .object({
+            canvas: CampaignCanvasSchema,
+            documentHash: z.string().regex(/^[0-9a-f]{64}$/),
+            proof: z
+              .object({
+                document: DesignDocumentSchema,
+                qualityIssues: z.unknown(),
+                evidence: z.unknown(),
+                outputs: z.unknown(),
+              })
+              .strict(),
+          })
+          .strict(),
+      )
+      .max(CAROUSEL_SEQUENCE_LIMITS.slides),
   })
   .strict();
 
@@ -803,6 +1036,16 @@ export type CampaignProposalDecision = z.infer<typeof ProposalDecisionSchema>;
 export type CampaignHandoff = Omit<CampaignHandoffProjection, "base64"> & {
   bytes: Uint8Array;
 };
+export type CampaignCarouselReview = Omit<
+  CampaignCarouselReviewProjection,
+  "slides"
+> & {
+  slides: readonly {
+    canvas: CampaignCanvas;
+    documentHash: string;
+    proof: PreviewSuccess;
+  }[];
+};
 export type RevisionReview = z.infer<typeof RevisionReviewSchema>;
 export type RevisionComparison = {
   left: { revision: DesignRevision; proof: PreviewSuccess };
@@ -927,6 +1170,11 @@ export type AppAlphaApi = {
     revisionId: string;
     ordinal: number;
     compositionVariantId: CampaignCanvasSeedInput["compositionVariantId"];
+    narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
+    deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
+    carouselSequenceKey?: z.input<typeof CarouselSequenceKeySchema>;
+    altText?: z.infer<typeof CampaignCanvasSchema>["altText"];
+    sourceNotes?: z.infer<typeof CampaignCanvasSchema>["sourceNotes"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {
     workspaceId: string;
@@ -940,6 +1188,12 @@ export type AppAlphaApi = {
     campaignId: string;
     runId: string;
   }) => Promise<ApiResult<CampaignProposalRun>>;
+  campaignCarouselReview: (input: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    sequenceKey: string;
+  }) => Promise<ApiResult<CampaignCarouselReview>>;
   acceptCampaignProposal: (input: {
     workspaceId: string;
     campaignId: string;
@@ -1271,8 +1525,15 @@ export function createAppAlphaApi(
       );
     },
     async attachCampaignCanvas(input) {
+      const { carouselSequenceKey, ...canvasInput } = input;
       return parseValue(
-        await command({ type: "campaign.canvas.attach", ...input }),
+        await command({
+          type: "campaign.canvas.attach",
+          ...canvasInput,
+          ...(carouselSequenceKey === undefined
+            ? {}
+            : { carouselSequenceKey: createCarouselSequenceKey(carouselSequenceKey) }),
+        }),
         CampaignCanvasAttachedSchema,
         (value) => value.canvas,
       );
@@ -1308,6 +1569,13 @@ export function createAppAlphaApi(
     async campaignHandoff(input) {
       return parseCampaignHandoff(
         await query({ type: "campaign.handoff", ...input }),
+        input,
+      );
+    },
+    async campaignCarouselReview(input) {
+      const sequenceKey = createCarouselSequenceKey(input.sequenceKey);
+      return parseCampaignCarouselReview(
+        await query({ type: "campaign.carousel.review", ...input, sequenceKey }),
         input,
       );
     },
@@ -1406,6 +1674,115 @@ async function parseProposalRun<Schema extends z.ZodType>(
     }
   }
   return { ok: true, value: run as CampaignProposalRun };
+}
+
+async function parseCampaignCarouselReview(
+  result: RawResult,
+  expected: {
+    workspaceId: string;
+    campaignId: string;
+    directionId: string;
+    sequenceKey: string;
+  },
+): Promise<ApiResult<CampaignCarouselReview>> {
+  const parsed = parseValue(result, CampaignCarouselReviewSchema, (value) => value);
+  if (!parsed.ok) return parsed;
+  const value = parsed.value;
+  if (
+    value.workspaceId !== expected.workspaceId ||
+    value.campaignId !== expected.campaignId ||
+    value.directionId !== expected.directionId ||
+    value.sequenceKey !== expected.sequenceKey ||
+    value.review.deliveryProfileId !== value.deliverySidecar.deliveryProfile.id
+  ) {
+    return malformedResponse();
+  }
+
+  const slides: CampaignCarouselReview["slides"][number][] = [];
+  for (const slide of value.slides) {
+    if (
+      slide.canvas.carouselSequenceKey !== value.sequenceKey ||
+      slide.canvas.deliveryProfileId !== value.review.deliveryProfileId ||
+      slide.canvas.altText === undefined ||
+      !isRenderProofProjection(slide.proof, slide.proof.document, slide.documentHash)
+    ) {
+      return malformedResponse();
+    }
+    if (
+      (await sha256Bytes(
+        new TextEncoder().encode(canonicalJson(slide.proof.document)),
+      )) !== slide.documentHash
+    ) {
+      return malformedResponse();
+    }
+    const proof = slide.proof as RenderProofProjection;
+    if (proof.evidence.version !== "1.1.0") return malformedResponse();
+    for (const output of proof.outputs) {
+      if (output.base64 === undefined) return malformedResponse();
+      const bytes = decodeBase64(output.base64, output.byteSize);
+      if (
+        bytes === undefined ||
+        (await sha256Bytes(bytes)) !== output.manifest.output.sha256
+      ) {
+        return malformedResponse();
+      }
+    }
+    slides.push({
+      canvas: slide.canvas,
+      documentHash: slide.documentHash,
+      proof: {
+        ok: true,
+        document: slide.proof.document,
+        qualityIssues: proof.qualityIssues,
+        evidence: proof.evidence,
+        outputs: proof.outputs as PreviewSuccess["outputs"],
+      },
+    });
+  }
+  let deliverySidecar: CampaignCarouselReview["deliverySidecar"];
+  try {
+    deliverySidecar = createCarouselDeliverySidecar({
+      deliveryProfileId: value.review.deliveryProfileId,
+      slides: slides.map(({ canvas, proof }, ordinal) => ({
+        document: proof.document,
+        ordinal,
+        narrativeRole: canvas.narrativeRole,
+        compositionVariantId: canvas.compositionVariantId,
+        altText: canvas.altText,
+        ...(canvas.sourceNotes === undefined
+          ? {}
+          : { sourceNotes: canvas.sourceNotes }),
+      })),
+    });
+  } catch {
+    return malformedResponse();
+  }
+  if (canonicalJson(value.deliverySidecar) !== canonicalJson(deliverySidecar)) {
+    return malformedResponse();
+  }
+  return {
+    ok: true,
+    value: {
+      ...value,
+      review: value.review,
+      deliverySidecar,
+      slides,
+    },
+  };
+}
+
+function hasPortableDeliveryProfile(input: {
+  id: (typeof DELIVERY_PROFILE_IDS)[number];
+  metadataVersion: string;
+  profile: unknown;
+  sources: readonly unknown[];
+}): boolean {
+  const profile = DELIVERY_PROFILE_REGISTRY[input.id];
+  return (
+    input.metadataVersion === DELIVERY_PROFILE_METADATA_VERSION &&
+    canonicalJson(input.profile) === canonicalJson(profile) &&
+    canonicalJson(input.sources) === canonicalJson(deliverySourcesForProfile(profile))
+  );
 }
 
 async function parseCampaignHandoff(

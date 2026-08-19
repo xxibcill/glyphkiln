@@ -1,8 +1,12 @@
+import { createCarouselSequenceKey } from "@glyphkiln/core";
 import type {
   BrandSnapshot,
   CampaignCompositionVariantId,
   CampaignFamilyId,
+  CarouselNarrativeRole,
+  CarouselSourceNote,
   DesignDocument,
+  DeliveryProfileId,
   FormatId,
   TemplateId,
 } from "@glyphkiln/core";
@@ -11,6 +15,7 @@ import type { AuthoringLockId } from "@/server/ai-authoring";
 import type {
   BrandKitSummary,
   CampaignBoardProjection,
+  CampaignCanvasPublicationMetadata,
   CampaignCanvasProjection,
   CampaignDirectionProjection,
   CampaignProposalCandidateProjection,
@@ -1353,34 +1358,38 @@ export class AppState {
         };
   }
 
-  async insertCampaignCanvas(input: {
-    id: string;
-    workspaceId: string;
-    campaignId: string;
-    directionId: string;
-    canvasKey: string;
-    designId: string;
-    revisionId: string;
-    templateId: TemplateId;
-    templateVersion: string;
-    format: FormatId;
-    compositionVariantId: CampaignCompositionVariantId;
-    seedDerivationVersion: string;
-    directionSeed: string;
-    canvasSeed: string;
-    ordinal: number;
-    createdBy: string;
-    createdAt: Date;
-  }): Promise<void> {
+  async insertCampaignCanvas(
+    input: {
+      id: string;
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      canvasKey: string;
+      designId: string;
+      revisionId: string;
+      templateId: TemplateId;
+      templateVersion: string;
+      format: FormatId;
+      compositionVariantId: CampaignCompositionVariantId;
+      seedDerivationVersion: string;
+      directionSeed: string;
+      canvasSeed: string;
+      ordinal: number;
+      createdBy: string;
+      createdAt: Date;
+    } & CampaignCanvasPublicationMetadata,
+  ): Promise<void> {
     await this.#query(
       `INSERT INTO campaign_canvases (
          id, workspace_id, campaign_id, direction_id, canvas_key,
          design_id, revision_id, template_id, template_version, format_id,
-         composition_variant_id, seed_derivation_version, direction_seed,
-         canvas_seed, ordinal, created_by, created_at
+         composition_variant_id, narrative_role, delivery_profile_id,
+         carousel_sequence_key, publisher_alt_text, source_notes,
+         seed_derivation_version, direction_seed, canvas_seed, ordinal,
+         created_by, created_at
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-         $14, $15, $16, $17
+         $14, $15, $16::jsonb, $17, $18, $19, $20, $21, $22
        )
        RETURNING id`,
       [
@@ -1395,6 +1404,11 @@ export class AppState {
         input.templateVersion,
         input.format,
         input.compositionVariantId,
+        input.narrativeRole,
+        input.deliveryProfileId ?? null,
+        input.carouselSequenceKey ?? null,
+        input.altText ?? null,
+        (input.sourceNotes ?? []) as readonly SqlJsonValue[],
         input.seedDerivationVersion,
         input.directionSeed,
         input.canvasSeed,
@@ -1446,6 +1460,11 @@ export class AppState {
       template_version: string;
       format_id: FormatId;
       composition_variant_id: CampaignCompositionVariantId;
+      narrative_role: CarouselNarrativeRole;
+      delivery_profile_id: DeliveryProfileId | null;
+      carousel_sequence_key: string | null;
+      publisher_alt_text: string | null;
+      source_notes: readonly CarouselSourceNote[] | string;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1454,8 +1473,9 @@ export class AppState {
     }>(
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
-              composition_variant_id, seed_derivation_version,
-              direction_seed, canvas_seed, ordinal, created_at
+              composition_variant_id, narrative_role, delivery_profile_id,
+              carousel_sequence_key, publisher_alt_text, source_notes,
+              seed_derivation_version, direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
           AND campaign_id = $2
@@ -1593,6 +1613,11 @@ export class AppState {
       template_version: string;
       format_id: FormatId;
       composition_variant_id: CampaignCompositionVariantId;
+      narrative_role: CarouselNarrativeRole;
+      delivery_profile_id: DeliveryProfileId | null;
+      carousel_sequence_key: string | null;
+      publisher_alt_text: string | null;
+      source_notes: readonly CarouselSourceNote[] | string;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1601,8 +1626,9 @@ export class AppState {
     }>(
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
-              composition_variant_id, seed_derivation_version,
-              direction_seed, canvas_seed, ordinal, created_at
+              composition_variant_id, narrative_role, delivery_profile_id,
+              carousel_sequence_key, publisher_alt_text, source_notes,
+              seed_derivation_version, direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
           AND campaign_id = $2
@@ -2464,12 +2490,18 @@ function toCampaignCanvasProjection(row: {
   template_version: string;
   format_id: FormatId;
   composition_variant_id: CampaignCompositionVariantId;
+  narrative_role: CarouselNarrativeRole;
+  delivery_profile_id: DeliveryProfileId | null;
+  carousel_sequence_key: string | null;
+  publisher_alt_text: string | null;
+  source_notes: readonly CarouselSourceNote[] | string;
   seed_derivation_version: string;
   direction_seed: string;
   canvas_seed: string;
   ordinal: number | string;
   created_at: Date | string;
 }): CampaignCanvasProjection {
+  const sourceNotes = parseJson(row.source_notes);
   return {
     id: row.id,
     canvasKey: row.canvas_key,
@@ -2478,6 +2510,22 @@ function toCampaignCanvasProjection(row: {
     template: { id: row.template_id, version: row.template_version },
     format: row.format_id,
     compositionVariantId: row.composition_variant_id,
+    narrativeRole: row.narrative_role,
+    ...(row.delivery_profile_id === null
+      ? {}
+      : { deliveryProfileId: row.delivery_profile_id }),
+    ...(row.carousel_sequence_key === null
+      ? {}
+      : { carouselSequenceKey: createCarouselSequenceKey(row.carousel_sequence_key) }),
+    ...(row.publisher_alt_text === null ? {} : { altText: row.publisher_alt_text }),
+    ...(sourceNotes.length === 0
+      ? {}
+      : {
+          sourceNotes: sourceNotes.map((note) => ({
+            label: note.label,
+            ...(note.url === undefined ? {} : { url: note.url }),
+          })),
+        }),
     seedDerivationVersion: row.seed_derivation_version,
     directionSeed: row.direction_seed,
     canvasSeed: row.canvas_seed,

@@ -1,13 +1,13 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_99cebc49eb613d52a669d56e",
-  "renderFingerprint": "99cebc49eb613d52a669d56e444ad3c12c9f9c21ef9a737dc63b027e26254dcc",
+  "renderId": "render_d831771e906ab5f731e61018",
+  "renderFingerprint": "d831771e906ab5f731e61018ff01e1dda41b04bf5a81bdd59195392a3ba32eaa",
   "designDocumentId": "example-tiktok-carousel-slide-01",
-  "designDocumentHash": "8999412c16883f3417a61114b705e0cc21d0a68a1dc9f91e03606eaa1e6eb70e",
+  "designDocumentHash": "1746710c767a9715a1b0ee5917051e2030567630cc8173805536e0017c696e65",
   "seed": "swipe-ledger-v1-slide-01",
   "template": {
     "id": "tiktok-carousel-slide",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "renderer": {
     "name": "glyphkiln-svg",
@@ -54,8 +54,8 @@
   },
   "output": {
     "format": "png",
-    "sha256": "33e7b3168de572f4e06a5e16bedeaef551f2dfe301f66c9f856d5625eaa9cbcf",
-    "byteSize": 63907
+    "sha256": "74001c4b4b92ab6771a6b34737d8b85109889623a911fff45d293af35f0a7df9",
+    "byteSize": 63871
   },
   "creationTimestamp": "2026-07-29T00:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,

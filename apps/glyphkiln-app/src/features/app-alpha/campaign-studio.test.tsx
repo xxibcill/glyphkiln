@@ -9,6 +9,9 @@ import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
+  createCarouselSequenceKey,
   hashCanonical,
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
@@ -23,7 +26,11 @@ import { constructManualDocument } from "@/server/app-workflow/document-factory"
 import { createPreviewDesign } from "@/test/preview-design";
 import type { PreviewSuccess } from "@/features/project-preview/types";
 
-import { createAppAlphaApi, type CampaignBoard } from "./api-client";
+import {
+  createAppAlphaApi,
+  type CampaignBoard,
+  type CampaignCarouselReview,
+} from "./api-client";
 import { CampaignStudio } from "./campaign-studio";
 
 const CAMPAIGN: CampaignSummary = {
@@ -190,6 +197,139 @@ describe("CampaignStudio", () => {
     });
   });
 
+  it("opens the exact sequence evidence before handoff", async () => {
+    const board = campaignBoardFixture();
+    const canvas = board.directions[0].canvases[0];
+    Object.assign(canvas, {
+      deliveryProfileId: "instagram-native-carousel" as const,
+      carouselSequenceKey: "launch-carousel",
+      altText: "Opening launch slide with a cobalt product on an ivory field.",
+      sourceNotes: [
+        {
+          label: "Approved launch brief",
+          url: "https://example.com/launch-brief",
+        },
+      ],
+    });
+    const proof = proposalProofFixture();
+    const deliveryProfile = DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"];
+    const carouselReview: CampaignCarouselReview = {
+      kind: "campaign-carousel-review",
+      workspaceId: "workspace-1",
+      campaignId: CAMPAIGN.id,
+      directionId: "direction-1",
+      directionKey: "editorial-a",
+      sequenceKey: createCarouselSequenceKey("launch-carousel"),
+      review: {
+        version: "1.2.0",
+        deliveryProfileId: "instagram-native-carousel",
+        success: true,
+        issues: [],
+      },
+      deliverySidecar: {
+        version: "1.2.0",
+        deliveryProfile: {
+          id: "instagram-native-carousel",
+          metadataVersion: "1.0.0",
+          profile: deliveryProfile,
+          sources: [
+            DELIVERY_SOURCES["glyphkiln-carousel-validation"],
+            DELIVERY_SOURCES["instagram-creators-carousel-limit"],
+            DELIVERY_SOURCES["meta-instagram-alt-text"],
+            DELIVERY_SOURCES["meta-instagram-carousel"],
+            DELIVERY_SOURCES["meta-instagram-photo-resolution"],
+          ],
+        },
+        slides: [
+          {
+            documentId: proof.document.id,
+            ordinal: 0,
+            narrativeRole: "hook",
+            altText: canvas.altText ?? "",
+            readingOrder: [],
+            visualDescriptions: [],
+            sourceNotes: canvas.sourceNotes ?? [],
+          },
+        ],
+      },
+      slides: [{ canvas, documentHash: hashCanonical(proof.document), proof }],
+    };
+    const reviewSequence = vi.fn(() =>
+      Promise.resolve({ ok: true as const, value: carouselReview }),
+    );
+    const api = {
+      ...createAppAlphaApi(vi.fn(() => Promise.resolve(success(200, board)))),
+      campaignBoard: () => Promise.resolve({ ok: true as const, value: board }),
+      campaignCarouselReview: reviewSequence,
+    };
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={api}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas()}
+          canCoordinate
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    await clickButton("Review sequence launch-carousel");
+    expect(reviewSequence).toHaveBeenCalledWith({
+      workspaceId: "workspace-1",
+      campaignId: "campaign-1",
+      directionId: "direction-1",
+      sequenceKey: "launch-carousel",
+    });
+    expect(container.textContent).toContain("READY FOR HANDOFF");
+    expect(container.textContent).toContain(
+      "Opening launch slide with a cobalt product on an ivory field.",
+    );
+    expect(container.textContent).toContain("Approved launch brief");
+    expect(container.textContent).toContain("Exact render evidence");
+    expect(container.querySelectorAll(".carousel-review-slides img")).toHaveLength(1);
+  });
+
+  it("does not hard-limit publisher alt text to a recommendation", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, campaignBoardFixture()));
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas("draft-seed", "tiktok-photo-carousel")}
+          canCoordinate
+          selectedDeliveryProfileId="tiktok-content-posting-photo"
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    const altText = container.querySelector<HTMLTextAreaElement>(
+      'textarea[name="altText"]',
+    );
+    expect(altText?.maxLength).toBe(2_000);
+    expect(container.querySelector("#carousel-alt-text-hint")?.textContent).toContain(
+      "this path recommends 300",
+    );
+  });
+
   it("recovers bounded proposal history while campaign mutations are disabled", async () => {
     const board = campaignBoardFixture();
     const direction = board.directions[0];
@@ -324,7 +464,9 @@ describe("CampaignStudio", () => {
         return Promise.resolve(success(200, board));
       }
       if (body.type === "campaign.canvas.seed") {
-        return Promise.resolve(success(200, campaignCanvasSeedFixture()));
+        return Promise.resolve(
+          success(200, campaignCanvasSeedFixture("instagram-square")),
+        );
       }
       if (body.type === "campaign.canvas.attach") {
         return Promise.resolve(
@@ -342,7 +484,7 @@ describe("CampaignStudio", () => {
     const campaigns = [CAMPAIGN];
     const onApplyCanvasSeed = vi.fn();
     const renderStudio = async (
-      draftCanvas = campaignDraftCanvas(),
+      draftCanvas = campaignDraftCanvas("draft-seed", "instagram-square"),
       openRevision?: Parameters<typeof CampaignStudio>[0]["openRevision"],
     ) => {
       await act(async () => {
@@ -354,6 +496,7 @@ describe("CampaignStudio", () => {
             draftCanvas={draftCanvas}
             openRevision={openRevision}
             canCoordinate
+            selectedDeliveryProfileId="instagram-api-carousel"
             onApplyCanvasSeed={onApplyCanvasSeed}
             onCampaignChanged={() => Promise.resolve()}
             onOpenDesign={() => Promise.resolve()}
@@ -374,7 +517,7 @@ describe("CampaignStudio", () => {
       directionId: "direction-1",
       canvasKey: "hero-landscape",
       templateId: "image-led-campaign",
-      format: "linkedin-landscape",
+      format: "instagram-square",
       compositionVariantId: "focal-editorial",
     });
     expect(container.textContent).toContain("sha256/canonical-scope-v1");
@@ -394,10 +537,19 @@ describe("CampaignStudio", () => {
     expect(button("Attach revision").disabled).toBe(true);
 
     await renderStudio(
-      campaignDraftCanvas("b".repeat(64)),
-      campaignRevision("b".repeat(64)),
+      campaignDraftCanvas("b".repeat(64), "instagram-square"),
+      campaignRevision("b".repeat(64), "instagram-square"),
     );
     expect(button("Attach revision").disabled).toBe(false);
+    await setInput('input[name="carouselSequenceKey"]', "launch-carousel");
+    await setTextarea(
+      'textarea[name="altText"]',
+      "Square launch slide showing the campaign product and its core promise.",
+    );
+    await setTextarea(
+      'textarea[name="sourceNotes"]',
+      "Product launch brief | https://example.com/launch-brief",
+    );
     await clickButton("Attach revision");
     expect(requestBodies(fetchMock)).toContainEqual({
       type: "campaign.canvas.attach",
@@ -409,6 +561,16 @@ describe("CampaignStudio", () => {
       revisionId: "revision-seeded",
       ordinal: 0,
       compositionVariantId: "focal-editorial",
+      narrativeRole: "context",
+      deliveryProfileId: "instagram-api-carousel",
+      carouselSequenceKey: "launch-carousel",
+      altText: "Square launch slide showing the campaign product and its core promise.",
+      sourceNotes: [
+        {
+          label: "Product launch brief",
+          url: "https://example.com/launch-brief",
+        },
+      ],
     });
   });
 
@@ -497,7 +659,7 @@ describe("CampaignStudio", () => {
           success(200, {
             ...campaignCanvasSeedFixture(),
             canvasKey: "carousel-01",
-            template: { id: "tiktok-carousel-slide", version: "1.0.3" },
+            template: { id: "tiktok-carousel-slide", version: "1.0.4" },
             format: "tiktok-photo-carousel",
             compositionVariantId: "organic-photo-editorial",
           }),
@@ -568,8 +730,14 @@ describe("CampaignStudio", () => {
     await setControlValue(select, HTMLSelectElement.prototype, value);
   }
 
+  async function setTextarea(selector: string, value: string): Promise<void> {
+    const textarea = container.querySelector<HTMLTextAreaElement>(selector);
+    if (textarea === null) throw new Error(`Textarea “${selector}” was not found.`);
+    await setControlValue(textarea, HTMLTextAreaElement.prototype, value);
+  }
+
   async function setControlValue(
-    control: HTMLInputElement | HTMLSelectElement,
+    control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
     prototype: object,
     value: string,
   ): Promise<void> {
@@ -618,9 +786,10 @@ function campaignBoardFixture(): CampaignBoard {
             canvasKey: "hero-landscape",
             designId: "design-1",
             revisionId: "revision-1",
-            template: { id: "image-led-campaign", version: "1.0.0" },
+            template: { id: "image-led-campaign", version: "1.0.1" },
             format: "linkedin-landscape",
             compositionVariantId: "focal-editorial",
+            narrativeRole: "hook",
             seedDerivationVersion: "1.0.0",
             directionSeed: "a".repeat(64),
             canvasSeed: "b".repeat(64),
@@ -637,23 +806,32 @@ function campaignBoardFixture(): CampaignBoard {
 
 function campaignDraftCanvas(
   seed = "draft-seed",
+  format:
+    | "linkedin-landscape"
+    | "instagram-square"
+    | "tiktok-photo-carousel" = "linkedin-landscape",
 ): Parameters<typeof CampaignStudio>[0]["draftCanvas"] {
   return {
-    templateId: "image-led-campaign" as const,
-    format: "linkedin-landscape" as const,
+    templateId:
+      format === "tiktok-photo-carousel"
+        ? ("tiktok-carousel-slide" as const)
+        : ("image-led-campaign" as const),
+    format,
     seed,
   };
 }
 
-function campaignCanvasSeedFixture() {
+function campaignCanvasSeedFixture(
+  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
+) {
   return {
     kind: "campaign-canvas-seed" as const,
     workspaceId: "workspace-1",
     campaignId: CAMPAIGN.id,
     directionId: "direction-1",
     canvasKey: "hero-landscape",
-    template: { id: "image-led-campaign" as const, version: "1.0.0" },
-    format: "linkedin-landscape" as const,
+    template: { id: "image-led-campaign" as const, version: "1.0.1" },
+    format,
     compositionVariantId: "focal-editorial" as const,
     seedDerivationVersion: "sha256/canonical-scope-v1",
     directionSeed: "a".repeat(64),
@@ -663,13 +841,14 @@ function campaignCanvasSeedFixture() {
 
 function campaignRevision(
   seed: string,
+  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
 ): NonNullable<Parameters<typeof CampaignStudio>[0]["openRevision"]> {
   const document = constructManualDocument({
     documentId: "design-seeded",
     brand: createPreviewDesign().brand,
     draft: {
       templateId: "image-led-campaign",
-      format: "linkedin-landscape",
+      format,
       seed,
       mode: "dark",
       resources: {
@@ -843,7 +1022,7 @@ function proposalProofFixture(): PreviewSuccess {
     document,
     qualityIssues: [],
     evidence: {
-      version: "1.0.0",
+      version: "1.1.0",
       safeArea: { x: 84, y: 44, width: 1_032, height: 539 },
       text: [],
       crops: [],

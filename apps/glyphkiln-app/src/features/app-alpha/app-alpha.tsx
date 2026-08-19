@@ -1,6 +1,6 @@
 "use client";
 
-import { canonicalJson } from "@glyphkiln/core/browser";
+import { canonicalJson, type DeliveryProfileId } from "@glyphkiln/core/browser";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, SyntheticEvent } from "react";
 
@@ -87,6 +87,8 @@ export function AppAlpha({ catalog, api: apiOverride }: AppAlphaProps) {
   const [proofDraftKey, setProofDraftKey] = useState<string>();
   const [inspectedDraftKey, setInspectedDraftKey] = useState<string>();
   const [proofKind, setProofKind] = useState<"draft-preview" | "saved-revision">();
+  const [selectedDeliveryProfileId, setSelectedDeliveryProfileId] =
+    useState<DeliveryProfileId>();
   const [openRevision, setOpenRevision] = useState<DesignRevision>();
   const [designName, setDesignName] = useState("Untitled workshop graphic");
   const [changeNote, setChangeNote] = useState("");
@@ -737,6 +739,8 @@ export function AppAlpha({ catalog, api: apiOverride }: AppAlphaProps) {
                   }}
                   openRevision={openRevision}
                   canCoordinate={canEdit}
+                  selectedDeliveryProfileId={selectedDeliveryProfileId}
+                  onDeliveryProfileChange={setSelectedDeliveryProfileId}
                   onApplyCanvasSeed={applyCampaignCanvasSeed}
                   onCampaignChanged={refreshDashboard}
                   onOpenDesign={reopenDesign}
@@ -838,6 +842,8 @@ export function AppAlpha({ catalog, api: apiOverride }: AppAlphaProps) {
                   proof={proof}
                   isRendering={busyAction === "preview" || busyAction === "render"}
                   hasUnrenderedEdits={hasUnrenderedEdits}
+                  selectedDeliveryProfileId={selectedDeliveryProfileId}
+                  onDeliveryProfileChange={setSelectedDeliveryProfileId}
                 />
                 <ProofLedger
                   catalog={catalog}

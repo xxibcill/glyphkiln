@@ -71,7 +71,7 @@ const EXPECTED_STARTER_SVG_SHA256 = {
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
-    "ee04f360f7442c70845e7fe29e7a28a5dd0f39c57ed18442ee44f800cd75a84d",
+    "a64763a91df544519843b30197d2d8b1d475ba14b508e87ccdb694c751e7421a",
 } as const satisfies Record<(typeof PREVIEW_TEMPLATE_IDS)[number], string>;
 
 describe("buildPreviewDocument", () => {
@@ -100,6 +100,8 @@ describe("buildPreviewDocument", () => {
       fontIds: [],
       imageAssetId: "campaign-image",
       logoAssetId: "brand-logo",
+      imageAlt: "A cobalt ceramic lamp on a warm plaster pedestal.",
+      logoAlt: "Kilnform arch mark.",
     };
     const resources: EditorSelectableResource[] = [
       rasterResource("campaign-image", "a"),
@@ -119,10 +121,15 @@ describe("buildPreviewDocument", () => {
         assetId: "campaign-image",
         focalPoint: { x: 0.68, y: 0.42 },
         treatment: "dark-scrim",
+        alt: "A cobalt ceramic lamp on a warm plaster pedestal.",
       }),
     );
     expect(document.layers).toContainEqual(
-      expect.objectContaining({ type: "logo", assetId: "brand-logo" }),
+      expect.objectContaining({
+        type: "logo",
+        assetId: "brand-logo",
+        alt: "Kilnform arch mark.",
+      }),
     );
   });
 

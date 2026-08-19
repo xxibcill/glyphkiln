@@ -200,8 +200,12 @@ export function formFromStoredDocument(
     },
     resources: {
       ...resources,
-      ...(imageLayer?.type === "image" ? { imageAssetId: imageLayer.assetId } : {}),
-      ...(logoLayer?.type === "logo" ? { logoAssetId: logoLayer.assetId } : {}),
+      ...(imageLayer?.type === "image"
+        ? { imageAssetId: imageLayer.assetId, imageAlt: imageLayer.alt }
+        : {}),
+      ...(logoLayer?.type === "logo"
+        ? { logoAssetId: logoLayer.assetId, logoAlt: logoLayer.alt }
+        : {}),
     },
   };
 }

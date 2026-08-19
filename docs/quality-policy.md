@@ -42,7 +42,7 @@ under 45% of the preceding line width. Both include measured widths and the
 versioned segmentation/line-breaking policy. See
 [Typography wrapping](typography-wrapping.md).
 
-`image-led-campaign@1.0.0` uses
+`image-led-campaign@1.0.x` uses
 `composited-srgb-grid-5x5-v1`: 25 ordered samples from each text bound map
 through the focal crop, source alpha, and selected treatment. A worst sample
 below 4.5 emits `LOW_TEXT_CONTRAST`. Successful renders return the bounded

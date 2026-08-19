@@ -4,6 +4,14 @@ Glyphkiln is a monorepo for deterministic, code-rendered business graphics.
 It keeps the rendering engine independently publishable while the self-hostable
 application consumes only its documented public API.
 
+## Official logo
+
+The current official Glyphkiln logo is the project owner's interlocking GK
+monogram. Use the [transparent primary SVG](assets/brand/glyphkiln/glyphkiln-mark.svg)
+or the approved [warm-ivory variant](assets/brand/glyphkiln/glyphkiln-mark-on-ivory.svg)
+for dark and photographic surfaces. The exact hashes and usage rules are in the
+[brand identity guide](docs/brand-identity.md).
+
 ## Workspaces
 
 - [`packages/glyphkiln-core`](packages/glyphkiln-core/) — the Apache-2.0

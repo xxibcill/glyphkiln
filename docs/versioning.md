@@ -38,9 +38,18 @@ schemas remain readable and keep their original field surface.
 
 Design schema `1.3.0` adds the `tiktok-photo-carousel` format without changing
 the renderer or manifest contracts. Template `tiktok-carousel-slide@1.0.3`
-owns the new 3:4 organic-photo composition. Versions `1.0.1` and `1.0.2` retain
+owns the first 3:4 organic-photo composition. Versions `1.0.1` and `1.0.2` retain
 their exact 9:16 `tiktok-carousel` pixels and remain available for saved ad
 documents.
+
+Template `tiktok-carousel-slide@1.0.4` raises organic headline leading to `1.08`,
+uses content-responsive type-field heights, makes eyebrow/footer chrome truly
+optional, and adds deterministic Core-owned pattern rails when a procedural
+layer is present. The template version owns the deliberate pixel changes;
+schema `1.4.0`, renderer `0.4.0`, manifest `1.2.0`, and existing procedural
+algorithm versions remain unchanged. Version `1.0.3` stays exactly renderable.
+Authoring metadata `1.2.0` publishes the new rules and campaign-family metadata
+`1.2.0` selects `1.0.4` for new organic carousel work.
 
 Design schema `1.4.0` adds bounded brand typography roles plus focal-point and
 closed treatment fields for image layers. `image-led-campaign@1.0.0` owns the
@@ -48,6 +57,13 @@ first adaptive image-led composition. Renderer `0.4.0` owns scaled role
 tracking, focal clipping, and pinned focal/treatment/contrast configuration.
 Legacy SVG and PNG bytes remain exact; their renderer identity and fingerprints
 deliberately change. Manifest `1.2.0` remains unchanged.
+
+Template `image-led-campaign@1.0.1` corrects the compact logo geometry by sizing
+the contained box from the admitted raster aspect ratio and anchoring it to the
+safe-area column. The change is template-owned: renderer `0.4.0`, schema
+`1.4.0`, and manifest `1.2.0` remain unchanged. Version `1.0.0` stays available
+with its exact fixed-slot pixels. Authoring metadata `1.0.1` publishes both
+versions, while campaign-family metadata `1.1.1` selects `1.0.1`.
 
 Campaign-family metadata `1.0.0` identifies exact template members, compatible
 formats, semantic roles, closed composition variants, and safe-area behavior.
@@ -74,6 +90,21 @@ schema/template/document-quality successes, and quality-to-action mapping
 messages or details. These contracts do not change the design schema,
 templates, renderer, procedural algorithms, manifest, fingerprints, SVG, or
 PNG output.
+
+Authoring metadata `1.1.0` adds explicitly advisory character ranges without
+changing schema bounds or candidate validity. Delivery-profile metadata `1.0.0`
+separates Instagram native/API and TikTok native/API/ad publishing paths with
+portable dated sources and evidence levels. Carousel sequence review `1.0.0`
+and delivery sidecars `1.0.0` add non-pixel coordination, accessibility, and
+claim-source records. Render evidence `1.1.0` adds the exact fitted `fontSize`
+for delivered-size proofing. None of these contracts changes template geometry,
+renderer identity, manifests, fingerprints, SVG, or PNG bytes.
+
+Authoring metadata `1.2.0` publishes the exact `tiktok-carousel-slide@1.0.4`
+contract and its leading, optional-chrome, and purposeful-pattern guidance.
+Campaign-family metadata `1.2.0` selects that template for new organic carousel
+canvases. These metadata bumps identify the template-owned pixel change; they do
+not alter saved documents or renderer behavior.
 
 The App BriefInterpreter response contract and validator start at `1.0.0`.
 They define a strict three-or-four-proposal envelope, bounded suggestion

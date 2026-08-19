@@ -1,0 +1,81 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_6372f87a4aea6d7954dea1af",
+  "renderFingerprint": "6372f87a4aea6d7954dea1afb11fa6b5b8dce4c5a3875ba74bf9f2c27af84543",
+  "designDocumentId": "qualification-instagram-square-hero",
+  "designDocumentHash": "b731a688c159dd23092d21e0f600026c6680a021b1314a4fc681573659c6718d",
+  "seed": "8ea8c71298e6d75708f0614b0ec4ab43d88253267a545cbc01ce84bf6bd33868",
+  "template": {
+    "id": "image-led-campaign",
+    "version": "1.0.1"
+  },
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.4.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "glyphkiln-proof-wall",
+      "sha256": "850d208fcbb3e9811f2456bd12143114b2e48f1985fbb8b60fed271dd6028df7",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Glyphkiln deterministic product-proof artwork",
+        "sourceReference": "docs/qualification/campaign-workflow-2026-08-18/assets/glyphkiln-proof-wall.png",
+        "generativeImageModel": "deterministic project-authored vector composition"
+      }
+    },
+    {
+      "id": "glyphkiln-mark",
+      "sha256": "c84a68deccb63b4dc034725d378f2752a0e0cf084126629db2ba53db09e78b36",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Glyphkiln deterministic campaign mark",
+        "sourceReference": "assets/brand/glyphkiln/glyphkiln-mark-on-ivory.svg",
+        "generativeImageModel": "deterministic project-authored vector composition"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1080
+  },
+  "output": {
+    "format": "png",
+    "sha256": "ab7f4337c997cc80a2b8a501dd2595686c4ebfdb7b1717e7566bdc9eeb6f02d5",
+    "byteSize": 173188
+  },
+  "creationTimestamp": "2026-08-18T14:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

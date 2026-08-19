@@ -6,6 +6,7 @@ import {
   buildPreviewDocument,
   createInitialPreviewForm,
 } from "@/features/project-preview/document-builder";
+import type { EditorSelectableResource } from "@/features/project-preview/types";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 
 import {
@@ -176,6 +177,66 @@ describe("manual App Alpha state", () => {
     ).toBe(true);
   });
 
+  it("round-trips image and logo alt text from a resource-backed revision", () => {
+    const resourceCatalog = createPreviewCatalog({ resourceBacked: true });
+    const initial = createInitialPreviewForm(resourceCatalog);
+    initial.composition.templateId = "image-led-campaign";
+    initial.composition.formatId = "instagram-portrait";
+    initial.resources = {
+      assetIds: ["campaign-image", "brand-logo"],
+      fontIds: [],
+      imageAssetId: "campaign-image",
+      logoAssetId: "brand-logo",
+      imageAlt: "A cobalt ceramic lamp on a warm plaster pedestal.",
+      logoAlt: "Kilnform arch mark.",
+    };
+    const resources: EditorSelectableResource[] = [
+      rasterResource("campaign-image", "a"),
+      rasterResource("brand-logo", "b"),
+    ];
+    const brand = createPublishedBrand();
+    const candidate = buildPreviewDocument(
+      withBrandSnapshot(initial, brand),
+      resourceCatalog,
+      resources,
+    );
+    const document: DesignDocument = {
+      ...candidate,
+      id: "resource-backed-alt-text",
+      metadata: {
+        source: "glyphkiln-app-manual",
+        resourceVersions: {
+          assets: resources.map((resource) => ({
+            id: resource.id,
+            sha256: resource.contentHash,
+            origin: resource.origin,
+            license: resource.license,
+          })),
+          fonts: [],
+        },
+      },
+    };
+
+    const reopened = formFromStoredDocument(document, resourceCatalog);
+    const reopenedDraft = buildManualDraft(reopened, resourceCatalog);
+
+    expect(reopened.resources).toMatchObject({
+      imageAssetId: "campaign-image",
+      logoAssetId: "brand-logo",
+      imageAlt: "A cobalt ceramic lamp on a warm plaster pedestal.",
+      logoAlt: "Kilnform arch mark.",
+    });
+    expect(reopenedDraft.layers).toEqual(document.layers);
+    expect(
+      documentMatchesManualInput(
+        document,
+        brand,
+        reopenedDraft,
+        resourceCatalog.developmentFontSha256,
+      ),
+    ).toBe(true);
+  });
+
   it("reopens the visible sequence copy and metric mode of a carousel slide", () => {
     const initial = createInitialPreviewForm(catalog);
     initial.composition.templateId = "tiktok-carousel-slide";
@@ -219,7 +280,7 @@ describe("manual App Alpha state", () => {
     const document = structuredClone(candidate);
     Object.assign(document.template, {
       id: "image-led-campaign",
-      version: "1.0.0",
+      version: "1.0.1",
     });
 
     expect(() => formFromStoredDocument(document, catalog)).toThrow(
@@ -235,5 +296,18 @@ function createPublishedBrand(): BrandSnapshot {
     version: "1.0.3",
     name: "Foundry & Field",
     ...buildBrandSnapshotDraft(state),
+  };
+}
+
+function rasterResource(id: string, hashCharacter: string): EditorSelectableResource {
+  return {
+    id,
+    kind: "raster-asset",
+    mediaType: "image/png",
+    contentHash: hashCharacter.repeat(64),
+    width: 1_200,
+    height: 800,
+    origin: { kind: "user-upload" },
+    license: { status: "owned" },
   };
 }

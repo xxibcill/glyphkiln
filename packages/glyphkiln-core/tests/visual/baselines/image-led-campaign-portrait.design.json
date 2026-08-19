@@ -3,7 +3,7 @@
   "id": "baseline-image-led-campaign-portrait",
   "template": {
     "id": "image-led-campaign",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "format": "instagram-portrait",
   "seed": "kilnform-light-01",

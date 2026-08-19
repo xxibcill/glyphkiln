@@ -3,7 +3,7 @@
   "id": "example-tiktok-carousel-slide-01",
   "template": {
     "id": "tiktok-carousel-slide",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "format": "tiktok-photo-carousel",
   "seed": "swipe-ledger-v1-slide-01",

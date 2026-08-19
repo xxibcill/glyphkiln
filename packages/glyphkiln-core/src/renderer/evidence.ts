@@ -3,13 +3,14 @@ import type { FocalPoint, ImageTreatmentId } from "../schema/index.js";
 import type { FocalCropGeometry } from "../assets/focal-crop.js";
 import type { IMAGE_CONTRAST_POLICY_VERSION } from "../assets/image-policy.js";
 
-export const RENDER_EVIDENCE_VERSION = "1.0.0" as const;
+export const RENDER_EVIDENCE_VERSION = "1.1.0" as const;
 
 export type TextBoundsEvidence = {
   layerId: string;
   bounds: Bounds;
   lineCount: number;
   maximumLines: number;
+  fontSize: number;
   overflow: boolean;
 };
 

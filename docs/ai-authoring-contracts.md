@@ -7,13 +7,15 @@ use before every accepted document passes the same Core boundary.
 ## Browser-safe authoring metadata
 
 `AUTHORING_TEMPLATE_REGISTRY` is immutable static data with contract version
-`1.0.0`. It covers every supported template version, including preserved
+`1.1.0`. It covers every supported template version, including preserved
 `tiktok-carousel-slide@1.0.1` and `1.0.2` documents. Each exact template key
 publishes:
 
 - compatible design-schema versions and formats;
 - its fixed named composition variant;
 - required and optional content roles with field-length bounds;
+- optional `glyphkiln-advisory` character ranges that guide revision without
+  changing schema validity;
 - supported raster asset roles, MIME types, fits, focal-point behavior, and
   closed treatments;
 - maximum layers, assets, fonts, visible layers per role, and headline lines;
@@ -24,6 +26,11 @@ The registry and `AUTHORING_ISSUE_REGISTRY` are available from
 network, raster decoder, or model adapter. Composition-variant IDs describe
 fixed template behavior; they are not user code or an unvalidated document
 field.
+
+The project-local `.agents/skills/create-glyphkiln-carousel` workflow consumes
+these public contracts together with delivery profiles, narrative roles,
+sequence review, render evidence, and deterministic sidecars. The skill does not
+grant a model persistence, resource, rendering, export, or publication authority.
 
 The same entry point exports
 `mapQualityIssuesToAuthoringIssues(unknown)`. This pure `1.0.0` mapping turns
@@ -162,9 +169,9 @@ lock selections do not enter Core documents, fingerprints, or manifests.
 
 ## Version and output impact
 
-Authoring metadata, actionable issue metadata, candidate validation, the
-quality-to-action mapping, the App response boundary, and the App lock contract
-each start at `1.0.0`. These slices add coordination, validation, and
+Authoring metadata is `1.1.0`; actionable issue metadata, candidate validation,
+the quality-to-action mapping, the App response boundary, and the App lock
+contract remain `1.0.0`. These slices add coordination, validation, and
 proof-ledger guidance only. They do not change the design schema, renderer,
 templates, procedural algorithms, manifest, fingerprints, SVG, PNG, or legacy
 validation/render behavior.

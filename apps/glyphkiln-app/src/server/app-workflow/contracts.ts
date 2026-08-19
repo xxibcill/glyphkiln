@@ -2,13 +2,20 @@ import type {
   AssetOrigin,
   BrandSnapshot,
   CampaignCompositionVariantId,
+  CarouselDeliverySidecar,
+  CarouselNarrativeRole,
+  CarouselSequenceReview,
+  CarouselSequenceKey,
+  CarouselSourceNote,
   CampaignFamilyId,
   DesignDocument,
+  DeliveryProfileId,
   FormatId,
   QualityIssue,
   RenderEvidence,
   RenderManifest,
   TemplateId,
+  TextBoundsEvidence,
   ValidationProblem,
 } from "@glyphkiln/core";
 
@@ -37,6 +44,14 @@ export type ManualDraft = {
     assetIds: string[];
     fontIds: string[];
   };
+};
+
+export type CampaignCanvasPublicationMetadata = {
+  narrativeRole: CarouselNarrativeRole;
+  deliveryProfileId?: DeliveryProfileId;
+  carouselSequenceKey?: CarouselSequenceKey;
+  altText?: string;
+  sourceNotes?: readonly CarouselSourceNote[];
 };
 
 export type BrandSnapshotDraft = Omit<BrandSnapshot, "snapshotId" | "version" | "name">;
@@ -136,7 +151,7 @@ export type AppCommand =
       directionKey: string;
       name: string;
     }
-  | {
+  | ({
       type: "campaign.canvas.attach";
       workspaceId: string;
       campaignId: string;
@@ -146,7 +161,7 @@ export type AppCommand =
       revisionId: string;
       compositionVariantId: CampaignCompositionVariantId;
       ordinal: number;
-    }
+    } & CampaignCanvasPublicationMetadata)
   | {
       type: "campaign.proposals.request";
       workspaceId: string;
@@ -233,6 +248,13 @@ export type AppQuery =
       workspaceId: string;
       campaignId: string;
       runId: string;
+    }
+  | {
+      type: "campaign.carousel.review";
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      sequenceKey: CarouselSequenceKey;
     }
   | {
       type: "campaign.handoff";
@@ -455,6 +477,7 @@ export type QueryProjection =
     }
   | CampaignBoardProjection
   | CampaignCanvasSeedProjection
+  | CampaignCarouselReviewProjection
   | CampaignProposalRunProjection
   | CampaignHandoffProjection
   | RevisionComparisonProjection
@@ -598,7 +621,7 @@ export type CampaignCanvasProjection = {
   canvasSeed: string;
   ordinal: number;
   createdAt: string;
-};
+} & CampaignCanvasPublicationMetadata;
 
 export type CampaignCanvasSeedProjection = {
   kind: "campaign-canvas-seed";
@@ -643,7 +666,15 @@ export type CampaignProposalIssueProjection = {
 
 export type CampaignProposalProofProjection = {
   qualityIssues: QualityIssue[];
-  evidence: RenderEvidence;
+  evidence:
+    | RenderEvidence
+    | {
+        version: "1.0.0";
+        safeArea: RenderEvidence["safeArea"];
+        text: Omit<TextBoundsEvidence, "fontSize">[];
+        crops: RenderEvidence["crops"];
+        contrast: RenderEvidence["contrast"];
+      };
   outputs: CampaignProposalProofOutputProjection[];
 };
 
@@ -729,6 +760,27 @@ export type CampaignHandoffProjection = {
   fileCount: number;
   approvedCanvasCount: number;
   unapprovedCanvasCount: number;
+};
+
+export type CampaignCarouselReviewProjection = {
+  kind: "campaign-carousel-review";
+  workspaceId: string;
+  campaignId: string;
+  directionId: string;
+  directionKey: string;
+  sequenceKey: CarouselSequenceKey;
+  review: CarouselSequenceReview;
+  deliverySidecar: CarouselDeliverySidecar;
+  slides: readonly {
+    canvas: CampaignCanvasProjection;
+    documentHash: string;
+    proof: {
+      document: DesignDocument;
+      qualityIssues: readonly QualityIssue[];
+      evidence: RenderEvidence;
+      outputs: readonly RenderedArtifact[];
+    };
+  }[];
 };
 
 export type RevisionReviewState = "in-review" | "changes-requested" | "approved";

@@ -1,11 +1,11 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_6d426c8eb7a1cc0fb336b7eb",
-  "renderFingerprint": "6d426c8eb7a1cc0fb336b7eb286f8d2f19846b440461a6ecebcabfe498b6009c",
+  "renderId": "render_519c1f625afbd41eb2b3ac3a",
+  "renderFingerprint": "519c1f625afbd41eb2b3ac3a8ed057e90e03dff62c59ac9fb153f9027bfca1cb",
   "designDocumentId": "baseline-image-led-campaign-portrait",
-  "designDocumentHash": "51afa5dca15eb565e0e03d93b42fabf470d9937369847fed96cfad5f82b9f01e",
+  "designDocumentHash": "bf765b41fbfcce72d90be905d00bd27a6ad6ccebc60ce0f94d307890987b619f",
   "seed": "kilnform-light-01",
-  "template": { "id": "image-led-campaign", "version": "1.0.0" },
+  "template": { "id": "image-led-campaign", "version": "1.0.1" },
   "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
   "typographyPolicy": {
     "algorithmVersion": "2.0.1",
@@ -58,8 +58,8 @@
   "dimensions": { "width": 1080, "height": 1350 },
   "output": {
     "format": "png",
-    "sha256": "ea6f372d804ff9412452331941cc2467f030594dfef9b065f94c1abb5505d464",
-    "byteSize": 2237443
+    "sha256": "daf15e171babb258bc8f1f2d8d4ba91416c8cd5e9443bb134cdf4e80bd874c5e",
+    "byteSize": 2237558
   },
   "creationTimestamp": "2026-07-29T10:00:00.000Z",
   "compositionGenerativeImageModelUsed": false,

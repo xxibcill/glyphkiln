@@ -21,7 +21,7 @@ export type TemplateRenderResult = {
 
 export type TemplateDefinition = {
   id: TemplateId;
-  version: "1.0.0" | "1.0.1" | "1.0.2" | "1.0.3" | "1.1.0" | "1.1.1";
+  version: "1.0.0" | "1.0.1" | "1.0.2" | "1.0.3" | "1.0.4" | "1.1.0" | "1.1.1";
   requiredLayers: readonly DesignLayer["type"][];
   supportedLayers: readonly DesignLayer["type"][];
   mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];

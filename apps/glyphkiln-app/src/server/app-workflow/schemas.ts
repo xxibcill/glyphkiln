@@ -1,7 +1,11 @@
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAMPAIGN_FAMILY_IDS,
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
+  DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
+  createCarouselSequenceKey,
 } from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
 import { z } from "zod";
@@ -14,6 +18,7 @@ const identifier = z
   .min(1)
   .max(120)
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
+const carouselSequenceKey = identifier.transform(createCarouselSequenceKey);
 const displayName = z.string().trim().min(1).max(120);
 const workspaceName = z.string().trim().min(1).max(120);
 const designName = z.string().trim().min(1).max(160);
@@ -36,6 +41,16 @@ const uniqueIdentifiers = (maximum: number) =>
     .refine((values) => new Set(values).size === values.length, {
       message: "Resource identifiers must be unique.",
     });
+const carouselSourceNote = z
+  .object({
+    label: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
+  })
+  .strict();
 
 export const ManualDraftSchema = z
   .object({
@@ -224,6 +239,19 @@ const AttachCampaignCanvasSchema = z
     designId: identifier,
     revisionId: identifier,
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
+    narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
+    carouselSequenceKey: carouselSequenceKey.optional(),
+    altText: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.altTextCharacters)
+      .optional(),
+    sourceNotes: z
+      .array(carouselSourceNote)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
+      .optional(),
     ordinal: z.number().int().min(0).max(999),
   })
   .strict();
@@ -399,6 +427,15 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       workspaceId: identifier,
       campaignId: identifier,
       runId: identifier,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("campaign.carousel.review"),
+      workspaceId: identifier,
+      campaignId: identifier,
+      directionId: identifier,
+      sequenceKey: carouselSequenceKey,
     })
     .strict(),
   z

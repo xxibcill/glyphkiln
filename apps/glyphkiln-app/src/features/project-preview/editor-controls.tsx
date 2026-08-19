@@ -603,6 +603,27 @@ export function EditorControls({
                 </select>
               </FieldShell>
               <FieldShell
+                id="campaign-image-alt"
+                label="Campaign image alt text"
+                hint="Describe the meaningful subject and context for this slide; do not repeat the caption."
+              >
+                <input
+                  id="campaign-image-alt"
+                  required
+                  maxLength={500}
+                  value={state.resources.imageAlt ?? ""}
+                  onChange={(event) => {
+                    onStateChange({
+                      ...state,
+                      resources: {
+                        ...state.resources,
+                        imageAlt: event.currentTarget.value,
+                      },
+                    });
+                  }}
+                />
+              </FieldShell>
+              <FieldShell
                 id="campaign-logo-resource"
                 label="Brand logo"
                 hint="Placed inside the safe area with contain fit."
@@ -622,6 +643,27 @@ export function EditorControls({
                     </option>
                   ))}
                 </select>
+              </FieldShell>
+              <FieldShell
+                id="campaign-logo-alt"
+                label="Brand mark alt text"
+                hint="Name the brand mark only when it contributes meaning to the exported slide."
+              >
+                <input
+                  id="campaign-logo-alt"
+                  required
+                  maxLength={500}
+                  value={state.resources.logoAlt ?? ""}
+                  onChange={(event) => {
+                    onStateChange({
+                      ...state,
+                      resources: {
+                        ...state.resources,
+                        logoAlt: event.currentTarget.value,
+                      },
+                    });
+                  }}
+                />
               </FieldShell>
 
               {rasterResources.length === 0 ? (
@@ -1103,7 +1145,7 @@ function TemplateCopyFields({
               }}
               required
               maxLength={80}
-              hint="Visible copy, for example 01 / 07. Build a concise 3-slide pack or a fuller 7–9-slide sequence."
+              hint="Visible copy, for example 01 / 07. Match the number to the actual ordered sequence."
               error={copyIssueMessage(
                 failure,
                 "slide-number",
@@ -1285,10 +1327,15 @@ function TemplateCopyFields({
 
 function resourceSelectionWithoutAssetRoles(
   resources: PreviewFormState["resources"],
-): Pick<PreviewFormState["resources"], "assetIds" | "fontIds"> {
+): Pick<
+  PreviewFormState["resources"],
+  "assetIds" | "fontIds" | "imageAlt" | "logoAlt"
+> {
   return {
     assetIds: [...resources.assetIds],
     fontIds: [...resources.fontIds],
+    ...(resources.imageAlt === undefined ? {} : { imageAlt: resources.imageAlt }),
+    ...(resources.logoAlt === undefined ? {} : { logoAlt: resources.logoAlt }),
   };
 }
 

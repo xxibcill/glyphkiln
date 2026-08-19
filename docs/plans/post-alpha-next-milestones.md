@@ -29,7 +29,7 @@ workspace-qualified App metadata.
 
 ## Release 1: Core 0.6.0 contract foundation
 
-Status: signed source release complete; optional local npm publication pending
+Status: complete
 
 - [x] Publish immutable campaign-family metadata for exact template versions.
 - [x] Publish deterministic direction/canvas seed derivation with stable scope
@@ -49,15 +49,16 @@ Status: signed source release complete; optional local npm publication pending
       release with npm `10.9.8`.
 - [x] Create and verify the signed source tag. Signed `v0.6.0` points to
       qualified commit `60919f5` and is published as a GitHub source release.
-- [ ] Publish to npm only through the owner-approved local signed-tag script;
-      GitHub Actions is disabled for this repository.
+- [x] Publish to npm only through the owner-approved local signed-tag script;
+      GitHub Actions is disabled for this repository. The owner published and
+      verified `@glyphkiln/core@0.6.0` from signed `v0.6.0` commit `60919f5`.
 
 This release deliberately changes no design schema, template pixels, renderer,
 manifest, fingerprint, SVG, or PNG output.
 
 ## Slice 2: designer-control and brand-fidelity closure
 
-Status: started
+Status: complete
 
 ### Core
 
@@ -99,11 +100,20 @@ Status: started
 Two reviewed image-led briefs, three visibly different brand snapshots, real
 multi-weight fonts, logo variants, and portrait/landscape photography must
 produce approved landscape, square, and portrait outputs without Figma repair.
+The controlled
+[2026-08-18 brand-fidelity qualification](../qualification/brand-fidelity-2026-08-18.md)
+now supplies two briefs, three brand snapshots, pinned multi-weight fonts,
+deterministic logo variants, portrait/landscape source photography, nine exact
+outputs, zero quality issues, and a reproducible review board. Human visual
+review exposed a shared fixed-slot logo offset; `image-led-campaign@1.0.1` fixes
+the alignment and the nine outputs and review board have been regenerated.
+The project owner approved the regenerated board without manual repair on
+2026-08-18, closing this gate.
 
 ## Slice 3: manual campaign workflow
 
-Status: implementation complete; runtime and product gates closed pending a
-reviewed qualification record
+Status: exact real-brief revision generated; runtime remains closed pending
+project-owner visual approval and exact approval receipts
 
 - [ ] Approve one campaign brief requiring at least four formats and a
       multi-slide series.
@@ -123,6 +133,15 @@ reviewed qualification record
 Gate: one selected direction becomes a coherent four-format campaign and
 multi-slide series; locks survive every adaptation; every canvas reproduces;
 the verified bundle is complete and stably named.
+
+The controlled Glyphkiln Core 0.6 launch candidate now supplies four formats,
+four ordered carousel slides, seven exact revisions, a server-validated
+typography lock, zero Core quality issues, deterministic reproduction, and a
+49-file canonical handoff. The handoff remains accurately labeled unapproved
+until the project owner reviews the
+[campaign board](../qualification/campaign-workflow-2026-08-18/generated/campaign-review-board.png).
+No new composition variant or content-length profile was required: both
+published family members handled the selected brief without repeatable repair.
 
 ## Slice 4: optional AI-assisted authoring
 

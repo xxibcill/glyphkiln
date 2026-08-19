@@ -278,7 +278,7 @@ describe("design document schema", () => {
     expect(document.format).toBe("tiktok-photo-carousel");
     expect(document.template).toEqual({
       id: "tiktok-carousel-slide",
-      version: "1.0.3",
+      version: "1.0.4",
     });
   });
 
