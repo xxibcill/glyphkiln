@@ -64,10 +64,10 @@ The controlled generator produced seven strict schema `1.4.0` documents:
 |       0 | `linkedin-hero`           | `image-led-campaign@1.0.1`    | LinkedIn landscape       |
 |       1 | `instagram-square-hero`   | `image-led-campaign@1.0.1`    | Instagram square         |
 |       2 | `instagram-portrait-hero` | `image-led-campaign@1.0.1`    | Instagram portrait       |
-|       3 | `carousel-01`             | `tiktok-carousel-slide@1.0.3` | TikTok photo carousel 01 |
-|       4 | `carousel-02`             | `tiktok-carousel-slide@1.0.3` | TikTok photo carousel 02 |
-|       5 | `carousel-03`             | `tiktok-carousel-slide@1.0.3` | TikTok photo carousel 03 |
-|       6 | `carousel-04`             | `tiktok-carousel-slide@1.0.3` | TikTok photo carousel 04 |
+|       3 | `carousel-01`             | `tiktok-carousel-slide@1.0.4` | TikTok photo carousel 01 |
+|       4 | `carousel-02`             | `tiktok-carousel-slide@1.0.4` | TikTok photo carousel 02 |
+|       5 | `carousel-03`             | `tiktok-carousel-slide@1.0.4` | TikTok photo carousel 03 |
+|       6 | `carousel-04`             | `tiktok-carousel-slide@1.0.4` | TikTok photo carousel 04 |
 
 - 7/7 documents validate and render.
 - 14/14 SVG and PNG artifacts are exact and manifest-backed.
@@ -79,8 +79,9 @@ The controlled generator produced seven strict schema `1.4.0` documents:
 - Each image-led canvas records one bounded `focal-cover-v1` crop.
 - All seven canvases share one direction seed and have independently derived
   canvas seeds.
-- The canonical handoff contains 49 stably sorted files: each exact design,
-  resource-pin record, review record, SVG, PNG, and both manifests.
+- The canonical handoff contains 51 stably sorted files: each canvas's exact
+  design, resource-pin record, review record, SVG, PNG, and both manifests, plus
+  the carousel sequence review and delivery records.
 - Repeated generation verifies byte-identical assets, designs, outputs,
   manifests, board, index, and handoff archive.
 
@@ -100,7 +101,7 @@ involved.
 ## Handoff state
 
 The current candidate handoff is intentionally and accurately labeled
-**unapproved**. Its seven approval records say `in-review`, all 49 files carry
+**unapproved**. Its seven approval records say `in-review`, all 51 files carry
 `approvalStatus: unapproved`, and its summary reports zero approved and seven
 unapproved canvases. This prevents generation from fabricating the human step.
 
