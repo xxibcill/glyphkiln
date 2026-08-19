@@ -153,6 +153,27 @@ describe("carousel sequence review and sidecars", () => {
     );
   });
 
+  it("keeps recommended aspect ratios advisory", async () => {
+    const sequence = await organicSequence();
+    const review = reviewCarouselSequence({
+      ...sequence,
+      deliveryProfileId: "tiktok-carousel-ad",
+    });
+
+    expect(review.issues).toContainEqual(
+      expect.objectContaining({
+        code: "ASPECT_RATIO_OUTSIDE_PROFILE",
+        severity: "warning",
+      }),
+    );
+    expect(review.issues).toContainEqual(
+      expect.objectContaining({
+        code: "FORMAT_INCOMPATIBLE",
+        severity: "error",
+      }),
+    );
+  });
+
   it("derives composition rhythm from the document family contract", async () => {
     const sequence = await organicSequence();
     const source = sequence.slides[0];

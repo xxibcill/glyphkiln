@@ -209,11 +209,17 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
       (maximumRatio !== undefined && ratio > maximumRatio + 0.000_001)
     ) {
       issues.push(
-        error(
-          "ASPECT_RATIO_OUTSIDE_PROFILE",
-          `${slide.document.format} falls outside the selected delivery profile's aspect-ratio range.`,
-          slide.document.id,
-        ),
+        profile.aspectRatio.evidence === "platform-requirement"
+          ? error(
+              "ASPECT_RATIO_OUTSIDE_PROFILE",
+              `${slide.document.format} falls outside the selected delivery profile's aspect-ratio range.`,
+              slide.document.id,
+            )
+          : warning(
+              "ASPECT_RATIO_OUTSIDE_PROFILE",
+              `${slide.document.format} falls outside the selected delivery profile's recommended aspect-ratio range.`,
+              slide.document.id,
+            ),
       );
     }
     compositionVariants.push(reviewCompositionVariant(slide, issues));
