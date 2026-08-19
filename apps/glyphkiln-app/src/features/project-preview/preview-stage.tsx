@@ -22,6 +22,8 @@ type PreviewStageProps = {
   proof: PreviewSuccess | null;
   isRendering: boolean;
   hasUnrenderedEdits: boolean;
+  selectedDeliveryProfileId?: DeliveryProfileId;
+  onDeliveryProfileChange?: (profileId: DeliveryProfileId) => void;
 };
 
 export function PreviewStage({
@@ -30,6 +32,8 @@ export function PreviewStage({
   proof,
   isRendering,
   hasUnrenderedEdits,
+  selectedDeliveryProfileId,
+  onDeliveryProfileChange,
 }: PreviewStageProps) {
   const [showEvidence, setShowEvidence] = useState(true);
   const previewOutput =
@@ -43,12 +47,13 @@ export function PreviewStage({
     (candidate) => candidate.id === previewDocument.template.id,
   );
   const deliveryProfiles = deliveryProfilesForFormat(previewDocument.format);
-  const [selectedDeliveryProfileId, setSelectedDeliveryProfileId] = useState<
+  const [localDeliveryProfileId, setLocalDeliveryProfileId] = useState<
     DeliveryProfileId | undefined
   >();
   const deliveryProfile =
-    deliveryProfiles.find(({ id }) => id === selectedDeliveryProfileId) ??
-    deliveryProfiles.at(0);
+    deliveryProfiles.find(
+      ({ id }) => id === (selectedDeliveryProfileId ?? localDeliveryProfileId),
+    ) ?? deliveryProfiles.at(0);
 
   return (
     <section className="preview-column" aria-labelledby="canvas-title">
@@ -79,7 +84,9 @@ export function PreviewStage({
                   const selected = deliveryProfiles.find(
                     ({ id }) => id === event.currentTarget.value,
                   );
-                  setSelectedDeliveryProfileId(selected?.id);
+                  if (selected === undefined) return;
+                  setLocalDeliveryProfileId(selected.id);
+                  onDeliveryProfileChange?.(selected.id);
                 }}
               >
                 {deliveryProfiles.map((profile) => (

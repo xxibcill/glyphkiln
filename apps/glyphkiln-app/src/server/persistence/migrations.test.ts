@@ -66,6 +66,7 @@ const MIGRATION_VERSIONS = [
   "202608120011_campaign_proposals",
   "202608130012_campaign_carousel_variant",
   "202608180013_campaign_narrative_role",
+  "202608190014_campaign_delivery_profile",
 ] as const;
 
 type TableNameRow = {
@@ -470,21 +471,32 @@ describe("App Alpha PostgreSQL migration", () => {
       canvasKey: string,
       compositionVariantId: string,
       narrativeRole: string,
+      deliveryProfileId: string,
       ordinal: number,
     ) =>
       database.query(
         `INSERT INTO campaign_canvases (
            id, workspace_id, campaign_id, direction_id, canvas_key,
            design_id, revision_id, template_id, template_version, format_id,
-           composition_variant_id, narrative_role, seed_derivation_version, direction_seed,
-           canvas_seed, ordinal, created_by
+           composition_variant_id, narrative_role, delivery_profile_id,
+           seed_derivation_version, direction_seed, canvas_seed, ordinal, created_by
          ) VALUES (
            $1, 'workspace-a', 'campaign-carousel-a', 'direction-carousel-a', $2,
            'design-a', 'revision-carousel-a', 'tiktok-carousel-slide', '1.0.3',
-           'tiktok-carousel-3x4', $3, $4, 'sha256/canonical-scope-v1', $5, $6, $7,
+           'tiktok-photo-carousel', $3, $4, $5, 'sha256/canonical-scope-v1', $6,
+           $7, $8,
            'user-a'
          )`,
-        [id, canvasKey, compositionVariantId, narrativeRole, HASH_A, HASH_B, ordinal],
+        [
+          id,
+          canvasKey,
+          compositionVariantId,
+          narrativeRole,
+          deliveryProfileId,
+          HASH_A,
+          HASH_B,
+          ordinal,
+        ],
       );
 
     await expect(
@@ -493,11 +505,19 @@ describe("App Alpha PostgreSQL migration", () => {
         "slide-01",
         "organic-photo-editorial",
         "hook",
+        "tiktok-content-posting-photo",
         0,
       ),
     ).resolves.toEqual([]);
     await expect(
-      insertCanvas("canvas-unknown-a", "slide-02", "unknown-variant", "context", 1),
+      insertCanvas(
+        "canvas-unknown-a",
+        "slide-02",
+        "unknown-variant",
+        "context",
+        "tiktok-organic-photo",
+        1,
+      ),
     ).rejects.toHaveProperty("code", "23514");
     await expect(
       insertCanvas(
@@ -505,16 +525,32 @@ describe("App Alpha PostgreSQL migration", () => {
         "slide-03",
         "organic-photo-editorial",
         "unknown-role",
+        "tiktok-organic-photo",
         2,
       ),
     ).rejects.toHaveProperty("code", "23514");
     await expect(
       database.query(
-        `SELECT narrative_role
+        `SELECT narrative_role, delivery_profile_id
            FROM campaign_canvases
           WHERE id = 'canvas-carousel-a'`,
       ),
-    ).resolves.toEqual([{ narrative_role: "hook" }]);
+    ).resolves.toEqual([
+      {
+        narrative_role: "hook",
+        delivery_profile_id: "tiktok-content-posting-photo",
+      },
+    ]);
+    await expect(
+      insertCanvas(
+        "canvas-incompatible-profile-a",
+        "slide-04",
+        "organic-photo-editorial",
+        "context",
+        "instagram-api-carousel",
+        3,
+      ),
+    ).rejects.toHaveProperty("code", "23514");
 
     const constraints = await database.query<ConstraintRow>(
       `SELECT

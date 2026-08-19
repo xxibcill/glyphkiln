@@ -1,5 +1,6 @@
 import type { SyntheticEvent } from "react";
 import { CAROUSEL_NARRATIVE_ROLE_IDS } from "@glyphkiln/core/browser";
+import type { DeliveryProfile, DeliveryProfileId } from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
@@ -216,7 +217,11 @@ export function CampaignOptionBoard({
                   <strong>{canvas.canvasKey}</strong>
                   <em>{canvas.narrativeRole}</em>
                   <small>
-                    {canvas.format} · {canvas.revisionId.slice(0, 8)}
+                    {canvas.format}
+                    {canvas.deliveryProfileId === undefined
+                      ? ""
+                      : ` · ${canvas.deliveryProfileId}`}{" "}
+                    · {canvas.revisionId.slice(0, 8)}
                   </small>
                   <button
                     type="button"
@@ -294,6 +299,9 @@ export function CampaignCanvasAttachment({
   canCoordinate,
   canAttachCanvas,
   isBusy,
+  deliveryProfiles,
+  selectedDeliveryProfileId,
+  onDeliveryProfileChange,
   onDirectionChange,
   onCanvasKeyChange,
   onPlanSeed,
@@ -312,6 +320,9 @@ export function CampaignCanvasAttachment({
   canCoordinate: boolean;
   canAttachCanvas: boolean;
   isBusy: boolean;
+  deliveryProfiles: readonly DeliveryProfile[];
+  selectedDeliveryProfileId?: DeliveryProfileId;
+  onDeliveryProfileChange?: (profileId: DeliveryProfileId) => void;
   onDirectionChange: (directionId: string) => void;
   onCanvasKeyChange: (canvasKey: string) => void;
   onPlanSeed: () => void;
@@ -363,6 +374,28 @@ export function CampaignCanvasAttachment({
           ))}
         </select>
       </label>
+      {selectedDeliveryProfileId === undefined ? null : (
+        <label>
+          Delivery path
+          <select
+            name="deliveryProfileId"
+            value={selectedDeliveryProfileId}
+            disabled={isBusy}
+            onChange={(event) => {
+              const profile = deliveryProfiles.find(
+                ({ id }) => id === event.currentTarget.value,
+              );
+              if (profile !== undefined) onDeliveryProfileChange?.(profile.id);
+            }}
+          >
+            {deliveryProfiles.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                {profile.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label>
         Order
         <input

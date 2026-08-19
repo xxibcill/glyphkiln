@@ -6,6 +6,7 @@ import {
   createCarouselDeliverySidecar,
   createCampaignDirectionKey,
   defaultDeliveryProfileForFormat,
+  deliveryProfilesForFormat,
   deriveCampaignSeeds,
   hashCanonical,
   sha256,
@@ -16,6 +17,7 @@ import type {
   AssetDeclaration,
   CampaignCompositionVariantId,
   DesignDocument,
+  DeliveryProfileId,
   FontDeclaration,
   FormatId,
   QualityIssue,
@@ -1606,6 +1608,10 @@ class AppWorkflowImplementation implements AppWorkflow {
       if (campaign === undefined || direction === undefined) {
         throw resourceNotFound();
       }
+      const deliveryProfileId = resolveCampaignDeliveryProfile(
+        revision.document.format,
+        command.deliveryProfileId,
+      );
       const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {
         canvasKey: command.canvasKey,
         templateId: revision.document.template.id,
@@ -1658,6 +1664,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
         narrativeRole: command.narrativeRole,
+        deliveryProfileId,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -1681,6 +1688,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           directionSeed: derivedSeed.directionSeed,
           canvasSeed: derivedSeed.canvasSeed,
           narrativeRole: command.narrativeRole,
+          ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
         },
         createdAt: now,
       });
@@ -1693,6 +1701,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
         narrativeRole: command.narrativeRole,
+        ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -2340,12 +2349,11 @@ class AppWorkflowImplementation implements AppWorkflow {
         canvasOrdinal: canvas.ordinal,
         canvasKey: canvas.canvasKey,
       });
-      const deliveryProfile = defaultDeliveryProfileForFormat(revision.document.format);
       const delivery =
-        deliveryProfile === undefined
+        canvas.deliveryProfileId === undefined
           ? undefined
           : createCarouselDeliverySidecar({
-              deliveryProfileId: deliveryProfile.id,
+              deliveryProfileId: canvas.deliveryProfileId,
               slides: [
                 {
                   document: revision.document,
@@ -3548,6 +3556,31 @@ function deriveStoredCampaignCanvasSeed(
     directionSeed: seeds.directionSeed,
     canvasSeed: seeds.canvasSeed,
   };
+}
+
+function resolveCampaignDeliveryProfile(
+  format: FormatId,
+  requestedProfileId: DeliveryProfileId | undefined,
+): DeliveryProfileId | undefined {
+  const compatibleProfiles = deliveryProfilesForFormat(format);
+  if (compatibleProfiles.length === 0) {
+    if (requestedProfileId !== undefined) {
+      throw invalidCampaignCanvas(
+        `${requestedProfileId} is not compatible with ${format}.`,
+      );
+    }
+    return undefined;
+  }
+  const profile =
+    requestedProfileId === undefined
+      ? defaultDeliveryProfileForFormat(format)
+      : compatibleProfiles.find(({ id }) => id === requestedProfileId);
+  if (profile === undefined) {
+    throw invalidCampaignCanvas(
+      `${requestedProfileId ?? "The selected delivery profile"} is not compatible with ${format}.`,
+    );
+  }
+  return profile.id;
 }
 
 function invalidCampaignCanvas(

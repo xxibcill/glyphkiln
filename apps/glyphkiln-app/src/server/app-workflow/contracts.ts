@@ -5,6 +5,7 @@ import type {
   CarouselNarrativeRole,
   CampaignFamilyId,
   DesignDocument,
+  DeliveryProfileId,
   FormatId,
   QualityIssue,
   RenderEvidence,
@@ -148,6 +149,7 @@ export type AppCommand =
       revisionId: string;
       compositionVariantId: CampaignCompositionVariantId;
       narrativeRole: CarouselNarrativeRole;
+      deliveryProfileId?: DeliveryProfileId;
       ordinal: number;
     }
   | {
@@ -597,6 +599,7 @@ export type CampaignCanvasProjection = {
   format: FormatId;
   compositionVariantId: CampaignCompositionVariantId;
   narrativeRole: CarouselNarrativeRole;
+  deliveryProfileId?: DeliveryProfileId;
   seedDerivationVersion: string;
   directionSeed: string;
   canvasSeed: string;

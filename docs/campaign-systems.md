@@ -129,6 +129,13 @@ immutable revision carry the planned seed, exact template version, and format.
 The server recomputes the seed from the persisted campaign and direction at
 attachment, so the browser plan is never authoritative.
 
+For formats with delivery profiles, Campaign Studio sends the operator's
+selected publishing path with the attachment and the App stores that exact
+profile on the campaign canvas. The server rejects an explicit profile that is
+not compatible with the immutable revision format. Older API clients that omit
+the field receive the format's deterministic default, while handoff creation
+always uses the stored profile verbatim instead of recomputing a default.
+
 Campaign persistence is dark-launched until a reviewed real-brief
 qualification passes the four-format and multi-slide gate below. The runtime
 defaults to disabled. The exact operator assertion
@@ -145,7 +152,7 @@ canonical JSON archive with stable sorted paths for only that direction. The
 direction identifier is bound into both the response receipt and archive. Each
 selected canvas contributes its exact design document, immutable resource pins,
 SVG and PNG bytes, both render manifests, a deterministic delivery sidecar when
-the format has a default profile, and an approval record. The record is
+the canvas has a stored delivery profile, and an approval record. The record is
 an exact approval receipt only when the included artifact hashes, manifest
 hashes, fingerprints, revision hash, and resource pins match that receipt. A
 missing or mismatched receipt produces an explicit `unapproved` record. The

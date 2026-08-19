@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { SyntheticEvent } from "react";
-import { CAROUSEL_NARRATIVE_ROLE_IDS } from "@glyphkiln/core/browser";
+import {
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  deliveryProfilesForFormat,
+  type DeliveryProfileId,
+} from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 
@@ -46,6 +50,8 @@ type CampaignStudioProps = {
   draftCanvas: CampaignDraftCanvas;
   openRevision?: DesignRevision;
   canCoordinate: boolean;
+  selectedDeliveryProfileId?: DeliveryProfileId;
+  onDeliveryProfileChange?: (profileId: DeliveryProfileId) => void;
   onApplyCanvasSeed: (seed: string) => void;
   onCampaignChanged: () => Promise<void>;
   onOpenDesign: (designId: string, revisionId?: string) => Promise<void>;
@@ -58,6 +64,8 @@ export function CampaignStudio({
   draftCanvas,
   openRevision,
   canCoordinate,
+  selectedDeliveryProfileId,
+  onDeliveryProfileChange,
   onApplyCanvasSeed,
   onCampaignChanged,
   onOpenDesign,
@@ -109,6 +117,10 @@ export function CampaignStudio({
     sameCanvasSeedScope(canvasSeedPlan.scope, currentCanvasScope)
       ? canvasSeedPlan
       : undefined;
+  const deliveryProfiles = deliveryProfilesForFormat(draftCanvas.format);
+  const selectedDeliveryProfile =
+    deliveryProfiles.find(({ id }) => id === selectedDeliveryProfileId) ??
+    deliveryProfiles.at(0);
   const draftMatchesCanvasSeed = draftMatchesSeedPlan(
     draftCanvas,
     currentCanvasSeedPlan,
@@ -285,6 +297,9 @@ export function CampaignStudio({
       ordinal: Number(requiredFormText(form, "canvasOrdinal")),
       narrativeRole,
       compositionVariantId: currentCanvasSeedPlan.scope.compositionVariantId,
+      ...(selectedDeliveryProfile === undefined
+        ? {}
+        : { deliveryProfileId: selectedDeliveryProfile.id }),
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);
@@ -523,6 +538,9 @@ export function CampaignStudio({
             canCoordinate={canCoordinate}
             canAttachCanvas={canAttachCanvas}
             isBusy={isBusy}
+            deliveryProfiles={deliveryProfiles}
+            selectedDeliveryProfileId={selectedDeliveryProfile?.id}
+            onDeliveryProfileChange={onDeliveryProfileChange}
             onDirectionChange={(directionId) => {
               setCanvasDirectionId(directionId);
               setCanvasSeedPlan(undefined);

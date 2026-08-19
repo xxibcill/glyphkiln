@@ -2,6 +2,7 @@ import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAMPAIGN_FAMILY_IDS,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
 } from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
@@ -226,6 +227,7 @@ const AttachCampaignCanvasSchema = z
     revisionId: identifier,
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
     ordinal: z.number().int().min(0).max(999),
   })
   .strict();

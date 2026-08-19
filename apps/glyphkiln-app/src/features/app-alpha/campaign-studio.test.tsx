@@ -324,7 +324,9 @@ describe("CampaignStudio", () => {
         return Promise.resolve(success(200, board));
       }
       if (body.type === "campaign.canvas.seed") {
-        return Promise.resolve(success(200, campaignCanvasSeedFixture()));
+        return Promise.resolve(
+          success(200, campaignCanvasSeedFixture("instagram-square")),
+        );
       }
       if (body.type === "campaign.canvas.attach") {
         return Promise.resolve(
@@ -342,7 +344,7 @@ describe("CampaignStudio", () => {
     const campaigns = [CAMPAIGN];
     const onApplyCanvasSeed = vi.fn();
     const renderStudio = async (
-      draftCanvas = campaignDraftCanvas(),
+      draftCanvas = campaignDraftCanvas("draft-seed", "instagram-square"),
       openRevision?: Parameters<typeof CampaignStudio>[0]["openRevision"],
     ) => {
       await act(async () => {
@@ -354,6 +356,7 @@ describe("CampaignStudio", () => {
             draftCanvas={draftCanvas}
             openRevision={openRevision}
             canCoordinate
+            selectedDeliveryProfileId="instagram-api-carousel"
             onApplyCanvasSeed={onApplyCanvasSeed}
             onCampaignChanged={() => Promise.resolve()}
             onOpenDesign={() => Promise.resolve()}
@@ -374,7 +377,7 @@ describe("CampaignStudio", () => {
       directionId: "direction-1",
       canvasKey: "hero-landscape",
       templateId: "image-led-campaign",
-      format: "linkedin-landscape",
+      format: "instagram-square",
       compositionVariantId: "focal-editorial",
     });
     expect(container.textContent).toContain("sha256/canonical-scope-v1");
@@ -394,8 +397,8 @@ describe("CampaignStudio", () => {
     expect(button("Attach revision").disabled).toBe(true);
 
     await renderStudio(
-      campaignDraftCanvas("b".repeat(64)),
-      campaignRevision("b".repeat(64)),
+      campaignDraftCanvas("b".repeat(64), "instagram-square"),
+      campaignRevision("b".repeat(64), "instagram-square"),
     );
     expect(button("Attach revision").disabled).toBe(false);
     await clickButton("Attach revision");
@@ -410,6 +413,7 @@ describe("CampaignStudio", () => {
       ordinal: 0,
       compositionVariantId: "focal-editorial",
       narrativeRole: "context",
+      deliveryProfileId: "instagram-api-carousel",
     });
   });
 
@@ -639,15 +643,18 @@ function campaignBoardFixture(): CampaignBoard {
 
 function campaignDraftCanvas(
   seed = "draft-seed",
+  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
 ): Parameters<typeof CampaignStudio>[0]["draftCanvas"] {
   return {
     templateId: "image-led-campaign" as const,
-    format: "linkedin-landscape" as const,
+    format,
     seed,
   };
 }
 
-function campaignCanvasSeedFixture() {
+function campaignCanvasSeedFixture(
+  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
+) {
   return {
     kind: "campaign-canvas-seed" as const,
     workspaceId: "workspace-1",
@@ -655,7 +662,7 @@ function campaignCanvasSeedFixture() {
     directionId: "direction-1",
     canvasKey: "hero-landscape",
     template: { id: "image-led-campaign" as const, version: "1.0.1" },
-    format: "linkedin-landscape" as const,
+    format,
     compositionVariantId: "focal-editorial" as const,
     seedDerivationVersion: "sha256/canonical-scope-v1",
     directionSeed: "a".repeat(64),
@@ -665,13 +672,14 @@ function campaignCanvasSeedFixture() {
 
 function campaignRevision(
   seed: string,
+  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
 ): NonNullable<Parameters<typeof CampaignStudio>[0]["openRevision"]> {
   const document = constructManualDocument({
     documentId: "design-seeded",
     brand: createPreviewDesign().brand,
     draft: {
       templateId: "image-led-campaign",
-      format: "linkedin-landscape",
+      format,
       seed,
       mode: "dark",
       resources: {

@@ -134,6 +134,17 @@ const MIGRATION_FILES = [
     ),
     version: "202608180013_campaign_narrative_role",
   },
+  {
+    down: new URL(
+      "./migrations/202608190014_campaign_delivery_profile.down.sql",
+      import.meta.url,
+    ),
+    up: new URL(
+      "./migrations/202608190014_campaign_delivery_profile.up.sql",
+      import.meta.url,
+    ),
+    version: "202608190014_campaign_delivery_profile",
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

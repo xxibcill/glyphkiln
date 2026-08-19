@@ -1027,7 +1027,7 @@ describe("AppWorkflow", () => {
       }),
       "design-saved",
     );
-    expectReceipt(
+    expectFailure(
       await workflow.execute({
         evidence: ownerEvidence(owner),
         command: {
@@ -1040,11 +1040,33 @@ describe("AppWorkflow", () => {
           revisionId: branchedRevision.revisionId,
           compositionVariantId: "focal-editorial",
           narrativeRole: "hook",
+          deliveryProfileId: "tiktok-organic-photo",
+          ordinal: 0,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+    const instagramCanvas = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square",
+          designId: branchedRevision.designId,
+          revisionId: branchedRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          narrativeRole: "hook",
+          deliveryProfileId: "instagram-api-carousel",
           ordinal: 0,
         },
       }),
       "campaign-canvas-attached",
-    );
+    ).canvas;
+    expect(instagramCanvas.deliveryProfileId).toBe("instagram-api-carousel");
     const instagramHandoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
@@ -1070,7 +1092,7 @@ describe("AppWorkflow", () => {
     ).toMatchObject({
       version: "1.0.0",
       deliveryProfile: {
-        id: "instagram-native-carousel",
+        id: "instagram-api-carousel",
         metadataVersion: "1.0.0",
       },
       slides: [{ ordinal: 0, narrativeRole: "hook" }],

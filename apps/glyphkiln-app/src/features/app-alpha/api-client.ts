@@ -4,6 +4,7 @@ import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schem
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  DELIVERY_PROFILE_IDS,
   canonicalJson,
 } from "@glyphkiln/core/browser";
 import { z } from "zod";
@@ -166,6 +167,7 @@ const CampaignCanvasSchema = z
     format: z.string().min(1),
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
+    deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -930,6 +932,7 @@ export type AppAlphaApi = {
     ordinal: number;
     compositionVariantId: CampaignCanvasSeedInput["compositionVariantId"];
     narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
+    deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {
     workspaceId: string;
