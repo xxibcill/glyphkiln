@@ -1145,7 +1145,7 @@ function TemplateCopyFields({
               }}
               required
               maxLength={80}
-              hint="Visible copy, for example 01 / 07. Build a concise 3-slide pack or a fuller 7–9-slide sequence."
+              hint="Visible copy, for example 01 / 07. Match the number to the actual ordered sequence."
               error={copyIssueMessage(
                 failure,
                 "slide-number",

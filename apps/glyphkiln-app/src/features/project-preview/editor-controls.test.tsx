@@ -60,8 +60,9 @@ describe("EditorControls", () => {
     expect(narrativeMarkup).not.toContain('id="tiktok-statistic-value"');
     expect(narrativeMarkup).toContain("Keep one message per slide.");
     expect(narrativeMarkup).toContain("01 / 07");
-    expect(narrativeMarkup).toContain("3-slide pack");
-    expect(narrativeMarkup).toContain("7–9-slide sequence");
+    expect(narrativeMarkup).toContain("actual ordered sequence");
+    expect(narrativeMarkup).not.toContain("3-slide pack");
+    expect(narrativeMarkup).not.toContain("7–9-slide sequence");
     expect(narrativeMarkup).toContain(
       "place the action CTA after the benefits or on the final slide.",
     );
