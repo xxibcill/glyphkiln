@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CAROUSEL_DELIVERY_SIDECAR_VERSION,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
   CAROUSEL_SEQUENCE_VERSION,
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
@@ -18,6 +19,7 @@ import {
   type DesignDocument,
 } from "../src/index.js";
 import {
+  CAROUSEL_SEQUENCE_LIMITS as BROWSER_CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_REGISTRY as BROWSER_DELIVERY_PROFILE_REGISTRY,
   reviewCarouselSequence as reviewBrowserCarouselSequence,
 } from "../src/browser.js";
@@ -167,6 +169,13 @@ describe("carousel sequence review and sidecars", () => {
       "recap",
       "action",
     ]);
+    expect(CAROUSEL_SEQUENCE_LIMITS).toEqual({
+      slides: 64,
+      sourceNotesPerSlide: 32,
+      sourceNoteLabelCharacters: 500,
+      sourceNoteUrlCharacters: 2_048,
+    });
+    expect(BROWSER_CAROUSEL_SEQUENCE_LIMITS).toBe(CAROUSEL_SEQUENCE_LIMITS);
     expect(review.success).toBe(true);
     expect(review.issues.every((issue) => issue.severity === "warning")).toBe(true);
     expect(reviewBrowserCarouselSequence(sequence)).toEqual(review);

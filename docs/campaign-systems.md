@@ -137,7 +137,10 @@ the field receive the format's deterministic default, while handoff creation
 always uses the stored profile verbatim instead of recomputing a default. An
 optional carousel sequence key groups only the canvases that belong to one
 publishable sequence; canvases without a key remain standalone variants. Every
-canvas under one key must share a delivery profile.
+canvas under one key must share a delivery profile. Campaign Studio also accepts
+bounded slide source notes as a label with an optional absolute URL. Those notes
+are stored with the immutable canvas attachment and carried into the sequence
+delivery sidecar instead of being reconstructed during handoff.
 
 Campaign persistence is dark-launched until a reviewed real-brief
 qualification passes the four-format and multi-slide gate below. The runtime

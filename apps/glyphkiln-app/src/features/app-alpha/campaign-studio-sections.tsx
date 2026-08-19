@@ -1,5 +1,8 @@
 import type { SyntheticEvent } from "react";
-import { CAROUSEL_NARRATIVE_ROLE_IDS } from "@glyphkiln/core/browser";
+import {
+  CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
+} from "@glyphkiln/core/browser";
 import type { DeliveryProfile, DeliveryProfileId } from "@glyphkiln/core/browser";
 
 import type { CampaignSummary } from "@/server/app-workflow";
@@ -17,6 +20,12 @@ import {
   type CampaignDraftCanvas,
 } from "./campaign-studio-model";
 import { RevisionProofFigure } from "./revision-proof-figure";
+
+const MAXIMUM_SOURCE_NOTES_TEXT_CHARACTERS =
+  CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide *
+  (CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters +
+    CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters +
+    4);
 
 type CampaignCanvasEntry = {
   direction: CampaignBoard["directions"][number];
@@ -224,6 +233,9 @@ export function CampaignOptionBoard({
                     {canvas.carouselSequenceKey === undefined
                       ? ""
                       : `· sequence ${canvas.carouselSequenceKey} `}
+                    {canvas.sourceNotes === undefined
+                      ? ""
+                      : `· ${canvas.sourceNotes.length.toString()} source note${canvas.sourceNotes.length === 1 ? "" : "s"} `}
                     · {canvas.revisionId.slice(0, 8)}
                   </small>
                   <button
@@ -412,6 +424,20 @@ export function CampaignCanvasAttachment({
           <small id="carousel-sequence-hint">
             Use one key for every slide in a reviewed sequence; leave blank for a
             standalone canvas.
+          </small>
+          <label>
+            Slide source notes
+            <textarea
+              name="sourceNotes"
+              rows={3}
+              maxLength={MAXIMUM_SOURCE_NOTES_TEXT_CHARACTERS}
+              disabled={isBusy}
+              aria-describedby="carousel-source-notes-hint"
+            />
+          </label>
+          <small id="carousel-source-notes-hint">
+            One note per line: label, or label | absolute URL. Up to{" "}
+            {CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide.toString()} notes.
           </small>
         </>
       )}

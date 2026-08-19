@@ -53,6 +53,8 @@ const DIRECTION_ID = "direction-proof-not-promises";
 const DIRECTION_KEY = "proof-not-promises";
 const CAMPAIGN_SEED = "glyphkiln-core-0-6-launch-2026-08";
 const HANDOFF_FILENAME = "glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json";
+const QUALIFICATION_SOURCE_URL =
+  "https://github.com/xxibcill/glyphkiln/blob/main/docs/qualification/campaign-workflow-2026-08-18/README.md";
 
 const paths = {
   inter: resolve(
@@ -643,6 +645,12 @@ function createUnapprovedHandoff(campaign, cases) {
       ordinal,
       narrativeRole: qualificationNarrativeRole(entry),
       compositionVariantId: entry.compositionVariantId,
+      sourceNotes: [
+        {
+          label: "Glyphkiln campaign workflow qualification",
+          url: QUALIFICATION_SOURCE_URL,
+        },
+      ],
     })),
   };
   const sequenceReview = reviewCarouselSequence(carouselSequence);

@@ -402,6 +402,10 @@ describe("CampaignStudio", () => {
     );
     expect(button("Attach revision").disabled).toBe(false);
     await setInput('input[name="carouselSequenceKey"]', "launch-carousel");
+    await setTextarea(
+      'textarea[name="sourceNotes"]',
+      "Product launch brief | https://example.com/launch-brief",
+    );
     await clickButton("Attach revision");
     expect(requestBodies(fetchMock)).toContainEqual({
       type: "campaign.canvas.attach",
@@ -416,6 +420,12 @@ describe("CampaignStudio", () => {
       narrativeRole: "context",
       deliveryProfileId: "instagram-api-carousel",
       carouselSequenceKey: "launch-carousel",
+      sourceNotes: [
+        {
+          label: "Product launch brief",
+          url: "https://example.com/launch-brief",
+        },
+      ],
     });
   });
 
@@ -575,8 +585,14 @@ describe("CampaignStudio", () => {
     await setControlValue(select, HTMLSelectElement.prototype, value);
   }
 
+  async function setTextarea(selector: string, value: string): Promise<void> {
+    const textarea = container.querySelector<HTMLTextAreaElement>(selector);
+    if (textarea === null) throw new Error(`Textarea “${selector}” was not found.`);
+    await setControlValue(textarea, HTMLTextAreaElement.prototype, value);
+  }
+
   async function setControlValue(
-    control: HTMLInputElement | HTMLSelectElement,
+    control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
     prototype: object,
     value: string,
   ): Promise<void> {

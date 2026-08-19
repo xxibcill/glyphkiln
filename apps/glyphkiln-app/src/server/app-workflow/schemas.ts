@@ -2,6 +2,7 @@ import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAMPAIGN_FAMILY_IDS,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
 } from "@glyphkiln/core";
@@ -38,6 +39,16 @@ const uniqueIdentifiers = (maximum: number) =>
     .refine((values) => new Set(values).size === values.length, {
       message: "Resource identifiers must be unique.",
     });
+const carouselSourceNote = z
+  .object({
+    label: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
+  })
+  .strict();
 
 export const ManualDraftSchema = z
   .object({
@@ -229,6 +240,10 @@ const AttachCampaignCanvasSchema = z
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
     carouselSequenceKey: identifier.optional(),
+    sourceNotes: z
+      .array(carouselSourceNote)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
+      .optional(),
     ordinal: z.number().int().min(0).max(999),
   })
   .strict();

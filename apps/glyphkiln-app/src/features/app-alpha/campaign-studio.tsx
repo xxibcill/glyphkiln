@@ -5,6 +5,7 @@ import type { SyntheticEvent } from "react";
 import {
   CAROUSEL_NARRATIVE_ROLE_IDS,
   deliveryProfilesForFormat,
+  type CarouselSourceNote,
   type DeliveryProfileId,
 } from "@glyphkiln/core/browser";
 
@@ -290,6 +291,7 @@ export function CampaignStudio({
       typeof rawCarouselSequenceKey === "string" && rawCarouselSequenceKey.trim() !== ""
         ? rawCarouselSequenceKey.trim()
         : undefined;
+    const sourceNotes = parseSourceNotes(form.get("sourceNotes"));
     setBusy("canvas");
     setFailure(undefined);
     const result = await api.attachCampaignCanvas({
@@ -306,6 +308,7 @@ export function CampaignStudio({
         ? {}
         : { deliveryProfileId: selectedDeliveryProfile.id }),
       ...(carouselSequenceKey === undefined ? {} : { carouselSequenceKey }),
+      ...(sourceNotes.length === 0 ? {} : { sourceNotes }),
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);
@@ -591,6 +594,21 @@ export function CampaignStudio({
       </p>
     </section>
   );
+}
+
+function parseSourceNotes(value: FormDataEntryValue | null): CarouselSourceNote[] {
+  if (typeof value !== "string") return [];
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "")
+    .map((line) => {
+      const separatorIndex = line.lastIndexOf(" | ");
+      if (separatorIndex < 0) return { label: line };
+      const label = line.slice(0, separatorIndex).trim();
+      const url = line.slice(separatorIndex + 3).trim();
+      return url === "" ? { label } : { label, url };
+    });
 }
 
 function countCampaignCanvases(board: CampaignBoard): number {

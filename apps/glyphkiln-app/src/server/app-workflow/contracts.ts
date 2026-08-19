@@ -3,6 +3,7 @@ import type {
   BrandSnapshot,
   CampaignCompositionVariantId,
   CarouselNarrativeRole,
+  CarouselSourceNote,
   CampaignFamilyId,
   DesignDocument,
   DeliveryProfileId,
@@ -151,6 +152,7 @@ export type AppCommand =
       narrativeRole: CarouselNarrativeRole;
       deliveryProfileId?: DeliveryProfileId;
       carouselSequenceKey?: string;
+      sourceNotes?: readonly CarouselSourceNote[];
       ordinal: number;
     }
   | {
@@ -602,6 +604,7 @@ export type CampaignCanvasProjection = {
   narrativeRole: CarouselNarrativeRole;
   deliveryProfileId?: DeliveryProfileId;
   carouselSequenceKey?: string;
+  sourceNotes?: readonly CarouselSourceNote[];
   seedDerivationVersion: string;
   directionSeed: string;
   canvasSeed: string;

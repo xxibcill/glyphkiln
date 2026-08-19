@@ -4,6 +4,7 @@ import { BrandSnapshotSchema, DesignDocumentSchema } from "@glyphkiln/core/schem
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAROUSEL_NARRATIVE_ROLE_IDS,
+  CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_IDS,
   canonicalJson,
 } from "@glyphkiln/core/browser";
@@ -157,6 +158,12 @@ const AuthoringLockSchema = z.enum([
   "palette",
   "composition",
 ]);
+const CarouselSourceNoteSchema = z
+  .object({
+    label: z.string().min(1).max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
+  })
+  .strict();
 const CampaignCanvasSchema = z
   .object({
     id: z.string().min(1),
@@ -173,6 +180,10 @@ const CampaignCanvasSchema = z
       .min(1)
       .max(120)
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
+      .optional(),
+    sourceNotes: z
+      .array(CarouselSourceNoteSchema)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide)
       .optional(),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -940,6 +951,7 @@ export type AppAlphaApi = {
     narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
     deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
     carouselSequenceKey?: z.infer<typeof CampaignCanvasSchema>["carouselSequenceKey"];
+    sourceNotes?: z.infer<typeof CampaignCanvasSchema>["sourceNotes"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {
     workspaceId: string;

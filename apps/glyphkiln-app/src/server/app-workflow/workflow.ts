@@ -1694,6 +1694,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         narrativeRole: command.narrativeRole,
         deliveryProfileId,
         carouselSequenceKey: command.carouselSequenceKey,
+        sourceNotes: command.sourceNotes,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -1717,6 +1718,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           directionSeed: derivedSeed.directionSeed,
           canvasSeed: derivedSeed.canvasSeed,
           narrativeRole: command.narrativeRole,
+          sourceNoteCount: command.sourceNotes?.length ?? 0,
           ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
           ...(command.carouselSequenceKey === undefined
             ? {}
@@ -1737,6 +1739,14 @@ class AppWorkflowImplementation implements AppWorkflow {
         ...(command.carouselSequenceKey === undefined
           ? {}
           : { carouselSequenceKey: command.carouselSequenceKey }),
+        ...(command.sourceNotes === undefined || command.sourceNotes.length === 0
+          ? {}
+          : {
+              sourceNotes: command.sourceNotes.map((note) => ({
+                label: note.label,
+                ...(note.url === undefined ? {} : { url: note.url }),
+              })),
+            }),
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -3287,6 +3297,9 @@ function addCampaignHandoffSequenceFiles(
         ordinal,
         narrativeRole: canvas.narrativeRole,
         compositionVariantId: canvas.compositionVariantId,
+        ...(canvas.sourceNotes === undefined
+          ? {}
+          : { sourceNotes: canvas.sourceNotes }),
       })),
     };
     const review = reviewCarouselSequence(sequence);

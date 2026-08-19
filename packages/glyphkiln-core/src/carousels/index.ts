@@ -112,7 +112,7 @@ export type CarouselDeliverySidecar = {
   }[];
 };
 
-const CAROUSEL_SEQUENCE_LIMITS = Object.freeze({
+export const CAROUSEL_SEQUENCE_LIMITS = Object.freeze({
   slides: 64,
   sourceNotesPerSlide: 32,
   sourceNoteLabelCharacters: 500,

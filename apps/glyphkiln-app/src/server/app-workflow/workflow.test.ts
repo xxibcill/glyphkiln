@@ -1062,6 +1062,12 @@ describe("AppWorkflow", () => {
           narrativeRole: "hook",
           deliveryProfileId: "instagram-api-carousel",
           carouselSequenceKey: "launch-carousel",
+          sourceNotes: [
+            {
+              label: "Product launch brief",
+              url: "https://example.com/launch-brief",
+            },
+          ],
           ordinal: 0,
         },
       }),
@@ -1070,6 +1076,12 @@ describe("AppWorkflow", () => {
     expect(instagramCanvas).toMatchObject({
       deliveryProfileId: "instagram-api-carousel",
       carouselSequenceKey: "launch-carousel",
+      sourceNotes: [
+        {
+          label: "Product launch brief",
+          url: "https://example.com/launch-brief",
+        },
+      ],
     });
     expectFailure(
       await workflow.read({
@@ -1146,6 +1158,7 @@ describe("AppWorkflow", () => {
           narrativeRole: "action",
           deliveryProfileId: "instagram-api-carousel",
           carouselSequenceKey: "launch-carousel",
+          sourceNotes: [{ label: "Approved closing copy" }],
           ordinal: 1,
         },
       }),
@@ -1180,8 +1193,21 @@ describe("AppWorkflow", () => {
         metadataVersion: "1.0.0",
       },
       slides: [
-        { ordinal: 0, narrativeRole: "hook" },
-        { ordinal: 1, narrativeRole: "action" },
+        {
+          ordinal: 0,
+          narrativeRole: "hook",
+          sourceNotes: [
+            {
+              label: "Product launch brief",
+              url: "https://example.com/launch-brief",
+            },
+          ],
+        },
+        {
+          ordinal: 1,
+          narrativeRole: "action",
+          sourceNotes: [{ label: "Approved closing copy" }],
+        },
       ],
     });
     const sequenceReviewFile = instagramArchive.files.find((file) =>

@@ -3,6 +3,7 @@ import type {
   CampaignCompositionVariantId,
   CampaignFamilyId,
   CarouselNarrativeRole,
+  CarouselSourceNote,
   DesignDocument,
   DeliveryProfileId,
   FormatId,
@@ -1370,6 +1371,7 @@ export class AppState {
     narrativeRole: CarouselNarrativeRole;
     deliveryProfileId: DeliveryProfileId | undefined;
     carouselSequenceKey?: string;
+    sourceNotes?: readonly CarouselSourceNote[];
     seedDerivationVersion: string;
     directionSeed: string;
     canvasSeed: string;
@@ -1382,12 +1384,12 @@ export class AppState {
          id, workspace_id, campaign_id, direction_id, canvas_key,
          design_id, revision_id, template_id, template_version, format_id,
          composition_variant_id, narrative_role, delivery_profile_id,
-         carousel_sequence_key,
+         carousel_sequence_key, source_notes,
          seed_derivation_version, direction_seed, canvas_seed, ordinal,
          created_by, created_at
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-         $14, $15, $16, $17, $18, $19, $20
+         $14, $15::jsonb, $16, $17, $18, $19, $20, $21
        )
        RETURNING id`,
       [
@@ -1405,6 +1407,7 @@ export class AppState {
         input.narrativeRole,
         input.deliveryProfileId ?? null,
         input.carouselSequenceKey ?? null,
+        (input.sourceNotes ?? []) as readonly SqlJsonValue[],
         input.seedDerivationVersion,
         input.directionSeed,
         input.canvasSeed,
@@ -1459,6 +1462,7 @@ export class AppState {
       narrative_role: CarouselNarrativeRole;
       delivery_profile_id: DeliveryProfileId | null;
       carousel_sequence_key: string | null;
+      source_notes: readonly CarouselSourceNote[] | string;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1468,7 +1472,7 @@ export class AppState {
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
               composition_variant_id, narrative_role, delivery_profile_id,
-              carousel_sequence_key,
+              carousel_sequence_key, source_notes,
               seed_derivation_version, direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
@@ -1610,6 +1614,7 @@ export class AppState {
       narrative_role: CarouselNarrativeRole;
       delivery_profile_id: DeliveryProfileId | null;
       carousel_sequence_key: string | null;
+      source_notes: readonly CarouselSourceNote[] | string;
       seed_derivation_version: string;
       direction_seed: string;
       canvas_seed: string;
@@ -1619,7 +1624,7 @@ export class AppState {
       `SELECT id, direction_id, canvas_key, design_id, revision_id,
               template_id, template_version, format_id,
               composition_variant_id, narrative_role, delivery_profile_id,
-              carousel_sequence_key,
+              carousel_sequence_key, source_notes,
               seed_derivation_version, direction_seed, canvas_seed, ordinal, created_at
          FROM campaign_canvases
         WHERE workspace_id = $1
@@ -2485,12 +2490,14 @@ function toCampaignCanvasProjection(row: {
   narrative_role: CarouselNarrativeRole;
   delivery_profile_id: DeliveryProfileId | null;
   carousel_sequence_key: string | null;
+  source_notes: readonly CarouselSourceNote[] | string;
   seed_derivation_version: string;
   direction_seed: string;
   canvas_seed: string;
   ordinal: number | string;
   created_at: Date | string;
 }): CampaignCanvasProjection {
+  const sourceNotes = parseJson(row.source_notes);
   return {
     id: row.id,
     canvasKey: row.canvas_key,
@@ -2506,6 +2513,14 @@ function toCampaignCanvasProjection(row: {
     ...(row.carousel_sequence_key === null
       ? {}
       : { carouselSequenceKey: row.carousel_sequence_key }),
+    ...(sourceNotes.length === 0
+      ? {}
+      : {
+          sourceNotes: sourceNotes.map((note) => ({
+            label: note.label,
+            ...(note.url === undefined ? {} : { url: note.url }),
+          })),
+        }),
     seedDerivationVersion: row.seed_derivation_version,
     directionSeed: row.direction_seed,
     canvasSeed: row.canvas_seed,
