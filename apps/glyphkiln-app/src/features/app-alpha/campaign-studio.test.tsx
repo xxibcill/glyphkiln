@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DELIVERY_PROFILE_REGISTRY,
   DELIVERY_SOURCES,
+  createCarouselSequenceKey,
   hashCanonical,
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
@@ -218,7 +219,7 @@ describe("CampaignStudio", () => {
       campaignId: CAMPAIGN.id,
       directionId: "direction-1",
       directionKey: "editorial-a",
-      sequenceKey: "launch-carousel",
+      sequenceKey: createCarouselSequenceKey("launch-carousel"),
       review: {
         version: "1.2.0",
         deliveryProfileId: "instagram-native-carousel",

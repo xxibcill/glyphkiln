@@ -13,6 +13,7 @@ import {
   DELIVERY_PROFILE_REGISTRY,
   canonicalJson,
   createCarouselDeliverySidecar,
+  createCarouselSequenceKey,
   deliverySourcesForProfile,
 } from "@glyphkiln/core/browser";
 import { z } from "zod";
@@ -172,6 +173,12 @@ const CarouselSourceNoteSchema = z
     url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
   })
   .strict();
+const CarouselSequenceKeySchema = z
+  .string()
+  .min(1)
+  .max(CAROUSEL_SEQUENCE_LIMITS.sequenceKeyCharacters)
+  .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
+  .transform(createCarouselSequenceKey);
 const CampaignCanvasSchema = z
   .object({
     id: z.string().min(1),
@@ -183,12 +190,7 @@ const CampaignCanvasSchema = z
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
-    carouselSequenceKey: z
-      .string()
-      .min(1)
-      .max(120)
-      .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
-      .optional(),
+    carouselSequenceKey: CarouselSequenceKeySchema.optional(),
     altText: z
       .string()
       .min(1)
@@ -428,7 +430,7 @@ const CampaignCarouselReviewSchema = z
     campaignId: z.string().min(1),
     directionId: z.string().min(1),
     directionKey: z.string().min(1),
-    sequenceKey: z.string().min(1).max(120),
+    sequenceKey: CarouselSequenceKeySchema,
     review: z
       .object({
         version: z.literal(CAROUSEL_SEQUENCE_VERSION),
@@ -1170,7 +1172,7 @@ export type AppAlphaApi = {
     compositionVariantId: CampaignCanvasSeedInput["compositionVariantId"];
     narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
     deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
-    carouselSequenceKey?: z.infer<typeof CampaignCanvasSchema>["carouselSequenceKey"];
+    carouselSequenceKey?: z.input<typeof CarouselSequenceKeySchema>;
     altText?: z.infer<typeof CampaignCanvasSchema>["altText"];
     sourceNotes?: z.infer<typeof CampaignCanvasSchema>["sourceNotes"];
   }) => Promise<ApiResult<CampaignCanvas>>;
@@ -1523,8 +1525,15 @@ export function createAppAlphaApi(
       );
     },
     async attachCampaignCanvas(input) {
+      const { carouselSequenceKey, ...canvasInput } = input;
       return parseValue(
-        await command({ type: "campaign.canvas.attach", ...input }),
+        await command({
+          type: "campaign.canvas.attach",
+          ...canvasInput,
+          ...(carouselSequenceKey === undefined
+            ? {}
+            : { carouselSequenceKey: createCarouselSequenceKey(carouselSequenceKey) }),
+        }),
         CampaignCanvasAttachedSchema,
         (value) => value.canvas,
       );
@@ -1564,8 +1573,9 @@ export function createAppAlphaApi(
       );
     },
     async campaignCarouselReview(input) {
+      const sequenceKey = createCarouselSequenceKey(input.sequenceKey);
       return parseCampaignCarouselReview(
-        await query({ type: "campaign.carousel.review", ...input }),
+        await query({ type: "campaign.carousel.review", ...input, sequenceKey }),
         input,
       );
     },

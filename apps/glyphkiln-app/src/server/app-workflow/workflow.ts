@@ -19,6 +19,7 @@ import {
 import type {
   AssetDeclaration,
   CampaignCompositionVariantId,
+  CarouselSequenceKey,
   DesignDocument,
   DeliveryProfileId,
   FontDeclaration,
@@ -3417,7 +3418,7 @@ function addCampaignHandoffSequenceFiles(
     readonly canvases: readonly CampaignHandoffSequenceCanvas[];
   },
 ): void {
-  const sequences = new Map<string, CampaignHandoffSequenceCanvas[]>();
+  const sequences = new Map<CarouselSequenceKey, CampaignHandoffSequenceCanvas[]>();
   for (const canvas of input.canvases) {
     const sequenceKey = canvas.canvas.carouselSequenceKey;
     if (sequenceKey === undefined) continue;
@@ -3468,7 +3469,7 @@ function addCampaignHandoffSequenceFiles(
 }
 
 function createCampaignCarouselSequence<Canvas extends CampaignSequenceCanvas>(
-  sequenceKey: string,
+  sequenceKey: CarouselSequenceKey,
   sequenceCanvases: readonly Canvas[],
 ) {
   const deliveryProfileId = sequenceCanvases.at(0)?.canvas.deliveryProfileId;

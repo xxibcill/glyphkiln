@@ -33,6 +33,12 @@ import {
 export const CAROUSEL_SEQUENCE_VERSION = "1.2.0" as const;
 export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.2.0" as const;
 
+declare const CAROUSEL_SEQUENCE_KEY_BRAND: unique symbol;
+
+export type CarouselSequenceKey = string & {
+  readonly [CAROUSEL_SEQUENCE_KEY_BRAND]: "CarouselSequenceKey";
+};
+
 export const CAROUSEL_NARRATIVE_ROLE_IDS = Object.freeze([
   "hook",
   "context",
@@ -121,12 +127,32 @@ export type CarouselDeliverySidecar = {
 };
 
 export const CAROUSEL_SEQUENCE_LIMITS = Object.freeze({
+  sequenceKeyCharacters: 120,
   slides: 64,
   sourceNotesPerSlide: 32,
   sourceNoteLabelCharacters: 500,
   sourceNoteUrlCharacters: 2_048,
   altTextCharacters: 2_000,
 } as const);
+
+const CAROUSEL_SEQUENCE_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
+
+export function createCarouselSequenceKey(value: string): CarouselSequenceKey {
+  if (
+    value.length === 0 ||
+    value.length > CAROUSEL_SEQUENCE_LIMITS.sequenceKeyCharacters ||
+    !CAROUSEL_SEQUENCE_KEY_PATTERN.test(value)
+  ) {
+    throwInvalidCarouselSequence([
+      {
+        path: "sequenceKey",
+        code: "invalid_identifier",
+        message: "Carousel sequence key must be a bounded identifier.",
+      },
+    ]);
+  }
+  return value as CarouselSequenceKey;
+}
 
 const CarouselSourceNoteSchema = z
   .object({

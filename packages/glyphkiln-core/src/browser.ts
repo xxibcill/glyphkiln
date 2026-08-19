@@ -40,6 +40,7 @@ export {
   CAROUSEL_SEQUENCE_LIMITS,
   CAROUSEL_SEQUENCE_VERSION,
   createCarouselDeliverySidecar,
+  createCarouselSequenceKey,
   reviewCarouselSequence,
 } from "./carousels/index.js";
 export type {
@@ -48,6 +49,7 @@ export type {
   CarouselReviewIssue,
   CarouselReviewIssueCode,
   CarouselSequence,
+  CarouselSequenceKey,
   CarouselSequenceReview,
   CarouselSlide,
   CarouselSourceNote,

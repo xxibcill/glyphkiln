@@ -5,6 +5,7 @@ import type {
   CarouselDeliverySidecar,
   CarouselNarrativeRole,
   CarouselSequenceReview,
+  CarouselSequenceKey,
   CarouselSourceNote,
   CampaignFamilyId,
   DesignDocument,
@@ -48,7 +49,7 @@ export type ManualDraft = {
 export type CampaignCanvasPublicationMetadata = {
   narrativeRole: CarouselNarrativeRole;
   deliveryProfileId?: DeliveryProfileId;
-  carouselSequenceKey?: string;
+  carouselSequenceKey?: CarouselSequenceKey;
   altText?: string;
   sourceNotes?: readonly CarouselSourceNote[];
 };
@@ -253,7 +254,7 @@ export type AppQuery =
       workspaceId: string;
       campaignId: string;
       directionId: string;
-      sequenceKey: string;
+      sequenceKey: CarouselSequenceKey;
     }
   | {
       type: "campaign.handoff";
@@ -767,7 +768,7 @@ export type CampaignCarouselReviewProjection = {
   campaignId: string;
   directionId: string;
   directionKey: string;
-  sequenceKey: string;
+  sequenceKey: CarouselSequenceKey;
   review: CarouselSequenceReview;
   deliverySidecar: CarouselDeliverySidecar;
   slides: readonly {

@@ -5,6 +5,7 @@ import {
   CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
+  createCarouselSequenceKey,
 } from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
 import { z } from "zod";
@@ -17,6 +18,7 @@ const identifier = z
   .min(1)
   .max(120)
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
+const carouselSequenceKey = identifier.transform(createCarouselSequenceKey);
 const displayName = z.string().trim().min(1).max(120);
 const workspaceName = z.string().trim().min(1).max(120);
 const designName = z.string().trim().min(1).max(160);
@@ -239,7 +241,7 @@ const AttachCampaignCanvasSchema = z
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
-    carouselSequenceKey: identifier.optional(),
+    carouselSequenceKey: carouselSequenceKey.optional(),
     altText: z
       .string()
       .trim()
@@ -433,7 +435,7 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       workspaceId: identifier,
       campaignId: identifier,
       directionId: identifier,
-      sequenceKey: identifier,
+      sequenceKey: carouselSequenceKey,
     })
     .strict(),
   z

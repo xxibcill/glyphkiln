@@ -1,3 +1,5 @@
+import type { CarouselSequenceKey } from "@glyphkiln/core";
+
 export const CAMPAIGN_HANDOFF_FORMAT_VERSION: "1.0.0";
 
 export type CampaignHandoffFile = {
@@ -26,7 +28,7 @@ export function campaignHandoffCanvasPrefix(input: {
 export function campaignHandoffSequencePrefix(input: {
   campaignPrefix: string;
   directionKey: string;
-  sequenceKey: string;
+  sequenceKey: CarouselSequenceKey;
 }): string;
 
 export function createCampaignHandoffCanvasFiles(input: {

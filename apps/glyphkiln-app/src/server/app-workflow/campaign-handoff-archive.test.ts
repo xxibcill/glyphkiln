@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createCarouselSequenceKey } from "@glyphkiln/core";
 
 import {
   CampaignHandoffArchive,
@@ -91,7 +92,7 @@ describe("CampaignHandoffArchive", () => {
       campaignHandoffSequencePrefix({
         campaignPrefix: "first-firing",
         directionKey: "editorial-b",
-        sequenceKey: "launch-carousel",
+        sequenceKey: createCarouselSequenceKey("launch-carousel"),
       }),
     ).toBe("first-firing/direction-editorial-b/sequence-launch-carousel");
   });

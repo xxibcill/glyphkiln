@@ -62,9 +62,12 @@ or changes pixels.
 
 `createCampaignDirectionKey()` and `createCampaignCanvasKey()` validate distinct,
 bounded App-owned scope identities so TypeScript callers cannot accidentally
-swap them. `deriveCampaignSeeds()` accepts those keys plus a bounded campaign
-seed. It validates that the selected template version, format, and composition
-variant belong to the requested family, then returns:
+swap them. `createCarouselSequenceKey()` separately validates and brands the
+App-owned grouping and archive-path identity so it cannot be substituted for a
+direction or canvas key. `deriveCampaignSeeds()` accepts the direction and canvas
+keys plus a bounded campaign seed. It validates that the selected template
+version, format, and composition variant belong to the requested family, then
+returns:
 
 - `directionSeed`, shared by related canvases in one art direction; and
 - `canvasSeed`, separated by canvas key, exact template version, format, and

@@ -10,13 +10,17 @@ import {
   DELIVERY_PROFILE_REGISTRY,
   DELIVERY_SOURCES,
   GlyphkilnError,
+  createCampaignCanvasKey,
   createCarouselDeliverySidecar,
+  createCarouselSequenceKey,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
   deliverySourcesForProfile,
   reviewCarouselSequence,
   validateDesignDocument,
   type CarouselSequence,
+  type CarouselSequenceKey,
+  type CampaignCanvasKey,
   type DesignDocument,
 } from "../src/index.js";
 import {
@@ -27,6 +31,24 @@ import {
 import { cloneDocument, loadExample } from "./helpers.js";
 
 describe("carousel delivery profiles", () => {
+  it("creates a distinct validated sequence identity", () => {
+    const sequenceKey: CarouselSequenceKey =
+      createCarouselSequenceKey("launch-carousel");
+    const canvasKey: CampaignCanvasKey = createCampaignCanvasKey("launch-carousel");
+    // @ts-expect-error Raw strings must pass the sequence-key constructor.
+    const rawSequenceKey: CarouselSequenceKey = "launch-carousel";
+    // @ts-expect-error Canvas and sequence keys are intentionally distinct.
+    const swappedSequenceKey: CarouselSequenceKey = canvasKey;
+
+    expect(sequenceKey).toBe("launch-carousel");
+    expect(() => createCarouselSequenceKey("../launch-carousel")).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+    void [rawSequenceKey, swappedSequenceKey];
+  });
+
   it("keeps native, API, organic, and paid-ad rules separate", () => {
     expect(DELIVERY_PROFILE_METADATA_VERSION).toBe("1.0.0");
     expect(DELIVERY_PROFILE_IDS).toEqual([
@@ -180,6 +202,7 @@ describe("carousel sequence review and sidecars", () => {
       "action",
     ]);
     expect(CAROUSEL_SEQUENCE_LIMITS).toEqual({
+      sequenceKeyCharacters: 120,
       slides: 64,
       sourceNotesPerSlide: 32,
       sourceNoteLabelCharacters: 500,

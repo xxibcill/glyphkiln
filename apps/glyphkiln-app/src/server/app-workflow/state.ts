@@ -1,3 +1,4 @@
+import { createCarouselSequenceKey } from "@glyphkiln/core";
 import type {
   BrandSnapshot,
   CampaignCompositionVariantId,
@@ -2515,7 +2516,7 @@ function toCampaignCanvasProjection(row: {
       : { deliveryProfileId: row.delivery_profile_id }),
     ...(row.carousel_sequence_key === null
       ? {}
-      : { carouselSequenceKey: row.carousel_sequence_key }),
+      : { carouselSequenceKey: createCarouselSequenceKey(row.carousel_sequence_key) }),
     ...(row.publisher_alt_text === null ? {} : { altText: row.publisher_alt_text }),
     ...(sourceNotes.length === 0
       ? {}
