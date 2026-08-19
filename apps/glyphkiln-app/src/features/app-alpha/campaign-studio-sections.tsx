@@ -2,6 +2,7 @@ import type { SyntheticEvent } from "react";
 import {
   CAROUSEL_NARRATIVE_ROLE_IDS,
   CAROUSEL_SEQUENCE_LIMITS,
+  isBlockingDeliveryEvidence,
 } from "@glyphkiln/core/browser";
 import type { DeliveryProfile, DeliveryProfileId } from "@glyphkiln/core/browser";
 
@@ -348,9 +349,15 @@ export function CampaignCanvasAttachment({
   const selectedDeliveryProfile = deliveryProfiles.find(
     ({ id }) => id === selectedDeliveryProfileId,
   );
+  const profileAltTextMaximum =
+    selectedDeliveryProfile?.accessibility.value.maximumAltTextCharacters;
+  const profileAltTextMaximumIsBlocking =
+    selectedDeliveryProfile !== undefined &&
+    isBlockingDeliveryEvidence(selectedDeliveryProfile.accessibility.evidence);
   const publisherAltTextLimit =
-    selectedDeliveryProfile?.accessibility.value.maximumAltTextCharacters ??
-    CAROUSEL_SEQUENCE_LIMITS.altTextCharacters;
+    profileAltTextMaximumIsBlocking && profileAltTextMaximum !== undefined
+      ? profileAltTextMaximum
+      : CAROUSEL_SEQUENCE_LIMITS.altTextCharacters;
   return (
     <form className="canvas-attachment" onSubmit={onAttachCanvas}>
       <span>04 / ATTACH EXACT REVISION</span>
@@ -444,8 +451,10 @@ export function CampaignCanvasAttachment({
           </label>
           <small id="carousel-alt-text-hint">
             Describe the complete slide for the publishing destination. Required with a
-            sequence key; up to {publisherAltTextLimit.toString()} characters for this
-            path.
+            sequence key; up to {publisherAltTextLimit.toString()} characters
+            {profileAltTextMaximum === undefined || profileAltTextMaximumIsBlocking
+              ? " for this path."
+              : ` in Glyphkiln; this path recommends ${profileAltTextMaximum.toString()}.`}
           </small>
           <label>
             Slide source notes

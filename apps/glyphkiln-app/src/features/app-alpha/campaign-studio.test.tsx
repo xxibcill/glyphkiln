@@ -190,6 +190,41 @@ describe("CampaignStudio", () => {
     });
   });
 
+  it("does not hard-limit publisher alt text to a recommendation", async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(requestBody(init?.body)) as { type: string };
+      if (body.type === "campaign.board") {
+        return Promise.resolve(success(200, campaignBoardFixture()));
+      }
+      throw new Error(`Unexpected campaign API request: ${body.type}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <CampaignStudio
+          api={createAppAlphaApi(fetchMock)}
+          workspaceId="workspace-1"
+          campaigns={[CAMPAIGN]}
+          draftCanvas={campaignDraftCanvas("draft-seed", "tiktok-photo-carousel")}
+          canCoordinate
+          selectedDeliveryProfileId="tiktok-content-posting-photo"
+          onApplyCanvasSeed={vi.fn()}
+          onCampaignChanged={() => Promise.resolve()}
+          onOpenDesign={() => Promise.resolve()}
+        />,
+      );
+      await flushEffects();
+    });
+
+    const altText = container.querySelector<HTMLTextAreaElement>(
+      'textarea[name="altText"]',
+    );
+    expect(altText?.maxLength).toBe(2_000);
+    expect(container.querySelector("#carousel-alt-text-hint")?.textContent).toContain(
+      "this path recommends 300",
+    );
+  });
+
   it("recovers bounded proposal history while campaign mutations are disabled", async () => {
     const board = campaignBoardFixture();
     const direction = board.directions[0];
@@ -666,10 +701,16 @@ function campaignBoardFixture(): CampaignBoard {
 
 function campaignDraftCanvas(
   seed = "draft-seed",
-  format: "linkedin-landscape" | "instagram-square" = "linkedin-landscape",
+  format:
+    | "linkedin-landscape"
+    | "instagram-square"
+    | "tiktok-photo-carousel" = "linkedin-landscape",
 ): Parameters<typeof CampaignStudio>[0]["draftCanvas"] {
   return {
-    templateId: "image-led-campaign" as const,
+    templateId:
+      format === "tiktok-photo-carousel"
+        ? ("tiktok-carousel-slide" as const)
+        : ("image-led-campaign" as const),
     format,
     seed,
   };

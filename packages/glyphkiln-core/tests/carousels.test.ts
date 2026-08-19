@@ -160,7 +160,7 @@ describe("carousel sequence review and sidecars", () => {
     const sequence = await organicSequence();
     const review = reviewCarouselSequence(sequence);
 
-    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.1.0");
+    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.2.0");
     expect(CAROUSEL_NARRATIVE_ROLE_IDS).toEqual([
       "hook",
       "context",
@@ -241,6 +241,26 @@ describe("carousel sequence review and sidecars", () => {
       expect.objectContaining({
         code: "ALT_TEXT_OUTSIDE_PROFILE",
         severity: "error",
+        slideId: first.document.id,
+      }),
+    );
+  });
+
+  it("keeps recommended publisher alt-text lengths advisory", async () => {
+    const sequence = await organicSequence();
+    const first = sequence.slides[0];
+    if (first === undefined) throw new Error("Expected a first organic slide.");
+    const review = reviewCarouselSequence({
+      ...sequence,
+      deliveryProfileId: "tiktok-content-posting-photo",
+      slides: [{ ...first, altText: "a".repeat(301) }, ...sequence.slides.slice(1)],
+    });
+
+    expect(review.success).toBe(true);
+    expect(review.issues).toContainEqual(
+      expect.objectContaining({
+        code: "ALT_TEXT_OUTSIDE_PROFILE",
+        severity: "warning",
         slideId: first.document.id,
       }),
     );

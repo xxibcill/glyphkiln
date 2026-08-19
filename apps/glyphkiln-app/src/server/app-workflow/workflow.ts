@@ -10,6 +10,7 @@ import {
   deliveryProfilesForFormat,
   deriveCampaignSeeds,
   hashCanonical,
+  isBlockingDeliveryEvidence,
   reviewCarouselSequence,
   sha256,
   validateDesignDocument,
@@ -1644,10 +1645,12 @@ class AppWorkflowImplementation implements AppWorkflow {
       if (
         altText !== undefined &&
         maximumAltTextCharacters !== undefined &&
+        deliveryProfile !== undefined &&
+        isBlockingDeliveryEvidence(deliveryProfile.accessibility.evidence) &&
         altText.length > maximumAltTextCharacters
       ) {
         throw invalidCampaignCanvas(
-          `${deliveryProfile?.label ?? "The selected delivery profile"} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
+          `${deliveryProfile.label} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
         );
       }
       const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {

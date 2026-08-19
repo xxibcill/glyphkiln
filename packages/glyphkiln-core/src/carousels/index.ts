@@ -23,11 +23,12 @@ import {
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
+  isBlockingDeliveryEvidence,
   type DeliveryProfile,
   type DeliveryProfileId,
 } from "../delivery/index.js";
 
-export const CAROUSEL_SEQUENCE_VERSION = "1.1.0" as const;
+export const CAROUSEL_SEQUENCE_VERSION = "1.2.0" as const;
 export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.1.0" as const;
 
 export const CAROUSEL_NARRATIVE_ROLE_IDS = Object.freeze([
@@ -220,7 +221,7 @@ export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
       (maximumRatio !== undefined && ratio > maximumRatio + 0.000_001)
     ) {
       issues.push(
-        profile.aspectRatio.evidence === "platform-requirement"
+        isBlockingDeliveryEvidence(profile.aspectRatio.evidence)
           ? error(
               "ASPECT_RATIO_OUTSIDE_PROFILE",
               `${slide.document.format} falls outside the selected delivery profile's aspect-ratio range.`,
@@ -595,12 +596,19 @@ function reviewSlideAccessibility(
     maximumAltTextCharacters !== undefined &&
     slide.altText.length > maximumAltTextCharacters
   ) {
+    const blocksDelivery = isBlockingDeliveryEvidence(profile.accessibility.evidence);
     issues.push(
-      error(
-        "ALT_TEXT_OUTSIDE_PROFILE",
-        `${profile.label} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
-        slide.document.id,
-      ),
+      blocksDelivery
+        ? error(
+            "ALT_TEXT_OUTSIDE_PROFILE",
+            `${profile.label} accepts at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
+            slide.document.id,
+          )
+        : warning(
+            "ALT_TEXT_OUTSIDE_PROFILE",
+            `${profile.label} recommends at most ${maximumAltTextCharacters.toString()} alt-text characters per image.`,
+            slide.document.id,
+          ),
     );
   }
   const hasStatistic = slide.document.layers.some(

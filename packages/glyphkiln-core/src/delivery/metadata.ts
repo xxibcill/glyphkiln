@@ -17,6 +17,10 @@ export type DeliveryEvidenceLevel =
   | "platform-recommendation"
   | "glyphkiln-advisory";
 
+export function isBlockingDeliveryEvidence(evidence: DeliveryEvidenceLevel): boolean {
+  return evidence === "platform-requirement" || evidence === "platform-capability";
+}
+
 export type DeliverySource = {
   readonly id: string;
   readonly publisher: "Meta" | "TikTok" | "W3C" | "Glyphkiln";

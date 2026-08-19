@@ -11,3 +11,5 @@ sequence chrome, content-responsive spacing, and deterministic pattern rails.
 Extend Campaign Studio with stored narrative roles, delivery profiles, and
 per-slide source notes, plus carousel review evidence, accessibility copy, and
 verified delivery sidecars with whole-slide publisher alt text in handoffs.
+Keep recommendation-backed accessibility lengths advisory while enforcing only
+platform requirements and capabilities as blocking constraints.

@@ -22,6 +22,7 @@ export {
   DELIVERY_SOURCES,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
+  isBlockingDeliveryEvidence,
 } from "./delivery/index.js";
 export type {
   DeliveryEvidenceLevel,
