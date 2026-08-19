@@ -5,6 +5,7 @@ export {
   DELIVERY_SOURCES,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
+  deliverySourcesForProfile,
   isBlockingDeliveryEvidence,
 } from "./metadata.js";
 export type {

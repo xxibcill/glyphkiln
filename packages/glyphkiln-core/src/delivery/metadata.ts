@@ -421,6 +421,27 @@ export function deliveryProfilesForFormat(
   );
 }
 
+export function deliverySourcesForProfile(
+  profile: DeliveryProfile,
+): readonly DeliverySource[] {
+  const sourceIds = [
+    ...profile.slideCount.sourceIds,
+    ...profile.acceptedImageMediaTypes.sourceIds,
+    ...profile.aspectRatio.sourceIds,
+    ...profile.raster.sourceIds,
+    ...profile.accessibility.sourceIds,
+  ];
+  const sources: Readonly<Record<string, DeliverySource | undefined>> =
+    DELIVERY_SOURCES;
+  return [...new Set(sourceIds)].sort(compareStrings).map((sourceId) => {
+    const source = sources[sourceId];
+    if (source === undefined) {
+      throw new Error(`Unknown delivery-profile source: ${sourceId}`);
+    }
+    return source;
+  });
+}
+
 export function defaultDeliveryProfileForFormat(
   format: FormatId,
 ): DeliveryProfile | undefined {
@@ -442,4 +463,8 @@ function deepFreeze<Value>(value: Value): Value {
   }
   for (const child of Object.values(value)) deepFreeze(child);
   return Object.freeze(value);
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }

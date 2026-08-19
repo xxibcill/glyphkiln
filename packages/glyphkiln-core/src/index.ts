@@ -70,6 +70,7 @@ export {
   DELIVERY_SOURCES,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
+  deliverySourcesForProfile,
   isBlockingDeliveryEvidence,
 } from "./delivery/index.js";
 export type {

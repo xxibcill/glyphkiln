@@ -23,7 +23,7 @@ import {
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
-  DELIVERY_SOURCES,
+  deliverySourcesForProfile,
   isBlockingDeliveryEvidence,
   type DeliveryProfile,
   type DeliveryProfileId,
@@ -343,31 +343,6 @@ export function createCarouselDeliverySidecar(input: unknown): CarouselDeliveryS
         sourceNotes: [...(slide.sourceNotes ?? [])],
       })),
   };
-}
-
-function deliverySourcesForProfile(
-  profile: DeliveryProfile,
-): readonly DeliverySource[] {
-  const sourceIds = [
-    ...profile.slideCount.sourceIds,
-    ...profile.acceptedImageMediaTypes.sourceIds,
-    ...profile.aspectRatio.sourceIds,
-    ...profile.raster.sourceIds,
-    ...profile.accessibility.sourceIds,
-  ];
-  const sources: Readonly<Record<string, DeliverySource | undefined>> =
-    DELIVERY_SOURCES;
-  return [...new Set(sourceIds)].sort(compareStrings).map((sourceId) => {
-    const source = sources[sourceId];
-    if (source === undefined) {
-      throw new Error(`Unknown delivery-profile source: ${sourceId}`);
-    }
-    return source;
-  });
-}
-
-function compareStrings(left: string, right: string): number {
-  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function parseCarouselSequence(input: unknown): CarouselSequence {

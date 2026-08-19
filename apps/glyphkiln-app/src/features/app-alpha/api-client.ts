@@ -9,8 +9,8 @@ import {
   CAROUSEL_SEQUENCE_VERSION,
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_REGISTRY,
-  DELIVERY_SOURCES,
   canonicalJson,
+  deliverySourcesForProfile,
 } from "@glyphkiln/core/browser";
 import { z } from "zod";
 
@@ -1607,20 +1607,9 @@ function hasPortableDeliveryProfile(input: {
   sources: readonly unknown[];
 }): boolean {
   const profile = DELIVERY_PROFILE_REGISTRY[input.id];
-  const sourceIds = [
-    ...profile.slideCount.sourceIds,
-    ...profile.acceptedImageMediaTypes.sourceIds,
-    ...profile.aspectRatio.sourceIds,
-    ...profile.raster.sourceIds,
-    ...profile.accessibility.sourceIds,
-  ];
-  const deliverySources: Readonly<Record<string, unknown>> = DELIVERY_SOURCES;
-  const expectedSources = [...new Set(sourceIds)]
-    .sort()
-    .map((sourceId) => deliverySources[sourceId]);
   return (
     canonicalJson(input.profile) === canonicalJson(profile) &&
-    canonicalJson(input.sources) === canonicalJson(expectedSources)
+    canonicalJson(input.sources) === canonicalJson(deliverySourcesForProfile(profile))
   );
 }
 

@@ -13,6 +13,7 @@ import {
   createCarouselDeliverySidecar,
   defaultDeliveryProfileForFormat,
   deliveryProfilesForFormat,
+  deliverySourcesForProfile,
   reviewCarouselSequence,
   validateDesignDocument,
   type CarouselSequence,
@@ -74,6 +75,15 @@ describe("carousel delivery profiles", () => {
       "tiktok-organic-photo",
     );
     expect(defaultDeliveryProfileForFormat("linkedin-landscape")).toBeUndefined();
+    expect(
+      deliverySourcesForProfile(DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"]),
+    ).toEqual([
+      DELIVERY_SOURCES["glyphkiln-carousel-validation"],
+      DELIVERY_SOURCES["instagram-creators-carousel-limit"],
+      DELIVERY_SOURCES["meta-instagram-alt-text"],
+      DELIVERY_SOURCES["meta-instagram-carousel"],
+      DELIVERY_SOURCES["meta-instagram-photo-resolution"],
+    ]);
   });
 });
 
