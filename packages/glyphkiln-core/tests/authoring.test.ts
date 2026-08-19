@@ -10,6 +10,8 @@ import {
   AUTHORING_TEMPLATE_KEYS,
   AUTHORING_TEMPLATE_REGISTRY,
   CAMPAIGN_FAMILY_REGISTRY,
+  CAROUSEL_COPY_ADVISORY,
+  CAROUSEL_COPY_ADVISORY_VERSION,
   CANDIDATE_DOCUMENT_LIMITS,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   canonicalJson,
@@ -26,6 +28,8 @@ import {
   AUTHORING_ISSUE_REGISTRY as BROWSER_AUTHORING_ISSUE_REGISTRY,
   AUTHORING_QUALITY_ISSUE_MAPPING_VERSION as BROWSER_AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   AUTHORING_TEMPLATE_REGISTRY as BROWSER_AUTHORING_TEMPLATE_REGISTRY,
+  CAROUSEL_COPY_ADVISORY as BROWSER_CAROUSEL_COPY_ADVISORY,
+  CAROUSEL_COPY_ADVISORY_VERSION as BROWSER_CAROUSEL_COPY_ADVISORY_VERSION,
   mapQualityIssuesToAuthoringIssues as mapBrowserQualityIssuesToAuthoringIssues,
   readExactInertDataRecord as readBrowserExactInertDataRecord,
   readInertArrayDataValue as readBrowserInertArrayDataValue,
@@ -117,16 +121,16 @@ describe("AI-ready authoring metadata", () => {
 
     expect(BROWSER_AUTHORING_CONTRACT_VERSION).toBe(AUTHORING_CONTRACT_VERSION);
     expect(BROWSER_AUTHORING_TEMPLATE_REGISTRY).toBe(AUTHORING_TEMPLATE_REGISTRY);
+    expect(CAROUSEL_COPY_ADVISORY_VERSION).toBe("1.0.0");
+    expect(BROWSER_CAROUSEL_COPY_ADVISORY_VERSION).toBe(CAROUSEL_COPY_ADVISORY_VERSION);
+    expect(BROWSER_CAROUSEL_COPY_ADVISORY).toBe(CAROUSEL_COPY_ADVISORY);
+    expectDeepFrozen(CAROUSEL_COPY_ADVISORY);
     expectDeepFrozen(AUTHORING_TEMPLATE_REGISTRY);
     expect(
       AUTHORING_TEMPLATE_REGISTRY["tiktok-carousel-slide@1.0.4"].contentRoles.find(
         ({ layerType }) => layerType === "headline",
       )?.fields[0]?.recommendedCharacters,
-    ).toEqual({
-      minimum: 12,
-      maximum: 72,
-      evidence: "glyphkiln-advisory",
-    });
+    ).toEqual(CAROUSEL_COPY_ADVISORY.headline);
   });
 
   it("stays aligned with runtime template requirements and formats", () => {

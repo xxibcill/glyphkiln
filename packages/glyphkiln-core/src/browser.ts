@@ -80,6 +80,11 @@ export type {
   AuthoringTemplateKey,
 } from "./authoring/metadata.js";
 export {
+  CAROUSEL_COPY_ADVISORY,
+  CAROUSEL_COPY_ADVISORY_VERSION,
+} from "./authoring/carousel-copy-policy.js";
+export type { CarouselCopyAdvisoryRange } from "./authoring/carousel-copy-policy.js";
+export {
   AUTHORING_QUALITY_ISSUE_LIMITS,
   AUTHORING_QUALITY_ISSUE_MAPPING_VERSION,
   mapQualityIssuesToAuthoringIssues,

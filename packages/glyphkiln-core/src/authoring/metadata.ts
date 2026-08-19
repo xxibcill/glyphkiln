@@ -2,6 +2,11 @@ import type { FormatId } from "../formats/index.js";
 import type { DesignLayer, ImageTreatmentId, TemplateId } from "../schema/index.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
+import {
+  CAROUSEL_COPY_ADVISORY,
+  type CarouselCopyAdvisoryRange,
+} from "./carousel-copy-policy.js";
+
 export const AUTHORING_CONTRACT_VERSION = "1.2.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
@@ -176,18 +181,14 @@ const statisticFields = Object.freeze([
   { name: "label", required: true, minimumCharacters: 1, maximumCharacters: 240 },
   { name: "trend", required: false, minimumCharacters: 1, maximumCharacters: 80 },
 ] as const);
-const advisoryTextField = (minimum: number, maximum: number) =>
+const advisoryTextField = (advisory: CarouselCopyAdvisoryRange) =>
   Object.freeze([
     {
       name: "text",
       required: true,
       minimumCharacters: 1,
       maximumCharacters: 2_000,
-      recommendedCharacters: {
-        minimum,
-        maximum,
-        evidence: "glyphkiln-advisory",
-      },
+      recommendedCharacters: advisory,
     },
   ] as const);
 const tiktokStatisticFields = Object.freeze([
@@ -196,33 +197,21 @@ const tiktokStatisticFields = Object.freeze([
     required: true,
     minimumCharacters: 1,
     maximumCharacters: 80,
-    recommendedCharacters: {
-      minimum: 1,
-      maximum: 12,
-      evidence: "glyphkiln-advisory",
-    },
+    recommendedCharacters: CAROUSEL_COPY_ADVISORY.statistic.value,
   },
   {
     name: "label",
     required: true,
     minimumCharacters: 1,
     maximumCharacters: 240,
-    recommendedCharacters: {
-      minimum: 4,
-      maximum: 72,
-      evidence: "glyphkiln-advisory",
-    },
+    recommendedCharacters: CAROUSEL_COPY_ADVISORY.statistic.label,
   },
   {
     name: "trend",
     required: false,
     minimumCharacters: 1,
     maximumCharacters: 80,
-    recommendedCharacters: {
-      minimum: 1,
-      maximum: 20,
-      evidence: "glyphkiln-advisory",
-    },
+    recommendedCharacters: CAROUSEL_COPY_ADVISORY.statistic.trend,
   },
 ] as const);
 const commonFormats = Object.freeze([
@@ -307,25 +296,25 @@ const tiktokContentRoles = Object.freeze([
     "badge",
     true,
     "Use a short slide number or sequence label.",
-    advisoryTextField(1, 12),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.badge),
   ),
   contentRole(
     "eyebrow",
     false,
     "Use only for a compact series or category cue.",
-    advisoryTextField(1, 36),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.eyebrow),
   ),
   contentRole(
     "headline",
     true,
     "Write one clear hook that can fit in four lines.",
-    advisoryTextField(12, 72),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.headline),
   ),
   contentRole(
     "subtitle",
     false,
     "Use one supporting benefit; do not pair with a statistic.",
-    advisoryTextField(12, 120),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.subtitle),
   ),
   contentRole(
     "statistic",
@@ -337,13 +326,13 @@ const tiktokContentRoles = Object.freeze([
     "cta",
     false,
     "Reserve for a short action or swipe cue.",
-    advisoryTextField(2, 32),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.cta),
   ),
   contentRole(
     "footer",
     false,
     "Use for restrained supporting context.",
-    advisoryTextField(1, 90),
+    advisoryTextField(CAROUSEL_COPY_ADVISORY.footer),
   ),
 ]);
 

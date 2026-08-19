@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CAROUSEL_COPY_ADVISORY } from "../authoring/carousel-copy-policy.js";
 import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   type CampaignCompositionVariantId,
@@ -141,26 +142,14 @@ const CarouselSequenceEnvelopeSchema = z
   })
   .strict();
 
-const ADVISORY_COPY_MAXIMUMS = Object.freeze({
-  badge: 12,
-  eyebrow: 36,
-  headline: 72,
-  subtitle: 120,
-  statisticValue: 12,
-  statisticLabel: 72,
-  statisticTrend: 20,
-  cta: 32,
-  footer: 90,
-  attribution: 80,
-} as const);
 const ADVISORY_TEXT_MAXIMUM_BY_LAYER = Object.freeze({
-  badge: ADVISORY_COPY_MAXIMUMS.badge,
-  eyebrow: ADVISORY_COPY_MAXIMUMS.eyebrow,
-  headline: ADVISORY_COPY_MAXIMUMS.headline,
-  subtitle: ADVISORY_COPY_MAXIMUMS.subtitle,
-  cta: ADVISORY_COPY_MAXIMUMS.cta,
-  footer: ADVISORY_COPY_MAXIMUMS.footer,
-  attribution: ADVISORY_COPY_MAXIMUMS.attribution,
+  badge: CAROUSEL_COPY_ADVISORY.badge.maximum,
+  eyebrow: CAROUSEL_COPY_ADVISORY.eyebrow.maximum,
+  headline: CAROUSEL_COPY_ADVISORY.headline.maximum,
+  subtitle: CAROUSEL_COPY_ADVISORY.subtitle.maximum,
+  cta: CAROUSEL_COPY_ADVISORY.cta.maximum,
+  footer: CAROUSEL_COPY_ADVISORY.footer.maximum,
+  attribution: CAROUSEL_COPY_ADVISORY.attribution.maximum,
 } as const satisfies Partial<Record<DesignLayer["type"], number>>);
 
 export function reviewCarouselSequence(input: unknown): CarouselSequenceReview {
@@ -471,12 +460,12 @@ function copyCandidates(layer: DesignLayer): readonly {
       {
         label: "Statistic value",
         text: layer.value,
-        maximum: ADVISORY_COPY_MAXIMUMS.statisticValue,
+        maximum: CAROUSEL_COPY_ADVISORY.statistic.value.maximum,
       },
       {
         label: "Statistic label",
         text: layer.label,
-        maximum: ADVISORY_COPY_MAXIMUMS.statisticLabel,
+        maximum: CAROUSEL_COPY_ADVISORY.statistic.label.maximum,
       },
       ...(layer.trend === undefined
         ? []
@@ -484,7 +473,7 @@ function copyCandidates(layer: DesignLayer): readonly {
             {
               label: "Statistic trend",
               text: layer.trend,
-              maximum: ADVISORY_COPY_MAXIMUMS.statisticTrend,
+              maximum: CAROUSEL_COPY_ADVISORY.statistic.trend.maximum,
             },
           ]),
     ];

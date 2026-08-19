@@ -20,6 +20,12 @@ export type {
 } from "./metadata.js";
 
 export {
+  CAROUSEL_COPY_ADVISORY,
+  CAROUSEL_COPY_ADVISORY_VERSION,
+} from "./carousel-copy-policy.js";
+export type { CarouselCopyAdvisoryRange } from "./carousel-copy-policy.js";
+
+export {
   CANDIDATE_DOCUMENT_LIMITS,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   validateCandidateDocuments,
