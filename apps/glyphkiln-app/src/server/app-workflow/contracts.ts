@@ -10,6 +10,7 @@ import type {
   RenderEvidence,
   RenderManifest,
   TemplateId,
+  TextBoundsEvidence,
   ValidationProblem,
 } from "@glyphkiln/core";
 
@@ -646,7 +647,15 @@ export type CampaignProposalIssueProjection = {
 
 export type CampaignProposalProofProjection = {
   qualityIssues: QualityIssue[];
-  evidence: RenderEvidence;
+  evidence:
+    | RenderEvidence
+    | {
+        version: "1.0.0";
+        safeArea: RenderEvidence["safeArea"];
+        text: Omit<TextBoundsEvidence, "fontSize">[];
+        crops: RenderEvidence["crops"];
+        contrast: RenderEvidence["contrast"];
+      };
   outputs: CampaignProposalProofOutputProjection[];
 };
 
