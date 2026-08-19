@@ -1061,12 +1061,96 @@ describe("AppWorkflow", () => {
           compositionVariantId: "focal-editorial",
           narrativeRole: "hook",
           deliveryProfileId: "instagram-api-carousel",
+          carouselSequenceKey: "launch-carousel",
           ordinal: 0,
         },
       }),
       "campaign-canvas-attached",
     ).canvas;
-    expect(instagramCanvas.deliveryProfileId).toBe("instagram-api-carousel");
+    expect(instagramCanvas).toMatchObject({
+      deliveryProfileId: "instagram-api-carousel",
+      carouselSequenceKey: "launch-carousel",
+    });
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+
+    const closingCanvasSeeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(branched.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-square-close"),
+      template: { id: "image-led-campaign", version: "1.0.1" },
+      format: "instagram-square",
+      compositionVariantId: "focal-editorial",
+    });
+    const closingRevision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Alternative campaign close",
+          brandSnapshotId: brand.snapshotId,
+          draft: {
+            ...imageLedCampaignDraft(closingCanvasSeeds.canvasSeed),
+            format: "instagram-square",
+          },
+        },
+      }),
+      "design-saved",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square-close",
+          designId: closingRevision.designId,
+          revisionId: closingRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          narrativeRole: "action",
+          deliveryProfileId: "instagram-native-carousel",
+          carouselSequenceKey: "launch-carousel",
+          ordinal: 1,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: branched.id,
+          canvasKey: "hero-square-close",
+          designId: closingRevision.designId,
+          revisionId: closingRevision.revisionId,
+          compositionVariantId: "focal-editorial",
+          narrativeRole: "action",
+          deliveryProfileId: "instagram-api-carousel",
+          carouselSequenceKey: "launch-carousel",
+          ordinal: 1,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
     const instagramHandoff = expectProjection(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
@@ -1079,12 +1163,12 @@ describe("AppWorkflow", () => {
       }),
       "campaign-handoff",
     );
-    expect(instagramHandoff.fileCount).toBe(8);
+    expect(instagramHandoff.fileCount).toBe(16);
     const instagramArchive = parseTestJson(
       Buffer.from(instagramHandoff.base64, "base64").toString("utf8"),
     ) as { files: { path: string; base64: string }[] };
     const deliveryFile = instagramArchive.files.find((file) =>
-      file.path.endsWith(".delivery.json"),
+      file.path.endsWith("sequence-launch-carousel.delivery.json"),
     );
     if (deliveryFile === undefined) throw new Error("Delivery sidecar missing.");
     expect(
@@ -1095,7 +1179,22 @@ describe("AppWorkflow", () => {
         id: "instagram-api-carousel",
         metadataVersion: "1.0.0",
       },
-      slides: [{ ordinal: 0, narrativeRole: "hook" }],
+      slides: [
+        { ordinal: 0, narrativeRole: "hook" },
+        { ordinal: 1, narrativeRole: "action" },
+      ],
+    });
+    const sequenceReviewFile = instagramArchive.files.find((file) =>
+      file.path.endsWith("sequence-launch-carousel.review.json"),
+    );
+    if (sequenceReviewFile === undefined) {
+      throw new Error("Carousel sequence review missing.");
+    }
+    expect(
+      parseTestJson(Buffer.from(sequenceReviewFile.base64, "base64").toString("utf8")),
+    ).toMatchObject({
+      deliveryProfileId: "instagram-api-carousel",
+      success: true,
     });
 
     const copyViolation = imageLedCampaignDraft(seedAdvice.canvasSeed);

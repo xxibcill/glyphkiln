@@ -4,6 +4,7 @@ import {
   CampaignHandoffArchive,
   CampaignHandoffArchiveLimitError,
   campaignHandoffCanvasPrefix,
+  campaignHandoffSequencePrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
 import { createCampaignHandoffCanvasFiles } from "./campaign-handoff-format.mjs";
@@ -83,6 +84,16 @@ describe("CampaignHandoffArchive", () => {
 
     expect(initialPaths).toEqual(["first-firing/direction-editorial-b/010-hero"]);
     expect(grownPaths).toEqual(expect.arrayContaining(initialPaths));
+  });
+
+  it("gives each explicit carousel sequence a stable direction-scoped path", () => {
+    expect(
+      campaignHandoffSequencePrefix({
+        campaignPrefix: "first-firing",
+        directionKey: "editorial-b",
+        sequenceKey: "launch-carousel",
+      }),
+    ).toBe("first-firing/direction-editorial-b/sequence-launch-carousel");
   });
 
   it("builds the production and qualification canvas file set from one helper", () => {

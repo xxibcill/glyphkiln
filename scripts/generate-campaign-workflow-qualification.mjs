@@ -10,14 +10,16 @@ import {
   createCampaignCanvasKey,
   createCarouselDeliverySidecar,
   createCampaignDirectionKey,
-  defaultDeliveryProfileForFormat,
   deriveCampaignSeeds,
   hashCanonical,
   renderGraphic,
+  reviewCarouselSequence,
   sha256,
 } from "../packages/glyphkiln-core/dist/index.js";
 import {
   campaignHandoffCanvasPrefix,
+  campaignHandoffJsonFile,
+  campaignHandoffSequencePrefix,
   createCampaignHandoffCanvasFiles,
   encodeCampaignHandoff,
 } from "../apps/glyphkiln-app/src/server/app-workflow/campaign-handoff-format.mjs";
@@ -607,21 +609,6 @@ function createUnapprovedHandoff(campaign, cases) {
       canvasOrdinal: entry.ordinal,
       canvasKey: entry.canvasKey,
     });
-    const deliveryProfile = defaultDeliveryProfileForFormat(entry.document.format);
-    const delivery =
-      deliveryProfile === undefined
-        ? undefined
-        : createCarouselDeliverySidecar({
-            deliveryProfileId: deliveryProfile.id,
-            slides: [
-              {
-                document: entry.document,
-                ordinal: entry.ordinal,
-                narrativeRole: qualificationNarrativeRole(entry),
-                compositionVariantId: entry.compositionVariantId,
-              },
-            ],
-          });
     files.push(
       ...createCampaignHandoffCanvasFiles({
         canvasPrefix,
@@ -636,7 +623,6 @@ function createUnapprovedHandoff(campaign, cases) {
           reviewState: "in-review",
           revisionId: entry.revisionId,
         },
-        ...(delivery === undefined ? {} : { delivery }),
         outputs: Object.entries(entry.outputs).map(([format, output]) => ({
           format,
           mimeType: format === "png" ? "image/png" : "image/svg+xml",
@@ -647,6 +633,39 @@ function createUnapprovedHandoff(campaign, cases) {
       }),
     );
   }
+  const carouselCases = cases.filter(
+    (entry) => entry.document.format === "tiktok-photo-carousel",
+  );
+  const carouselSequence = {
+    deliveryProfileId: "tiktok-organic-photo",
+    slides: carouselCases.map((entry, ordinal) => ({
+      document: entry.document,
+      ordinal,
+      narrativeRole: qualificationNarrativeRole(entry),
+      compositionVariantId: entry.compositionVariantId,
+    })),
+  };
+  const sequenceReview = reviewCarouselSequence(carouselSequence);
+  if (!sequenceReview.success) {
+    throw new Error("The qualification carousel sequence must pass review.");
+  }
+  const sequencePrefix = campaignHandoffSequencePrefix({
+    campaignPrefix: `glyphkiln-core-0-6-launch-${CAMPAIGN_ID}`,
+    directionKey: DIRECTION_KEY,
+    sequenceKey: "proof-series",
+  });
+  files.push(
+    campaignHandoffJsonFile(
+      `${sequencePrefix}.review.json`,
+      sequenceReview,
+      "unapproved",
+    ),
+    campaignHandoffJsonFile(
+      `${sequencePrefix}.delivery.json`,
+      createCarouselDeliverySidecar(carouselSequence),
+      "unapproved",
+    ),
+  );
   return encodeCampaignHandoff({
     campaign,
     directionId: DIRECTION_ID,

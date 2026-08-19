@@ -9,6 +9,7 @@ import {
   deliveryProfilesForFormat,
   deriveCampaignSeeds,
   hashCanonical,
+  reviewCarouselSequence,
   sha256,
   validateDesignDocument,
   AUTHORING_TEMPLATE_KEYS,
@@ -136,9 +137,13 @@ import {
   CampaignHandoffArchiveLimitError,
   MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES,
   campaignHandoffCanvasPrefix,
+  campaignHandoffSequencePrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
-import { createCampaignHandoffCanvasFiles } from "./campaign-handoff-format.mjs";
+import {
+  campaignHandoffJsonFile,
+  createCampaignHandoffCanvasFiles,
+} from "./campaign-handoff-format.mjs";
 
 type ManualRenderer = (
   document: DesignDocument,
@@ -175,6 +180,12 @@ type NewSessionBundle = {
   };
   token: string;
   csrfToken: string;
+};
+
+type CampaignHandoffSequenceCanvas = {
+  readonly canvas: CampaignCanvasProjection;
+  readonly document: DesignDocument;
+  readonly approvalStatus: CampaignHandoffFile["approvalStatus"];
 };
 
 export type AppWorkflowDependencies = {
@@ -1637,6 +1648,23 @@ class AppWorkflowImplementation implements AppWorkflow {
         (entry) => entry.id === command.directionId,
       );
       if (boardDirection === undefined) throw resourceNotFound();
+      if (command.carouselSequenceKey !== undefined) {
+        if (deliveryProfileId === undefined) {
+          throw invalidCampaignCanvas(
+            "A carousel sequence requires a compatible delivery profile.",
+          );
+        }
+        const mismatchedSequenceCanvas = boardDirection.canvases.find(
+          (candidate) =>
+            candidate.carouselSequenceKey === command.carouselSequenceKey &&
+            candidate.deliveryProfileId !== deliveryProfileId,
+        );
+        if (mismatchedSequenceCanvas !== undefined) {
+          throw invalidCampaignCanvas(
+            "Every canvas in a carousel sequence must use the same delivery profile.",
+          );
+        }
+      }
       const baselineCanvas = boardDirection.canvases.at(0);
       if (baselineCanvas !== undefined) {
         const baseline = await this.#loadTrustedRevision(
@@ -1665,6 +1693,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         compositionVariantId: command.compositionVariantId,
         narrativeRole: command.narrativeRole,
         deliveryProfileId,
+        carouselSequenceKey: command.carouselSequenceKey,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -1689,6 +1718,9 @@ class AppWorkflowImplementation implements AppWorkflow {
           canvasSeed: derivedSeed.canvasSeed,
           narrativeRole: command.narrativeRole,
           ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
+          ...(command.carouselSequenceKey === undefined
+            ? {}
+            : { carouselSequenceKey: command.carouselSequenceKey }),
         },
         createdAt: now,
       });
@@ -1702,6 +1734,9 @@ class AppWorkflowImplementation implements AppWorkflow {
         compositionVariantId: command.compositionVariantId,
         narrativeRole: command.narrativeRole,
         ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
+        ...(command.carouselSequenceKey === undefined
+          ? {}
+          : { carouselSequenceKey: command.carouselSequenceKey }),
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -2278,6 +2313,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       );
     }
     const archive = new CampaignHandoffArchive();
+    const sequenceCanvases: CampaignHandoffSequenceCanvas[] = [];
     let approvedCanvasCount = 0;
     let unapprovedCanvasCount = 0;
     const campaignPrefix = `${slugBase(board.campaign.name)}-${board.campaign.id
@@ -2343,26 +2379,15 @@ class AppWorkflowImplementation implements AppWorkflow {
           : "unapproved";
       if (approvalStatus === "approved") approvedCanvasCount += 1;
       else unapprovedCanvasCount += 1;
+      if (canvas.carouselSequenceKey !== undefined) {
+        sequenceCanvases.push({ canvas, document: revision.document, approvalStatus });
+      }
       const canvasPrefix = campaignHandoffCanvasPrefix({
         campaignPrefix,
         directionKey: direction.directionKey,
         canvasOrdinal: canvas.ordinal,
         canvasKey: canvas.canvasKey,
       });
-      const delivery =
-        canvas.deliveryProfileId === undefined
-          ? undefined
-          : createCarouselDeliverySidecar({
-              deliveryProfileId: canvas.deliveryProfileId,
-              slides: [
-                {
-                  document: revision.document,
-                  ordinal: canvas.ordinal,
-                  narrativeRole: canvas.narrativeRole,
-                  compositionVariantId: canvas.compositionVariantId,
-                },
-              ],
-            });
       addCampaignHandoffFiles(
         archive,
         ...createCampaignHandoffCanvasFiles({
@@ -2387,7 +2412,6 @@ class AppWorkflowImplementation implements AppWorkflow {
                     reason: "included-proofs-do-not-match-approval-receipt",
                     receipt: review.approval,
                   },
-          ...(delivery === undefined ? {} : { delivery }),
           outputs: proof.outputs.map((output) => ({
             format: output.format,
             mimeType: output.mimeType,
@@ -2398,6 +2422,11 @@ class AppWorkflowImplementation implements AppWorkflow {
         }),
       );
     }
+    addCampaignHandoffSequenceFiles(archive, {
+      campaignPrefix,
+      directionKey: direction.directionKey,
+      canvases: sequenceCanvases,
+    });
     const { files, bytes: archiveBytes } = encodeCampaignHandoffArchive(archive, {
       campaign: board.campaign,
       directionId: direction.id,
@@ -3211,6 +3240,85 @@ class AppWorkflowImplementation implements AppWorkflow {
 
   #requireCampaignWorkflow(): void {
     if (!this.#campaignWorkflowEnabled) throw campaignWorkflowDisabled();
+  }
+}
+
+function addCampaignHandoffSequenceFiles(
+  archive: CampaignHandoffArchive,
+  input: {
+    readonly campaignPrefix: string;
+    readonly directionKey: string;
+    readonly canvases: readonly CampaignHandoffSequenceCanvas[];
+  },
+): void {
+  const sequences = new Map<string, CampaignHandoffSequenceCanvas[]>();
+  for (const canvas of input.canvases) {
+    const sequenceKey = canvas.canvas.carouselSequenceKey;
+    if (sequenceKey === undefined) continue;
+    const sequence = sequences.get(sequenceKey);
+    if (sequence === undefined) sequences.set(sequenceKey, [canvas]);
+    else sequence.push(canvas);
+  }
+
+  const orderedSequences = [...sequences.entries()].sort(([left], [right]) =>
+    compareCanonicalStrings(left, right),
+  );
+  for (const [sequenceKey, sequenceCanvases] of orderedSequences) {
+    const deliveryProfileId = sequenceCanvases.at(0)?.canvas.deliveryProfileId;
+    if (
+      deliveryProfileId === undefined ||
+      sequenceCanvases.some(
+        ({ canvas }) => canvas.deliveryProfileId !== deliveryProfileId,
+      )
+    ) {
+      throw invalidCampaignCanvas(
+        `Carousel sequence ${sequenceKey} must use one compatible delivery profile.`,
+      );
+    }
+    const orderedCanvases = [...sequenceCanvases].sort(
+      (left, right) =>
+        left.canvas.ordinal - right.canvas.ordinal ||
+        compareCanonicalStrings(left.canvas.id, right.canvas.id),
+    );
+    const sequence = {
+      deliveryProfileId,
+      slides: orderedCanvases.map(({ canvas, document }, ordinal) => ({
+        document,
+        ordinal,
+        narrativeRole: canvas.narrativeRole,
+        compositionVariantId: canvas.compositionVariantId,
+      })),
+    };
+    const review = reviewCarouselSequence(sequence);
+    if (!review.success) {
+      const blockingCodes = review.issues
+        .filter(({ severity }) => severity === "error")
+        .map(({ code }) => code)
+        .join(", ");
+      throw invalidCampaignCanvas(
+        `Carousel sequence ${sequenceKey} must pass review before handoff: ${blockingCodes}.`,
+      );
+    }
+
+    const sequencePrefix = campaignHandoffSequencePrefix({
+      campaignPrefix: input.campaignPrefix,
+      directionKey: input.directionKey,
+      sequenceKey,
+    });
+    const approvalStatus = orderedCanvases.every(
+      (canvas) => canvas.approvalStatus === "approved",
+    )
+      ? "approved"
+      : "unapproved";
+    addCampaignHandoffFiles(
+      archive,
+      campaignHandoffJsonFile(`${sequencePrefix}.review.json`, review, approvalStatus),
+      campaignHandoffJsonFile(
+        `${sequencePrefix}.delivery.json`,
+        createCarouselDeliverySidecar(sequence),
+        approvalStatus,
+      ),
+    );
   }
 }
 

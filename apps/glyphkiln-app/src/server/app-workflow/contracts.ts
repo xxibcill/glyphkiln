@@ -150,6 +150,7 @@ export type AppCommand =
       compositionVariantId: CampaignCompositionVariantId;
       narrativeRole: CarouselNarrativeRole;
       deliveryProfileId?: DeliveryProfileId;
+      carouselSequenceKey?: string;
       ordinal: number;
     }
   | {
@@ -600,6 +601,7 @@ export type CampaignCanvasProjection = {
   compositionVariantId: CampaignCompositionVariantId;
   narrativeRole: CarouselNarrativeRole;
   deliveryProfileId?: DeliveryProfileId;
+  carouselSequenceKey?: string;
   seedDerivationVersion: string;
   directionSeed: string;
   canvasSeed: string;

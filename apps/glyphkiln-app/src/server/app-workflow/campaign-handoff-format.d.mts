@@ -23,6 +23,12 @@ export function campaignHandoffCanvasPrefix(input: {
   canvasKey: string;
 }): string;
 
+export function campaignHandoffSequencePrefix(input: {
+  campaignPrefix: string;
+  directionKey: string;
+  sequenceKey: string;
+}): string;
+
 export function createCampaignHandoffCanvasFiles(input: {
   canvasPrefix: string;
   document: unknown;

@@ -221,6 +221,9 @@ export function CampaignOptionBoard({
                     {canvas.deliveryProfileId === undefined
                       ? ""
                       : ` · ${canvas.deliveryProfileId}`}{" "}
+                    {canvas.carouselSequenceKey === undefined
+                      ? ""
+                      : `· sequence ${canvas.carouselSequenceKey} `}
                     · {canvas.revisionId.slice(0, 8)}
                   </small>
                   <button
@@ -375,26 +378,42 @@ export function CampaignCanvasAttachment({
         </select>
       </label>
       {selectedDeliveryProfileId === undefined ? null : (
-        <label>
-          Delivery path
-          <select
-            name="deliveryProfileId"
-            value={selectedDeliveryProfileId}
-            disabled={isBusy}
-            onChange={(event) => {
-              const profile = deliveryProfiles.find(
-                ({ id }) => id === event.currentTarget.value,
-              );
-              if (profile !== undefined) onDeliveryProfileChange?.(profile.id);
-            }}
-          >
-            {deliveryProfiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label>
+            Delivery path
+            <select
+              name="deliveryProfileId"
+              value={selectedDeliveryProfileId}
+              disabled={isBusy}
+              onChange={(event) => {
+                const profile = deliveryProfiles.find(
+                  ({ id }) => id === event.currentTarget.value,
+                );
+                if (profile !== undefined) onDeliveryProfileChange?.(profile.id);
+              }}
+            >
+              {deliveryProfiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Carousel sequence key
+            <input
+              name="carouselSequenceKey"
+              pattern="[a-zA-Z0-9][a-zA-Z0-9._:-]*"
+              maxLength={120}
+              disabled={isBusy}
+              aria-describedby="carousel-sequence-hint"
+            />
+          </label>
+          <small id="carousel-sequence-hint">
+            Use one key for every slide in a reviewed sequence; leave blank for a
+            standalone canvas.
+          </small>
+        </>
       )}
       <label>
         Order

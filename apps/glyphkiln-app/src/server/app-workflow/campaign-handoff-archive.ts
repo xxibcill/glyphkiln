@@ -5,7 +5,10 @@ import {
   type CampaignHandoffFile,
 } from "./campaign-handoff-format.mjs";
 
-export { campaignHandoffCanvasPrefix } from "./campaign-handoff-format.mjs";
+export {
+  campaignHandoffCanvasPrefix,
+  campaignHandoffSequencePrefix,
+} from "./campaign-handoff-format.mjs";
 export type { CampaignHandoffFile } from "./campaign-handoff-format.mjs";
 
 export const MAXIMUM_CAMPAIGN_HANDOFF_ARCHIVE_BYTES = 64 * 1024 * 1024;

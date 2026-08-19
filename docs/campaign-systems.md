@@ -134,7 +134,10 @@ selected publishing path with the attachment and the App stores that exact
 profile on the campaign canvas. The server rejects an explicit profile that is
 not compatible with the immutable revision format. Older API clients that omit
 the field receive the format's deterministic default, while handoff creation
-always uses the stored profile verbatim instead of recomputing a default.
+always uses the stored profile verbatim instead of recomputing a default. An
+optional carousel sequence key groups only the canvases that belong to one
+publishable sequence; canvases without a key remain standalone variants. Every
+canvas under one key must share a delivery profile.
 
 Campaign persistence is dark-launched until a reviewed real-brief
 qualification passes the four-format and multi-slide gate below. The runtime
@@ -151,14 +154,18 @@ AI approval cannot bypass this campaign gate.
 canonical JSON archive with stable sorted paths for only that direction. The
 direction identifier is bound into both the response receipt and archive. Each
 selected canvas contributes its exact design document, immutable resource pins,
-SVG and PNG bytes, both render manifests, a deterministic delivery sidecar when
-the canvas has a stored delivery profile, and an approval record. The record is
-an exact approval receipt only when the included artifact hashes, manifest
-hashes, fingerprints, revision hash, and resource pins match that receipt. A
-missing or mismatched receipt produces an explicit `unapproved` record. The
-archive includes per-file hashes, byte sizes, media types, and approval status;
-its own SHA-256 covers the canonical archive bytes. A synchronous verified
-handoff is bounded to 64 exact canvases and 64 MiB of canonical archive bytes.
+SVG and PNG bytes, both render manifests, and an approval record. Each explicit
+carousel sequence is sorted deterministically, reindexed from zero, and reviewed
+as a whole against its stored delivery profile. Handoff fails closed if that
+review has a blocking issue; a successful sequence contributes one review record
+and one delivery sidecar for the complete ordered slide set. Standalone canvases
+do not produce misleading one-slide carousel sidecars. A canvas approval record
+is exact only when the included artifact hashes, manifest hashes, fingerprints,
+revision hash, and resource pins match that receipt. A missing or mismatched
+receipt produces an explicit `unapproved` record. The archive includes per-file
+hashes, byte sizes, media types, and approval status; its own SHA-256 covers the
+canonical archive bytes. A synchronous verified handoff is bounded to 64 exact
+canvases and 64 MiB of canonical archive bytes.
 
 Optional proposals are separate append-only App records. Provider/model
 identity, retention disclosure, canonical input/response hashes, validation,

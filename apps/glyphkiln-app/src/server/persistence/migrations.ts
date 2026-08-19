@@ -145,6 +145,17 @@ const MIGRATION_FILES = [
     ),
     version: "202608190014_campaign_delivery_profile",
   },
+  {
+    down: new URL(
+      "./migrations/202608190015_campaign_carousel_sequence.down.sql",
+      import.meta.url,
+    ),
+    up: new URL(
+      "./migrations/202608190015_campaign_carousel_sequence.up.sql",
+      import.meta.url,
+    ),
+    version: "202608190015_campaign_carousel_sequence",
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

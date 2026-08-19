@@ -168,6 +168,12 @@ const CampaignCanvasSchema = z
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
+    carouselSequenceKey: z
+      .string()
+      .min(1)
+      .max(120)
+      .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
+      .optional(),
     seedDerivationVersion: z.string().min(1),
     directionSeed: z.string().regex(/^[0-9a-f]{64}$/),
     canvasSeed: z.string().regex(/^[0-9a-f]{64}$/),
@@ -933,6 +939,7 @@ export type AppAlphaApi = {
     compositionVariantId: CampaignCanvasSeedInput["compositionVariantId"];
     narrativeRole: z.infer<typeof CampaignCanvasSchema>["narrativeRole"];
     deliveryProfileId?: z.infer<typeof CampaignCanvasSchema>["deliveryProfileId"];
+    carouselSequenceKey?: z.infer<typeof CampaignCanvasSchema>["carouselSequenceKey"];
   }) => Promise<ApiResult<CampaignCanvas>>;
   requestCampaignProposals: (input: {
     workspaceId: string;

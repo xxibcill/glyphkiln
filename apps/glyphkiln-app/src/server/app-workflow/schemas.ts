@@ -228,6 +228,7 @@ const AttachCampaignCanvasSchema = z
     compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     narrativeRole: z.enum(CAROUSEL_NARRATIVE_ROLE_IDS),
     deliveryProfileId: z.enum(DELIVERY_PROFILE_IDS).optional(),
+    carouselSequenceKey: identifier.optional(),
     ordinal: z.number().int().min(0).max(999),
   })
   .strict();

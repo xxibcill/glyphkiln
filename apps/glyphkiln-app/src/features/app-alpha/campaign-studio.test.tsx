@@ -401,6 +401,7 @@ describe("CampaignStudio", () => {
       campaignRevision("b".repeat(64), "instagram-square"),
     );
     expect(button("Attach revision").disabled).toBe(false);
+    await setInput('input[name="carouselSequenceKey"]', "launch-carousel");
     await clickButton("Attach revision");
     expect(requestBodies(fetchMock)).toContainEqual({
       type: "campaign.canvas.attach",
@@ -414,6 +415,7 @@ describe("CampaignStudio", () => {
       compositionVariantId: "focal-editorial",
       narrativeRole: "context",
       deliveryProfileId: "instagram-api-carousel",
+      carouselSequenceKey: "launch-carousel",
     });
   });
 

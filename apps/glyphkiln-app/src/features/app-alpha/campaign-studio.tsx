@@ -285,6 +285,11 @@ export function CampaignStudio({
       (role) => role === requiredFormText(form, "narrativeRole"),
     );
     if (narrativeRole === undefined) return;
+    const rawCarouselSequenceKey = form.get("carouselSequenceKey");
+    const carouselSequenceKey =
+      typeof rawCarouselSequenceKey === "string" && rawCarouselSequenceKey.trim() !== ""
+        ? rawCarouselSequenceKey.trim()
+        : undefined;
     setBusy("canvas");
     setFailure(undefined);
     const result = await api.attachCampaignCanvas({
@@ -300,6 +305,7 @@ export function CampaignStudio({
       ...(selectedDeliveryProfile === undefined
         ? {}
         : { deliveryProfileId: selectedDeliveryProfile.id }),
+      ...(carouselSequenceKey === undefined ? {} : { carouselSequenceKey }),
     });
     if (result.ok) {
       await loadBoard(board.campaign.id);

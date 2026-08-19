@@ -13,6 +13,14 @@ export function campaignHandoffCanvasPrefix(input) {
   ].join("/");
 }
 
+export function campaignHandoffSequencePrefix(input) {
+  return [
+    input.campaignPrefix,
+    `direction-${input.directionKey}`,
+    `sequence-${input.sequenceKey}`,
+  ].join("/");
+}
+
 export function createCampaignHandoffCanvasFiles(input) {
   const files = [
     campaignHandoffJsonFile(
