@@ -299,6 +299,52 @@ describe("carousel sequence review and sidecars", () => {
     );
   });
 
+  it("rejects blank source notes before they can suppress statistic review", async () => {
+    const sequence = await organicSequence();
+    const first = sequence.slides[0];
+    if (first === undefined) throw new Error("Expected a first organic slide.");
+    const statisticSlide = {
+      ...first,
+      document: {
+        ...cloneDocument(first.document),
+        layers: [
+          ...first.document.layers.filter((layer) => layer.type !== "subtitle"),
+          {
+            id: "proof-statistic",
+            type: "statistic" as const,
+            value: "42%",
+            label: "of launch variants",
+            visible: true,
+          },
+        ],
+      },
+    };
+    const review = reviewCarouselSequence({
+      ...sequence,
+      slides: [statisticSlide, ...sequence.slides.slice(1)],
+    });
+    expect(review.issues).toContainEqual(
+      expect.objectContaining({
+        code: "STATISTIC_SOURCE_REVIEW",
+        slideId: statisticSlide.document.id,
+      }),
+    );
+
+    expect(() =>
+      reviewCarouselSequence({
+        ...sequence,
+        slides: [
+          { ...statisticSlide, sourceNotes: [{ label: "   " }] },
+          ...sequence.slides.slice(1),
+        ],
+      }),
+    ).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+  });
+
   it("derives composition rhythm from the document family contract", async () => {
     const sequence = await organicSequence();
     const source = sequence.slides[0];

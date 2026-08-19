@@ -156,7 +156,11 @@ export function createCarouselSequenceKey(value: string): CarouselSequenceKey {
 
 const CarouselSourceNoteSchema = z
   .object({
-    label: z.string().min(1).max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
+    label: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteLabelCharacters),
     url: z.url().max(CAROUSEL_SEQUENCE_LIMITS.sourceNoteUrlCharacters).optional(),
   })
   .strict();
