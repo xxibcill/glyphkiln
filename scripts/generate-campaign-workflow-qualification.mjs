@@ -10,12 +10,19 @@ import prettier from "prettier";
 import {
   canonicalJson,
   createCampaignCanvasKey,
+  createCarouselDeliverySidecar,
   createCampaignDirectionKey,
+  defaultDeliveryProfileForFormat,
   deriveCampaignSeeds,
   hashCanonical,
   renderGraphic,
   sha256,
 } from "../packages/glyphkiln-core/dist/index.js";
+import {
+  campaignHandoffCanvasPrefix,
+  createCampaignHandoffCanvasFiles,
+  encodeCampaignHandoff,
+} from "../apps/glyphkiln-app/src/server/app-workflow/campaign-handoff-format.mjs";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const QUALIFICATION_ROOT = resolve(
@@ -587,68 +594,68 @@ function resourcePinsFor(spec) {
 function createUnapprovedHandoff(campaign, cases) {
   const files = [];
   for (const entry of cases) {
-    const prefix = [
-      `glyphkiln-core-0-6-launch-${CAMPAIGN_ID}`,
-      `direction-${DIRECTION_KEY}`,
-      `${entry.ordinal.toString().padStart(3, "0")}-${entry.canvasKey}`,
-    ].join("/");
-    addHandoffJson(files, `${prefix}.design.json`, entry.document);
-    addHandoffJson(files, `${prefix}.resources.json`, {
-      revisionId: entry.revisionId,
-      documentHash: entry.documentHash,
-      resourcePins: entry.resourcePins,
+    const canvasPrefix = campaignHandoffCanvasPrefix({
+      campaignPrefix: `glyphkiln-core-0-6-launch-${CAMPAIGN_ID}`,
+      directionKey: DIRECTION_KEY,
+      canvasOrdinal: entry.ordinal,
+      canvasKey: entry.canvasKey,
     });
-    addHandoffJson(files, `${prefix}.approval.json`, {
-      status: "unapproved",
-      reviewState: "in-review",
-      revisionId: entry.revisionId,
-    });
-    for (const [format, output] of Object.entries(entry.outputs)) {
-      addHandoffBinary(
-        files,
-        `${prefix}.${format}`,
-        format === "png" ? "image/png" : "image/svg+xml",
-        output.bytes,
-      );
-      addHandoffJson(files, `${prefix}.${format}.manifest.json`, output.manifest);
-    }
+    const deliveryProfile = defaultDeliveryProfileForFormat(entry.document.format);
+    const delivery =
+      deliveryProfile === undefined
+        ? undefined
+        : createCarouselDeliverySidecar({
+            deliveryProfileId: deliveryProfile.id,
+            slides: [
+              {
+                document: entry.document,
+                ordinal: entry.ordinal,
+                narrativeRole: qualificationNarrativeRole(entry),
+                compositionVariantId: entry.compositionVariantId,
+              },
+            ],
+          });
+    files.push(
+      ...createCampaignHandoffCanvasFiles({
+        canvasPrefix,
+        document: entry.document,
+        resources: {
+          revisionId: entry.revisionId,
+          documentHash: entry.documentHash,
+          resourcePins: entry.resourcePins,
+        },
+        approval: {
+          status: "unapproved",
+          reviewState: "in-review",
+          revisionId: entry.revisionId,
+        },
+        ...(delivery === undefined ? {} : { delivery }),
+        outputs: Object.entries(entry.outputs).map(([format, output]) => ({
+          format,
+          mimeType: format === "png" ? "image/png" : "image/svg+xml",
+          bytes: output.bytes,
+          manifest: output.manifest,
+        })),
+        approvalStatus: "unapproved",
+      }),
+    );
   }
-  files.sort((left, right) =>
-    left.path < right.path ? -1 : left.path > right.path ? 1 : 0,
-  );
-  const bytes = new TextEncoder().encode(
-    `${canonicalJson({
-      version: "1.0.0",
-      campaign,
-      directionId: DIRECTION_ID,
-      files,
-      summary: {
-        approvedCanvasCount: 0,
-        unapprovedCanvasCount: cases.length,
-      },
-    })}\n`,
-  );
-  return { files, bytes };
-}
-
-function addHandoffJson(files, path, value) {
-  addHandoffBinary(
+  return encodeCampaignHandoff({
+    campaign,
+    directionId: DIRECTION_ID,
     files,
-    path,
-    "application/json",
-    new TextEncoder().encode(`${canonicalJson(value)}\n`),
-  );
+    summary: {
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: cases.length,
+    },
+  });
 }
 
-function addHandoffBinary(files, path, mediaType, bytes) {
-  files.push({
-    path,
-    mediaType,
-    byteSize: bytes.byteLength,
-    sha256: sha256(bytes),
-    base64: Buffer.from(bytes).toString("base64"),
-    approvalStatus: "unapproved",
-  });
+function qualificationNarrativeRole(entry) {
+  if (entry.slideIndex === 1) return "hook";
+  if (entry.slideIndex === 4) return "action";
+  if (entry.slideIndex === 3) return "evidence";
+  return "explanation";
 }
 
 function createProofWall() {

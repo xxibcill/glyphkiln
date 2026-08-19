@@ -383,9 +383,9 @@
     "path": "docs/qualification/campaign-workflow-2026-08-18/generated/glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
     "filename": "glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
     "mediaType": "application/vnd.glyphkiln.campaign-handoff+json",
-    "sha256": "f61b5e53ca970b3f7d929bc8a264cf3ae08ebeb5a4e21e8f89919dec9ce457e7",
-    "byteSize": 3131340,
-    "fileCount": 49,
+    "sha256": "d1f68815367721e0b8a2862ba3859c40b4125c339206edfe003abfc8e28303d7",
+    "byteSize": 3137932,
+    "fileCount": 55,
     "approvedCanvasCount": 0,
     "unapprovedCanvasCount": 7
   }

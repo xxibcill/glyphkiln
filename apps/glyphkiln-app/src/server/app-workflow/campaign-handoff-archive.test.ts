@@ -6,6 +6,7 @@ import {
   campaignHandoffCanvasPrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
+import { createCampaignHandoffCanvasFiles } from "./campaign-handoff-format.mjs";
 
 describe("CampaignHandoffArchive", () => {
   it("sorts files and encodes a bounded canonical archive", () => {
@@ -82,6 +83,34 @@ describe("CampaignHandoffArchive", () => {
 
     expect(initialPaths).toEqual(["first-firing/direction-editorial-b/010-hero"]);
     expect(grownPaths).toEqual(expect.arrayContaining(initialPaths));
+  });
+
+  it("builds the production and qualification canvas file set from one helper", () => {
+    const files = createCampaignHandoffCanvasFiles({
+      canvasPrefix: "campaign/direction-a/000-hero",
+      document: { id: "document-1" },
+      resources: { revisionId: "revision-1" },
+      approval: { status: "unapproved" },
+      delivery: { deliveryProfile: { id: "instagram-native-carousel" } },
+      outputs: [
+        {
+          format: "png",
+          mimeType: "image/png",
+          bytes: new Uint8Array([1, 2, 3]),
+          manifest: { output: "png" },
+        },
+      ],
+      approvalStatus: "unapproved",
+    });
+
+    expect(files.map(({ path }) => path)).toEqual([
+      "campaign/direction-a/000-hero.design.json",
+      "campaign/direction-a/000-hero.resources.json",
+      "campaign/direction-a/000-hero.approval.json",
+      "campaign/direction-a/000-hero.delivery.json",
+      "campaign/direction-a/000-hero.png",
+      "campaign/direction-a/000-hero.png.manifest.json",
+    ]);
   });
 });
 

@@ -136,6 +136,7 @@ import {
   campaignHandoffCanvasPrefix,
   type CampaignHandoffFile,
 } from "./campaign-handoff-archive";
+import { createCampaignHandoffCanvasFiles } from "./campaign-handoff-format.mjs";
 
 type ManualRenderer = (
   document: DesignDocument,
@@ -2339,47 +2340,11 @@ class AppWorkflowImplementation implements AppWorkflow {
         canvasOrdinal: canvas.ordinal,
         canvasKey: canvas.canvasKey,
       });
-      addCampaignHandoffFiles(
-        archive,
-        handoffJsonFile(
-          `${canvasPrefix}.design.json`,
-          revision.document,
-          approvalStatus,
-        ),
-        handoffJsonFile(
-          `${canvasPrefix}.resources.json`,
-          {
-            revisionId: revision.revisionId,
-            documentHash: revision.canonicalHash,
-            resourcePins,
-          },
-          approvalStatus,
-        ),
-        handoffJsonFile(
-          `${canvasPrefix}.approval.json`,
-          review?.approval === undefined
-            ? {
-                status: "unapproved",
-                reviewState: review?.state ?? "not-submitted",
-                revisionId: revision.revisionId,
-              }
-            : approvalStatus === "approved"
-              ? { status: "approved", receipt: review.approval }
-              : {
-                  status: "unapproved",
-                  reason: "included-proofs-do-not-match-approval-receipt",
-                  receipt: review.approval,
-                },
-          approvalStatus,
-        ),
-      );
       const deliveryProfile = defaultDeliveryProfileForFormat(revision.document.format);
-      if (deliveryProfile !== undefined) {
-        addCampaignHandoffFiles(
-          archive,
-          handoffJsonFile(
-            `${canvasPrefix}.delivery.json`,
-            createCarouselDeliverySidecar({
+      const delivery =
+        deliveryProfile === undefined
+          ? undefined
+          : createCarouselDeliverySidecar({
               deliveryProfileId: deliveryProfile.id,
               slides: [
                 {
@@ -2389,28 +2354,41 @@ class AppWorkflowImplementation implements AppWorkflow {
                   compositionVariantId: canvas.compositionVariantId,
                 },
               ],
-            }),
-            approvalStatus,
-          ),
-        );
-      }
-      for (const output of proof.outputs) {
-        const bytes = Buffer.from(output.base64, "base64");
-        addCampaignHandoffFiles(
-          archive,
-          handoffBinaryFile(
-            `${canvasPrefix}.${output.format}`,
-            output.mimeType,
-            bytes,
-            approvalStatus,
-          ),
-          handoffJsonFile(
-            `${canvasPrefix}.${output.format}.manifest.json`,
-            output.manifest,
-            approvalStatus,
-          ),
-        );
-      }
+            });
+      addCampaignHandoffFiles(
+        archive,
+        ...createCampaignHandoffCanvasFiles({
+          canvasPrefix,
+          document: revision.document,
+          resources: {
+            revisionId: revision.revisionId,
+            documentHash: revision.canonicalHash,
+            resourcePins,
+          },
+          approval:
+            review?.approval === undefined
+              ? {
+                  status: "unapproved",
+                  reviewState: review?.state ?? "not-submitted",
+                  revisionId: revision.revisionId,
+                }
+              : approvalStatus === "approved"
+                ? { status: "approved", receipt: review.approval }
+                : {
+                    status: "unapproved",
+                    reason: "included-proofs-do-not-match-approval-receipt",
+                    receipt: review.approval,
+                  },
+          ...(delivery === undefined ? {} : { delivery }),
+          outputs: proof.outputs.map((output) => ({
+            format: output.format,
+            mimeType: output.mimeType,
+            bytes: Buffer.from(output.base64, "base64"),
+            manifest: output.manifest,
+          })),
+          approvalStatus,
+        }),
+      );
     }
     const { files, bytes: archiveBytes } = encodeCampaignHandoffArchive(archive, {
       campaign: board.campaign,
@@ -3228,19 +3206,6 @@ class AppWorkflowImplementation implements AppWorkflow {
   }
 }
 
-function handoffJsonFile(
-  path: string,
-  value: unknown,
-  approvalStatus: CampaignHandoffFile["approvalStatus"],
-): CampaignHandoffFile {
-  return handoffBinaryFile(
-    path,
-    "application/json",
-    new TextEncoder().encode(`${canonicalJson(value)}\n`),
-    approvalStatus,
-  );
-}
-
 function addCampaignHandoffFiles(
   archive: CampaignHandoffArchive,
   ...files: readonly CampaignHandoffFile[]
@@ -3268,22 +3233,6 @@ function withCampaignHandoffArchiveLimit<Result>(operation: () => Result): Resul
     }
     throw error;
   }
-}
-
-function handoffBinaryFile(
-  path: string,
-  mediaType: string,
-  bytes: Uint8Array,
-  approvalStatus: CampaignHandoffFile["approvalStatus"],
-): CampaignHandoffFile {
-  return {
-    path,
-    mediaType,
-    byteSize: bytes.byteLength,
-    sha256: sha256(bytes),
-    base64: Buffer.from(bytes).toString("base64"),
-    approvalStatus,
-  };
 }
 
 function handoffProofMatchesApproval(input: {
