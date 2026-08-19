@@ -7,6 +7,7 @@ import {
   DELIVERY_PROFILE_IDS,
   DELIVERY_PROFILE_METADATA_VERSION,
   DELIVERY_PROFILE_REGISTRY,
+  DELIVERY_SOURCES,
   GlyphkilnError,
   createCarouselDeliverySidecar,
   defaultDeliveryProfileForFormat,
@@ -35,6 +36,13 @@ describe("carousel delivery profiles", () => {
     expect(
       DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"].slideCount.value.maximum,
     ).toBe(20);
+    expect(
+      DELIVERY_PROFILE_REGISTRY["instagram-native-carousel"].slideCount.sourceIds,
+    ).toEqual(["instagram-creators-carousel-limit"]);
+    expect(DELIVERY_SOURCES["instagram-creators-carousel-limit"]).toMatchObject({
+      publisher: "Meta",
+      url: "https://creators.instagram.com/blog/new-text-tools-to-help-you-personalize-your-content",
+    });
     expect(
       DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum,
     ).toBe(10);

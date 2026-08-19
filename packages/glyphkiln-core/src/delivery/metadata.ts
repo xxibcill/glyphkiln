@@ -97,6 +97,13 @@ const DELIVERY_SOURCES = deepFreeze({
     url: "https://www.facebook.com/help/instagram/269314186824048/",
     retrievedAt: "2026-08-18",
   },
+  "instagram-creators-carousel-limit": {
+    id: "instagram-creators-carousel-limit",
+    publisher: "Meta",
+    title: "New text tools to help you personalize your content",
+    url: "https://creators.instagram.com/blog/new-text-tools-to-help-you-personalize-your-content",
+    retrievedAt: "2026-08-18",
+  },
   "meta-instagram-content-publishing": {
     id: "meta-instagram-content-publishing",
     publisher: "Meta",
@@ -179,7 +186,7 @@ export const DELIVERY_PROFILE_REGISTRY = deepFreeze({
     slideCount: {
       value: { minimum: 2, maximum: 20 },
       evidence: "platform-requirement",
-      sourceIds: ["meta-instagram-carousel"],
+      sourceIds: ["instagram-creators-carousel-limit"],
       note: "The maximum is a publishing limit, not an engagement recommendation.",
     },
     acceptedImageMediaTypes: {
