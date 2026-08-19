@@ -3472,6 +3472,11 @@ function createCampaignCarouselSequence<Canvas extends CampaignSequenceCanvas>(
   sequenceKey: CarouselSequenceKey,
   sequenceCanvases: readonly Canvas[],
 ) {
+  if (sequenceCanvases.length < 2) {
+    throw invalidCampaignCanvas(
+      `Carousel sequence ${sequenceKey} requires at least two canvases.`,
+    );
+  }
   const deliveryProfileId = sequenceCanvases.at(0)?.canvas.deliveryProfileId;
   if (
     deliveryProfileId === undefined ||

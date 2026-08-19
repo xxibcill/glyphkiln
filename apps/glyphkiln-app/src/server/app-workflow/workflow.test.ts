@@ -748,6 +748,123 @@ describe("AppWorkflow", () => {
     );
   });
 
+  it("rejects a keyed one-canvas TikTok group as an App carousel sequence", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const campaign = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.create",
+          workspaceId,
+          name: "Single-photo launch",
+          brief: "Prepare one standalone TikTok photo without a carousel sidecar.",
+          campaignSeed: "single-photo-launch-2026",
+          familyId: "image-led-campaign",
+        },
+      }),
+      "campaign-created",
+    ).campaign;
+    const direction = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.direction.create",
+          workspaceId,
+          campaignId: campaign.id,
+          directionKey: "standalone-photo",
+          name: "Standalone photo",
+          locks: [],
+        },
+      }),
+      "campaign-direction-created",
+    ).direction;
+    const seeds = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("photo-01"),
+      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
+      format: "tiktok-photo-carousel",
+      compositionVariantId: "organic-photo-editorial",
+    });
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Standalone photo brand",
+          snapshot: brandDraft("#0D3B9C"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const revision = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Standalone TikTok photo",
+          brandSnapshotId: brand.snapshotId,
+          draft: tiktokPhotoDraft(seeds.canvasSeed),
+        },
+      }),
+      "design-saved",
+    );
+    const sequenceKey = createCarouselSequenceKey("single-photo");
+    expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "campaign.canvas.attach",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey: "photo-01",
+          designId: revision.designId,
+          revisionId: revision.revisionId,
+          compositionVariantId: "organic-photo-editorial",
+          narrativeRole: "hook",
+          deliveryProfileId: "tiktok-organic-photo",
+          carouselSequenceKey: sequenceKey,
+          altText: "Standalone launch message on an ivory TikTok photo canvas.",
+          ordinal: 0,
+        },
+      }),
+      "campaign-canvas-attached",
+    );
+
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.carousel.review",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+          sequenceKey,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: {
+          type: "campaign.handoff",
+          workspaceId,
+          campaignId: campaign.id,
+          directionId: direction.id,
+        },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+  });
+
   it("coordinates a deterministic campaign board around exact revisions and canonical locks", async () => {
     const owner = await bootstrapOwner();
     const workspaceId = requireWorkspaceId(owner);
@@ -1109,7 +1226,7 @@ describe("AppWorkflow", () => {
         },
       ],
     });
-    const incompleteCarouselReview = expectProjection(
+    expectFailure(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
         query: {
@@ -1120,35 +1237,9 @@ describe("AppWorkflow", () => {
           sequenceKey: createCarouselSequenceKey("launch-carousel"),
         },
       }),
-      "campaign-carousel-review",
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
     );
-    expect(incompleteCarouselReview.review).toMatchObject({
-      deliveryProfileId: "instagram-api-carousel",
-      success: false,
-      issues: [
-        expect.objectContaining({
-          code: "SLIDE_COUNT_OUTSIDE_PROFILE",
-          severity: "error",
-        }),
-      ],
-    });
-    expect(incompleteCarouselReview.slides[0]).toMatchObject({
-      canvas: {
-        id: instagramCanvas.id,
-        altText:
-          "Opening square carousel slide showing the campaign product and promise.",
-        sourceNotes: [
-          {
-            label: "Product launch brief",
-            url: "https://example.com/launch-brief",
-          },
-        ],
-      },
-      proof: {
-        document: { id: branchedRevision.document.id },
-        outputs: [{ format: "svg" }, { format: "png" }],
-      },
-    });
     expectFailure(
       await workflow.read({
         evidence: { sessionToken: owner.sessionToken },
@@ -4399,6 +4490,32 @@ function imageLedCampaignDraft(seed: string): ManualDraft {
         visible: true,
         text: "DISCOVER THE COLLECTION →",
       },
+    ],
+  };
+}
+
+function tiktokPhotoDraft(seed: string): ManualDraft {
+  return {
+    templateId: "tiktok-carousel-slide",
+    format: "tiktok-photo-carousel",
+    seed,
+    mode: "light",
+    layers: [
+      { id: "background", type: "background", visible: true },
+      { id: "slide-number", type: "badge", text: "01 / 01", visible: true },
+      {
+        id: "headline",
+        type: "headline",
+        text: "One photo is not a carousel.",
+        visible: true,
+      },
+      {
+        id: "subtitle",
+        type: "subtitle",
+        text: "Ship the standalone canvas without sequence metadata.",
+        visible: true,
+      },
+      { id: "footer", type: "footer", text: "@glyphkiln", visible: true },
     ],
   };
 }
