@@ -117,6 +117,41 @@ describe("carousel sequence review and sidecars", () => {
         code: "INVALID_CAROUSEL_SEQUENCE",
       }),
     );
+
+    let accessorReads = 0;
+    const accessorEnvelope = {};
+    Object.defineProperty(accessorEnvelope, "slides", {
+      enumerable: true,
+      get() {
+        accessorReads += 1;
+        throw new Error("Carousel accessors must not run.");
+      },
+    });
+    expect(() => reviewCarouselSequence(accessorEnvelope)).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+
+    const accessorSlide = { ...sequence.slides[0] };
+    Object.defineProperty(accessorSlide, "sourceNotes", {
+      enumerable: true,
+      get() {
+        accessorReads += 1;
+        throw new Error("Carousel accessors must not run.");
+      },
+    });
+    expect(() =>
+      createCarouselDeliverySidecar({
+        ...sequence,
+        slides: [accessorSlide],
+      }),
+    ).toThrow(
+      expect.objectContaining<Partial<GlyphkilnError>>({
+        code: "INVALID_CAROUSEL_SEQUENCE",
+      }),
+    );
+    expect(accessorReads).toBe(0);
   });
 
   it("reviews a valid ordered organic sequence without inventing hard design rules", async () => {

@@ -2,6 +2,12 @@ import { z } from "zod";
 
 import { CAROUSEL_COPY_ADVISORY } from "../authoring/carousel-copy-policy.js";
 import {
+  isPlainRecord,
+  readArrayDataValue,
+  readArrayLength,
+  readOwnDataProperty,
+} from "../authoring/inert-data.js";
+import {
   CAMPAIGN_COMPOSITION_VARIANT_IDS,
   CAMPAIGN_FAMILY_REGISTRY,
   type CampaignCompositionVariantId,
@@ -326,10 +332,11 @@ export function createCarouselDeliverySidecar(input: unknown): CarouselDeliveryS
 }
 
 function parseCarouselSequence(input: unknown): CarouselSequence {
-  const boundProblems = preflightCarouselSequenceBounds(input);
+  const inertInput = readInertCarouselSequenceEnvelope(input);
+  const boundProblems = preflightCarouselSequenceBounds(inertInput);
   if (boundProblems.length > 0) throwInvalidCarouselSequence(boundProblems);
 
-  const result = CarouselSequenceEnvelopeSchema.safeParse(input);
+  const result = CarouselSequenceEnvelopeSchema.safeParse(inertInput);
   if (!result.success) {
     throwInvalidCarouselSequence(
       result.error.issues.map((issue) => ({
@@ -407,6 +414,125 @@ function preflightCarouselSequenceBounds(input: unknown): CarouselValidationProb
     }
   }
   return [];
+}
+
+const CAROUSEL_SEQUENCE_ENVELOPE_KEYS = new Set(["deliveryProfileId", "slides"]);
+const CAROUSEL_SLIDE_ENVELOPE_KEYS = new Set([
+  "document",
+  "ordinal",
+  "narrativeRole",
+  "compositionVariantId",
+  "sourceNotes",
+]);
+const CAROUSEL_SLIDE_REQUIRED_KEYS = new Set([
+  "document",
+  "ordinal",
+  "narrativeRole",
+  "compositionVariantId",
+]);
+const CAROUSEL_SOURCE_NOTE_KEYS = new Set(["label", "url"]);
+const CAROUSEL_SOURCE_NOTE_REQUIRED_KEYS = new Set(["label"]);
+
+function readInertCarouselSequenceEnvelope(input: unknown): unknown {
+  const envelope = readInertRecord(
+    input,
+    CAROUSEL_SEQUENCE_ENVELOPE_KEYS,
+    CAROUSEL_SEQUENCE_ENVELOPE_KEYS,
+  );
+  if (envelope === undefined) return undefined;
+
+  const slides = readBoundedInertArray(
+    envelope["slides"],
+    CAROUSEL_SEQUENCE_LIMITS.slides,
+    readInertCarouselSlide,
+  );
+  return {
+    deliveryProfileId: envelope["deliveryProfileId"],
+    slides,
+  };
+}
+
+function readInertCarouselSlide(input: unknown): unknown {
+  const slide = readInertRecord(
+    input,
+    CAROUSEL_SLIDE_ENVELOPE_KEYS,
+    CAROUSEL_SLIDE_REQUIRED_KEYS,
+  );
+  if (slide === undefined) return undefined;
+
+  const sourceNotes =
+    "sourceNotes" in slide && slide["sourceNotes"] !== undefined
+      ? readBoundedInertArray(
+          slide["sourceNotes"],
+          CAROUSEL_SEQUENCE_LIMITS.sourceNotesPerSlide,
+          readInertCarouselSourceNote,
+        )
+      : undefined;
+  return {
+    document: slide["document"],
+    ordinal: slide["ordinal"],
+    narrativeRole: slide["narrativeRole"],
+    compositionVariantId: slide["compositionVariantId"],
+    ...(sourceNotes === undefined ? {} : { sourceNotes }),
+  };
+}
+
+function readInertCarouselSourceNote(input: unknown): unknown {
+  return readInertRecord(
+    input,
+    CAROUSEL_SOURCE_NOTE_KEYS,
+    CAROUSEL_SOURCE_NOTE_REQUIRED_KEYS,
+  );
+}
+
+function readBoundedInertArray(
+  input: unknown,
+  maximum: number,
+  readEntry: (entry: unknown) => unknown,
+): unknown {
+  const length = readArrayLength(input);
+  if (length === undefined) return null;
+  if (length > maximum) return Array.from({ length: maximum + 1 });
+  if (!Array.isArray(input)) return null;
+
+  const values: unknown[] = [];
+  for (let index = 0; index < length; index += 1) {
+    values.push(readEntry(readArrayDataValue(input, index)));
+  }
+  return values;
+}
+
+function readInertRecord(
+  input: unknown,
+  allowedKeys: ReadonlySet<string>,
+  requiredKeys: ReadonlySet<string>,
+): Record<string, unknown> | undefined {
+  if (!isPlainRecord(input)) return undefined;
+
+  let keys: readonly PropertyKey[];
+  try {
+    keys = Reflect.ownKeys(input);
+  } catch {
+    return undefined;
+  }
+  if (
+    keys.some((key) => typeof key !== "string" || !allowedKeys.has(key)) ||
+    [...requiredKeys].some((key) => !keys.includes(key))
+  ) {
+    return undefined;
+  }
+
+  const output: Record<string, unknown> = Object.create(null) as Record<
+    string,
+    unknown
+  >;
+  for (const key of keys) {
+    if (typeof key !== "string") return undefined;
+    const property = readOwnDataProperty(input, key);
+    if (!property.found) return undefined;
+    output[key] = property.value;
+  }
+  return output;
 }
 
 function throwInvalidCarouselSequence(
