@@ -14,6 +14,7 @@ import type { AuthoringLockId } from "@/server/ai-authoring";
 import type {
   BrandKitSummary,
   CampaignBoardProjection,
+  CampaignCanvasPublicationMetadata,
   CampaignCanvasProjection,
   CampaignDirectionProjection,
   CampaignProposalCandidateProjection,
@@ -1356,30 +1357,27 @@ export class AppState {
         };
   }
 
-  async insertCampaignCanvas(input: {
-    id: string;
-    workspaceId: string;
-    campaignId: string;
-    directionId: string;
-    canvasKey: string;
-    designId: string;
-    revisionId: string;
-    templateId: TemplateId;
-    templateVersion: string;
-    format: FormatId;
-    compositionVariantId: CampaignCompositionVariantId;
-    narrativeRole: CarouselNarrativeRole;
-    deliveryProfileId: DeliveryProfileId | undefined;
-    carouselSequenceKey?: string;
-    altText?: string;
-    sourceNotes?: readonly CarouselSourceNote[];
-    seedDerivationVersion: string;
-    directionSeed: string;
-    canvasSeed: string;
-    ordinal: number;
-    createdBy: string;
-    createdAt: Date;
-  }): Promise<void> {
+  async insertCampaignCanvas(
+    input: {
+      id: string;
+      workspaceId: string;
+      campaignId: string;
+      directionId: string;
+      canvasKey: string;
+      designId: string;
+      revisionId: string;
+      templateId: TemplateId;
+      templateVersion: string;
+      format: FormatId;
+      compositionVariantId: CampaignCompositionVariantId;
+      seedDerivationVersion: string;
+      directionSeed: string;
+      canvasSeed: string;
+      ordinal: number;
+      createdBy: string;
+      createdAt: Date;
+    } & CampaignCanvasPublicationMetadata,
+  ): Promise<void> {
     await this.#query(
       `INSERT INTO campaign_canvases (
          id, workspace_id, campaign_id, direction_id, canvas_key,

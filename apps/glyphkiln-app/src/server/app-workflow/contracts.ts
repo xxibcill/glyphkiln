@@ -43,6 +43,14 @@ export type ManualDraft = {
   };
 };
 
+export type CampaignCanvasPublicationMetadata = {
+  narrativeRole: CarouselNarrativeRole;
+  deliveryProfileId?: DeliveryProfileId;
+  carouselSequenceKey?: string;
+  altText?: string;
+  sourceNotes?: readonly CarouselSourceNote[];
+};
+
 export type BrandSnapshotDraft = Omit<BrandSnapshot, "snapshotId" | "version" | "name">;
 
 export type AppCommand =
@@ -140,7 +148,7 @@ export type AppCommand =
       directionKey: string;
       name: string;
     }
-  | {
+  | ({
       type: "campaign.canvas.attach";
       workspaceId: string;
       campaignId: string;
@@ -149,13 +157,8 @@ export type AppCommand =
       designId: string;
       revisionId: string;
       compositionVariantId: CampaignCompositionVariantId;
-      narrativeRole: CarouselNarrativeRole;
-      deliveryProfileId?: DeliveryProfileId;
-      carouselSequenceKey?: string;
-      altText?: string;
-      sourceNotes?: readonly CarouselSourceNote[];
       ordinal: number;
-    }
+    } & CampaignCanvasPublicationMetadata)
   | {
       type: "campaign.proposals.request";
       workspaceId: string;
@@ -602,17 +605,12 @@ export type CampaignCanvasProjection = {
   };
   format: FormatId;
   compositionVariantId: CampaignCompositionVariantId;
-  narrativeRole: CarouselNarrativeRole;
-  deliveryProfileId?: DeliveryProfileId;
-  carouselSequenceKey?: string;
-  altText?: string;
-  sourceNotes?: readonly CarouselSourceNote[];
   seedDerivationVersion: string;
   directionSeed: string;
   canvasSeed: string;
   ordinal: number;
   createdAt: string;
-};
+} & CampaignCanvasPublicationMetadata;
 
 export type CampaignCanvasSeedProjection = {
   kind: "campaign-canvas-seed";

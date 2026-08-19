@@ -7,6 +7,7 @@ export type {
   AppWorkflow,
   BrandSnapshotDraft,
   CampaignBoardProjection,
+  CampaignCanvasPublicationMetadata,
   CampaignCanvasProjection,
   CampaignCanvasSeedProjection,
   CampaignDirectionProjection,

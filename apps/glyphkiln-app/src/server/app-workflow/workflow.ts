@@ -97,6 +97,7 @@ import type {
   AppQuery,
   AppResult,
   AppWorkflow,
+  CampaignCanvasPublicationMetadata,
   CampaignCanvasProjection,
   CampaignCanvasSeedProjection,
   CampaignDirectionProjection,
@@ -1710,6 +1711,22 @@ class AppWorkflowImplementation implements AppWorkflow {
           boardDirection.locks,
         );
       }
+      const publicationMetadata = {
+        narrativeRole: command.narrativeRole,
+        ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
+        ...(command.carouselSequenceKey === undefined
+          ? {}
+          : { carouselSequenceKey: command.carouselSequenceKey }),
+        ...(altText === undefined ? {} : { altText }),
+        ...(command.sourceNotes === undefined || command.sourceNotes.length === 0
+          ? {}
+          : {
+              sourceNotes: command.sourceNotes.map((note) => ({
+                label: note.label,
+                ...(note.url === undefined ? {} : { url: note.url }),
+              })),
+            }),
+      } satisfies CampaignCanvasPublicationMetadata;
       await state.insertCampaignCanvas({
         id: canvasId,
         workspaceId: command.workspaceId,
@@ -1722,11 +1739,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         templateVersion: revision.document.template.version,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        narrativeRole: command.narrativeRole,
-        deliveryProfileId,
-        carouselSequenceKey: command.carouselSequenceKey,
-        altText,
-        sourceNotes: command.sourceNotes,
+        ...publicationMetadata,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
@@ -1749,13 +1762,15 @@ class AppWorkflowImplementation implements AppWorkflow {
           seedDerivationVersion: derivedSeed.seedDerivationVersion,
           directionSeed: derivedSeed.directionSeed,
           canvasSeed: derivedSeed.canvasSeed,
-          narrativeRole: command.narrativeRole,
+          narrativeRole: publicationMetadata.narrativeRole,
           hasPublisherAltText: altText !== undefined,
-          sourceNoteCount: command.sourceNotes?.length ?? 0,
-          ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
-          ...(command.carouselSequenceKey === undefined
+          sourceNoteCount: publicationMetadata.sourceNotes?.length ?? 0,
+          ...(publicationMetadata.deliveryProfileId === undefined
             ? {}
-            : { carouselSequenceKey: command.carouselSequenceKey }),
+            : { deliveryProfileId: publicationMetadata.deliveryProfileId }),
+          ...(publicationMetadata.carouselSequenceKey === undefined
+            ? {}
+            : { carouselSequenceKey: publicationMetadata.carouselSequenceKey }),
         },
         createdAt: now,
       });
@@ -1767,20 +1782,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         template: { ...revision.document.template },
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
-        narrativeRole: command.narrativeRole,
-        ...(deliveryProfileId === undefined ? {} : { deliveryProfileId }),
-        ...(command.carouselSequenceKey === undefined
-          ? {}
-          : { carouselSequenceKey: command.carouselSequenceKey }),
-        ...(altText === undefined ? {} : { altText }),
-        ...(command.sourceNotes === undefined || command.sourceNotes.length === 0
-          ? {}
-          : {
-              sourceNotes: command.sourceNotes.map((note) => ({
-                label: note.label,
-                ...(note.url === undefined ? {} : { url: note.url }),
-              })),
-            }),
+        ...publicationMetadata,
         seedDerivationVersion: derivedSeed.seedDerivationVersion,
         directionSeed: derivedSeed.directionSeed,
         canvasSeed: derivedSeed.canvasSeed,
