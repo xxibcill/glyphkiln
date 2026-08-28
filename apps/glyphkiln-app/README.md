@@ -148,9 +148,10 @@ implemented boundary and remaining product gates. Leave
 `GLYPHKILN_AI_PROPOSALS` absent or set it to `disabled` to keep the adapter off;
 in that state, provider variables are inert. AI approval is accepted only with
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified`; campaign persistence is
-otherwise dark-launched and hidden from the workshop. The current checked-in
-campaign qualification is pending, so the runtime rejects that enabling value
-until a reviewed PASS changes both the evidence record and runtime status.
+otherwise dark-launched and hidden from the workshop. The checked-in campaign
+qualification passed project-owner visual review on 2026-08-19, so the runtime
+accepts that enabling value while continuing to keep the feature disabled by
+default.
 
 ### 5. Prepare the database and worker
 

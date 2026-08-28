@@ -9,7 +9,7 @@ export const CAMPAIGN_WORKFLOW_QUALIFICATION: Readonly<{
 }> = Object.freeze({
   assertion: "product-qualified",
   record: "docs/qualification/campaign-workflow-2026-08-13.md",
-  status: "pending",
+  status: "pass",
 });
 
 export type ProductFeaturePolicy = {

@@ -2,7 +2,7 @@
 
 ## Current execution status
 
-As of 2026-08-18, signed Core `v0.6.0` and App `v0.1.0-alpha` source releases
+As of 2026-08-19, signed Core `v0.6.0` and App `v0.1.0-alpha` source releases
 are available and the supported App Alpha topology is qualified. Core `0.6.0`
 contains the non-pixel-affecting campaign coordination, explicit color
 normalization, and AI-ready authoring contracts. Dual-runtime qualification,
@@ -21,11 +21,11 @@ approval receipts. A controlled two-brief, three-brand image-led board now
 identified a shared fixed-slot logo alignment defect. The versioned
 `image-led-campaign@1.0.1` correction and regenerated board pass automated proof
 and reproduction checks, and the project owner approved the board on 2026-08-18.
-The real Glyphkiln Core 0.6 brief now has a generated four-format, four-slide,
-seven-canvas exact revision with zero Core quality issues and a deterministic
-unapproved handoff. Product acceptance still requires project-owner visual
-approval of that exact board and the separate real-brief AI
-interaction/threat-model gate.
+The real Glyphkiln Core 0.6 brief now has a project-owner-approved four-format,
+four-slide, seven-canvas exact revision with zero Core quality issues, exact
+approval receipts, and a deterministic approved handoff. The manual campaign
+product gate passed on 2026-08-19. The separate real-brief AI
+interaction/threat-model gate remains.
 
 The Core `0.6.0` release passed clean Node `24.16.0` and minimum Node `22.22.2`
 qualification with npm `10.9.8`, including build, typecheck, lint/security,
@@ -36,11 +36,11 @@ GitHub Actions workflow was used. Exact release evidence is recorded in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
 
 The active product sequence is tracked in the
-[post-Alpha execution plan](plans/post-alpha-next-milestones.md): close the
-designer-control and remaining brand-fidelity foundation, complete one manual
-campaign workflow, enable optional AI proposals only through that proven
-workflow, then add exact-revision review and approval. Multilingual work starts
-only after a real market brief selects the first horizontal script slice.
+[post-Alpha execution plan](plans/post-alpha-next-milestones.md). Designer
+control, brand fidelity, the manual campaign workflow, and exact-revision review
+and approval are complete. The next gate is optional AI proposals against a real
+brief through that proven workflow. Multilingual work starts only after a real
+market brief selects the first horizontal script slice.
 
 ## Core `0.5.0`
 
@@ -127,7 +127,7 @@ limitations remain tracked in [the App Alpha plan](plans/app-alpha.md).
    bundles while retaining one immutable design revision per canvas. The
    workspace-qualified persistence, interaction, exact-revision canvas, lock
    enforcement, and bundle layers are implemented; real-brief product
-   qualification remains.
+   qualification passed on 2026-08-19.
 3. Optional LLM brief interpretation as an untrusted producer of several
    structured candidate directions. Manual mode remains first-class; every
    candidate passes Core validation, and selective regeneration preserves human

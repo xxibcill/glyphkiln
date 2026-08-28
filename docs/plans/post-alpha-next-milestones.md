@@ -112,10 +112,9 @@ The project owner approved the regenerated board without manual repair on
 
 ## Slice 3: manual campaign workflow
 
-Status: exact real-brief revision generated; runtime remains closed pending
-project-owner visual approval and exact approval receipts
+Status: complete; project-owner-approved exact revision and receipts promoted
 
-- [ ] Approve one campaign brief requiring at least four formats and a
+- [x] Approve one campaign brief requiring at least four formats and a
       multi-slide series.
 - [x] Add workspace-qualified campaigns, directions, canvases, ordering, and
       lock metadata with forward/rollback migrations.
@@ -123,8 +122,8 @@ project-owner visual approval and exact approval receipts
 - [x] Persist canonical closed server-owned lock IDs separately from documents.
 - [x] Enforce those locks at every future adaptation or proposal-acceptance
       boundary.
-- [ ] Add brief-backed composition variants and content-length profiles only
-      where the selected campaign demonstrates repeatable behavior.
+- [x] Evaluate brief-backed composition variants and content-length profiles;
+      the selected campaign required no new variant or profile.
 - [x] Coordinate exact format and carousel canvases while retaining one immutable
       revision per canvas.
 - [x] Generate a deterministic batch proof and export bundle with stable names,
@@ -134,12 +133,13 @@ Gate: one selected direction becomes a coherent four-format campaign and
 multi-slide series; locks survive every adaptation; every canvas reproduces;
 the verified bundle is complete and stably named.
 
-The controlled Glyphkiln Core 0.6 launch candidate now supplies four formats,
+The controlled Glyphkiln Core 0.6 launch campaign supplies four formats,
 four ordered carousel slides, seven exact revisions, a server-validated
 typography lock, zero Core quality issues, deterministic reproduction, and a
-49-file canonical handoff. The handoff remains accurately labeled unapproved
-until the project owner reviews the
-[campaign board](../qualification/campaign-workflow-2026-08-18/generated/campaign-review-board.png).
+51-file canonical handoff. The project owner approved the exact
+[campaign board](../qualification/campaign-workflow-2026-08-18/generated/campaign-review-board.png)
+on 2026-08-19 without manual repair; all seven receipts and handoff files are
+bound to the approved revision hashes and labeled approved.
 No new composition variant or content-length profile was required: both
 published family members handled the selected brief without repeatable repair.
 
@@ -167,7 +167,7 @@ bypasses admission, authorization, Core validation, or human acceptance.
 
 ## Slice 5: review, approval, and handoff
 
-Status: exact-revision state and evidence foundation implemented
+Status: exact-revision state and evidence foundation implemented and exercised
 
 - [x] Add revision-bound comments or bounded annotations.
 - [x] Add exact visual revision comparison.
@@ -228,8 +228,9 @@ check because no `GLYPHKILN_REAL_POSTGRES_DATABASE_URL` was configured.
 
 The completed campaign/review slice's automated software gates were then
 qualified on both Node `24.16.0` and an exact disposable Node `22.22.2` runtime
-with npm `10.9.8`. This does not satisfy the still-pending real-brief product
-qualification. A clean
+with npm `10.9.8`. At that point, automation alone did not satisfy the
+real-brief product qualification; the reviewed 2026-08-19 campaign approval now
+closes that separate human gate. A clean
 `npm ci`, build, typecheck, security/lint/format, full tests, coverage,
 text-layout data, fixtures, schema conformance, identity, reviewed examples,
 licenses, packed consumer, and Core tarball dry run passed on the minimum

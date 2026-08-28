@@ -157,19 +157,25 @@ describe("application runtime composition", () => {
     });
   });
 
-  it("rejects the enabling assertion while campaign qualification is pending", async () => {
+  it("enables the campaign workflow after product qualification", async () => {
     const { createAppRuntime } = await importRuntime();
+    const environment = testEnvironment({
+      DATABASE_URL: "postgresql://runtime@database/glyphkiln",
+      GLYPHKILN_CAMPAIGN_WORKFLOW: "product-qualified",
+    });
 
-    await expect(
-      createAppRuntime(
-        testEnvironment({
-          DATABASE_URL: "postgresql://runtime@database/glyphkiln",
-          GLYPHKILN_CAMPAIGN_WORKFLOW: "product-qualified",
-        }),
-      ),
-    ).rejects.toThrow("checked-in qualification record is PENDING");
-    expect(runtimeMocks.createAppWorkflow).not.toHaveBeenCalled();
-    expect(runtimeMocks.database.close).toHaveBeenCalledOnce();
+    const runtime = await createAppRuntime(environment);
+
+    expect(runtimeMocks.createAppWorkflow).toHaveBeenCalledWith({
+      campaignWorkflowEnabled: true,
+      database: runtimeMocks.database,
+      renderQueue: runtime.renderQueue,
+      workspaceCreationLimits: {
+        maximumWorkspacesPerInstallation: 100,
+        maximumWorkspacesPerUser: 5,
+      },
+    });
+    expect(runtimeMocks.database.close).not.toHaveBeenCalled();
   });
 
   it("closes the database when AI proposals bypass the campaign qualification", async () => {

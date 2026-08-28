@@ -1,5 +1,54 @@
 # @glyphkiln/app
 
+## 0.0.6
+
+### Patch Changes
+
+- 4728e5f: Add versioned Instagram and TikTok delivery profiles, carousel sequence review,
+  deterministic accessibility/source sidecars, advisory copy ranges, and fitted
+  font-size render evidence for delivered-size proofing. Add the versioned
+  organic carousel composition with collision-safe headline leading, optional
+  sequence chrome, content-responsive spacing, and deterministic pattern rails.
+  Extend Campaign Studio with stored narrative roles, delivery profiles, and
+  per-slide source notes, plus carousel review evidence, accessibility copy, and
+  verified delivery sidecars with whole-slide publisher alt text in handoffs.
+  Keep recommendation-backed accessibility lengths advisory while enforcing only
+  platform requirements and capabilities as blocking constraints.
+  Add a pre-handoff sequence review in Campaign Studio with the exact slide copy,
+  source notes, Core review issues, render evidence, manifests, hashes, and previews.
+  Embed the selected delivery-profile snapshot and its dated source records in every
+  portable carousel delivery sidecar.
+- 4728e5f: Add `image-led-campaign@1.0.1`, which sizes contained logo boxes from admitted
+  asset dimensions so marks align with the safe-area content column. Keep
+  `image-led-campaign@1.0.0` exactly renderable, publish both authoring contracts,
+  and select the corrected version for current campaign-family and App workflows.
+- 93e1ebb: Add the manual campaign option board, immutable direction branching and locks,
+  bounded proposal-only AI workflow, exact revision comparison and approval
+  station, and deterministic campaign handoff bundles with proof and approval
+  evidence. Handoff requests bind one explicit selected direction into the query,
+  response receipt, and canonical archive so alternatives cannot enter the bundle.
+
+  The campaign surface is dark-launched by default and requires the explicit
+  `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` operator assertion after a
+  passing real-brief qualification record. The project-owner-approved four-format,
+  seven-canvas qualification now carries exact approval receipts, so the checked-in
+  runtime gate accepts that assertion while remaining disabled by default.
+
+  The campaign family includes the existing deterministic 3:4 TikTok carousel
+  template so qualification can exercise a fourth format and repeated slide
+  canvas streams without changing renderer or template pixels. Each family member
+  publishes its own authoritative roles, composition variant, and safe-area policy,
+  and App persistence accepts both qualified family composition variants.
+
+  Campaign boards expose a bounded recent proposal-run index so stored history can
+  be reopened after a browser reload, including while campaign mutations remain
+  disabled.
+
+- Updated dependencies [4728e5f]
+- Updated dependencies [4728e5f]
+- Updated dependencies [93e1ebb]
+  - @glyphkiln/core@0.7.0
+
 ## 0.0.5
 
 ### Patch Changes
