@@ -1,6 +1,6 @@
 # ADR 0017: Fail-closed campaign workflow dark launch
 
-Status: accepted; product qualification pending
+Status: accepted; product qualification passed 2026-08-19
 
 ## Context
 
@@ -15,7 +15,7 @@ Campaign persistence is installation-wide and disabled by default. Only the
 exact operator value
 `GLYPHKILN_CAMPAIGN_WORKFLOW=product-qualified` can request campaign mutations,
 seed preparation, handoff generation, and Campaign Studio controls. The request
-enables them only when the checked-in qualification status is `pass`; while the
+enables them only when the checked-in qualification status is `pass`; if the
 record is pending it fails startup. Unknown values fail startup. AI proposal
 approval depends on this campaign gate.
 

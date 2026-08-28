@@ -1,6 +1,6 @@
 {
   "name": "@glyphkiln/app",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "description": "The self-hostable Glyphkiln application.",
   "license": "Apache-2.0",
@@ -22,7 +22,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@glyphkiln/core": "^0.6.0",
+    "@glyphkiln/core": "^0.7.0",
     "@node-rs/argon2": "^2.0.2",
     "next": "16.3.0",
     "postgres": "^3.4.9",

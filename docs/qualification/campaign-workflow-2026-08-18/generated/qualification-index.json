@@ -1,7 +1,24 @@
 {
   "version": "1.0.0",
-  "status": "awaiting-human-visual-approval",
+  "status": "pass",
   "creationTimestamp": "2026-08-18T14:00:00.000Z",
+  "approval": {
+    "approvedAt": "2026-08-19T14:09:22.000Z",
+    "approvedBy": {
+      "id": "project-owner",
+      "email": "project-owner@glyphkiln.invalid",
+      "displayName": "Project owner"
+    },
+    "reviewBoardSha256": "290c7bcd7474f07213dc6ce00be424c338804a9af43a954021712cd55d6e0052",
+    "checklist": {
+      "coherentImageLedLaunchSet": true,
+      "orderedCarouselStory": true,
+      "consistentBrandSystem": true,
+      "publishableHierarchy": true,
+      "requiresManualPixelRepair": false,
+      "completeExactRevisionApproved": true
+    }
+  },
   "generator": "scripts/generate-campaign-workflow-qualification.mjs",
   "brief": {
     "product": "@glyphkiln/core@0.6.0",
@@ -74,6 +91,13 @@
     "allContrastChecksPass": true,
     "stableHandoffOrdering": true,
     "exactReproduction": true
+  },
+  "carouselReview": {
+    "deliveryProfileId": "tiktok-organic-photo",
+    "deliveryProfileMetadataVersion": "1.0.0",
+    "success": true,
+    "acceptedWarningCodes": ["COMPOSITION_RHYTHM_REVIEW"],
+    "deviceSpecificOverlayVerification": "not-recorded; verify the dated advisory against the live target device before publishing"
   },
   "cases": [
     {
@@ -379,14 +403,15 @@
     "byteSize": 470399
   },
   "handoff": {
-    "status": "unapproved",
+    "status": "approved",
     "path": "docs/qualification/campaign-workflow-2026-08-18/generated/glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
+    "deliverablePath": "Deliverables/campaigns/glyphkiln-core-0-6-launch/glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
     "filename": "glyphkiln-core-0-6-launch-proof-not-promises.gk-handoff.json",
     "mediaType": "application/vnd.glyphkiln.campaign-handoff+json",
-    "sha256": "52e3ce2a8a88c8c3455322ce017294f941d0fd80c45d194b5763276a99c88d0b",
-    "byteSize": 3139657,
+    "sha256": "e22fd81505cd83f58ba4128c671f67b99d6ba4c6cfc2fcf6bc2d873446d20c5f",
+    "byteSize": 3150248,
     "fileCount": 51,
-    "approvedCanvasCount": 0,
-    "unapprovedCanvasCount": 7
+    "approvedCanvasCount": 7,
+    "unapprovedCanvasCount": 0
   }
 }

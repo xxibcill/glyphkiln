@@ -1,15 +1,14 @@
 # Campaign workflow product qualification — started 2026-08-13
 
-Status: **PENDING HUMAN VISUAL APPROVAL**
+Status: **PASS**
 
-The implementation, automated trust-boundary tests, and one real product brief
-now satisfy the machine-verifiable parts of the campaign product gate. The
-generated exact revision remains in review, so production and self-host defaults
-continue to keep `GLYPHKILN_CAMPAIGN_WORKFLOW=disabled`. The runtime also rejects
-the `product-qualified` assertion while this checked-in record remains pending;
-an operator string cannot substitute for project-owner approval.
+The implementation, automated trust-boundary tests, one real product brief, and
+project-owner visual approval now satisfy the campaign product gate. Production
+and self-host defaults continue to keep `GLYPHKILN_CAMPAIGN_WORKFLOW=disabled`;
+an operator may explicitly set it to `product-qualified` because this checked-in
+record and the runtime qualification status now both say `pass`.
 
-## Approved brief candidate
+## Approved brief
 
 **Product:** published `@glyphkiln/core@0.6.0`
 
@@ -98,23 +97,31 @@ artwork is also a project-authored vector asset. No generative image model,
 third-party logo, active SVG render input, or external runtime fetch is
 involved.
 
-## Handoff state
+## Approved handoff
 
-The current candidate handoff is intentionally and accurately labeled
-**unapproved**. Its seven approval records say `in-review`, all 51 files carry
-`approvalStatus: unapproved`, and its summary reports zero approved and seven
-unapproved canvases. This prevents generation from fabricating the human step.
+The regenerated canonical handoff is accurately labeled **approved**. Its seven
+immutable approval receipts bind the project-owner decision to each exact
+document hash, resource pins, SVG/PNG fingerprints, artifact hashes, and
+canonical manifest hashes. All 51 files carry `approvalStatus: approved`, and
+the summary reports seven approved and zero unapproved canvases.
 
-After the project owner approves the exact review board, one reviewed change
-must bind approval receipts to the exact document hashes, resource pins,
-fingerprints, output hashes, and manifest hashes; regenerate the canonical
-handoff; change this record to **PASS**; and change the runtime qualification
-status to `pass`.
+The exact handoff and fourteen reviewed SVG/PNG outputs are promoted under
+`Deliverables/campaigns/glyphkiln-core-0-6-launch/`. The checked-in generator
+reproduces both the qualification artifacts and promoted deliverables.
+
+The four-slide sequence uses `tiktok-organic-photo` profile metadata `1.0.0`
+with narrative roles `hook`, `explanation`, `evidence`, and `action`. Its review
+has no blocking errors. The project owner accepted the advisory
+`COMPOSITION_RHYTHM_REVIEW` warning because the repeated composition provides a
+deliberate stable campaign grammar. TikTok's published item bounds remain
+platform requirements; the 3:4 working canvas and dated overlay are Glyphkiln
+advisories. Live target-device overlay verification is not recorded by this
+qualification and remains required before publishing.
 
 ## Repository verification
 
-The candidate passed the complete local handoff gate on Node `24.16.0` with npm
-`10.9.8`:
+The approved revision passed the complete local handoff gate on Node `24.16.0`
+with npm `10.9.8`:
 
 ```text
 npm run build                                  PASS
@@ -132,8 +139,8 @@ npm run qualification:brand-fidelity:verify    PASS
 npm run qualification:campaign-workflow:verify PASS
 ```
 
-Core passed 321 tests with 84.19% statement coverage. The App passed 517 active
-tests with five intentional skips and 87.71% statement coverage. The showcase
+Core passed 337 tests with 84.88% statement coverage. The App passed 530 active
+tests with five intentional skips and 87.63% statement coverage. The showcase
 passed four tests with 92.27% line coverage. The checks also verified the
 standalone App, isolated rendering, deterministic text layout and wrapping,
 Unicode 17 data, 16 full design fixtures, five schema-conformance vectors, all
@@ -147,17 +154,17 @@ Review
 [campaign-review-board.png](campaign-workflow-2026-08-18/generated/campaign-review-board.png)
 at full size and confirm all of the following:
 
-- [ ] The three image-led outputs form one coherent launch set.
-- [ ] The four TikTok slides read as one ordered story.
-- [ ] The Glyphkiln mark, palette, and typography remain consistent.
-- [ ] Headline, supporting copy, and CTA hierarchy are publishable in every
+- [x] The three image-led outputs form one coherent launch set.
+- [x] The four TikTok slides read as one ordered story.
+- [x] The Glyphkiln mark, palette, and typography remain consistent.
+- [x] Headline, supporting copy, and CTA hierarchy are publishable in every
       format.
-- [ ] No output needs Figma or other manual pixel repair.
-- [ ] The complete seven-canvas exact revision is approved.
+- [x] No output needs Figma or other manual pixel repair.
+- [x] The complete seven-canvas exact revision is approved.
 
-Reviewer: pending
+Reviewer: project owner, through Codex
 
-Approval date: pending
+Approval date: 2026-08-19
 
 ## Reproduction
 
@@ -168,10 +175,11 @@ npm run qualification:campaign-workflow:verify
 The generator lives at
 [`scripts/generate-campaign-workflow-qualification.mjs`](../../scripts/generate-campaign-workflow-qualification.mjs).
 It uses only explicit local bytes and the public `@glyphkiln/core` API. It does
-not fetch resources or execute user-provided code. The generated candidate
-handoff, preview PNGs, and exact SVGs remain under
-`docs/qualification/campaign-workflow-2026-08-18/generated/` until a human
-reviewer approves the exact final bytes for promotion to `Deliverables/`.
+not fetch resources or execute user-provided code. The approved handoff, preview
+PNGs, and exact SVGs remain under
+`docs/qualification/campaign-workflow-2026-08-18/generated/` as reproducible
+evidence and are copied byte-for-byte to the campaign-specific `Deliverables/`
+directory by the same generator.
 
 Optional AI proposals remain gated as a dependent campaign capability and are
 not exercised by this manual qualification.

@@ -37,12 +37,22 @@ const QUALIFICATION_ROOT = resolve(
 const BRAND_ROOT = resolve(REPOSITORY_ROOT, "assets/brand/glyphkiln");
 const ASSET_ROOT = resolve(QUALIFICATION_ROOT, "assets");
 const GENERATED_ROOT = resolve(QUALIFICATION_ROOT, "generated");
+const DELIVERABLE_ROOT = resolve(
+  REPOSITORY_ROOT,
+  "Deliverables/campaigns/glyphkiln-core-0-6-launch",
+);
 const VERIFY = process.argv.includes("--verify");
 const { emit, repositoryPath } = createQualificationEmitter({
   repositoryRoot: REPOSITORY_ROOT,
   verify: VERIFY,
 });
 const CREATION_TIMESTAMP = "2026-08-18T14:00:00.000Z";
+const APPROVAL_TIMESTAMP = "2026-08-19T14:09:22.000Z";
+const APPROVER = Object.freeze({
+  id: "project-owner",
+  email: "project-owner@glyphkiln.invalid",
+  displayName: "Project owner",
+});
 const CAMPAIGN_ID = "campaign-glyphkiln-core-0-6-launch";
 const DIRECTION_ID = "direction-proof-not-promises";
 const DIRECTION_KEY = "proof-not-promises";
@@ -176,6 +186,9 @@ for (const [ordinal, spec] of canvasSpecs.entries()) {
       `${spec.canvasKey}.${output.format}`,
     );
     const manifestBytes = `${JSON.stringify(output.manifest, null, 2)}\n`;
+    const handoffManifestBytes = new TextEncoder().encode(
+      `${canonicalJson(output.manifest)}\n`,
+    );
     await emit(outputPath, output.bytes);
     await emit(`${outputPath}.manifest.json`, manifestBytes);
     outputs[output.format] = {
@@ -186,6 +199,7 @@ for (const [ordinal, spec] of canvasSpecs.entries()) {
       sha256: output.manifest.output.sha256,
       byteSize: output.bytes.byteLength,
       fingerprint: output.fingerprint,
+      manifestSha256: sha256(handoffManifestBytes),
     };
   }
 
@@ -236,14 +250,36 @@ const campaign = {
   createdAt: CREATION_TIMESTAMP,
   updatedAt: CREATION_TIMESTAMP,
 };
-const handoff = createUnapprovedHandoff(campaign, renderedCases);
+const handoff = createApprovedHandoff(campaign, renderedCases);
 const handoffPath = resolve(GENERATED_ROOT, HANDOFF_FILENAME);
 await emit(handoffPath, handoff.bytes);
+await emit(resolve(DELIVERABLE_ROOT, HANDOFF_FILENAME), handoff.bytes);
+for (const entry of renderedCases) {
+  for (const [format, output] of Object.entries(entry.outputs)) {
+    await emit(
+      resolve(DELIVERABLE_ROOT, format, `${entry.canvasKey}.${format}`),
+      output.bytes,
+    );
+  }
+}
 
 const index = {
   version: "1.0.0",
-  status: "awaiting-human-visual-approval",
+  status: "pass",
   creationTimestamp: CREATION_TIMESTAMP,
+  approval: {
+    approvedAt: APPROVAL_TIMESTAMP,
+    approvedBy: APPROVER,
+    reviewBoardSha256: sha256(reviewBoardPng),
+    checklist: {
+      coherentImageLedLaunchSet: true,
+      orderedCarouselStory: true,
+      consistentBrandSystem: true,
+      publishableHierarchy: true,
+      requiresManualPixelRepair: false,
+      completeExactRevisionApproved: true,
+    },
+  },
   generator: repositoryPath(fileURLToPath(import.meta.url)),
   brief: {
     product: "@glyphkiln/core@0.6.0",
@@ -310,6 +346,17 @@ const index = {
     stableHandoffOrdering: true,
     exactReproduction: true,
   },
+  carouselReview: {
+    deliveryProfileId: handoff.deliverySidecar.deliveryProfile.id,
+    deliveryProfileMetadataVersion:
+      handoff.deliverySidecar.deliveryProfile.metadataVersion,
+    success: handoff.sequenceReview.success,
+    acceptedWarningCodes: handoff.sequenceReview.issues
+      .filter((issue) => issue.severity === "warning")
+      .map((issue) => issue.code),
+    deviceSpecificOverlayVerification:
+      "not-recorded; verify the dated advisory against the live target device before publishing",
+  },
   cases: renderedCases.map((entry) => ({
     ordinal: entry.ordinal,
     canvasKey: entry.canvasKey,
@@ -343,15 +390,16 @@ const index = {
     byteSize: reviewBoardPng.byteLength,
   },
   handoff: {
-    status: "unapproved",
+    status: "approved",
     path: repositoryPath(handoffPath),
+    deliverablePath: repositoryPath(resolve(DELIVERABLE_ROOT, HANDOFF_FILENAME)),
     filename: HANDOFF_FILENAME,
     mediaType: "application/vnd.glyphkiln.campaign-handoff+json",
     sha256: sha256(handoff.bytes),
     byteSize: handoff.bytes.byteLength,
     fileCount: handoff.files.length,
-    approvedCanvasCount: 0,
-    unapprovedCanvasCount: renderedCases.length,
+    approvedCanvasCount: renderedCases.length,
+    unapprovedCanvasCount: 0,
   },
 };
 const indexBytes = await prettier.format(JSON.stringify(index), { parser: "json" });
@@ -361,7 +409,7 @@ process.stdout.write(
   `${VERIFY ? "Verified" : "Generated"} ${renderedCases.length.toString()} campaign canvases across ${uniqueFormats.size.toString()} formats, including ${carouselSlides.length.toString()} carousel slides.\n`,
 );
 process.stdout.write(
-  `Review board ${sha256(reviewBoardPng)}; unapproved handoff ${sha256(handoff.bytes)}.\n`,
+  `Review board ${sha256(reviewBoardPng)}; approved handoff ${sha256(handoff.bytes)}.\n`,
 );
 
 function imageLedCanvas(canvasKey, format, label) {
@@ -585,7 +633,7 @@ function resourcePinsFor(spec) {
   return pins;
 }
 
-function createUnapprovedHandoff(campaign, cases) {
+function createApprovedHandoff(campaign, cases) {
   const files = [];
   for (const entry of cases) {
     const canvasPrefix = campaignHandoffCanvasPrefix({
@@ -604,9 +652,25 @@ function createUnapprovedHandoff(campaign, cases) {
           resourcePins: entry.resourcePins,
         },
         approval: {
-          status: "unapproved",
-          reviewState: "in-review",
-          revisionId: entry.revisionId,
+          status: "approved",
+          receipt: {
+            id: `qualification-approval-${entry.canvasKey}-r1`,
+            renderJobId: `qualification-render-${entry.canvasKey}-r1`,
+            revisionCanonicalHash: entry.documentHash,
+            resourcePins: entry.resourcePins,
+            outputEvidence: Object.entries(entry.outputs)
+              .map(([format, output]) => ({
+                format,
+                artifactSha256: output.sha256,
+                manifestSha256: output.manifestSha256,
+                fingerprint: output.fingerprint,
+              }))
+              .sort((left, right) =>
+                left.format < right.format ? -1 : left.format > right.format ? 1 : 0,
+              ),
+            approvedBy: APPROVER,
+            approvedAt: APPROVAL_TIMESTAMP,
+          },
         },
         outputs: Object.entries(entry.outputs).map(([format, output]) => ({
           format,
@@ -614,7 +678,7 @@ function createUnapprovedHandoff(campaign, cases) {
           bytes: output.bytes,
           manifest: output.manifest,
         })),
-        approvalStatus: "unapproved",
+        approvalStatus: "approved",
       }),
     );
   }
@@ -641,6 +705,7 @@ function createUnapprovedHandoff(campaign, cases) {
   if (!sequenceReview.success) {
     throw new Error("The qualification carousel sequence must pass review.");
   }
+  const deliverySidecar = createCarouselDeliverySidecar(carouselSequence);
   const sequencePrefix = campaignHandoffSequencePrefix({
     campaignPrefix: `glyphkiln-core-0-6-launch-${CAMPAIGN_ID}`,
     directionKey: DIRECTION_KEY,
@@ -650,23 +715,27 @@ function createUnapprovedHandoff(campaign, cases) {
     campaignHandoffJsonFile(
       `${sequencePrefix}.review.json`,
       sequenceReview,
-      "unapproved",
+      "approved",
     ),
     campaignHandoffJsonFile(
       `${sequencePrefix}.delivery.json`,
-      createCarouselDeliverySidecar(carouselSequence),
-      "unapproved",
+      deliverySidecar,
+      "approved",
     ),
   );
-  return encodeCampaignHandoff({
-    campaign,
-    directionId: DIRECTION_ID,
-    files,
-    summary: {
-      approvedCanvasCount: 0,
-      unapprovedCanvasCount: cases.length,
-    },
-  });
+  return {
+    ...encodeCampaignHandoff({
+      campaign,
+      directionId: DIRECTION_ID,
+      files,
+      summary: {
+        approvedCanvasCount: cases.length,
+        unapprovedCanvasCount: 0,
+      },
+    }),
+    deliverySidecar,
+    sequenceReview,
+  };
 }
 
 function qualificationNarrativeRole(entry) {

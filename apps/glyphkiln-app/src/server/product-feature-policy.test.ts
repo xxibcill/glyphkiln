@@ -17,19 +17,19 @@ describe("product feature policy", () => {
     ).toEqual({ campaignWorkflow: false });
   });
 
-  it("rejects the enabling assertion while qualification remains pending", () => {
+  it("accepts the enabling assertion after qualification passes", () => {
     expect(CAMPAIGN_WORKFLOW_QUALIFICATION).toEqual({
       assertion: "product-qualified",
       record: "docs/qualification/campaign-workflow-2026-08-13.md",
-      status: "pending",
+      status: "pass",
     });
-    expect(() =>
+    expect(
       readProductFeaturePolicy(
         environment({
           GLYPHKILN_CAMPAIGN_WORKFLOW: "product-qualified",
         }),
       ),
-    ).toThrow("checked-in qualification record is PENDING");
+    ).toEqual({ campaignWorkflow: true });
     expect(() =>
       readProductFeaturePolicy(environment({ GLYPHKILN_CAMPAIGN_WORKFLOW: "enabled" })),
     ).toThrow("GLYPHKILN_CAMPAIGN_WORKFLOW");
