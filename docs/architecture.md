@@ -1,32 +1,51 @@
 # Architecture
 
 Glyphkiln Core remains a single ESM package with internal module boundaries and
-curated public entry points. It lives in the Glyphkiln npm workspace
-beside the independently useful application runtime. The workspace coordinates
-development, but the application consumes Core only through its package exports.
-See [ADR 0010](adr/0010-glyphkiln-monorepo.md).
+curated public entry points. The root export retains the semantic
+`DesignDocument` renderer; `@glyphkiln/core/scene` is the intentional expert
+Scene Kernel. It lives in the Glyphkiln npm workspace beside the independently
+useful application runtime. The workspace coordinates development, but the
+application consumes Core only through its package exports. See
+[ADR 0010](adr/0010-glyphkiln-monorepo.md) and
+[ADR 0018](adr/0018-expert-scene-kernel.md).
 
 ## Pipeline
 
 ```text
-untrusted JSON
-  → iterative byte/depth/entry resource preflight
-  → strict DesignDocument 1.4.0 validation (plus supported legacy schemas)
-  → format + template registry lookup
-  → required-layer, brand, and pinned Unicode text-layout quality checks
+semantic route
+  untrusted DesignDocument JSON
+    → iterative byte/depth/entry preflight
+    → strict DesignDocument 1.4.0 validation (plus supported legacy schemas)
+    → exact format + template + brand/resource policy
+    → versioned template composition
+    → renderer-neutral scene
+
+expert route
+  untrusted SceneDocument 1.0.0 data
+    → iterative byte/depth/entry preflight
+    → strict closed-scene validation
+
+shared owned render path
   → bounded caller-supplied asset/font verification
-  → explicit versioned template, focal crop, and closed image treatment
-  → deterministic scene primitives plus bounded crop/contrast/layout proof
+  → Core text layout, groups, transforms, clips, and explicit-route connectors
   → shaped glyph outlines + generated safe SVG
   ├─→ SVG bytes
-  └─→ Resvg with explicit font files → PNG bytes
-       → canonical fingerprint + provenance manifest
+  └─→ pinned Resvg with explicit font files → PNG bytes
+       → canonical fingerprint + versioned manifest
 ```
 
 The renderer is vector-first. Templates operate on semantic layers and emit a
-small renderer-neutral scene (`rect`, `circle`, `path`, `text`, and embedded
-image). SVG serialization is owned by Core. PNG is a rasterization of those
-same SVG bytes, not a separate layout implementation.
+bounded renderer-neutral scene. Expert callers may instead supply reviewed
+explicit geometry through the strict `SceneDocument` contract. Both routes
+retain Core-owned SVG serialization. PNG is a rasterization of those same SVG
+bytes, not a separate layout implementation.
+
+Scene Kernel is one deep operation, `renderScene`, rather than a mutable canvas
+or public serializer shortcut. Its closed v1 vocabulary adds nested groups,
+versioned transforms and clips, connectors with validated semantic endpoints
+and explicit bounded routes, semantic reading order, and Core-laid-out
+`outline` or `outline-with-selectable-text` modes. See
+[Scene Kernel](scene-kernel.md).
 
 ## Renderer recommendation
 
@@ -40,9 +59,11 @@ same SVG bytes, not a separate layout implementation.
 
 Direct SVG scene generation plus pinned `@resvg/resvg-js` was selected. Font
 measurement, shaping, coverage checks, and outlines use `fontkit`; successful
-SVG contains glyph paths rather than recipient-dependent text. Resvg receives
-only explicitly loaded font files and has system-font loading disabled. The
-tradeoff is that Core owns text layout and
+semantic output and Scene `outline` mode use glyph paths as the complete visual
+text. Scene `outline-with-selectable-text` keeps the same paths and adds a
+transparent live-text companion that cannot alter reviewed pixels. Resvg
+receives only explicitly loaded font files and has system-font loading disabled.
+The tradeoff is that Core owns text layout and
 supports a deliberately small visual vocabulary. If richer layout becomes
 necessary, a scene-to-Satori or scene-to-Skia adapter can be evaluated without
 changing the design document, template metadata, asset interface, or manifest.
@@ -72,12 +93,16 @@ changing the design document, template metadata, asset interface, or manifest.
   balanced wrapping, and geometry
 - `backgrounds`: deterministic versioned algorithms
 - `templates`: concrete composition policy
-- `renderer`: scene, SVG serialization, PNG rasterization, quality gating
+- `renderer`: shared scene geometry, SVG serialization, PNG rasterization, and
+  quality gating
+- `@glyphkiln/core/scene`: strict expert `SceneDocument` validation and the one
+  public `renderScene` lifecycle; no App, plugin, or filesystem authority
 - `provenance`: externally serializable manifest
 - `cli`: filesystem adapter over the SDK
 
 The package has no Cloud client, authentication, persistence, queue, billing, or
-LLM dependency.
+LLM dependency. A later semantic `@glyphkiln/book` compiler may target the
+public Scene Kernel without becoming part of the v1 scene contract.
 
 ## App Alpha architecture
 
@@ -146,11 +171,15 @@ See [ADR 0011](adr/0011-app-alpha-workflow-and-trust-seams.md),
 
 ## Security boundary
 
-Design documents contain data, never executable code. Core does not interpret
-expressions, dynamically import modules, fetch URLs, or read paths named inside
-a document. Cyclic, accessor-backed, non-JSON, oversized, or excessively nested
-SDK values fail before recursive schema validation. The CLI reads only a bounded
-input file and, when explicitly requested, a validated local
+Design and Scene documents contain data, never executable code. A
+`SceneDocument` may contain bounded explicit geometry, but only through closed
+primitive, group, transform, clip, connector, text, and reading-order unions. It
+cannot contain CSS, markup, callbacks, arbitrary matrices, or runtime component
+registrations. Core does not interpret expressions, dynamically import modules,
+fetch URLs, or read paths named inside a document. Cyclic, accessor-backed,
+non-JSON, oversized, or excessively nested SDK values fail before recursive
+schema validation. The CLI reads only a bounded input file and, when explicitly
+requested, a validated local
 [resource bundle](resource-bundles.md). It may write an explicit command-line
 output. Design data never names those paths; all filesystem roots and outputs
 are operator intent.
@@ -160,15 +189,18 @@ checksum-verified Unicode 17.0.0 files. Runtime classification does not consult
 host ICU, locale, the filesystem, or the network. It diagnoses a narrow known
 unsupported set and does not normalize, reorder, strip, or echo user text.
 
-[`RENDER_RESOURCE_LIMITS`](resource-limits.md) defines the in-process boundary.
-`renderGraphicIsolated` applies `RENDER_WORKER_PROFILE` for process memory,
-timeout, concurrency, filesystem, and subprocess restrictions. Hosts may add a
-container policy for kernel-level tenant, credential, and network separation.
+[`RENDER_RESOURCE_LIMITS`](resource-limits.md) defines the shared render-resource
+boundary, while `SCENE_RESOURCE_LIMITS` adds Scene document, canvas, geometry,
+nesting, path, connector, and reading-order bounds. `renderGraphicIsolated`
+applies `RENDER_WORKER_PROFILE` for process memory, timeout, concurrency,
+filesystem, and subprocess restrictions. Hosts may add a container policy for
+kernel-level tenant, credential, and network separation.
 
 The App admits only PNG/JPEG rasters and individual TTF/OTF faces after host
 malware scanning and full validation. It does not accept uploaded active SVG,
 remote resource locations, arbitrary coordinates/code, generated code, or
-user-controlled imports. Core does not replace host scanning. Non-loopback App
+user-controlled imports. The new expert Scene subpath does not widen that
+browser contract. Core does not replace host scanning. Non-loopback App
 operation remains closed until HTTPS public origin, trusted-proxy handling,
 database authentication, and secure cookies are explicit.
 

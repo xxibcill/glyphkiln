@@ -1,7 +1,7 @@
 # Glyphkiln Core
 
 Glyphkiln Core is the open-source deterministic rendering engine for
-professional social-media graphics.
+professional social-media graphics and reviewed editorial scenes.
 
 > Composed without generative image models and rendered deterministically from
 > code; included asset origins are reported separately.
@@ -13,9 +13,14 @@ depend on Glyphkiln Cloud.
 
 ## Status
 
-This package is a production-quality vertical slice (`0.6.0`).
-Schema and templates are versioned, but the package itself is pre-1.0 and may
-make documented breaking changes.
+This package is a production-quality pre-1.0 vertical slice. Schema and
+templates are versioned, but the package itself may make documented breaking
+changes before `1.0.0`.
+
+The included minor Changeset targets Core `0.8.0` and adds the expert
+`@glyphkiln/core/scene` entry point. It is a stable, validated replacement for
+importing private renderer files; the normal `DesignDocument` workflow and
+Glyphkiln App remain coordinate-free.
 
 Core detects known bidi controls, strong right-to-left text, and
 vertical-primary text that its LTR-horizontal layout cannot faithfully render.
@@ -56,6 +61,7 @@ npm test
 npm run test:coverage
 npm run text-layout-data:verify
 npm run fixtures:verify
+npm run scene-kernel-fixture:verify
 npm run examples:verify
 npm run licenses:verify
 npm run test:package-consumer
@@ -126,6 +132,54 @@ fetches, accepts a path or URL, mutates the source, or runs inside
 `renderGraphic`. Embedded RGB and grayscale ICC profiles are supported; CMYK
 and other color spaces fail explicitly until a bounded decoder can expose raw
 samples safely.
+
+### Expert Scene Kernel
+
+Use `@glyphkiln/core/scene` when reviewed explicit geometry is the input. The
+closed `SceneDocument 1.0.0` union supports primitives, nested groups, ordered
+transforms, clips, semantic connectors with explicit point routes, Core-laid-out
+text, semantic tags, and a reading order independent from paint order.
+
+```ts
+import {
+  SCENE_DOCUMENT_VERSION,
+  renderScene,
+  type SceneDocument,
+} from "@glyphkiln/core/scene";
+
+const scene: SceneDocument = {
+  schemaVersion: SCENE_DOCUMENT_VERSION,
+  id: "reviewed-scene",
+  seed: "reviewed-scene-v1",
+  dimensions: { width: 640, height: 360 },
+  title: "Reviewed scene",
+  description: "One deterministic scene-kernel example.",
+  backgroundColor: "#F6F1E7",
+  assets: [],
+  fonts: [],
+  elements: [
+    {
+      id: "subject",
+      type: "rect",
+      x: 80,
+      y: 80,
+      width: 480,
+      height: 200,
+      fill: "#17262F",
+      semantic: { role: "content", label: "Subject" },
+    },
+  ],
+  readingOrder: ["subject"],
+};
+
+const result = await renderScene(scene, { formats: ["svg", "png"] });
+```
+
+Scene Kernel accepts inert data, never CSS, JavaScript, callbacks, URLs, paths,
+uploaded SVG, host fonts, or runtime plugins. It provides deterministic SVG and
+PNG, per-output manifests, reproduction verification, and a canonical
+fingerprint; it does not provide automatic composition, book structure, PDF, or
+scientific review. See the [Scene Kernel guide](../../docs/scene-kernel.md).
 
 The reviewed Kilnform fixture uses the selected Kilnmaker Seal identity. Run
 `npm run identity:update --workspace @glyphkiln/core` to reproduce its outlined
@@ -278,16 +332,21 @@ validated renderer-neutral scene.
 Reviewed example designs and their tracked SVG/PNG outputs live in
 [`examples/`](examples/). Exact reviewed PNG baselines, source
 designs, and manifests live in [`tests/visual/baselines/`](tests/visual/baselines/).
+The Direction A editorial conformance scene, its expected semantic structure,
+reviewed PNG, and SVG/PNG manifests live in
+[`fixtures/scene-kernel/`](fixtures/scene-kernel/).
 
 ```bash
 npm run build
 npm run examples:generate
 npm run examples:verify
+npm run scene-kernel-fixture:verify
 ```
 
 ## Documentation
 
 - [Architecture](../../docs/architecture.md)
+- [Scene Kernel](../../docs/scene-kernel.md)
 - [AI-ready authoring contracts](../../docs/ai-authoring-contracts.md)
 - [Rendering lifecycle](../../docs/rendering-lifecycle.md)
 - [Design-document specification](../../docs/design-document.md)

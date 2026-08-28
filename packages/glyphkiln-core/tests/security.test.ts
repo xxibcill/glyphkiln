@@ -16,6 +16,9 @@ describe("security boundary", () => {
     expect(() =>
       assertSafeGeneratedSvg('<svg><rect onclick="alert(1)"/></svg>'),
     ).toThrow();
+    expect(() => assertSafeGeneratedSvg("<svg>invalid\u0000xml</svg>")).toThrow(
+      /XML 1\.0/i,
+    );
   });
 
   it("contains no dynamic execution or network-fetch primitives", async () => {

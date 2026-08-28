@@ -28,6 +28,10 @@
       "types": "./dist/schema/index.d.ts",
       "import": "./dist/schema/index.js"
     },
+    "./scene": {
+      "types": "./dist/scene/index.d.ts",
+      "import": "./dist/scene/index.js"
+    },
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"
@@ -65,6 +69,8 @@
     "identity:verify": "npm run build && node scripts/generate-kilnform-identity.mjs --verify",
     "fixtures:update": "node scripts/generate-fixtures.mjs",
     "fixtures:verify": "node scripts/generate-fixtures.mjs --verify",
+    "scene-kernel-fixture:update": "npm run build && node scripts/generate-scene-kernel-fixture.mjs",
+    "scene-kernel-fixture:verify": "npm run build && node scripts/generate-scene-kernel-fixture.mjs --verify",
     "text-layout-data:update": "node scripts/generate-text-layout-data.mjs",
     "text-layout-data:verify": "node scripts/generate-text-layout-data.mjs --verify",
     "schema-conformance:verify": "node scripts/generate-schema-conformance.mjs --verify",

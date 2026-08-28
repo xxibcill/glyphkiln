@@ -28,7 +28,7 @@ import {
   runDocumentQualityChecks,
   type TextLayoutQualitySummary,
 } from "./quality.js";
-import type { Scene } from "./scene.js";
+import { flattenSceneElements, type Scene } from "./scene.js";
 import type { RenderEvidence } from "./evidence.js";
 import { renderSceneToSvg } from "./svg.js";
 
@@ -167,7 +167,7 @@ function collectManifestFonts(
     ),
   );
   const used = new Map<string, ManifestFont>();
-  for (const element of scene.elements) {
+  for (const element of flattenSceneElements(scene.elements)) {
     if (element.type !== "text") continue;
     const key = fontReferenceKey(
       element.fontFamily,

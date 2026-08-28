@@ -1,5 +1,7 @@
 # Rendering lifecycle
 
+## Semantic `renderGraphic` lifecycle
+
 1. Read at most the public byte limit or pass an unknown value to the SDK.
 2. Iteratively reject cyclic, accessor-backed, non-JSON, oversized, overly
    deep, or over-populated input.
@@ -40,3 +42,24 @@ verified bytes before this lifecycle begins.
 `renderGraphicIsolated` runs this lifecycle in a serialized,
 permission-limited child process with V8 memory/stack limits and wall-clock
 termination.
+
+## Expert `renderScene` lifecycle
+
+1. Iteratively preflight inert Scene data for byte, depth, entry, and metadata
+   bounds, then validate the strict `SceneDocument 1.0.0` schema and runtime
+   reference/geometry refinements.
+2. Verify caller-resolved PNG/JPEG and font bytes against the exact declarations
+   and shared resource limits.
+3. Resolve the closed primitive tree, nested groups, transforms, clips,
+   explicit-route connectors, semantic reading order, and Core-owned text
+   layout. Blocking issues throw `SCENE_QUALITY_VALIDATION_FAILED`.
+4. Serialize safe SVG with outlined visual text and, when requested, a
+   transparent selectable-text companion. Rasterize PNG from those exact SVG
+   bytes with pinned Resvg.
+5. Validate each output and return its Scene fingerprint,
+   `SceneRenderManifest 1.0.0`, and bounded quality issues. Scene results do not
+   include the template-specific `RenderEvidence` returned by `renderGraphic`.
+
+`renderScene` is currently an in-process expert operation. A service admitting
+untrusted scenes must provide its own process/container, authorization,
+concurrency, timeout, and tenant boundary.

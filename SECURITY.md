@@ -13,6 +13,10 @@ Only the latest released minor version is supported during the pre-1.0 phase.
 - `glyphkiln-core` validates untrusted structured documents and renders only
   built-in, versioned algorithms. It accepts already-resolved bytes and never
   fetches arbitrary URLs.
+- The expert `SceneDocument` contract is closed, bounded inert data. It accepts
+  no CSS, markup, scripts, callbacks, module names, paths, URLs, external SVG,
+  or host-font selection. Connector routes are numeric data and semantic
+  endpoints must resolve to scene element IDs.
 - `glyphkiln-app` will own uploads, access control, project persistence, and
   browser-facing request limits. It must not bypass Core validation.
 - Fresh App installation registration requires an operator-provisioned
@@ -24,6 +28,11 @@ Only the latest released minor version is supported during the pre-1.0 phase.
 - Untrusted jobs should use `renderGraphicIsolated`, which applies
   `RENDER_WORKER_PROFILE` in a permission-limited child process. Services may
   add a container-level network/credential policy for tenant defense in depth.
+- `renderScene` validates scene and resource limits but is an in-process expert
+  lifecycle in `0.8.0`; it is not wired into Glyphkiln App and has no dedicated
+  isolated-worker wrapper. A service that admits untrusted scenes must put the
+  complete resolve-to-render operation behind its own process/container,
+  timeout, concurrency, authorization, and tenant boundary.
 - Optional LLM adapters may propose a design document. Their output is untrusted
   data and receives exactly the same validation as any other caller. The App's
   provider-neutral response boundary grants proposal-only authority; model
@@ -48,7 +57,9 @@ are rejected; byte counts, exact hashes, and design declarations are verified
 before existing Core asset/font validation runs. The bundle adapter has no
 network-fetch capability.
 
-`RENDER_RESOURCE_LIMITS` bounds document/metadata bytes, depth and entries;
+`RENDER_RESOURCE_LIMITS` and `SCENE_RESOURCE_LIMITS` bound document/metadata
+bytes, depth and entries; scene geometry, nesting, paths, text, connectors, and
+reading order;
 asset count, bytes, dimensions and decoded pixels; font count and bytes; and
 requested outputs. The CLI performs a fixed-size input read.
 `renderGraphicIsolated` enforces serialized concurrency, V8 memory/stack

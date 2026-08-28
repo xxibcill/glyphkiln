@@ -23,3 +23,23 @@ Never refresh a baseline merely because an environment differs. When migrating
 Resvg, Node, platform, or font versions, generate candidates in a pinned
 environment and use perceptual comparison only to help review the migration.
 The accepted baseline remains exact for that pinned environment.
+
+## Scene Kernel editorial fixture
+
+`packages/glyphkiln-core/fixtures/scene-kernel` contains the reviewed Direction
+A decoder spread used to qualify Scene Kernel v1. The source scene and
+expectations pin the semantic IDs, connector endpoints, reading order, palette,
+contrast floors, version identities, and exact SVG/PNG hashes. The generated
+directory tracks the reviewed PNG and both output manifests; SVG bytes are
+regenerated from the scene rather than duplicated in the repository.
+
+Run:
+
+```bash
+npm run scene-kernel-fixture:verify
+```
+
+Use `npm run scene-kernel-fixture:update` only for an intentional reviewed
+renderer or fixture change. Inspect the generated PNG at full size and confirm
+that the mechanism corrections in the expectations still hold before accepting
+new hashes.

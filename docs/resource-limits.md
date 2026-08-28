@@ -22,6 +22,40 @@ profile:
 | Requested output formats         | 2               |
 | Manifest creation timestamp      | 128 bytes       |
 
+The expert Scene Kernel additionally publishes `SCENE_RESOURCE_LIMITS`. Its
+preflight runs before recursive schema validation and uses these bounds:
+
+| Scene resource                   | Limit             |
+| -------------------------------- | ----------------- |
+| Encoded scene document           | 1 MiB             |
+| Scene input depth / entries      | 64 / 20,000       |
+| Metadata encoded size            | 64 KiB            |
+| Metadata depth / entries         | 12 / 2,048        |
+| Canvas width or height           | 8,192 px          |
+| Canvas area                      | 16,777,216 pixels |
+| Absolute coordinate magnitude    | 32,768            |
+| Explicit geometry resolution     | 0.001             |
+| Elements / element nesting depth | 2,048 / 16        |
+| Path data                        | 65,536 chars each |
+| Total path data                  | 262,144 chars     |
+| Text                             | 16,384 chars each |
+| Total text                       | 65,536 chars      |
+| Connector points                 | 256 each          |
+| Total connector points           | 4,096             |
+| Ordered transforms per group     | 16                |
+| Reading-order entries            | 2,048             |
+| Declared assets / fonts          | 100 / 32          |
+
+Scene assets, caller-supplied font bytes, output formats, and manifest
+timestamps reuse `RENDER_RESOURCE_LIMITS`. The closed scene schema also bounds
+individual geometry, text-fit values, path syntax, metadata, identifiers, and
+semantic labels. It rejects duplicate or derived-ID collisions, dangling
+resource/connector/reading-order references, self-connectors, and zero-length
+connector segments before serialization. Explicit geometry must lie on the
+published serialization grid, and path data is parsed as a closed SVG command
+grammar so malformed, non-finite, or out-of-bounds coordinates cannot bypass
+the numeric limits.
+
 The optional CLI [resource-bundle](resource-bundles.md) adapter adds these
 filesystem-input limits before bytes reach the renderer:
 
@@ -55,6 +89,11 @@ non-JSON object instances, excessive nesting, excessive entry counts, and
 oversized metadata fail with structured validation problems. The CLI reads at
 most 1 MiB plus one sentinel byte, so an oversized file is rejected without
 loading the whole file.
+
+`SceneDocument` receives the same inert-data inspection with scene-specific
+problem codes. `renderScene` is currently an in-process expert API; services
+admitting untrusted scene work must add a process or container boundary and
+their own authorization, timeout, concurrency, and tenant controls.
 
 PNG assets must have a complete bounded chunk structure with `IHDR` dimensions
 and an `IEND` at end of file. JPEG assets must have a bounded marker structure,

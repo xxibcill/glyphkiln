@@ -164,6 +164,14 @@ import {
   DesignDocumentSchema,
   getDesignDocumentJsonSchema,
 } from "@glyphkiln/core/schema";
+import {
+  SCENE_DOCUMENT_VERSION,
+  SCENE_KERNEL_VERSION,
+  SCENE_RENDER_MANIFEST_VERSION,
+  renderScene,
+  validateSceneDocument,
+  verifySceneReproduction,
+} from "@glyphkiln/core/scene";
 
 const document = JSON.parse(await readFile(new URL("./design.json", import.meta.url)));
 assert.equal(DesignDocumentSchema.safeParse(document).success, true);
@@ -296,6 +304,50 @@ const isolated = await renderGraphicIsolated(document, { formats: ["png"] });
 assert.ok(direct.outputs[0].bytes.length > 0);
 assert.ok(isolated.outputs[0].bytes.length > 0);
 
+const scene = {
+  schemaVersion: SCENE_DOCUMENT_VERSION,
+  id: "packed-consumer-scene",
+  seed: "packed-consumer-scene-v1",
+  dimensions: { width: 64, height: 64 },
+  title: "Packed scene consumer",
+  description: "A single safe rectangle rendered through the public Scene Kernel.",
+  backgroundColor: "#FFFFFF",
+  assets: [],
+  fonts: [],
+  elements: [
+    {
+      id: "safe-rect",
+      type: "rect",
+      x: 8,
+      y: 8,
+      width: 48,
+      height: 48,
+      fill: "#17262F",
+      semantic: { role: "content", label: "Safe rectangle" },
+    },
+  ],
+  readingOrder: ["safe-rect"],
+};
+assert.equal(validateSceneDocument(scene).success, true);
+const sceneRender = await renderScene(scene, {
+  formats: ["svg"],
+  creationTimestamp: "2026-08-29T00:00:00.000Z",
+});
+const sceneOutput = sceneRender.outputs[0];
+assert.equal(sceneOutput.manifest.sceneKernelVersion, SCENE_KERNEL_VERSION);
+assert.equal(
+  sceneOutput.manifest.manifestVersion,
+  SCENE_RENDER_MANIFEST_VERSION,
+);
+assert.deepEqual(
+  verifySceneReproduction({
+    document: scene,
+    bytes: sceneOutput.bytes,
+    manifest: sceneOutput.manifest,
+  }),
+  [],
+);
+
 const unsupported = structuredClone(document);
 unsupported.layers.find((layer) => layer.type === "headline").text = "\\u05D0";
 assert.equal(inspectDesignDocument(unsupported).textLayout.renderable, false);
@@ -310,6 +362,10 @@ await assert.rejects(
 );
 await assert.rejects(
   import("@glyphkiln/core/typography/text-layout"),
+  (error) => error.code === "ERR_PACKAGE_PATH_NOT_EXPORTED",
+);
+await assert.rejects(
+  import("@glyphkiln/core/renderer/index.js"),
   (error) => error.code === "ERR_PACKAGE_PATH_NOT_EXPORTED",
 );
 `,
@@ -373,6 +429,14 @@ import {
   getDesignDocumentJsonSchema,
   type DesignDocument as SchemaDesignDocument,
 } from "@glyphkiln/core/schema";
+import {
+  SCENE_DOCUMENT_VERSION,
+  renderScene,
+  type RenderSceneResult,
+  type SceneDocument,
+  type SceneElement,
+  type SceneRenderManifest,
+} from "@glyphkiln/core/scene";
 
 const inertRecord = readExactInertDataRecord(
   { value: "safe" },
@@ -508,6 +572,32 @@ const evidence = {} as RenderEvidence;
 void evidence;
 const schemaDocument: SchemaDesignDocument = DesignDocumentSchema.parse(carousel);
 void [schemaDocument, getDesignDocumentJsonSchema()];
+
+const sceneElement: SceneElement = {
+  id: "typed-rect",
+  type: "rect",
+  x: 0,
+  y: 0,
+  width: 32,
+  height: 32,
+  fill: "#17262F",
+};
+const sceneDocument = {
+  schemaVersion: SCENE_DOCUMENT_VERSION,
+  id: "typed-scene-consumer",
+  seed: "typed-scene-consumer-v1",
+  dimensions: { width: 32, height: 32 },
+  title: "Typed scene",
+  description: "A compile-time Scene Kernel contract check.",
+  backgroundColor: "#FFFFFF",
+  assets: [],
+  fonts: [],
+  elements: [sceneElement],
+  readingOrder: [sceneElement.id],
+} satisfies SceneDocument;
+const sceneResult: Promise<RenderSceneResult> = renderScene(sceneDocument);
+const sceneManifest = {} as SceneRenderManifest;
+void [sceneResult, sceneManifest];
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {
