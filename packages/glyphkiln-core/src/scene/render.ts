@@ -338,7 +338,10 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
     y,
     lines,
     fill: element.fill,
-    fontFamily: font.family,
+    // Keep SVG metadata canonical to the scene document. The registry key is
+    // case-insensitive, so a caller may resolve the same bytes under a
+    // different family spelling; that spelling must not change the output.
+    fontFamily: element.font.family,
     fontWeight: element.font.weight,
     fontStyle: element.font.style,
     fontSize: fitted.fontSize,

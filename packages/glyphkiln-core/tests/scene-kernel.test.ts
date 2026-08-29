@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it } from "vitest";
 
 import { DEVELOPMENT_FONT_SHA256, sha256 } from "../src/index.js";
@@ -108,6 +110,37 @@ describe("Scene Kernel v1", () => {
       second.manifest.creationTimestamp,
     );
     expect(first.manifest.input.sceneHash).not.toBe(second.manifest.input.sceneHash);
+  });
+
+  it("keeps selectable SVG identity stable across resolved font casing", async () => {
+    const document = createSceneDocument();
+    const bundled = (
+      await renderScene(document, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      })
+    ).outputs[0]!;
+    const fontBytes = new Uint8Array(
+      await readFile(new URL("../assets/fonts/Inter-Variable.ttf", import.meta.url)),
+    );
+    const callerResolved = (
+      await renderScene(document, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+        fonts: [
+          {
+            family: "INTER",
+            weight: 700,
+            style: "normal",
+            sha256: DEVELOPMENT_FONT_SHA256,
+            bytes: fontBytes,
+          },
+        ],
+      })
+    ).outputs[0]!;
+
+    expect(callerResolved.bytes).toEqual(bundled.bytes);
+    expect(callerResolved.fingerprint).toBe(bundled.fingerprint);
   });
 
   it("rejects serializer-shaped text and image inputs at the public seam", () => {
