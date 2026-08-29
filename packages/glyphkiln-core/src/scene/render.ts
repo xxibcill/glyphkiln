@@ -88,6 +88,7 @@ export async function renderScene(
     );
   }
   const document = validation.data;
+  blockOnSceneTextLayoutErrors(collectSceneTextLayoutDiagnostics(document.elements));
   const formats = validateOutputFormats(options.formats ?? ["svg"]);
   const creationTimestamp = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
@@ -279,21 +280,6 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
     element.font.style,
   );
   context.fontKeys.add(key);
-  const textLayout = analyzeTextLayoutSupport(element.text);
-  for (const diagnostic of textLayout.diagnostics) {
-    context.qualityIssues.push({
-      code: diagnostic.code,
-      severity: "error",
-      message: diagnostic.message,
-      layerId: element.id,
-      details: {
-        diagnosticsVersion: textLayout.version,
-        totalMatches: diagnostic.totalMatches,
-        matches: diagnostic.matches,
-        truncated: diagnostic.truncated,
-      },
-    });
-  }
   const missingCodePoints = context.fonts.missingCodePoints(
     element.text,
     element.font.family,
@@ -498,6 +484,97 @@ function blockOnSceneQualityErrors(issues: readonly QualityIssue[]): void {
     `Scene render blocked by ${errors.length} quality error${errors.length === 1 ? "" : "s"}.`,
     "SCENE_QUALITY_VALIDATION_FAILED",
     { issues },
+  );
+}
+
+type SceneTextLayoutCollection = {
+  totalDiagnostics: number;
+  issues: QualityIssue[];
+  truncated: boolean;
+};
+
+const MAX_SCENE_TEXT_LAYOUT_DIAGNOSTICS = 128;
+
+function collectSceneTextLayoutDiagnostics(
+  elements: readonly SceneElement[],
+): SceneTextLayoutCollection {
+  const issues: QualityIssue[] = [];
+  let totalDiagnostics = 0;
+  for (const reference of collectSceneTextReferences(elements, "$.elements")) {
+    const analysis = analyzeTextLayoutSupport(reference.text);
+    for (const diagnostic of analysis.diagnostics) {
+      totalDiagnostics += 1;
+      if (issues.length >= MAX_SCENE_TEXT_LAYOUT_DIAGNOSTICS) continue;
+      issues.push({
+        code: diagnostic.code,
+        severity: "error",
+        message: diagnostic.message,
+        layerId: reference.elementId,
+        details: {
+          diagnosticsVersion: analysis.version,
+          fieldPath: reference.fieldPath,
+          totalMatches: diagnostic.totalMatches,
+          matches: diagnostic.matches,
+          truncated: diagnostic.truncated,
+        },
+      });
+    }
+  }
+  return {
+    totalDiagnostics,
+    issues,
+    truncated: totalDiagnostics > issues.length,
+  };
+}
+
+type SceneTextReference = {
+  elementId: string;
+  text: string;
+  fieldPath: string;
+};
+
+function collectSceneTextReferences(
+  elements: readonly SceneElement[],
+  path: string,
+): SceneTextReference[] {
+  const references: SceneTextReference[] = [];
+  for (const [index, element] of elements.entries()) {
+    const elementPath = `${path}[${index.toString()}]`;
+    if (element.type === "text") {
+      references.push({
+        elementId: element.id,
+        text: element.text,
+        fieldPath: `${elementPath}.text`,
+      });
+    }
+    if (element.type === "group") {
+      references.push(
+        ...collectSceneTextReferences(element.elements, `${elementPath}.elements`),
+      );
+    }
+  }
+  return references;
+}
+
+function blockOnSceneTextLayoutErrors(collection: SceneTextLayoutCollection): void {
+  if (collection.issues.length === 0) return;
+  const omittedDiagnostics = collection.totalDiagnostics - collection.issues.length;
+  const suffix = collection.truncated
+    ? ` ${omittedDiagnostics.toString()} additional text-layout diagnostics were omitted by the retained-record limit.`
+    : "";
+  throw new GlyphkilnError(
+    `Scene render blocked by ${collection.issues.length.toString()} quality error${
+      collection.issues.length === 1 ? "" : "s"
+    }.${suffix}`,
+    "SCENE_QUALITY_VALIDATION_FAILED",
+    {
+      issues: collection.issues,
+      textLayout: {
+        totalDiagnostics: collection.totalDiagnostics,
+        retainedDiagnostics: collection.issues.length,
+        truncated: collection.truncated,
+      },
+    },
   );
 }
 

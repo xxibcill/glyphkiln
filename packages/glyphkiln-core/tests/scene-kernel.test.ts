@@ -199,6 +199,92 @@ describe("Scene Kernel v1", () => {
     ).rejects.toMatchObject({ code: "SCENE_EMBEDDED_RASTER_BYTES_LIMIT_EXCEEDED" });
   });
 
+  it("reports bounded scene text diagnostics before resolving resources", async () => {
+    const document = createSceneDocument();
+    const imageDeclaration = {
+      id: "missing-image",
+      mimeType: "image/png" as const,
+      sha256: "f".repeat(64),
+      width: 1,
+      height: 1,
+      origin: { kind: "unknown" as const },
+    };
+    document.assets = [imageDeclaration];
+    document.elements = [
+      {
+        id: "missing-image-reference",
+        type: "image",
+        assetId: imageDeclaration.id,
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        fit: "contain",
+      },
+      {
+        id: "unsupported-text",
+        type: "text",
+        text: "\u200F\u05D0\u1820",
+        box: { x: 0, y: 0, width: 120, height: 40 },
+        font: { family: "Inter", weight: 700, style: "normal" },
+        fit: {
+          preferredFontSize: 14,
+          minimumFontSize: 10,
+          maximumLines: 2,
+          lineHeight: 1.2,
+          align: "left",
+        },
+        fill: "#17262F",
+        textMode: "outline",
+      },
+    ];
+    document.readingOrder = ["unsupported-text"];
+
+    expect(validateSceneDocument(document).success).toBe(true);
+    await expect(renderScene(document, { formats: ["svg"] })).rejects.toMatchObject({
+      code: "SCENE_QUALITY_VALIDATION_FAILED",
+      details: {
+        textLayout: {
+          retainedDiagnostics: 3,
+          truncated: false,
+        },
+      },
+    });
+
+    const cappedDocument = {
+      ...document,
+      id: "capped-text-scene",
+      assets: [],
+      elements: Array.from({ length: 50 }, (_, index) => ({
+        id: `unsupported-${index.toString()}`,
+        type: "text" as const,
+        text: "\u200F\u05D0\u1820",
+        box: { x: 0, y: 0, width: 120, height: 40 },
+        font: { family: "Inter", weight: 700, style: "normal" as const },
+        fit: {
+          preferredFontSize: 14,
+          minimumFontSize: 10,
+          maximumLines: 2,
+          lineHeight: 1.2,
+          align: "left" as const,
+        },
+        fill: "#17262F" as const,
+        textMode: "outline" as const,
+      })),
+      readingOrder: [],
+    } satisfies SceneDocument;
+    await expect(renderScene(cappedDocument, { formats: ["svg"] })).rejects.toMatchObject({
+      code: "SCENE_QUALITY_VALIDATION_FAILED",
+      details: {
+        textLayout: {
+          totalDiagnostics: 150,
+          retainedDiagnostics: 128,
+          truncated: true,
+        },
+      },
+    });
+  });
+
   it("rejects serializer-shaped text and image inputs at the public seam", () => {
     const document = createSceneDocument();
     const unsafeText = structuredClone(document) as unknown as Record<string, unknown>;
