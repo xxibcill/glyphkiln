@@ -9,13 +9,14 @@ import type {
   RectElement,
   Scene,
   SceneClip,
-  SceneElement,
+  SceneKernel,
+  SceneKernelElement,
   SceneSemantic,
   SceneTransform,
   TextElement,
 } from "./scene.js";
 
-export function renderSceneToSvg(scene: Scene): string {
+export function renderSceneToSvg(scene: Scene | SceneKernel): string {
   const { width, height } = scene.dimensions;
   const content = scene.elements.map((element) => renderElement(element)).join("");
   const svg =
@@ -115,7 +116,7 @@ function isXmlNameCharacter(character: string): boolean {
   return /[A-Za-z0-9_.:-]/.test(character);
 }
 
-function renderElement(element: SceneElement): string {
+function renderElement(element: SceneKernelElement): string {
   const rendered = renderPrimitive(element);
   if (element.exclusion === undefined) return rendered;
   const maskId = `exclusion-${element.id}`;
@@ -130,7 +131,7 @@ function renderElement(element: SceneElement): string {
   );
 }
 
-function renderPrimitive(element: SceneElement): string {
+function renderPrimitive(element: SceneKernelElement): string {
   switch (element.type) {
     case "rect":
       return renderRect(element);

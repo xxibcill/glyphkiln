@@ -398,6 +398,7 @@ await assert.rejects(
   type TextLayoutMatch,
   type TextLayoutMatchProperty,
   type RenderEvidence,
+  type SceneElement as LegacySceneElement,
 } from "@glyphkiln/core";
 import {
   AUTHORING_CONTRACT_VERSION,
@@ -582,6 +583,28 @@ const sceneElement: SceneElement = {
   height: 32,
   fill: "#17262F",
 };
+const legacySceneElement: LegacySceneElement = {
+  id: "legacy-rect",
+  type: "rect",
+  x: 0,
+  y: 0,
+  width: 8,
+  height: 8,
+  fill: "#17262F",
+};
+function legacyElementType(element: LegacySceneElement): string {
+  switch (element.type) {
+    case "rect":
+    case "circle":
+    case "path":
+    case "text":
+    case "image":
+      return element.type;
+  }
+}
+if (legacyElementType(legacySceneElement) !== "rect") {
+  throw new Error("legacy SceneElement contract");
+}
 const sceneDocument = {
   schemaVersion: SCENE_DOCUMENT_VERSION,
   id: "typed-scene-consumer",

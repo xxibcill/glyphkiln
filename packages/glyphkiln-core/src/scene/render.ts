@@ -16,9 +16,9 @@ import type {
   ConnectorElement,
   GroupElement,
   ImageElement,
-  Scene,
+  SceneKernel as RenderScene,
   SceneClip,
-  SceneElement as RenderSceneElement,
+  SceneKernelElement as RenderSceneElement,
   SceneTransform as RenderSceneTransform,
   TextElement,
 } from "../renderer/scene.js";
@@ -57,7 +57,7 @@ export type RenderSceneResult = {
 };
 
 type ResolvedScene = {
-  scene: Scene;
+  scene: RenderScene;
   qualityIssues: QualityIssue[];
   assetIds: Set<string>;
   fontKeys: Set<string>;

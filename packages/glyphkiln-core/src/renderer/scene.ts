@@ -107,7 +107,7 @@ export type ConnectorElement = BaseElement & {
 
 export type GroupElement = BaseElement & {
   type: "group";
-  elements: SceneElement[];
+  elements: SceneKernelElement[];
   transforms?: readonly SceneTransform[] | undefined;
   clip?: SceneClip | undefined;
 };
@@ -117,9 +117,9 @@ export type SceneElement =
   | CircleElement
   | PathElement
   | TextElement
-  | ImageElement
-  | ConnectorElement
-  | GroupElement;
+  | ImageElement;
+
+export type SceneKernelElement = SceneElement | ConnectorElement | GroupElement;
 
 export type Scene = {
   dimensions: Dimensions;
@@ -129,10 +129,18 @@ export type Scene = {
   elements: SceneElement[];
 };
 
+export type SceneKernel = {
+  dimensions: Dimensions;
+  title: string;
+  description: string;
+  backgroundColor: string;
+  elements: SceneKernelElement[];
+};
+
 export function flattenSceneElements(
-  elements: readonly SceneElement[],
-): SceneElement[] {
-  const flattened: SceneElement[] = [];
+  elements: readonly SceneKernelElement[],
+): SceneKernelElement[] {
+  const flattened: SceneKernelElement[] = [];
   const pending = [...elements].reverse();
   while (pending.length > 0) {
     const element = pending.pop()!;
