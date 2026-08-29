@@ -26,19 +26,37 @@ export function createSceneFingerprint(input: SceneFingerprintInput): string {
 }
 
 export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
+  const usedAssetIds = new Set(input.assets.map((asset) => asset.id));
+  const usedFontKeys = new Set(
+    input.fonts.map((font) => fontKey(font.family, font.weight, font.style)),
+  );
   const pixelDocument = {
     ...Object.fromEntries(
       Object.entries(input.document).filter(
-        ([key]) => key !== "id" && key !== "metadata" && key !== "assets",
+        ([key]) =>
+          key !== "id" &&
+          key !== "metadata" &&
+          key !== "assets" &&
+          key !== "fonts",
       ),
     ),
-    assets: input.document.assets.map((asset) => ({
-      id: asset.id,
-      mimeType: asset.mimeType,
-      sha256: asset.sha256,
-      width: asset.width,
-      height: asset.height,
-    })),
+    assets: input.document.assets
+      .filter((asset) => usedAssetIds.has(asset.id))
+      .map((asset) => ({
+        id: asset.id,
+        mimeType: asset.mimeType,
+        sha256: asset.sha256,
+        width: asset.width,
+        height: asset.height,
+      })),
+    fonts: input.document.fonts
+      .filter((font) => usedFontKeys.has(fontKey(font.family, font.weight, font.style)))
+      .map((font) => ({
+        family: font.family,
+        weight: font.weight,
+        style: font.style,
+        sha256: font.sha256,
+      })),
   };
   return {
     sceneDocument: pixelDocument,
@@ -54,6 +72,10 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
     outputFormat: input.outputFormat,
     rendererConfiguration: SCENE_RENDER_CONFIGURATION,
   };
+}
+
+function fontKey(family: string, weight: number, style: string): string {
+  return `${family.toLocaleLowerCase("en-US")}\u0000${weight.toString()}\u0000${style}`;
 }
 
 function compareCanonical(left: unknown, right: unknown): number {

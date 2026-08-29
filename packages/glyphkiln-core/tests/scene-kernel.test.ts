@@ -112,6 +112,32 @@ describe("Scene Kernel v1", () => {
     expect(first.manifest.input.sceneHash).not.toBe(second.manifest.input.sceneHash);
   });
 
+  it("keeps unused font declarations out of pixel fingerprints", async () => {
+    const document = createSceneDocument();
+    const withUnusedFont = structuredClone(document);
+    withUnusedFont.fonts.push({
+      family: "Inter",
+      weight: 400,
+      style: "normal",
+      sha256: DEVELOPMENT_FONT_SHA256,
+    });
+    const usedOnly = (
+      await renderScene(document, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      })
+    ).outputs[0]!;
+    const declaredButUnused = (
+      await renderScene(withUnusedFont, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      })
+    ).outputs[0]!;
+
+    expect(declaredButUnused.bytes).toEqual(usedOnly.bytes);
+    expect(declaredButUnused.fingerprint).toBe(usedOnly.fingerprint);
+  });
+
   it("keeps selectable SVG identity stable across resolved font casing", async () => {
     const document = createSceneDocument();
     const bundled = (
