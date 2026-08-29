@@ -21,6 +21,12 @@ describe("security boundary", () => {
     );
   });
 
+  it("does not treat escaped prose as an SVG attribute", () => {
+    expect(() =>
+      assertSafeGeneratedSvg("<svg><text>onclick=example</text></svg>"),
+    ).not.toThrow();
+  });
+
   it("contains no dynamic execution or network-fetch primitives", async () => {
     const files = await typescriptFiles(resolve("src"));
     const source = (

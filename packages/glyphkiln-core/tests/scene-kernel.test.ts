@@ -285,6 +285,17 @@ describe("Scene Kernel v1", () => {
     });
   });
 
+  it("allows XML-safe prose that resembles an SVG attribute", async () => {
+    const document = createSceneDocument();
+    document.title = "Benign onclick=example prose";
+    await expect(
+      renderScene(document, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      }),
+    ).resolves.toBeDefined();
+  });
+
   it("rejects serializer-shaped text and image inputs at the public seam", () => {
     const document = createSceneDocument();
     const unsafeText = structuredClone(document) as unknown as Record<string, unknown>;

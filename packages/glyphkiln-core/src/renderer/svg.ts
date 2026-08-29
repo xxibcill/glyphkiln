@@ -37,21 +37,82 @@ export function assertSafeGeneratedSvg(svg: string): void {
       "UNSAFE_SVG_OUTPUT",
     );
   }
-  const forbidden = [
-    /<script\b/i,
-    /<foreignObject\b/i,
-    /\bon\w+\s*=/i,
-    /\b(?:href|xlink:href)\s*=\s*["'](?:https?:|file:|javascript:)/i,
-    /\b(?:fill|stroke|style|clip-path|mask|filter)\s*=\s*["'][^"']*url\s*\(\s*(?:https?:|file:|javascript:)/i,
-    /<!ENTITY\b/i,
-    /<!DOCTYPE\b/i,
-  ];
-  if (forbidden.some((pattern) => pattern.test(svg))) {
-    throw new GlyphkilnError(
-      "Generated SVG contains active or external content.",
-      "UNSAFE_SVG_OUTPUT",
-    );
+  if (/<!ENTITY\b|<!DOCTYPE\b/i.test(svg)) {
+    throwUnsafeSvg();
   }
+  const openingTagPattern = /<([A-Za-z][A-Za-z0-9_.:-]*)(?:\s[^<>]*?)?\/?>/g;
+  for (const match of svg.matchAll(openingTagPattern)) {
+    const tagName = match[1]!.toLowerCase();
+    if (tagName === "script" || tagName === "foreignobject") {
+      throwUnsafeSvg();
+    }
+    for (const attribute of parseOpeningTagAttributes(match[0])) {
+      const name = attribute.name.toLowerCase();
+      if (name.startsWith("on")) throwUnsafeSvg();
+      if (
+        (name === "href" || name === "xlink:href") &&
+        /^(?:https?:|file:|javascript:)/i.test(attribute.value)
+      ) {
+        throwUnsafeSvg();
+      }
+      if (
+        (name === "fill" ||
+          name === "stroke" ||
+          name === "style" ||
+          name === "clip-path" ||
+          name === "mask" ||
+          name === "filter") &&
+        /url\s*\(\s*(?:https?:|file:|javascript:)/i.test(attribute.value)
+      ) {
+        throwUnsafeSvg();
+      }
+    }
+  }
+}
+
+function throwUnsafeSvg(): never {
+  throw new GlyphkilnError(
+    "Generated SVG contains active or external content.",
+    "UNSAFE_SVG_OUTPUT",
+  );
+}
+
+type SerializedAttribute = { name: string; value: string };
+
+function parseOpeningTagAttributes(tag: string): SerializedAttribute[] {
+  const attributes: SerializedAttribute[] = [];
+  let cursor = 1;
+  while (cursor < tag.length && isXmlNameCharacter(tag[cursor]!)) cursor += 1;
+  while (cursor < tag.length) {
+    while (cursor < tag.length && /\s/.test(tag[cursor]!)) cursor += 1;
+    if (cursor >= tag.length || tag[cursor] === ">" || tag[cursor] === "/") break;
+    const nameStart = cursor;
+    while (cursor < tag.length && isXmlNameCharacter(tag[cursor]!)) cursor += 1;
+    if (cursor === nameStart) {
+      cursor += 1;
+      continue;
+    }
+    const name = tag.slice(nameStart, cursor);
+    while (cursor < tag.length && /\s/.test(tag[cursor]!)) cursor += 1;
+    if (tag[cursor] !== "=") {
+      cursor += 1;
+      continue;
+    }
+    cursor += 1;
+    while (cursor < tag.length && /\s/.test(tag[cursor]!)) cursor += 1;
+    const quote = tag[cursor];
+    if (quote !== '"' && quote !== "'") continue;
+    cursor += 1;
+    const valueStart = cursor;
+    while (cursor < tag.length && tag[cursor] !== quote) cursor += 1;
+    attributes.push({ name, value: tag.slice(valueStart, cursor) });
+    if (cursor < tag.length) cursor += 1;
+  }
+  return attributes;
+}
+
+function isXmlNameCharacter(character: string): boolean {
+  return /[A-Za-z0-9_.:-]/.test(character);
 }
 
 function renderElement(element: SceneElement): string {
