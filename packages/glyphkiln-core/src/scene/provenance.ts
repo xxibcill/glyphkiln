@@ -491,6 +491,27 @@ type SceneRenderManifestInput = {
 
 function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifestInput {
   if (getSceneInputResourceProblems(value).length > 0 || !isRecord(value)) return false;
+  if (
+    !hasOnlyKeys(value, [
+      "manifestVersion",
+      "renderId",
+      "renderFingerprint",
+      "input",
+      "sceneKernelVersion",
+      "renderer",
+      "assets",
+      "fonts",
+      "dimensions",
+      "output",
+      "creationTimestamp",
+      "renderingMethod",
+      "qualityIssues",
+      "accessibility",
+      "productClaim",
+    ])
+  ) {
+    return false;
+  }
   const manifestInput = value["input"];
   const renderer = value["renderer"];
   const dimensions = value["dimensions"];
@@ -501,20 +522,24 @@ function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifes
     typeof value["renderId"] === "string" &&
     typeof value["renderFingerprint"] === "string" &&
     isRecord(manifestInput) &&
+    hasOnlyKeys(manifestInput, ["kind", "sceneVersion", "sceneId", "sceneHash"]) &&
     typeof manifestInput["kind"] === "string" &&
     typeof manifestInput["sceneVersion"] === "string" &&
     typeof manifestInput["sceneId"] === "string" &&
     typeof manifestInput["sceneHash"] === "string" &&
     typeof value["sceneKernelVersion"] === "string" &&
     isRecord(renderer) &&
+    hasOnlyKeys(renderer, ["name", "version"]) &&
     typeof renderer["name"] === "string" &&
     typeof renderer["version"] === "string" &&
     isDenseArrayOf(value["assets"], isManifestAssetInput) &&
     isDenseArrayOf(value["fonts"], isManifestFontInput) &&
     isRecord(dimensions) &&
+    hasOnlyKeys(dimensions, ["width", "height"]) &&
     isPositiveInteger(dimensions["width"]) &&
     isPositiveInteger(dimensions["height"]) &&
     isRecord(output) &&
+    hasOnlyKeys(output, ["format", "sha256", "byteSize"]) &&
     typeof output["format"] === "string" &&
     typeof output["sha256"] === "string" &&
     isNonNegativeInteger(output["byteSize"]) &&
@@ -524,6 +549,7 @@ function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifes
     typeof value["renderingMethod"] === "string" &&
     isDenseArrayOf(value["qualityIssues"], isQualityIssueInput) &&
     isRecord(accessibility) &&
+    hasOnlyKeys(accessibility, ["title", "description", "readingOrder", "selectableText"]) &&
     typeof accessibility["title"] === "string" &&
     typeof accessibility["description"] === "string" &&
     isDenseArrayOf(
@@ -539,6 +565,8 @@ function isManifestAssetInput(value: unknown): value is ManifestAsset {
   if (!isRecord(value) || !isRecord(value["origin"])) return false;
   const origin = value["origin"];
   return (
+    hasOnlyKeys(value, ["id", "sha256", "origin"]) &&
+    hasOnlyKeys(origin, ["kind", "sourceName", "sourceReference", "generativeImageModel"]) &&
     typeof value["id"] === "string" &&
     isSha256(value["sha256"]) &&
     (origin["kind"] === "user-upload" ||
@@ -554,6 +582,7 @@ function isManifestAssetInput(value: unknown): value is ManifestAsset {
 function isManifestFontInput(value: unknown): value is ManifestFont {
   return (
     isRecord(value) &&
+    hasOnlyKeys(value, ["family", "weight", "style", "sha256"]) &&
     typeof value["family"] === "string" &&
     Number.isInteger(value["weight"]) &&
     (value["style"] === "normal" || value["style"] === "italic") &&
@@ -564,6 +593,7 @@ function isManifestFontInput(value: unknown): value is ManifestFont {
 function isQualityIssueInput(value: unknown): value is QualityIssue {
   if (!isRecord(value)) return false;
   return (
+    hasOnlyKeys(value, ["code", "severity", "message", "layerId", "details"]) &&
     isBoundedString(value["code"], 1, 128) &&
     value["severity"] === "warning" &&
     isBoundedString(value["message"], 1, 4_000) &&
@@ -625,6 +655,11 @@ function isBoundedString(
     value.length >= minimumLength &&
     value.length <= maximumLength
   );
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
+  const allowedKeys = new Set(allowed);
+  return Object.keys(value).every((key) => allowedKeys.has(key));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

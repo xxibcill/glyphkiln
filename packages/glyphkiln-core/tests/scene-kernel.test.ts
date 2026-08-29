@@ -503,6 +503,10 @@ describe("Scene Kernel v1", () => {
     expect(codesFor(format)).toContain("SCENE_OUTPUT_FORMAT_MISMATCH");
 
     expect(codesFor({})).toEqual(["INVALID_SCENE_RENDER_MANIFEST"]);
+
+    const unknownField = structuredClone(output.manifest) as Record<string, unknown>;
+    unknownField["unversionedClaim"] = "trusted";
+    expect(codesFor(unknownField)).toEqual(["INVALID_SCENE_RENDER_MANIFEST"]);
   });
 });
 
