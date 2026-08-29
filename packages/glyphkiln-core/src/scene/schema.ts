@@ -255,7 +255,11 @@ const ScaleTransformSchema = z
 const RotateTransformSchema = z
   .object({
     type: z.literal("rotate"),
-    degrees: z.number().min(-360).max(360),
+    degrees: z
+      .number()
+      .min(-360)
+      .max(360)
+      .multipleOf(SCENE_RESOURCE_LIMITS.serializationResolution),
     cx: coordinate.optional(),
     cy: coordinate.optional(),
   })

@@ -378,6 +378,14 @@ describe("SceneDocument v1 schema", () => {
     scaled.transforms[1].x = 0.0001;
     expect(validateSceneDocument(tinyScale).success).toBe(false);
 
+    const rotationPrecision = validScene();
+    const rotated = rotationPrecision.elements[0];
+    if (rotated?.type !== "group" || rotated.transforms?.[2]?.type !== "rotate") {
+      throw new Error("Fixture rotation is missing.");
+    }
+    rotated.transforms[2].degrees = 0.0004;
+    expect(validateSceneDocument(rotationPrecision).success).toBe(false);
+
     const pathPrecision = validScene();
     pathPrecision.elements.push({
       id: "sub-resolution-path",
