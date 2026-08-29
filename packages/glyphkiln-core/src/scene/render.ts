@@ -9,7 +9,7 @@ import {
 } from "../domain/types.js";
 import { FontRegistry } from "../fonts/index.js";
 import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
-import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
+import { RENDER_RESOURCE_LIMITS, SCENE_RESOURCE_LIMITS } from "../resources/index.js";
 import { rasterizeSvg } from "../renderer/png.js";
 import { assertOutputValidity } from "../renderer/quality.js";
 import type {
@@ -72,6 +72,7 @@ type ResolveContext = {
   assetIds: Set<string>;
   fontKeys: Set<string>;
   selectableText: boolean;
+  embeddedRasterBytes: number;
 };
 
 export async function renderScene(
@@ -160,6 +161,7 @@ function resolveScene(
     assetIds: new Set(),
     fontKeys: new Set(),
     selectableText: false,
+    embeddedRasterBytes: 0,
   };
   const elements = document.elements.map((element) => resolveElement(element, context));
   applyReadingOrder(elements, document.readingOrder);
@@ -222,6 +224,20 @@ function resolveImage(
   context: ResolveContext,
 ): ImageElement {
   const asset = context.assets.get(element.assetId);
+  const embeddedBytes = assetDataUriByteLength(asset);
+  const nextEmbeddedBytes = context.embeddedRasterBytes + embeddedBytes;
+  if (nextEmbeddedBytes > SCENE_RESOURCE_LIMITS.maxEmbeddedRasterBytes) {
+    throw new GlyphkilnError(
+      "Scene image references exceed the embedded raster byte limit.",
+      "SCENE_EMBEDDED_RASTER_BYTES_LIMIT_EXCEEDED",
+      {
+        maximum: SCENE_RESOURCE_LIMITS.maxEmbeddedRasterBytes,
+        actual: nextEmbeddedBytes,
+        elementId: element.id,
+      },
+    );
+  }
+  context.embeddedRasterBytes = nextEmbeddedBytes;
   context.assetIds.add(element.assetId);
   return {
     id: element.id,
@@ -235,6 +251,12 @@ function resolveImage(
     ...(element.opacity === undefined ? {} : { opacity: element.opacity }),
     ...(element.semantic === undefined ? {} : { semantic: element.semantic }),
   };
+}
+
+function assetDataUriByteLength(asset: ResolvedAsset): number {
+  const prefixBytes = Buffer.byteLength(`data:${asset.mimeType};base64,`);
+  const encodedBytes = Math.ceil(asset.bytes.byteLength / 3) * 4;
+  return prefixBytes + encodedBytes;
 }
 
 function resolveText(element: SceneTextElement, context: ResolveContext): TextElement {

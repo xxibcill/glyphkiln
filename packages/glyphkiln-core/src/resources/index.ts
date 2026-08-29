@@ -67,6 +67,7 @@ export type SceneResourceLimits = {
   maxTotalConnectorPoints: number;
   maxTransformsPerGroup: number;
   maxReadingOrderEntries: number;
+  maxEmbeddedRasterBytes: number;
 };
 
 export const SCENE_RESOURCE_LIMITS: Readonly<SceneResourceLimits> = Object.freeze({
@@ -92,6 +93,7 @@ export const SCENE_RESOURCE_LIMITS: Readonly<SceneResourceLimits> = Object.freez
   maxTotalConnectorPoints: 4_096,
   maxTransformsPerGroup: 16,
   maxReadingOrderEntries: 2_048,
+  maxEmbeddedRasterBytes: 33_554_432,
 });
 
 export type RenderWorkerProfile = {

@@ -44,6 +44,7 @@ preflight runs before recursive schema validation and uses these bounds:
 | Total connector points           | 4,096             |
 | Ordered transforms per group     | 16                |
 | Reading-order entries            | 2,048             |
+| Expanded embedded raster bytes   | 32 MiB            |
 | Declared assets / fonts          | 100 / 32          |
 
 Scene assets, caller-supplied font bytes, output formats, and manifest

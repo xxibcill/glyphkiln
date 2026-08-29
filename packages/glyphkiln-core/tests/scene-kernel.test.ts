@@ -143,6 +143,62 @@ describe("Scene Kernel v1", () => {
     expect(callerResolved.fingerprint).toBe(bundled.fingerprint);
   });
 
+  it("bounds expanded raster bytes across repeated image references", async () => {
+    const imageBytes = new Uint8Array(
+      await readFile(
+        new URL(
+          "../fixtures/scene-kernel/generated/editorial-decoder-spread-v1.png",
+          import.meta.url,
+        ),
+      ),
+    );
+    const asset = {
+      id: "shared-image",
+      mimeType: "image/png" as const,
+      sha256: sha256(imageBytes),
+      width: 1800,
+      height: 1100,
+      origin: { kind: "generated" as const },
+      bytes: imageBytes,
+    };
+    const document = {
+      schemaVersion: SCENE_DOCUMENT_VERSION,
+      id: "repeated-raster-scene",
+      seed: "repeated-raster-scene-v1",
+      dimensions: { width: 320, height: 180 },
+      title: "Repeated raster references",
+      description: "A bounded image-reference expansion check.",
+      backgroundColor: "#FFFFFF" as const,
+      assets: [
+        {
+          id: asset.id,
+          mimeType: asset.mimeType,
+          sha256: asset.sha256,
+          width: asset.width,
+          height: asset.height,
+          origin: asset.origin,
+        },
+      ],
+      fonts: [],
+      elements: Array.from({ length: 256 }, (_, index) => ({
+        id: `image-${index.toString()}`,
+        type: "image" as const,
+        assetId: asset.id,
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        fit: "contain" as const,
+      })),
+      readingOrder: [],
+    } satisfies SceneDocument;
+
+    expect(validateSceneDocument(document).success).toBe(true);
+    await expect(
+      renderScene(document, { formats: ["svg"], assets: [asset] }),
+    ).rejects.toMatchObject({ code: "SCENE_EMBEDDED_RASTER_BYTES_LIMIT_EXCEEDED" });
+  });
+
   it("rejects serializer-shaped text and image inputs at the public seam", () => {
     const document = createSceneDocument();
     const unsafeText = structuredClone(document) as unknown as Record<string, unknown>;
