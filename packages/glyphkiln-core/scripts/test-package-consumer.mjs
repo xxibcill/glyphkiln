@@ -334,11 +334,24 @@ const sceneRender = await renderScene(scene, {
   creationTimestamp: "2026-08-29T00:00:00.000Z",
 });
 const sceneOutput = sceneRender.outputs[0];
+const packedSceneExpectations = {
+  sceneHash: "90a73949add945133bc5cb4e5e0775a22fe1e30077b8a9fbcd6092ebb1b6bedc",
+  fingerprint: "b063e4a4d0ad9f9a53862221b242b5d442ca3640ba82cf279b852ded4f3a745c",
+  renderId: "scene_b063e4a4d0ad9f9a53862221",
+  outputSha256: "3db251e585a9e6e4740568547b8e6a6a16abd92a844d4c61cf361a957881aeda",
+  outputByteSize: 474,
+};
 assert.equal(sceneOutput.manifest.sceneKernelVersion, SCENE_KERNEL_VERSION);
 assert.equal(
   sceneOutput.manifest.manifestVersion,
   SCENE_RENDER_MANIFEST_VERSION,
 );
+assert.equal(sceneOutput.bytes.byteLength, packedSceneExpectations.outputByteSize);
+assert.equal(sceneOutput.manifest.input.sceneHash, packedSceneExpectations.sceneHash);
+assert.equal(sceneOutput.manifest.renderFingerprint, packedSceneExpectations.fingerprint);
+assert.equal(sceneOutput.manifest.renderId, packedSceneExpectations.renderId);
+assert.equal(sceneOutput.manifest.output.sha256, packedSceneExpectations.outputSha256);
+assert.equal(sceneOutput.manifest.output.byteSize, packedSceneExpectations.outputByteSize);
 assert.deepEqual(
   verifySceneReproduction({
     document: scene,
