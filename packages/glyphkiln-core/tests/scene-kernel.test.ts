@@ -299,7 +299,9 @@ describe("Scene Kernel v1", () => {
       })),
       readingOrder: [],
     } satisfies SceneDocument;
-    await expect(renderScene(cappedDocument, { formats: ["svg"] })).rejects.toMatchObject({
+    await expect(
+      renderScene(cappedDocument, { formats: ["svg"] }),
+    ).rejects.toMatchObject({
       code: "SCENE_QUALITY_VALIDATION_FAILED",
       details: {
         textLayout: {

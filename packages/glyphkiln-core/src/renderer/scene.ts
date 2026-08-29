@@ -1,4 +1,5 @@
 import type { Bounds, Dimensions } from "../domain/types.js";
+import { flattenElements } from "../scene/flatten.js";
 
 type BaseElement = {
   id: string;
@@ -113,11 +114,7 @@ export type GroupElement = BaseElement & {
 };
 
 export type SceneElement =
-  | RectElement
-  | CircleElement
-  | PathElement
-  | TextElement
-  | ImageElement;
+  RectElement | CircleElement | PathElement | TextElement | ImageElement;
 
 export type SceneKernelElement = SceneElement | ConnectorElement | GroupElement;
 
@@ -140,15 +137,7 @@ export type SceneKernel = {
 export function flattenSceneElements(
   elements: readonly SceneKernelElement[],
 ): SceneKernelElement[] {
-  const flattened: SceneKernelElement[] = [];
-  const pending = [...elements].reverse();
-  while (pending.length > 0) {
-    const element = pending.pop()!;
-    flattened.push(element);
-    if (element.type !== "group") continue;
-    for (let index = element.elements.length - 1; index >= 0; index -= 1) {
-      pending.push(element.elements[index]!);
-    }
-  }
-  return flattened;
+  return flattenElements(elements, (element) =>
+    element.type === "group" ? element.elements : undefined,
+  );
 }

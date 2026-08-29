@@ -7,6 +7,7 @@ import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedFont } from "../domain/types.js";
 import { assertFontResources } from "../resources/index.js";
 import type { FontDeclaration } from "../schema/index.js";
+import { fontReferenceKey } from "./key.js";
 
 const DEVELOPMENT_FONT_PATH = new URL(
   "../../assets/fonts/Inter-Variable.ttf",
@@ -44,7 +45,7 @@ export class FontRegistry {
     weight = 400,
     style: ResolvedFont["style"] = "normal",
   ): ResolvedFont {
-    const font = this.#fonts.get(fontKey(family, weight, style));
+    const font = this.#fonts.get(fontReferenceKey(family, weight, style));
     if (font === undefined) {
       throw new GlyphkilnError(
         `Unsupported font "${family}" (${weight} ${style}). Supply its bytes explicitly.`,
@@ -122,7 +123,7 @@ export class FontRegistry {
   }
 
   #getFace(family: string, weight: number, style: ResolvedFont["style"]): Font {
-    const key = fontKey(family, weight, style);
+    const key = fontReferenceKey(family, weight, style);
     const font = this.get(family, weight, style);
     let face = this.#faces.get(key);
     if (face !== undefined) return face;
@@ -142,7 +143,7 @@ export class FontRegistry {
   }
 
   #addAlias(font: ResolvedFont, weight: number): void {
-    this.#fonts.set(fontKey(font.family, weight, font.style), {
+    this.#fonts.set(fontReferenceKey(font.family, weight, font.style), {
       ...font,
       weight,
     });
@@ -163,7 +164,7 @@ export class FontRegistry {
   private add(font: ResolvedFont): void {
     const verified = this.#verify(font);
     this.#fonts.set(
-      fontKey(verified.family, verified.weight, verified.style),
+      fontReferenceKey(verified.family, verified.weight, verified.style),
       verified,
     );
     if (verified.family === "Inter" && verified.style === "normal") {
@@ -256,10 +257,6 @@ export function createDevelopmentFont(): ResolvedFont {
     sha256: DEVELOPMENT_FONT_SHA256,
     bytes: readFileSync(DEVELOPMENT_FONT_PATH),
   };
-}
-
-function fontKey(family: string, weight: number, style: ResolvedFont["style"]): string {
-  return `${family.toLocaleLowerCase("en-US")}\u0000${weight}\u0000${style}`;
 }
 
 function fontLabel(font: FontDeclaration): string {

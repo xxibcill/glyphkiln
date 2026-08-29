@@ -14,6 +14,8 @@ import {
 } from "../resources/index.js";
 import { validateSceneDocument } from "./schema.js";
 import { createSceneFingerprint, SCENE_KERNEL_VERSION } from "./fingerprint.js";
+import { flattenElements } from "./flatten.js";
+import { fontReferenceKey } from "../fonts/key.js";
 import type { SceneDocument, SceneElement } from "./types.js";
 
 export const SCENE_RENDER_MANIFEST_VERSION = "1.0.0" as const;
@@ -202,7 +204,9 @@ export function verifySceneReproduction(input: {
     });
   }
 
-  const elements = flattenSceneElements(document.elements);
+  const elements = flattenElements(document.elements, (element) =>
+    element.type === "group" ? element.elements : undefined,
+  );
   const assets = expectedManifestAssets(document, elements);
   const fonts = expectedManifestFonts(document, elements);
   if (!sameCanonical(assets, input.manifest.assets)) {
@@ -359,20 +363,6 @@ export function verifySceneReproduction(input: {
   return issues;
 }
 
-function flattenSceneElements(elements: readonly SceneElement[]): SceneElement[] {
-  const flattened: SceneElement[] = [];
-  const pending = [...elements].reverse();
-  while (pending.length > 0) {
-    const element = pending.pop()!;
-    flattened.push(element);
-    if (element.type !== "group") continue;
-    for (let index = element.elements.length - 1; index >= 0; index -= 1) {
-      pending.push(element.elements[index]!);
-    }
-  }
-  return flattened;
-}
-
 function expectedManifestAssets(
   document: SceneDocument,
   elements: readonly SceneElement[],
@@ -396,17 +386,21 @@ function expectedManifestFonts(
   const usedKeys = new Set(
     elements.flatMap((element) =>
       element.type === "text"
-        ? [fontKey(element.font.family, element.font.weight, element.font.style)]
+        ? [
+            fontReferenceKey(
+              element.font.family,
+              element.font.weight,
+              element.font.style,
+            ),
+          ]
         : [],
     ),
   );
   return document.fonts
-    .filter((font) => usedKeys.has(fontKey(font.family, font.weight, font.style)))
+    .filter((font) =>
+      usedKeys.has(fontReferenceKey(font.family, font.weight, font.style)),
+    )
     .map((font) => ({ ...font }));
-}
-
-function fontKey(family: string, weight: number, style: string): string {
-  return `${family.toLocaleLowerCase("en-US")}\u0000${weight.toString()}\u0000${style}`;
 }
 
 function sameCanonical(left: unknown, right: unknown): boolean {
@@ -549,7 +543,12 @@ function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifes
     typeof value["renderingMethod"] === "string" &&
     isDenseArrayOf(value["qualityIssues"], isQualityIssueInput) &&
     isRecord(accessibility) &&
-    hasOnlyKeys(accessibility, ["title", "description", "readingOrder", "selectableText"]) &&
+    hasOnlyKeys(accessibility, [
+      "title",
+      "description",
+      "readingOrder",
+      "selectableText",
+    ]) &&
     typeof accessibility["title"] === "string" &&
     typeof accessibility["description"] === "string" &&
     isDenseArrayOf(
@@ -566,7 +565,12 @@ function isManifestAssetInput(value: unknown): value is ManifestAsset {
   const origin = value["origin"];
   return (
     hasOnlyKeys(value, ["id", "sha256", "origin"]) &&
-    hasOnlyKeys(origin, ["kind", "sourceName", "sourceReference", "generativeImageModel"]) &&
+    hasOnlyKeys(origin, [
+      "kind",
+      "sourceName",
+      "sourceReference",
+      "generativeImageModel",
+    ]) &&
     typeof value["id"] === "string" &&
     isSha256(value["sha256"]) &&
     (origin["kind"] === "user-upload" ||
@@ -657,7 +661,10 @@ function isBoundedString(
   );
 }
 
-function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
+function hasOnlyKeys(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+): boolean {
   const allowedKeys = new Set(allowed);
   return Object.keys(value).every((key) => allowedKeys.has(key));
 }

@@ -2,6 +2,7 @@ import { hashCanonical } from "../cache/canonical.js";
 import { RENDER_CONFIGURATION } from "../cache/fingerprint-contract.js";
 import { RENDERER_NAME, RENDERER_VERSION, type OutputFormat } from "../domain/types.js";
 import { canonicalJson } from "../cache/canonical-json.js";
+import { fontReferenceKey } from "../fonts/key.js";
 import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
 import type { SceneDocument } from "./types.js";
 
@@ -28,16 +29,13 @@ export function createSceneFingerprint(input: SceneFingerprintInput): string {
 export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
   const usedAssetIds = new Set(input.assets.map((asset) => asset.id));
   const usedFontKeys = new Set(
-    input.fonts.map((font) => fontKey(font.family, font.weight, font.style)),
+    input.fonts.map((font) => fontReferenceKey(font.family, font.weight, font.style)),
   );
   const pixelDocument = {
     ...Object.fromEntries(
       Object.entries(input.document).filter(
         ([key]) =>
-          key !== "id" &&
-          key !== "metadata" &&
-          key !== "assets" &&
-          key !== "fonts",
+          key !== "id" && key !== "metadata" && key !== "assets" && key !== "fonts",
       ),
     ),
     assets: input.document.assets
@@ -50,7 +48,9 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
         height: asset.height,
       })),
     fonts: input.document.fonts
-      .filter((font) => usedFontKeys.has(fontKey(font.family, font.weight, font.style)))
+      .filter((font) =>
+        usedFontKeys.has(fontReferenceKey(font.family, font.weight, font.style)),
+      )
       .map((font) => ({
         family: font.family,
         weight: font.weight,
@@ -72,10 +72,6 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
     outputFormat: input.outputFormat,
     rendererConfiguration: SCENE_RENDER_CONFIGURATION,
   };
-}
-
-function fontKey(family: string, weight: number, style: string): string {
-  return `${family.toLocaleLowerCase("en-US")}\u0000${weight.toString()}\u0000${style}`;
 }
 
 function compareCanonical(left: unknown, right: unknown): number {

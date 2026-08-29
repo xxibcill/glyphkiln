@@ -4,6 +4,7 @@ import {
   SCENE_RESOURCE_LIMITS,
   getSceneInputResourceProblems,
 } from "../resources/index.js";
+import { fontReferenceKey } from "../fonts/key.js";
 import { AssetDeclarationSchema } from "../schema/design-document.js";
 import { isXml10Compatible } from "../security/xml.js";
 import { getScenePathDataProblem } from "./path-data.js";
@@ -619,7 +620,7 @@ function checkUniqueAssetIds(document: SceneDocument, context: z.RefinementCtx):
 function checkUniqueFontFaces(document: SceneDocument, context: z.RefinementCtx): void {
   const seen = new Set<string>();
   for (const [index, font] of document.fonts.entries()) {
-    const key = fontKey(font.family, font.weight, font.style);
+    const key = fontReferenceKey(font.family, font.weight, font.style);
     if (seen.has(key)) {
       addSceneIssue(
         context,
@@ -702,7 +703,9 @@ function checkResourceReferences(
 ): void {
   const assetIds = new Set(document.assets.map((asset) => asset.id));
   const fonts = new Set(
-    document.fonts.map((font) => fontKey(font.family, font.weight, font.style)),
+    document.fonts.map((font) =>
+      fontReferenceKey(font.family, font.weight, font.style),
+    ),
   );
   for (const entry of entries) {
     if (entry.element.type === "image" && !assetIds.has(entry.element.assetId)) {
@@ -715,7 +718,7 @@ function checkResourceReferences(
     }
     if (entry.element.type !== "text") continue;
     const { family, weight, style } = entry.element.font;
-    if (fonts.has(fontKey(family, weight, style))) continue;
+    if (fonts.has(fontReferenceKey(family, weight, style))) continue;
     addSceneIssue(
       context,
       "UNDECLARED_SCENE_FONT_REFERENCE",
@@ -864,10 +867,6 @@ function checkAggregateContentLimits(
       ["elements"],
     );
   }
-}
-
-function fontKey(family: string, weight: number, style: string): string {
-  return `${family.toLocaleLowerCase("en-US")}\u0000${weight.toString()}\u0000${style}`;
 }
 
 function addSceneIssue(

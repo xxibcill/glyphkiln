@@ -8,9 +8,14 @@ import {
   type ResolvedFont,
 } from "../domain/types.js";
 import { FontRegistry } from "../fonts/index.js";
+import { fontReferenceKey } from "../fonts/key.js";
 import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
-import { RENDER_RESOURCE_LIMITS, SCENE_RESOURCE_LIMITS } from "../resources/index.js";
+import { SCENE_RESOURCE_LIMITS } from "../resources/index.js";
 import { rasterizeSvg } from "../renderer/png.js";
+import {
+  validateCreationTimestamp,
+  validateOutputFormats,
+} from "../renderer/options.js";
 import { assertOutputValidity } from "../renderer/quality.js";
 import type {
   ConnectorElement,
@@ -156,7 +161,9 @@ function resolveScene(
     assets,
     fonts,
     declaredFonts: new Set(
-      document.fonts.map((font) => fontKey(font.family, font.weight, font.style)),
+      document.fonts.map((font) =>
+        fontReferenceKey(font.family, font.weight, font.style),
+      ),
     ),
     qualityIssues: [],
     assetIds: new Set(),
@@ -261,7 +268,11 @@ function assetDataUriByteLength(asset: ResolvedAsset): number {
 }
 
 function resolveText(element: SceneTextElement, context: ResolveContext): TextElement {
-  const key = fontKey(element.font.family, element.font.weight, element.font.style);
+  const key = fontReferenceKey(
+    element.font.family,
+    element.font.weight,
+    element.font.style,
+  );
   if (!context.declaredFonts.has(key)) {
     throw new GlyphkilnError(
       `Scene text uses undeclared font "${element.font.family}" (${element.font.weight} ${element.font.style}).`,
@@ -274,11 +285,7 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
       },
     );
   }
-  const font = context.fonts.get(
-    element.font.family,
-    element.font.weight,
-    element.font.style,
-  );
+  context.fonts.get(element.font.family, element.font.weight, element.font.style);
   context.fontKeys.add(key);
   const missingCodePoints = context.fonts.missingCodePoints(
     element.text,
@@ -464,17 +471,15 @@ function collectManifestFonts(
   registry: FontRegistry,
 ): ManifestFont[] {
   return document.fonts
-    .filter((font) => usedKeys.has(fontKey(font.family, font.weight, font.style)))
+    .filter((font) =>
+      usedKeys.has(fontReferenceKey(font.family, font.weight, font.style)),
+    )
     .map((font) => ({
       family: font.family,
       weight: font.weight,
       style: font.style,
       sha256: registry.get(font.family, font.weight, font.style).sha256!,
     }));
-}
-
-function fontKey(family: string, weight: number, style: string): string {
-  return `${family.toLocaleLowerCase("en-US")}\u0000${weight}\u0000${style}`;
 }
 
 function blockOnSceneQualityErrors(issues: readonly QualityIssue[]): void {
@@ -576,50 +581,4 @@ function blockOnSceneTextLayoutErrors(collection: SceneTextLayoutCollection): vo
       },
     },
   );
-}
-
-function validateOutputFormats(formats: readonly unknown[]): readonly OutputFormat[] {
-  if (formats.length > RENDER_RESOURCE_LIMITS.maxOutputFormats) {
-    throw new GlyphkilnError(
-      `At most ${RENDER_RESOURCE_LIMITS.maxOutputFormats} output formats may be requested.`,
-      "OUTPUT_FORMAT_LIMIT_EXCEEDED",
-      {
-        maximum: RENDER_RESOURCE_LIMITS.maxOutputFormats,
-        actual: formats.length,
-      },
-    );
-  }
-  const validated: OutputFormat[] = [];
-  for (const format of formats) {
-    if (format !== "svg" && format !== "png") {
-      throw new GlyphkilnError(
-        `Unsupported output format "${String(format)}".`,
-        "UNSUPPORTED_OUTPUT_FORMAT",
-        { supportedFormats: ["svg", "png"] },
-      );
-    }
-    validated.push(format);
-  }
-  const unique = [...new Set(validated)];
-  if (unique.length === 0) {
-    throw new GlyphkilnError(
-      "At least one output format is required.",
-      "OUTPUT_FORMAT_REQUIRED",
-    );
-  }
-  return unique;
-}
-
-function validateCreationTimestamp(timestamp: unknown): string {
-  if (
-    typeof timestamp !== "string" ||
-    Buffer.byteLength(timestamp) > RENDER_RESOURCE_LIMITS.maxCreationTimestampBytes
-  ) {
-    throw new GlyphkilnError(
-      "Manifest creation timestamp exceeds the renderer resource boundary.",
-      "CREATION_TIMESTAMP_LIMIT_EXCEEDED",
-      { maximum: RENDER_RESOURCE_LIMITS.maxCreationTimestampBytes },
-    );
-  }
-  return timestamp;
 }
