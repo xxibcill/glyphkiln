@@ -452,7 +452,7 @@ export const SCENE_DOCUMENT_RUNTIME_REFINEMENTS = [
     code: "SCENE_READING_ORDER_REFERENCES",
     path: "$.readingOrder[*]",
     description:
-      "Reading-order IDs must be unique and reference non-decorative, non-connector scene elements.",
+      "Reading-order IDs must be unique and reference non-connector scene elements outside decorative subtrees.",
   },
   {
     code: "SCENE_AGGREGATE_CONTENT_LIMITS",
@@ -512,6 +512,7 @@ type SceneElementEntry = {
   element: SceneElement;
   path: (string | number)[];
   depth: number;
+  decorativeAncestor: boolean;
 };
 
 function refineSceneDocument(document: SceneDocument, context: z.RefinementCtx): void {
@@ -575,17 +576,21 @@ function collectElementEntries(elements: readonly SceneElement[]): SceneElementE
       element: elements[index]!,
       path: ["elements", index],
       depth: 1,
+      decorativeAncestor: false,
     });
   }
   while (pending.length > 0) {
     const entry = pending.pop()!;
     entries.push(entry);
     if (entry.element.type !== "group") continue;
+    const decorativeAncestor =
+      entry.decorativeAncestor || entry.element.semantic?.role === "decoration";
     for (let index = entry.element.elements.length - 1; index >= 0; index -= 1) {
       pending.push({
         element: entry.element.elements[index]!,
         path: [...entry.path, "elements", index],
         depth: entry.depth + 1,
+        decorativeAncestor,
       });
     }
   }
@@ -801,12 +806,13 @@ function checkReadingOrder(
     if (
       entry.element.type === "connector" ||
       entry.element.semantic?.role === "connector" ||
-      entry.element.semantic?.role === "decoration"
+      entry.element.semantic?.role === "decoration" ||
+      entry.decorativeAncestor
     ) {
       addSceneIssue(
         context,
         "SCENE_READING_ORDER_ROLE_INVALID",
-        `Reading-order ID "${id}" refers to a connector or decoration.`,
+        `Reading-order ID "${id}" refers to a connector or decorative subtree.`,
         ["readingOrder", index],
       );
     }

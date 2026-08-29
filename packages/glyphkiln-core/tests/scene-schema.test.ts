@@ -106,6 +106,16 @@ describe("SceneDocument v1 schema", () => {
     });
   });
 
+  it("rejects reading-order descendants of decorative groups", () => {
+    const scene = validScene();
+    const group = scene.elements[0];
+    if (group?.type !== "group") throw new Error("Fixture group is missing.");
+    group.semantic = { role: "decoration" };
+    scene.readingOrder = ["decoder-label"];
+
+    expect(problemCodes(scene)).toContain("SCENE_READING_ORDER_ROLE_INVALID");
+  });
+
   it("accepts only closed paint and path-data vocabularies", () => {
     const paintUrl = validScene();
     const group = paintUrl.elements[0];
