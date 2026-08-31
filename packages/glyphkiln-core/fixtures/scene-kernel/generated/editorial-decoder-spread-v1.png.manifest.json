@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.0.0",
-  "renderId": "scene_c31f698053058b60a6281bdc",
-  "renderFingerprint": "c31f698053058b60a6281bdc6c276af5758c01b5f8d033672e58d8150c39d78e",
+  "renderId": "scene_e74a4dd36914d268410841b1",
+  "renderFingerprint": "e74a4dd36914d268410841b1c4439b52d64779866858ed1c712f74de265f1142",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.0.0",
     "sceneId": "editorial-decoder-spread-v1",
-    "sceneHash": "3fa3fc8be7aa052a63bd30f47f9103db6e981b48aa5a44784df22576a5f617b0"
+    "sceneHash": "13319515a02a2e81ceba59aa9d8c19a0d2fdbf6d8db57c76dc402c334b5148f1"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
@@ -28,8 +28,8 @@
   "dimensions": { "width": 1800, "height": 1100 },
   "output": {
     "format": "png",
-    "sha256": "95b8e95dd6e768589e46c6a9fc6f4cb3e5feacddf9f230e3314747a9d7252dc5",
-    "byteSize": 145359
+    "sha256": "01bce8ab4d9165aca0dcc7dbdb700491b506a338f82ea6271b16be69106a8405",
+    "byteSize": 146147
   },
   "creationTimestamp": "2026-08-29T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
