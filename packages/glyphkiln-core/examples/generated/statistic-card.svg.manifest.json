@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_57f377da78f35f59b2e08c03",
-  "renderFingerprint": "57f377da78f35f59b2e08c031cf27b24496a11ac946ae147a1ccaa2d77c20ef9",
+  "renderId": "render_e831680e40f8d7dd842e782f",
+  "renderFingerprint": "e831680e40f8d7dd842e782f260697063c965cce4ed0739225c8987d4802b35e",
   "designDocumentId": "example-statistic-card",
   "designDocumentHash": "a8873a0c0d40dfae848174585269ac3ababc3e97c03d831148bf682f889c82a6",
   "seed": "metrics-retention-42",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.1",

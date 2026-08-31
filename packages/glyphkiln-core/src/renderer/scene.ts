@@ -1,13 +1,35 @@
 import type { Bounds, Dimensions } from "../domain/types.js";
+import { flattenElements } from "../scene/flatten.js";
 
 type BaseElement = {
   id: string;
-  opacity?: number;
-  exclusion?: {
-    canvas: Dimensions;
-    bounds: Bounds;
-  };
+  opacity?: number | undefined;
+  semantic?: SceneSemantic | undefined;
+  exclusion?:
+    | {
+        canvas: Dimensions;
+        bounds: Bounds;
+      }
+    | undefined;
 };
+
+export type SceneSemantic = {
+  role: "content" | "annotation" | "connector" | "decoration";
+  conceptId?: string | undefined;
+  label?: string | undefined;
+  description?: string | undefined;
+  readingOrder?: number | undefined;
+};
+
+export type SceneTransform =
+  | { type: "translate"; x: number; y: number }
+  | { type: "scale"; x: number; y: number }
+  | { type: "rotate"; degrees: number; cx: number; cy: number };
+
+export type SceneClip =
+  | ({ type: "rect"; radius?: number | undefined } & Bounds)
+  | { type: "circle"; cx: number; cy: number; radius: number }
+  | { type: "path"; data: string };
 
 export type RectElement = BaseElement & {
   type: "rect";
@@ -16,9 +38,9 @@ export type RectElement = BaseElement & {
   width: number;
   height: number;
   fill: string;
-  radius?: number;
-  stroke?: string;
-  strokeWidth?: number;
+  radius?: number | undefined;
+  stroke?: string | undefined;
+  strokeWidth?: number | undefined;
 };
 
 export type CircleElement = BaseElement & {
@@ -27,18 +49,18 @@ export type CircleElement = BaseElement & {
   cy: number;
   radius: number;
   fill: string;
-  stroke?: string;
-  strokeWidth?: number;
+  stroke?: string | undefined;
+  strokeWidth?: number | undefined;
 };
 
 export type PathElement = BaseElement & {
   type: "path";
   data: string;
   fill: string;
-  stroke?: string;
-  strokeWidth?: number;
-  lineCap?: "round" | "square" | "butt";
-  lineJoin?: "round" | "bevel" | "miter";
+  stroke?: string | undefined;
+  strokeWidth?: number | undefined;
+  lineCap?: "round" | "square" | "butt" | undefined;
+  lineJoin?: "round" | "bevel" | "miter" | undefined;
 };
 
 export type TextElement = BaseElement & {
@@ -53,9 +75,10 @@ export type TextElement = BaseElement & {
   fontSize: number;
   lineHeight: number;
   align: "left" | "center" | "right";
-  letterSpacing?: number;
+  letterSpacing?: number | undefined;
   bounds: Bounds;
   outlines: string[];
+  textMode?: "outline" | "outline-with-selectable-text" | undefined;
 };
 
 export type ImageElement = BaseElement & {
@@ -66,12 +89,34 @@ export type ImageElement = BaseElement & {
   height: number;
   href: string;
   fit: "contain" | "cover";
-  clipRadius?: number;
-  clipBounds?: Bounds;
+  clipRadius?: number | undefined;
+  clipBounds?: Bounds | undefined;
+};
+
+export type ConnectorElement = BaseElement & {
+  type: "connector";
+  fromId: string;
+  toId: string;
+  points: readonly { x: number; y: number }[];
+  stroke: string;
+  strokeWidth: number;
+  startMarker: "none" | "arrow";
+  endMarker: "none" | "arrow";
+  lineCap?: "round" | "square" | "butt" | undefined;
+  lineJoin?: "round" | "bevel" | "miter" | undefined;
+};
+
+export type GroupElement = BaseElement & {
+  type: "group";
+  elements: SceneKernelElement[];
+  transforms?: readonly SceneTransform[] | undefined;
+  clip?: SceneClip | undefined;
 };
 
 export type SceneElement =
   RectElement | CircleElement | PathElement | TextElement | ImageElement;
+
+export type SceneKernelElement = SceneElement | ConnectorElement | GroupElement;
 
 export type Scene = {
   dimensions: Dimensions;
@@ -80,3 +125,19 @@ export type Scene = {
   backgroundColor: string;
   elements: SceneElement[];
 };
+
+export type SceneKernel = {
+  dimensions: Dimensions;
+  title: string;
+  description: string;
+  backgroundColor: string;
+  elements: SceneKernelElement[];
+};
+
+export function flattenSceneElements(
+  elements: readonly SceneKernelElement[],
+): SceneKernelElement[] {
+  return flattenElements(elements, (element) =>
+    element.type === "group" ? element.elements : undefined,
+  );
+}

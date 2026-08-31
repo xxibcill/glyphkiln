@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_c1f4d7a99213809df882e43e",
-  "renderFingerprint": "c1f4d7a99213809df882e43ec69a4e9a0952f5f6f341248c2966cefd2716fc5a",
+  "renderId": "render_70736c90c3ff50159103177d",
+  "renderFingerprint": "70736c90c3ff50159103177dcf355dede8e3d7b8c05e29b1ea1eade8285da1dc",
   "designDocumentId": "example-product-announcement",
   "designDocumentHash": "d30ab8e9056d1f171269d2f3b848836910b6da19234b9f671d5be4d4ff42f887",
   "seed": "launch-analytics-01",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.1",

@@ -2,14 +2,12 @@
 
 ## Current execution status
 
-As of 2026-08-19, signed Core `v0.6.0` and App `v0.1.0-alpha` source releases
-are available and the supported App Alpha topology is qualified. Core `0.6.0`
-contains the non-pixel-affecting campaign coordination, explicit color
-normalization, and AI-ready authoring contracts. Dual-runtime qualification,
-source signing, signature verification, and the GitHub source release are
-complete. The owner published and verified `@glyphkiln/core@0.6.0` from signed
-tag `v0.6.0` through the local release script. GitHub Actions is disabled for
-this repository.
+As of 2026-08-29, Core `v0.7.0` is the tagged baseline on `main`, and App
+`v0.1.0-alpha` remains the qualified application release. Core `0.7.0` adds the
+versioned carousel composition and delivery/review evidence on top of the
+campaign coordination, explicit color normalization, and AI-ready authoring
+contracts delivered in `0.6.0`. The next Core milestone is `0.8.0`: Scene
+Kernel v1. App remains unchanged for that release.
 
 On `main`, the App implements immutable resource selectors, image-led
 focal/treatment controls, admitted font-family and typography-role binding,
@@ -35,12 +33,13 @@ tag, source release, and owner-approved local npm publication are complete; no
 GitHub Actions workflow was used. Exact release evidence is recorded in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md#verification-snapshot-2026-08-12).
 
-The active product sequence is tracked in the
+The active application sequence is tracked in the
 [post-Alpha execution plan](plans/post-alpha-next-milestones.md). Designer
 control, brand fidelity, the manual campaign workflow, and exact-revision review
-and approval are complete. The next gate is optional AI proposals against a real
-brief through that proven workflow. Multilingual work starts only after a real
-market brief selects the first horizontal script slice.
+and approval are complete. Optional AI proposals against a real brief remain an
+independent App gate. They do not block or broaden Core `0.8.0`. Multilingual
+work now follows Scene Kernel and still starts only after a real market brief
+selects the first horizontal script slice.
 
 ## Core `0.5.0`
 
@@ -58,33 +57,59 @@ bounded vertical slice rather than completion of the broader product milestone:
 color-profile normalization and three-brand product acceptance remain follow-up
 brand-fidelity work.
 
-## Core after `0.5.0`
+## Core after `0.7.0`
 
-1. Complete brand and asset fidelity with pinned color normalization and
-   three-brand product acceptance.
-2. Campaign systems: machine-readable template families, named composition
-   variants, content-length profiles, deterministic seed derivation, and layout
-   evidence for multi-format and carousel coordination in the App.
-3. AI-ready production contracts: browser-safe authoring metadata, strict
-   candidate-document validation, and designer-actionable quality evidence.
-   The completed dependency-safe slices publish exact-template metadata,
-   bounded issue actions, deterministic candidate validation, and a
-   browser-safe quality-to-action mapping surfaced in the App Proof Ledger. A
-   strict provider-neutral App response boundary now evaluates three or four
-   proposal-only candidates and labels rationales as model suggestions. A pure
-   server-owned lock checker now compares six closed normalized projections
-   after Core validation. Model calls, resource-backed candidate proof,
-   lock/vary UI and persistence, save/render enforcement, and acceptance
-   workflows remain App responsibilities.
-4. Market-led horizontal multilingual production, prioritizing RTL or CJK from
-   real campaign demand. Vertical typography remains a separate later track.
-5. Specialized campaign content and accessible output, including charts only
-   when real data-story briefs justify a concrete template family.
-6. Compatibility and capability tooling before a feature-frozen `1.0.0`.
+1. `0.8.0`: ship Scene Kernel v1 as the one bounded expert geometry and render
+   seam described below.
+2. Prove a later semantic illustration compiler against that seam before
+   considering a separate `@glyphkiln/book` package. It must not add coordinates
+   to `DesignDocument` or widen the App trust boundary.
+3. Resume market-led horizontal multilingual production, prioritizing RTL or
+   CJK from real campaign demand. Vertical typography remains a separate track.
+4. Add specialized campaign content and accessible publication only when real
+   briefs justify concrete domain and output contracts.
+5. Complete compatibility and capability tooling before a feature-frozen
+   `1.0.0`.
 
 Browser SVG parity may progress in parallel when it materially improves preview
 and comparison speed. Signed provenance/C2PA remains outside the pure renderer
 and must not displace creative-production value.
+
+## Core `0.8.0` — Scene Kernel v1
+
+Scene Kernel gives expert callers one supported route for deterministic,
+reviewed explicit geometry without turning the semantic `DesignDocument` into a
+canvas format. The public `@glyphkiln/core/scene` subpath owns a strict
+`SceneDocument 1.0.0` and one deep `renderScene` operation. It produces SVG and
+PNG plus a scene-specific manifest and fingerprint.
+
+The v1 vocabulary is deliberately closed: primitives, nested groups, closed
+translate/rotate/scale transforms, closed clips, explicit-route connectors with
+validated semantic endpoints, reading order, and Core-laid-out text in `outline`
+or `outline-with-selectable-text` mode. Core owns validation, bounds, text and
+closed marker geometry, safe serialization, rasterization, provenance, and
+deterministic ordering. Callers supply inert scene data, explicit connector
+routes, and explicit admitted resources.
+
+Scene document, Scene Kernel, and scene manifest versions start at `1.0.0`.
+Shared renderer identity advances from `0.4.0` to `0.5.0`; existing semantic
+SVG/PNG bytes stay exact, while their fingerprints and manifest bytes
+intentionally update to record the renderer identity. The semantic manifest
+schema remains `1.2.0`.
+
+Release acceptance requires schema and runtime-refinement fixtures, public
+package-consumer coverage, deterministic SVG/PNG and manifest/fingerprint
+proofs, malformed/adversarial scene rejection, resource-limit coverage, and
+deliberate review of every new pixel baseline. Those checks are release gates,
+not claims that documentation alone satisfies them.
+
+Scene Kernel does not add arbitrary CSS, SVG import, general matrices,
+callbacks, expressions, plugins, runtime component registration, automatic
+layout, or domain interpretation. It does not change Glyphkiln App. A future
+semantic `@glyphkiln/book` compiler, multilingual layout, PDF/tagged-PDF output,
+and publication workflows remain later milestones. See
+[Scene Kernel](scene-kernel.md) and
+[ADR 0018](adr/0018-expert-scene-kernel.md).
 
 ## Glyphkiln App Alpha
 

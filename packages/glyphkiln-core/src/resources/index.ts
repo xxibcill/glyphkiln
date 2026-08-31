@@ -44,6 +44,58 @@ export const RENDER_RESOURCE_LIMITS: Readonly<RenderResourceLimits> = Object.fre
   maxCreationTimestampBytes: 128,
 });
 
+export type SceneResourceLimits = {
+  maxSceneDocumentBytes: number;
+  maxSceneDocumentDepth: number;
+  maxSceneDocumentEntries: number;
+  maxMetadataBytes: number;
+  maxMetadataDepth: number;
+  maxMetadataEntries: number;
+  maxAssets: number;
+  maxFonts: number;
+  maxCanvasDimension: number;
+  maxCanvasPixels: number;
+  maxCoordinateMagnitude: number;
+  serializationResolution: number;
+  maxElements: number;
+  maxElementDepth: number;
+  maxPathDataCharacters: number;
+  maxTotalPathDataCharacters: number;
+  maxTextCharacters: number;
+  maxTotalTextCharacters: number;
+  maxConnectorPoints: number;
+  maxTotalConnectorPoints: number;
+  maxTransformsPerGroup: number;
+  maxReadingOrderEntries: number;
+  maxEmbeddedRasterBytes: number;
+};
+
+export const SCENE_RESOURCE_LIMITS: Readonly<SceneResourceLimits> = Object.freeze({
+  maxSceneDocumentBytes: 1_048_576,
+  maxSceneDocumentDepth: 64,
+  maxSceneDocumentEntries: 20_000,
+  maxMetadataBytes: RENDER_RESOURCE_LIMITS.maxMetadataBytes,
+  maxMetadataDepth: RENDER_RESOURCE_LIMITS.maxMetadataDepth,
+  maxMetadataEntries: RENDER_RESOURCE_LIMITS.maxMetadataEntries,
+  maxAssets: RENDER_RESOURCE_LIMITS.maxAssets,
+  maxFonts: RENDER_RESOURCE_LIMITS.maxFonts,
+  maxCanvasDimension: RENDER_RESOURCE_LIMITS.maxAssetDimension,
+  maxCanvasPixels: 16_777_216,
+  maxCoordinateMagnitude: RENDER_RESOURCE_LIMITS.maxAssetDimension * 4,
+  serializationResolution: 0.001,
+  maxElements: 2_048,
+  maxElementDepth: 16,
+  maxPathDataCharacters: 65_536,
+  maxTotalPathDataCharacters: 262_144,
+  maxTextCharacters: 16_384,
+  maxTotalTextCharacters: 65_536,
+  maxConnectorPoints: 256,
+  maxTotalConnectorPoints: 4_096,
+  maxTransformsPerGroup: 16,
+  maxReadingOrderEntries: 2_048,
+  maxEmbeddedRasterBytes: 33_554_432,
+});
+
 export type RenderWorkerProfile = {
   executionBoundary: "node-child-process";
   timeoutMilliseconds: number;
@@ -82,7 +134,9 @@ type JsonInspectionLimits = {
   maxBytes: number;
   maxDepth: number;
   maxEntries: number;
-  codePrefix: "DESIGN" | "METADATA";
+  codePrefix: "DESIGN" | "METADATA" | "SCENE" | "SCENE_METADATA";
+  cyclicCode: "CYCLIC_DESIGN_INPUT" | "CYCLIC_SCENE_INPUT";
+  unsafeCode: "UNSAFE_DESIGN_INPUT" | "UNSAFE_SCENE_INPUT";
 };
 
 type PendingValue =
@@ -95,6 +149,8 @@ export function getDesignInputResourceProblems(input: unknown): ResourceProblem[
     maxDepth: RENDER_RESOURCE_LIMITS.maxDesignDocumentDepth,
     maxEntries: RENDER_RESOURCE_LIMITS.maxDesignDocumentEntries,
     codePrefix: "DESIGN",
+    cyclicCode: "CYCLIC_DESIGN_INPUT",
+    unsafeCode: "UNSAFE_DESIGN_INPUT",
   });
   if (documentProblem !== undefined) return [documentProblem];
   const metadata = ownDataProperty(input, "metadata");
@@ -104,6 +160,8 @@ export function getDesignInputResourceProblems(input: unknown): ResourceProblem[
     maxDepth: RENDER_RESOURCE_LIMITS.maxMetadataDepth,
     maxEntries: RENDER_RESOURCE_LIMITS.maxMetadataEntries,
     codePrefix: "METADATA",
+    cyclicCode: "CYCLIC_DESIGN_INPUT",
+    unsafeCode: "UNSAFE_DESIGN_INPUT",
   });
   return metadataProblem === undefined ? [] : [metadataProblem];
 }
@@ -114,6 +172,39 @@ export function assertDesignInputResources(input: unknown): void {
   throw new GlyphkilnError(
     "Design input exceeds the renderer resource boundary.",
     "DESIGN_RESOURCE_LIMIT_EXCEEDED",
+    { problems },
+  );
+}
+
+export function getSceneInputResourceProblems(input: unknown): ResourceProblem[] {
+  const sceneProblem = inspectJsonValue(input, {
+    maxBytes: SCENE_RESOURCE_LIMITS.maxSceneDocumentBytes,
+    maxDepth: SCENE_RESOURCE_LIMITS.maxSceneDocumentDepth,
+    maxEntries: SCENE_RESOURCE_LIMITS.maxSceneDocumentEntries,
+    codePrefix: "SCENE",
+    cyclicCode: "CYCLIC_SCENE_INPUT",
+    unsafeCode: "UNSAFE_SCENE_INPUT",
+  });
+  if (sceneProblem !== undefined) return [sceneProblem];
+  const metadata = ownDataProperty(input, "metadata");
+  if (!metadata.found) return [];
+  const metadataProblem = inspectJsonValue(metadata.value, {
+    maxBytes: SCENE_RESOURCE_LIMITS.maxMetadataBytes,
+    maxDepth: SCENE_RESOURCE_LIMITS.maxMetadataDepth,
+    maxEntries: SCENE_RESOURCE_LIMITS.maxMetadataEntries,
+    codePrefix: "SCENE_METADATA",
+    cyclicCode: "CYCLIC_SCENE_INPUT",
+    unsafeCode: "UNSAFE_SCENE_INPUT",
+  });
+  return metadataProblem === undefined ? [] : [metadataProblem];
+}
+
+export function assertSceneInputResources(input: unknown): void {
+  const problems = getSceneInputResourceProblems(input);
+  if (problems.length === 0) return;
+  throw new GlyphkilnError(
+    "Scene input exceeds the renderer resource boundary.",
+    "SCENE_RESOURCE_LIMIT_EXCEEDED",
     { problems },
   );
 }
@@ -230,8 +321,8 @@ function inspectJsonValue(
       if (activeObjects.has(item.value)) {
         return problem(
           item.path,
-          "CYCLIC_DESIGN_INPUT",
-          "Design input must be acyclic JSON data.",
+          limits.cyclicCode,
+          `${label(limits)} must be acyclic JSON data.`,
         );
       }
       activeObjects.add(item.value);
@@ -239,6 +330,7 @@ function inspectJsonValue(
       const children = getJsonChildren(
         item.value,
         item.path,
+        limits,
         limits.maxEntries - entries,
       );
       if ("problem" in children) return children.problem;
@@ -274,6 +366,7 @@ function inspectJsonValue(
 function getJsonChildren(
   value: object,
   path: string,
+  limits: JsonInspectionLimits,
   maximumEntries: number,
 ):
   | {
@@ -289,7 +382,7 @@ function getJsonChildren(
       const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
       if (descriptor !== undefined && !("value" in descriptor)) {
         return {
-          problem: unsafePropertyProblem(`${path}[${index}]`),
+          problem: unsafePropertyProblem(`${path}[${index}]`, limits),
         };
       }
       values.push({
@@ -308,21 +401,21 @@ function getJsonChildren(
     prototype = Object.getPrototypeOf(value) as unknown;
     ownKeys = Reflect.ownKeys(value);
   } catch {
-    return { problem: unsafePropertyProblem(path) };
+    return { problem: unsafePropertyProblem(path, limits) };
   }
   if (prototype !== Object.prototype && prototype !== null) {
     return {
       problem: problem(
         path,
-        "UNSAFE_DESIGN_INPUT",
-        "Design input must contain only plain JSON objects and arrays.",
+        limits.unsafeCode,
+        `${label(limits)} must contain only plain JSON objects and arrays.`,
       ),
     };
   }
   const keys: string[] = [];
   for (const key of ownKeys) {
     if (typeof key !== "string") {
-      return { problem: unsafePropertyProblem(path) };
+      return { problem: unsafePropertyProblem(path, limits) };
     }
     keys.push(key);
     if (keys.length > maximumEntries) return { entryLimitExceeded: true };
@@ -335,14 +428,14 @@ function getJsonChildren(
     try {
       descriptor = Object.getOwnPropertyDescriptor(value, key);
     } catch {
-      return { problem: unsafePropertyProblem(childPath) };
+      return { problem: unsafePropertyProblem(childPath, limits) };
     }
     if (
       descriptor === undefined ||
       !("value" in descriptor) ||
       !descriptor.enumerable
     ) {
-      return { problem: unsafePropertyProblem(childPath) };
+      return { problem: unsafePropertyProblem(childPath, limits) };
     }
     containerBytes += Buffer.byteLength(JSON.stringify(key)) + 1;
     values.push({ value: descriptor.value, path: childPath });
@@ -373,11 +466,14 @@ function primitiveJsonBytes(value: unknown): number {
   return 4;
 }
 
-function unsafePropertyProblem(path: string): ResourceProblem {
+function unsafePropertyProblem(
+  path: string,
+  limits: JsonInspectionLimits,
+): ResourceProblem {
   return problem(
     path,
-    "UNSAFE_DESIGN_INPUT",
-    "Design input properties must be enumerable string data values.",
+    limits.unsafeCode,
+    `${label(limits)} properties must be enumerable string data values.`,
   );
 }
 
@@ -386,5 +482,14 @@ function problem(path: string, code: string, message: string): ResourceProblem {
 }
 
 function label(limits: JsonInspectionLimits): string {
-  return limits.codePrefix === "METADATA" ? "Design metadata" : "Design input";
+  switch (limits.codePrefix) {
+    case "DESIGN":
+      return "Design input";
+    case "METADATA":
+      return "Design metadata";
+    case "SCENE":
+      return "Scene input";
+    case "SCENE_METADATA":
+      return "Scene metadata";
+  }
 }

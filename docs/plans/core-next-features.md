@@ -1,17 +1,16 @@
 # Core next-feature release plan
 
-**Status:** Updated on 2026-08-12. Core `0.6.0` release preparation contains
-the completed dependency-safe campaign and authoring contract slices described
-below. Package-version targets after `0.6.0` are
-planning labels, not release commitments. A milestone may move only at its
-decision gate; deterministic-output, compatibility, and security gates do not
-move with it.
+**Status:** Updated on 2026-08-29. Core `0.7.0` is the tagged baseline. Scene
+Kernel v1 is the next coherent Core release and is targeted for `0.8.0`.
+Package-version targets after `0.8.0` are planning labels, not release
+commitments. A milestone may move only at its decision gate;
+deterministic-output, compatibility, and security gates do not move with it.
 
 ## Outcome
 
-Build on the signed `v0.4.0` baseline and the bounded `0.5.0` brand-fidelity
-vertical slice to make Glyphkiln useful as the deterministic production layer
-in an AI-assisted senior designer's workflow:
+Build on `v0.7.0` to make Glyphkiln both a deterministic production layer for
+senior designers and a dependable geometry/render kernel for expert authoring
+tools:
 
 > Brief → several credible on-brand directions → compare → lock what works →
 > vary the rest → adapt across formats, slides, and locales → approve exact
@@ -22,17 +21,21 @@ The proposed sequence is:
 1. `0.5.0`: brand and asset fidelity;
 2. `0.6.0`: campaign systems and controlled variation;
 3. `0.7.0`: AI-ready production contracts;
-4. `0.8.0`: market-led horizontal multilingual production;
-5. `0.9.0`: specialized campaign content and accessible output; and
-6. `1.0.0`: compatibility, packaging, and release stabilization only.
+4. `0.8.0`: Scene Kernel v1;
+5. later, without a committed version: a semantic illustration compiler,
+   market-led horizontal multilingual production, and specialized accessible
+   publication; and
+6. `1.0.0`: compatibility, packaging, and release stabilization only when the
+   public contracts have survived real use.
 
-Core owns deterministic primitives, versioned composition, validation, quality
-evidence, exact outputs, and provenance. The App owns AI calls, option boards,
-lock/vary interaction, campaign coordination, comments, approvals, and export
-bundles. Determinism should feel like confidence to a designer, not like a task
+Core owns deterministic primitives, the strict expert Scene seam, versioned
+composition, validation, quality evidence, exact outputs, and provenance. The
+App owns AI calls, option boards, lock/vary interaction, campaign coordination,
+comments, approvals, and export bundles. App does not change for Scene Kernel
+`0.8.0`. Determinism should feel like confidence to a designer, not like a task
 of manually managing manifests.
 
-## Released baseline through `0.5.0`
+## Released baseline through `0.7.0`
 
 Core `0.4.0` was qualified and published as a signed GitHub source release on
 2026-07-31. It contains:
@@ -53,16 +56,24 @@ manifest `1.2.0`, typography algorithm `2.0.0`, and text-layout diagnostics
 `unicode-17.0.0/ltr-horizontal-v1` remain unchanged. Pinned color normalization
 and three-brand product acceptance remain follow-up brand-fidelity work.
 
+Core `0.6.0` and `0.7.0` complete the bounded campaign coordination,
+AI-authoring boundary, manual campaign workflow, carousel composition, and
+delivery/review evidence described below. They preserve the semantic
+one-document/one-canvas contract that Scene Kernel must not dilute.
+
 ## Rules shared by every feature milestone
 
-- Documents remain bounded, strict, inert JSON-compatible data.
+- `DesignDocument` and `SceneDocument` remain bounded, strict, inert
+  JSON-compatible data with separate versioned contracts.
 - No user-selected code, expressions, imports, modules, paths, URLs, active
   SVG, host font fallback, or render-time network access.
 - Every random render-path choice uses the existing seeded generator and an
   explicit stable stream.
-- Existing document/template pairs retain their exact behavior. New behavior
-  uses a new schema, template, renderer, procedural, diagnostic, or manifest
-  version owned by the narrowest affected contract.
+- Existing document/template pairs retain exact SVG/PNG behavior unless a
+  deliberate pixel change says otherwise. Fingerprint or manifest bytes may
+  change only with an explicit embedded-contract version decision. New behavior
+  uses a new design schema, scene schema, template, renderer, procedural,
+  diagnostic, or manifest version owned by the narrowest affected contract.
 - SVG and PNG continue through one scene and SVG serialization path.
 - Pixel changes require semantic tests, exact SVG/PNG tests, reviewed visual
   baselines, and a deliberate version bump.
@@ -292,7 +303,90 @@ One real brief yields at least three schema-valid, visibly distinct directions;
 selective regeneration preserves every lock exactly; the designer can complete
 the workflow without AI; and no model output bypasses Core validation.
 
-## `0.8.0`: market-led horizontal multilingual production
+## `0.8.0`: Scene Kernel v1
+
+### User outcome
+
+Expert tools can submit reviewed explicit geometry through one supported Core
+operation and receive deterministic SVG and PNG plus sufficient provenance to
+reproduce and compare the result. They no longer need renderer-internal imports
+or a parallel serializer.
+
+### Boundary
+
+Keep `DesignDocument` semantic and coordinate-free. Add the public
+`@glyphkiln/core/scene` subpath for the strict `SceneDocument 1.0.0` contract
+and one deep `renderScene` lifecycle. `renderGraphic` may compile a semantic
+document into Core's scene model, but Scene Kernel does not expose a mutable
+canvas, template internals, or serializer fragments.
+
+Glyphkiln App continues to accept only its existing semantic authoring data and
+admitted resources. It does not accept, persist, or render browser-supplied
+Scene documents as part of `0.8.0`.
+
+### Core scope
+
+- Publish `SceneDocument`, `validateSceneDocument`,
+  `getSceneDocumentJsonSchema`, documented runtime refinements, and resource
+  limits through `@glyphkiln/core/scene`.
+- Support a closed v1 vocabulary of primitives and paths, raster references,
+  nested groups, translate/rotate/scale transforms, closed clips, connectors
+  with validated semantic endpoint references and explicit bounded routes, and
+  semantic reading order.
+- Keep paint order and reading order distinct. Validate connector endpoint
+  references and serialize explicit route points with closed, deterministic
+  marker geometry. Automatic attachment and routing belong to the later
+  semantic layout compiler.
+- Lay out all text in Core and expose only `outline` and
+  `outline-with-selectable-text`. The selectable companion must not become a
+  second visual layout path.
+- Produce SVG and PNG from the same Core-owned scene and SVG serialization
+  path. Return a separately versioned scene manifest and fingerprint that bind
+  the normalized scene, admitted resource hashes, render configuration, and
+  output format.
+- Preflight size, depth, entry count, coordinate/geometry limits, text, assets,
+  fonts, and output bounds before expensive work. Reject accessors, cycles,
+  non-JSON values, non-finite numbers, unknown fields, and unsupported unions.
+
+### Version and test ownership
+
+Scene document, Scene Kernel, and scene manifest versions start at `1.0.0`.
+Scene schema, scene manifest, renderer, and package versions remain separate:
+accepted data shape belongs to the scene schema; geometry, text layout,
+serialization, and raster changes require renderer review; provenance meaning
+belongs to the scene manifest; the new public subpath requires a package minor.
+
+Shared renderer identity advances from `0.4.0` to `0.5.0`. Existing semantic
+SVG and PNG bytes remain exact, while their fingerprints and manifest bytes
+intentionally change because both include renderer identity. The semantic
+manifest schema stays at `1.2.0`.
+
+Release work must add schema and runtime-refinement fixtures, public
+package-consumer coverage, exact SVG/PNG and manifest/fingerprint tests,
+fresh-process determinism checks, malformed/adversarial input tests, bounded
+resource tests, reviewed Scene pixel baselines, exact legacy `renderGraphic`
+SVG/PNG parity, and reviewed expected fingerprint/manifest updates for renderer
+`0.5.0`. These are required gates, not claims that the plan itself has passed
+them.
+
+### Decision and exit gate
+
+Accept [ADR 0018](../adr/0018-expert-scene-kernel.md), document the security and
+reproduction boundary, and prove at least one non-trivial fixture containing
+nested groups, a closed transform and clip, explicit-route connectors with
+semantic endpoints, ordered semantics, and Core-laid-out text in both modes.
+The packed public entry point must reproduce exact outputs and provenance while
+legacy semantic pixels stay exact and only their renderer-identity-dependent
+fingerprint and manifest baselines change.
+
+### Non-goals
+
+Arbitrary SVG/CSS, general matrices, callbacks, expressions, scripts, plugins,
+runtime component registration, DOM exposure, animation, remote fetching,
+automatic art direction, general constraint solving, multilingual expansion,
+PDF/tagged-PDF output, or a Scene editor in the App.
+
+## Later: market-led horizontal multilingual production
 
 ### User outcome
 
@@ -305,14 +399,15 @@ layout quality, and exact reproducibility.
 Prioritize scripts from customer and campaign evidence, not Unicode
 completeness. Thai is already supported. Horizontal RTL and CJK are independent
 slices and may ship in either order. Vertical writing remains a later research
-track until a funded brief requires it.
+track until a funded brief requires it. This work deliberately follows Scene
+Kernel and has no committed package version.
 
 ### Architecture prerequisite
 
-Deepen the current split typography flow into one internal operation such as
-`layoutText(request)`, owning direction resolution, segmentation, wrapping,
-shaping, measurement, outlines, bounds, and issues. Templates express a text
-box and semantic intent, not shaping implementation.
+Deepen text layout into one owned operation that covers direction resolution,
+segmentation, wrapping, shaping, measurement, outlines, bounds, and issues.
+Templates and Scene documents express a text box and semantic intent, not a
+shaping implementation.
 
 ### Core scope
 
@@ -353,7 +448,7 @@ A real campaign ships in the selected target scripts with reviewed fonts and
 layouts; locale variants remain recognizably one campaign; and all supported
 legacy design/template baselines stay byte-identical.
 
-## `0.9.0`: specialized campaign content and accessible output
+## Later: specialized campaign content and accessible publication
 
 ### User outcome
 
@@ -398,12 +493,13 @@ template-driven.
 
 ## `1.0.0`: stabilization, not another feature bundle
 
-Cut `1.0.0` only after the planned pre-1.0 features have been used for real
-campaigns and their contracts have survived at least one minor release. The
+Cut `1.0.0` only after the public semantic-design and Scene Kernel contracts
+have been used for real work and survived at least one minor release. The
 milestone is for:
 
 - public-export and error/quality-code inventory;
-- supported schema/template migration and deprecation policy;
+- supported design-schema, scene-schema, template, and scene-manifest migration
+  and deprecation policy;
 - an explicit pure migration utility only where a real saved-document upgrade
   path exists—never automatic migration during render;
 - a browser-safe capability report covering supported schemas, exact template
@@ -437,6 +533,20 @@ Before `1.0.0`, demonstrate all of the following with real reviewed work:
   in Figma.
 
 ## Parallel research tracks without a version promise
+
+### Semantic illustration compiler and `@glyphkiln/book`
+
+Explore a separate semantic compiler only after Scene Kernel v1 is proven. Its
+input should describe meaning—entities, relationships, emphasis, narrative
+order, and style intent—while a deterministic compiler owns layout and emits a
+strict `SceneDocument`. Domain-specific style packs should be versioned data,
+not executable plugins.
+
+If real publication work justifies a package, `@glyphkiln/book` may coordinate
+semantic illustration systems and book/page outputs above Core. It must not add
+coordinates to `DesignDocument`, duplicate SVG serialization, or imply that
+Scene Kernel v1 already supports books, pagination, PDF, tagged PDF, or print
+production.
 
 ### Browser SVG parity
 
@@ -494,7 +604,10 @@ only after two independently useful templates repeat the same policy.
 - malware scanning, quarantine, license adjudication, or upload workflow;
 - remote fetching or document-selected filesystem paths;
 - LLM calls or model-generated rendering code;
-- freeform coordinates, CSS, expressions, callbacks, or template languages;
+- freeform coordinates in `DesignDocument` or Glyphkiln App; Scene coordinates
+  exist only inside the closed, bounded expert `SceneDocument` contract;
+- arbitrary CSS, expressions, callbacks, executable plugins, or template
+  languages;
 - active uploaded SVG; and
 - C2PA key custody and signing operations.
 
