@@ -349,6 +349,17 @@ describe("SceneDocument v1 schema", () => {
     if (text?.type !== "text") throw new Error("Fixture text is missing.");
     text.fit.minimumFontSize = text.fit.preferredFontSize + 1;
     expect(problemCodes(fit)).toContain("SCENE_TEXT_FIT_INVALID");
+
+    const negativeTracking = validScene();
+    const negativeTrackingGroup = negativeTracking.elements[0];
+    if (
+      negativeTrackingGroup?.type !== "group" ||
+      negativeTrackingGroup.elements[1]?.type !== "text"
+    ) {
+      throw new Error("Fixture text is missing.");
+    }
+    negativeTrackingGroup.elements[1].fit.letterSpacing = -0.001;
+    expect(validateSceneDocument(negativeTracking).success).toBe(false);
   });
 
   it("keeps accepted geometry above the serializer resolution", () => {

@@ -172,7 +172,7 @@ const TextFitSchema = z
     lineHeight: z.number().min(0.5).max(4),
     align: z.enum(["left", "center", "right"]),
     verticalAlign: z.enum(["top", "middle", "bottom"]).optional(),
-    letterSpacing: z.number().min(-128).max(128).optional(),
+    letterSpacing: z.number().min(0).max(128).optional(),
     keepTogether: z
       .array(keepTogetherPhrase)
       .max(20)
