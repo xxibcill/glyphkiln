@@ -57,6 +57,10 @@ describe("SceneDocument v1 schema", () => {
       expect.arrayContaining([
         "UNIQUE_SCENE_ELEMENT_IDS",
         "UNIQUE_SCENE_DERIVED_IDS",
+        "UNIQUE_SCENE_ASSET_IDS",
+        "UNIQUE_SCENE_FONT_FACES",
+        "SCENE_TEXT_FIT_CONSTRAINTS",
+        "SCENE_TRANSFORM_CONSTRAINTS",
         "SCENE_CONNECTOR_REFERENCES",
         "SCENE_READING_ORDER_REFERENCES",
       ]),

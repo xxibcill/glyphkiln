@@ -426,9 +426,30 @@ export const SCENE_DOCUMENT_RUNTIME_REFINEMENTS = [
     description: `A scene canvas may contain at most ${SCENE_RESOURCE_LIMITS.maxCanvasPixels.toString()} pixels.`,
   },
   {
+    code: "UNIQUE_SCENE_ASSET_IDS",
+    path: "$.assets[*].id",
+    description: "Asset IDs must be unique within the scene.",
+  },
+  {
+    code: "UNIQUE_SCENE_FONT_FACES",
+    path: "$.fonts[*]",
+    description:
+      "Font family, weight, and style faces must be unique within the scene.",
+  },
+  {
     code: "SCENE_ELEMENT_DEPTH_LIMIT",
     path: "$.elements",
     description: `Scene element nesting may be at most ${SCENE_RESOURCE_LIMITS.maxElementDepth.toString()} levels deep.`,
+  },
+  {
+    code: "SCENE_TEXT_FIT_CONSTRAINTS",
+    path: "$.elements[*].fit",
+    description: "Text minimumFontSize must not exceed preferredFontSize.",
+  },
+  {
+    code: "SCENE_TRANSFORM_CONSTRAINTS",
+    path: "$.elements[*].transforms[*]",
+    description: `Scale magnitudes must be at least ${SCENE_RESOURCE_LIMITS.serializationResolution.toString()} and rotate centers must be supplied as a pair.`,
   },
   {
     code: "SCENE_RESOURCE_REFERENCES",
