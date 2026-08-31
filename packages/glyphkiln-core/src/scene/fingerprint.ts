@@ -31,6 +31,27 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
   const usedFontKeys = new Set(
     input.fonts.map((font) => fontReferenceKey(font.family, font.weight, font.style)),
   );
+  const usedAssets = input.document.assets
+    .filter((asset) => usedAssetIds.has(asset.id))
+    .map((asset) => ({
+      id: asset.id,
+      mimeType: asset.mimeType,
+      sha256: asset.sha256,
+      width: asset.width,
+      height: asset.height,
+    }))
+    .sort(compareCanonical);
+  const usedFonts = input.document.fonts
+    .filter((font) =>
+      usedFontKeys.has(fontReferenceKey(font.family, font.weight, font.style)),
+    )
+    .map((font) => ({
+      family: font.family,
+      weight: font.weight,
+      style: font.style,
+      sha256: font.sha256,
+    }))
+    .sort(compareCanonical);
   const pixelDocument = {
     ...Object.fromEntries(
       Object.entries(input.document).filter(
@@ -38,25 +59,8 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
           key !== "id" && key !== "metadata" && key !== "assets" && key !== "fonts",
       ),
     ),
-    assets: input.document.assets
-      .filter((asset) => usedAssetIds.has(asset.id))
-      .map((asset) => ({
-        id: asset.id,
-        mimeType: asset.mimeType,
-        sha256: asset.sha256,
-        width: asset.width,
-        height: asset.height,
-      })),
-    fonts: input.document.fonts
-      .filter((font) =>
-        usedFontKeys.has(fontReferenceKey(font.family, font.weight, font.style)),
-      )
-      .map((font) => ({
-        family: font.family,
-        weight: font.weight,
-        style: font.style,
-        sha256: font.sha256,
-      })),
+    assets: usedAssets,
+    fonts: usedFonts,
   };
   return {
     sceneDocument: pixelDocument,

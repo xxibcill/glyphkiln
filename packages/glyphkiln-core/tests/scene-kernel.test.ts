@@ -138,6 +138,52 @@ describe("Scene Kernel v1", () => {
     expect(declaredButUnused.fingerprint).toBe(usedOnly.fingerprint);
   });
 
+  it("keeps resource declaration order out of pixel fingerprints", async () => {
+    const document = createSceneDocument();
+    document.fonts.push({
+      family: "Inter",
+      weight: 400,
+      style: "normal",
+      sha256: DEVELOPMENT_FONT_SHA256,
+    });
+    const stage = document.elements[0];
+    if (stage?.type !== "group") throw new Error("Scene stage is missing.");
+    stage.elements.push({
+      id: "candidate-note",
+      type: "text",
+      text: "Candidates",
+      box: { x: 14, y: 60, width: 124, height: 14 },
+      font: { family: "Inter", weight: 400, style: "normal" },
+      fit: {
+        preferredFontSize: 12,
+        minimumFontSize: 8,
+        maximumLines: 1,
+        lineHeight: 1.15,
+        align: "left",
+      },
+      fill: "#17262F",
+      textMode: "outline",
+    });
+
+    const reordered = structuredClone(document);
+    reordered.fonts.reverse();
+    const first = (
+      await renderScene(document, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      })
+    ).outputs[0]!;
+    const second = (
+      await renderScene(reordered, {
+        formats: ["svg"],
+        creationTimestamp: TIMESTAMP,
+      })
+    ).outputs[0]!;
+
+    expect(second.bytes).toEqual(first.bytes);
+    expect(second.fingerprint).toBe(first.fingerprint);
+  });
+
   it("keeps selectable SVG identity stable across resolved font casing", async () => {
     const document = createSceneDocument();
     const bundled = (
