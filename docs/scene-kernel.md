@@ -20,9 +20,9 @@ const result = await renderScene(scene, {
 
 `buildReviewedSceneData()` in this example is ordinary trusted authoring code
 that returns inert data. It is not code embedded in the document. The caller
-resolves explicit asset and font bytes; Core independently verifies them against
-the document declarations and resource limits before rendering. The scene cannot
-name a path or URL.
+resolves explicit asset bytes and any font bytes beyond Core's bundled Inter
+face. Core verifies every resource against the document declarations and
+resource limits before rendering. The scene cannot name a path or URL.
 
 ## Choose the correct authoring interface
 
@@ -132,8 +132,10 @@ Scene Kernel accepts data, never behavior. It does not accept or perform:
   or
 - implicit resource discovery.
 
-Raster and font bytes remain explicit caller inputs and must match declared
-identities and hashes. Services should isolate Scene rendering at the process or
+Raster bytes and non-bundled font bytes remain explicit caller inputs and must
+match declared identities and hashes. Core's bundled Inter normal variable face
+needs no caller-supplied bytes, but its scene declaration must still pin the
+correct SHA-256. Services should isolate Scene rendering at the process or
 container boundary and retain their own authorization, admission,
 malware-scanning, storage, and tenant controls for untrusted work.
 
