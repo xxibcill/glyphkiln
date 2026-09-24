@@ -19,6 +19,8 @@ Reading-order coverage is opt-in: pass `{ reviewReadingOrder: true }` to
 CLI command. It returns `SCENE_READING_ORDER_UNCOVERED` warnings for content,
 annotations, and text without an entry or ordered ancestor. Decorative
 subtrees remain valid. A warning is advisory and limited to 128 records.
+`scene render --review-reading-order` prints each warning as a JSON line on
+stderr, including when no manifest is requested.
 
 Offline CLI examples:
 

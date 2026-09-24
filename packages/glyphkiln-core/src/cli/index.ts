@@ -212,6 +212,13 @@ async function renderCommand(
     });
   }
   await writeOutputs(files, parsed.force);
+  if (scene && parsed.reviewReadingOrder === true) {
+    for (const issue of result.qualityIssues) {
+      if (issue.code === "SCENE_READING_ORDER_UNCOVERED") {
+        io.stderr(JSON.stringify(issue));
+      }
+    }
+  }
   if (manifestPath !== undefined) {
     io.stdout(
       `Manifest: ${parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`}`,

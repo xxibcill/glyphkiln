@@ -51,6 +51,34 @@ async function invoke(args: string[]) {
 }
 
 describe("offline Scene CLI", () => {
+  it("prints opt-in reading-order warnings without requiring a manifest", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-review-cli-"));
+    try {
+      const scenePath = join(root, "scene.json");
+      const output = join(root, "scene.svg");
+      await writeFile(scenePath, JSON.stringify(input));
+      const rendered = await invoke([
+        "scene",
+        "render",
+        scenePath,
+        "--format",
+        "svg",
+        "--output",
+        output,
+        "--review-reading-order",
+      ]);
+      expect(rendered.code).toBe(0);
+      expect(JSON.parse(rendered.stderr[0]!)).toMatchObject({
+        code: "SCENE_READING_ORDER_UNCOVERED",
+        layerId: "label",
+      });
+      expect(rendered.stdout).toContain(`Rendered svg: ${output}`);
+      expect(await readFile(output, "utf8")).toContain("<svg");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("validates, inspects evidence, renders with a manifest, and verifies fingerprints", async () => {
     const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-cli-"));
     try {
