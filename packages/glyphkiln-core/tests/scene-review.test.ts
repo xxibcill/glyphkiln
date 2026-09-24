@@ -273,6 +273,40 @@ describe("Scene review evidence", () => {
     expect(bounds?.y).toBeLessThanOrEqual(4);
   });
 
+  it("rejects non-finite bounds from valid nested transforms", async () => {
+    const input = document();
+    input.fonts = [];
+    input.readingOrder = [];
+    let element: SceneDocument["elements"][number] = {
+      id: "scaled-mark",
+      type: "rect",
+      x: 1,
+      y: 1,
+      width: 2,
+      height: 2,
+      fill: "#000000",
+    };
+    for (let depth = 0; depth < 10; depth += 1) {
+      element = {
+        id: `scaled-group-${depth}`,
+        type: "group",
+        transforms: Array.from({ length: 16 }, () => ({
+          type: "scale",
+          x: 100,
+          y: 100,
+        })),
+        elements: [element],
+      };
+    }
+    input.elements = [element];
+    expect(validateSceneDocument(input).success).toBe(true);
+    await expect(
+      renderScene(input, { creationTimestamp: timestamp }),
+    ).rejects.toMatchObject({
+      code: "SCENE_EVIDENCE_BOUNDS_NON_FINITE",
+    });
+  });
+
   it("warns only when opted in and preserves default pixels and fingerprints", async () => {
     const input = document();
     input.readingOrder = [];

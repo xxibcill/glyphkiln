@@ -101,7 +101,8 @@ export function createSceneEvidence(
       continue;
     }
     const bounds = primitiveBounds(element);
-    const canvasBounds = bounds === null ? null : transformBounds(bounds, matrix);
+    const canvasBounds =
+      bounds === null ? null : transformBounds(bounds, matrix, element.id);
     evidence.elements.push({
       id: element.id,
       type: element.type,
@@ -161,9 +162,10 @@ export function createSceneEvidence(
         visibleBounds: transformBounds(
           element.fit === "cover" ? bounds! : rendered,
           matrix,
+          element.id,
         ),
         sourceBounds,
-        renderedBounds: transformBounds(rendered, matrix),
+        renderedBounds: transformBounds(rendered, matrix, element.id),
         fit: element.fit,
       });
     }
@@ -241,7 +243,11 @@ function shapeStrokePadding(element: {
     : (element.strokeWidth ?? 1) / 2;
 }
 
-function transformBounds(bounds: SceneBounds, matrix: Matrix): SceneBounds {
+function transformBounds(
+  bounds: SceneBounds,
+  matrix: Matrix,
+  elementId: string,
+): SceneBounds {
   const corners = [
     point(bounds.x, bounds.y, matrix),
     point(bounds.x + bounds.width, bounds.y, matrix),
@@ -250,12 +256,20 @@ function transformBounds(bounds: SceneBounds, matrix: Matrix): SceneBounds {
   ];
   const xs = corners.map((corner) => corner.x);
   const ys = corners.map((corner) => corner.y);
-  return {
+  const transformed = {
     x: Math.min(...xs),
     y: Math.min(...ys),
     width: Math.max(...xs) - Math.min(...xs),
     height: Math.max(...ys) - Math.min(...ys),
   };
+  if (Object.values(transformed).some((value) => !Number.isFinite(value))) {
+    throw new GlyphkilnError(
+      `Scene element "${elementId}" has non-finite evidence bounds.`,
+      "SCENE_EVIDENCE_BOUNDS_NON_FINITE",
+      { elementId },
+    );
+  }
+  return transformed;
 }
 
 function point(x: number, y: number, m: Matrix): { x: number; y: number } {
