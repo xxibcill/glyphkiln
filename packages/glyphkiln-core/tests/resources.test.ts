@@ -73,6 +73,21 @@ describe("render resource limits", () => {
     }
   });
 
+  it("rejects extra properties on design arrays", async () => {
+    const document = cloneDocument(await loadExample("quote-card"));
+    Object.defineProperty(document.layers, "extra", {
+      enumerable: true,
+      value: "ignored",
+    });
+
+    expect(validateDesignDocument(document)).toMatchObject({
+      success: false,
+      problems: [
+        expect.objectContaining({ code: "UNSAFE_DESIGN_INPUT", path: "$.layers" }),
+      ],
+    });
+  });
+
   it("rejects oversized caller-supplied fonts before hashing or parsing", () => {
     expect(
       () =>

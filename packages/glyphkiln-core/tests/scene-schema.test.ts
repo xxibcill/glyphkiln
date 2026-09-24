@@ -110,6 +110,38 @@ describe("SceneDocument v1 schema", () => {
     });
   });
 
+  it("rejects extra array properties without invoking accessors", () => {
+    const scene = validScene();
+    let getterCalls = 0;
+    Object.defineProperty(scene.elements, "extra", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return "ignored";
+      },
+    });
+
+    expect(validateSceneDocument(scene)).toMatchObject({
+      success: false,
+      problems: [
+        expect.objectContaining({ code: "UNSAFE_SCENE_INPUT", path: "$.elements" }),
+      ],
+    });
+    expect(getterCalls).toBe(0);
+
+    const plainProperty = validScene();
+    Object.defineProperty(plainProperty.elements, "extra", {
+      enumerable: true,
+      value: "ignored",
+    });
+    expect(validateSceneDocument(plainProperty)).toMatchObject({
+      success: false,
+      problems: [
+        expect.objectContaining({ code: "UNSAFE_SCENE_INPUT", path: "$.elements" }),
+      ],
+    });
+  });
+
   it("rejects reading-order descendants of decorative groups", () => {
     const scene = validScene();
     const group = scene.elements[0];

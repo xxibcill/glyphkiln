@@ -377,6 +377,22 @@ function getJsonChildren(
   | { problem: ResourceProblem } {
   if (Array.isArray(value)) {
     if (value.length > maximumEntries) return { entryLimitExceeded: true };
+    let ownKeys: readonly PropertyKey[];
+    try {
+      ownKeys = Reflect.ownKeys(value);
+    } catch {
+      return { problem: unsafePropertyProblem(path, limits) };
+    }
+    for (const key of ownKeys) {
+      if (key === "length") continue;
+      if (
+        typeof key !== "string" ||
+        !/^(?:0|[1-9]\d*)$/.test(key) ||
+        Number(key) >= value.length
+      ) {
+        return { problem: unsafePropertyProblem(path, limits) };
+      }
+    }
     const values: { value: unknown; path: string }[] = [];
     for (let index = 0; index < value.length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
