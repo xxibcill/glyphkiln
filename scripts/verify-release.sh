@@ -11,6 +11,7 @@ npm run test:coverage
 npm run text-layout-data:verify
 npm run fixtures:verify
 npm run scene-kernel-fixture:verify
+npm run scene-thai-fixture:verify
 npm run schema-conformance:verify
 npm run identity:verify
 npm run examples:verify

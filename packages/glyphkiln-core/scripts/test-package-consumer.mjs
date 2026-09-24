@@ -166,9 +166,11 @@ import {
 } from "@glyphkiln/core/schema";
 import {
   SCENE_DOCUMENT_VERSION,
+  SCENE_EVIDENCE_VERSION,
   SCENE_KERNEL_VERSION,
   SCENE_RENDER_MANIFEST_VERSION,
   renderScene,
+  renderSceneIsolated,
   validateSceneDocument,
   verifySceneReproduction,
 } from "@glyphkiln/core/scene";
@@ -352,6 +354,10 @@ assert.equal(sceneOutput.manifest.renderFingerprint, packedSceneExpectations.fin
 assert.equal(sceneOutput.manifest.renderId, packedSceneExpectations.renderId);
 assert.equal(sceneOutput.manifest.output.sha256, packedSceneExpectations.outputSha256);
 assert.equal(sceneOutput.manifest.output.byteSize, packedSceneExpectations.outputByteSize);
+assert.equal(sceneRender.evidence.version, SCENE_EVIDENCE_VERSION);
+assert.equal(sceneRender.evidence.elements[0].id, "safe-rect");
+const isolatedScene = await renderSceneIsolated(scene, { formats: ["svg"], creationTimestamp: "2026-08-29T00:00:00.000Z" });
+assert.equal(isolatedScene.outputs[0].fingerprint, sceneOutput.fingerprint);
 assert.deepEqual(
   verifySceneReproduction({
     document: scene,
@@ -445,8 +451,11 @@ import {
 } from "@glyphkiln/core/schema";
 import {
   SCENE_DOCUMENT_VERSION,
+  SCENE_EVIDENCE_VERSION,
   renderScene,
+  renderSceneIsolated,
   type RenderSceneResult,
+  type SceneEvidence,
   type SceneDocument,
   type SceneElement,
   type SceneRenderManifest,
@@ -632,8 +641,11 @@ const sceneDocument = {
   readingOrder: [sceneElement.id],
 } satisfies SceneDocument;
 const sceneResult: Promise<RenderSceneResult> = renderScene(sceneDocument);
+const isolatedSceneResult: Promise<RenderSceneResult> = renderSceneIsolated(sceneDocument);
+const sceneEvidence = {} as SceneEvidence;
+const evidenceVersion: typeof SCENE_EVIDENCE_VERSION = sceneEvidence.version;
 const sceneManifest = {} as SceneRenderManifest;
-void [sceneResult, sceneManifest];
+void [sceneResult, isolatedSceneResult, sceneManifest, evidenceVersion];
 
 const analysis: TextLayoutAnalysis = analyzeTextLayoutSupport("Latin");
 const browserInput = {
@@ -802,6 +814,57 @@ async function runCliConsumer() {
   assert.match(await readFile(bundledOutput, "utf8"), /^<svg /);
   const provenance = JSON.parse(await readFile(bundledManifest, "utf8"));
   assert.equal(provenance.assets[0].sha256, pixelHash);
+
+  const scene = {
+    schemaVersion: "1.0.0",
+    id: "consumer-cli-scene",
+    seed: "consumer-cli-scene-v1",
+    dimensions: { width: 64, height: 64 },
+    title: "CLI scene",
+    description: "Offline rectangle",
+    backgroundColor: "#FFFFFF",
+    assets: [],
+    fonts: [],
+    elements: [
+      {
+        id: "box",
+        type: "rect",
+        x: 8,
+        y: 8,
+        width: 48,
+        height: 48,
+        fill: "#17262F",
+        semantic: { role: "content" },
+      },
+    ],
+    readingOrder: [],
+  };
+  const scenePath = join(consumerDirectory, "scene.json");
+  await writeFile(scenePath, `${JSON.stringify(scene)}\n`);
+  await runInstalledCli(cli, ["scene", "validate", scenePath]);
+  const sceneInspection = await runInstalledCli(cli, [
+    "scene",
+    "inspect",
+    scenePath,
+    "--review-reading-order",
+  ]);
+  const sceneReview = JSON.parse(sceneInspection.stdout);
+  assert.equal(sceneReview.evidence.elements[0].id, "box");
+  assert.equal(sceneReview.qualityIssues[0].code, "SCENE_READING_ORDER_UNCOVERED");
+  const sceneOutputPath = join(consumerDirectory, "scene.svg");
+  await runInstalledCli(cli, [
+    "scene",
+    "render",
+    scenePath,
+    "--format",
+    "svg",
+    "--output",
+    sceneOutputPath,
+    "--manifest",
+    "--verify",
+    sceneReview.fingerprint,
+  ]);
+  assert.match(await readFile(sceneOutputPath, "utf8"), /^<svg /);
 }
 
 function runInstalledCli(cliPath, args) {

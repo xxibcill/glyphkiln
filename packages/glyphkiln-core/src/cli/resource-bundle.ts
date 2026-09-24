@@ -11,6 +11,7 @@ import {
   type ResolvedFont,
 } from "../domain/types.js";
 import { DEVELOPMENT_FONT_SHA256 } from "../fonts/index.js";
+import { validateSceneDocument, type SceneDocument } from "../scene/index.js";
 import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
 import {
   AssetDeclarationSchema,
@@ -96,7 +97,32 @@ export async function loadResourceBundle(
   bundleRootPath: string,
   designInput: unknown,
 ): Promise<LoadedResourceBundle> {
-  const document = requireValidDesignDocument(designInput);
+  return loadBundleForDocument(bundleRootPath, requireValidDesignDocument(designInput));
+}
+
+export async function loadSceneResourceBundle(
+  bundleRootPath: string,
+  sceneInput: unknown,
+): Promise<LoadedResourceBundle> {
+  const validation = validateSceneDocument(sceneInput);
+  if (!validation.success) {
+    throw new GlyphkilnError(
+      "Scene document validation failed.",
+      "INVALID_SCENE_DOCUMENT",
+      {
+        problems: validation.problems,
+      },
+    );
+  }
+  return loadBundleForDocument(bundleRootPath, validation.data);
+}
+
+type ResourceDocument = Pick<DesignDocument | SceneDocument, "assets" | "fonts">;
+
+async function loadBundleForDocument(
+  bundleRootPath: string,
+  document: ResourceDocument,
+): Promise<LoadedResourceBundle> {
   const root = await inspectBundleRoot(bundleRootPath);
   const manifest = await loadManifest(root);
   assertManifestMatchesDocument(manifest, document);
@@ -222,7 +248,7 @@ function assertManifestComplexity(input: unknown): void {
 
 function assertManifestMatchesDocument(
   manifest: ResourceBundleManifest,
-  document: DesignDocument,
+  document: ResourceDocument,
 ): void {
   const declaredAssets = new Map(document.assets.map((asset) => [asset.id, asset]));
   for (const asset of manifest.assets) {
@@ -357,7 +383,7 @@ async function inspectResourceFiles<
 }
 
 async function loadAssetsInDocumentOrder(
-  document: DesignDocument,
+  document: ResourceDocument,
   manifest: ResourceBundleManifest,
   files: ReadonlyMap<BundleAsset, InspectedFile>,
   root: BundleRoot,
@@ -395,7 +421,7 @@ async function loadAssetsInDocumentOrder(
 }
 
 async function loadFontsInDocumentOrder(
-  document: DesignDocument,
+  document: ResourceDocument,
   manifest: ResourceBundleManifest,
   files: ReadonlyMap<BundleFont, InspectedFile>,
   root: BundleRoot,

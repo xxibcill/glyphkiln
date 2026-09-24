@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "thai-offer-review-v1",
+  "seed": "thai-offer-review-v1",
+  "dimensions": { "width": 1080, "height": 1080 },
+  "title": "ข้อเสนอสำหรับวันนี้",
+  "description": "ตัวอย่างตรวจทานการตัดบรรทัดภาษาไทยและข้อความข้อเสนอ",
+  "backgroundColor": "#F8F5EC",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
+    },
+    {
+      "family": "Noto Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
+    }
+  ],
+  "elements": [
+    {
+      "type": "rect",
+      "id": "signal-rail",
+      "x": 80,
+      "y": 80,
+      "width": 14,
+      "height": 920,
+      "fill": "#C75A3B",
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "text": "THAI TYPE / ตัวอย่างการอ่าน",
+      "box": { "x": 140, "y": 114, "width": 800, "height": 80 },
+      "font": { "family": "Noto Sans Thai", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 30,
+        "minimumFontSize": 26,
+        "maximumLines": 1,
+        "lineHeight": 1.2,
+        "align": "left"
+      },
+      "fill": "#5B5147",
+      "textMode": "outline",
+      "semantic": { "role": "annotation" }
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ",
+      "box": { "x": 140, "y": 250, "width": 790, "height": 270 },
+      "font": { "family": "Noto Sans Thai", "weight": 700, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 68,
+        "minimumFontSize": 56,
+        "maximumLines": 3,
+        "lineHeight": 1.27,
+        "align": "left",
+        "keepTogether": ["ข้อเสนอพิเศษ"]
+      },
+      "fill": "#202A29",
+      "textMode": "outline",
+      "semantic": { "role": "content" }
+    },
+    {
+      "type": "rect",
+      "id": "offer-panel",
+      "x": 140,
+      "y": 610,
+      "width": 800,
+      "height": 230,
+      "fill": "#E5EDE8",
+      "radius": 24,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "type": "text",
+      "id": "offer",
+      "text": "ลดสูงสุด 25% วันนี้เท่านั้น",
+      "box": { "x": 180, "y": 650, "width": 560, "height": 160 },
+      "font": { "family": "Noto Sans Thai", "weight": 700, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 60,
+        "minimumFontSize": 48,
+        "maximumLines": 2,
+        "lineHeight": 1.25,
+        "align": "left",
+        "keepTogether": ["สูงสุด 25%"]
+      },
+      "fill": "#124C44",
+      "textMode": "outline",
+      "semantic": { "role": "content" }
+    },
+    {
+      "type": "text",
+      "id": "footnote",
+      "text": "เงื่อนไขเป็นไปตามที่กำหนด • อ่านรายละเอียดก่อนตัดสินใจ",
+      "box": { "x": 140, "y": 912, "width": 800, "height": 92 },
+      "font": { "family": "Noto Sans Thai", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 28,
+        "minimumFontSize": 23,
+        "maximumLines": 2,
+        "lineHeight": 1.3,
+        "align": "left",
+        "keepTogether": ["ก่อนตัดสินใจ"]
+      },
+      "fill": "#5B5147",
+      "textMode": "outline",
+      "semantic": { "role": "annotation" }
+    }
+  ],
+  "readingOrder": ["eyebrow", "headline", "offer", "footnote"]
+}

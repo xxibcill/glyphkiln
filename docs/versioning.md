@@ -47,6 +47,14 @@ serialization, or raster output require renderer-version review and deliberate
 pixel baselines. Changes to recorded Scene provenance require a scene-manifest
 version review. A package bump never substitutes for those embedded versions.
 
+Core `0.9.0` adds the independent `SCENE_EVIDENCE_VERSION = "1.0.0"`
+measurement contract, opt-in reading-order coverage warnings, offline Scene
+CLI commands, and isolated Scene rendering. No accepted SceneDocument `1.0.0`
+pixel path, Scene Kernel version, renderer identity, or Scene manifest schema
+changes. Existing default SVG/PNG bytes and fingerprints stay exact. Opting in
+can add warnings to the manifest's existing quality-issues field without
+changing the pixel fingerprint.
+
 Text-layout acceptance has the independent
 `TEXT_LAYOUT_DIAGNOSTICS_VERSION`. Package `0.3.0` adds
 `unicode-17.0.0/ltr-horizontal-v1` without changing design schema `1.0.0`,

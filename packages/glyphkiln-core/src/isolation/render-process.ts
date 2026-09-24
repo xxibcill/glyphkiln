@@ -2,10 +2,12 @@ import process from "node:process";
 
 import { GlyphkilnError } from "../domain/types.js";
 import { renderGraphic, type RenderGraphicOptions } from "../renderer/index.js";
+import { renderScene, type RenderSceneOptions } from "../scene/render.js";
 
 type RenderRequest = {
+  kind: "graphic" | "scene";
   input: unknown;
-  options: RenderGraphicOptions;
+  options: RenderGraphicOptions | RenderSceneOptions;
 };
 
 process.once("message", (message: unknown) => {
@@ -15,7 +17,10 @@ process.once("message", (message: unknown) => {
 async function handleRequest(message: unknown): Promise<void> {
   try {
     const request = parseRequest(message);
-    const result = await renderGraphic(request.input, request.options);
+    const result =
+      request.kind === "scene"
+        ? await renderScene(request.input, request.options)
+        : await renderGraphic(request.input, request.options);
     process.send?.({ ok: true, result }, () => process.disconnect?.());
   } catch (error) {
     process.send?.(
@@ -33,7 +38,9 @@ function parseRequest(value: unknown): RenderRequest {
     typeof value !== "object" ||
     value === null ||
     !("input" in value) ||
-    !("options" in value)
+    !("options" in value) ||
+    !("kind" in value) ||
+    (value.kind !== "graphic" && value.kind !== "scene")
   ) {
     throw new GlyphkilnError(
       "The isolated render process received an invalid request.",

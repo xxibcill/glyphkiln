@@ -1,0 +1,20 @@
+{
+  "bundleVersion": "1.0.0",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8",
+      "file": "font/NotoSansThai.ttf"
+    },
+    {
+      "family": "Noto Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8",
+      "file": "font/NotoSansThai.ttf"
+    }
+  ]
+}

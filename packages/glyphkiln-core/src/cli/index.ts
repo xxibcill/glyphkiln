@@ -13,7 +13,18 @@ import {
   validateDesignDocument,
   type OutputFormat,
 } from "../index.js";
-import { loadResourceBundle } from "./resource-bundle.js";
+import {
+  renderScene,
+  reviewSceneReadingOrder,
+  validateSceneDocument,
+  SCENE_RESOURCE_LIMITS,
+} from "../scene/index.js";
+import {
+  inspectScene,
+  preflightSceneInspection,
+  type SceneInspection,
+} from "../scene/render.js";
+import { loadResourceBundle, loadSceneResourceBundle } from "./resource-bundle.js";
 
 type CliIo = {
   stdout(message: string): void;
@@ -39,6 +50,9 @@ export async function runCli(
       io.stdout(packageVersion());
       return 0;
     }
+    if (command === "scene") {
+      return await sceneCommand(inputPath, options, io);
+    }
     if (inputPath === undefined) {
       throw new CliUsageError(`Command "${command}" requires a design file.`);
     }
@@ -62,21 +76,132 @@ export async function runCli(
   }
 }
 
+async function sceneCommand(
+  command: string | undefined,
+  arguments_: readonly string[],
+  io: CliIo,
+): Promise<number> {
+  if (command !== "validate" && command !== "inspect" && command !== "render") {
+    throw new CliUsageError("scene requires validate, inspect, or render.");
+  }
+  const [inputPath, ...options] = arguments_;
+  if (inputPath === undefined)
+    throw new CliUsageError(`scene ${command} requires a scene file.`);
+  const input = await readJson(
+    inputPath,
+    SCENE_RESOURCE_LIMITS.maxSceneDocumentBytes,
+    "Scene",
+  );
+  if (command === "validate") {
+    const review = parseReviewOption(options);
+    const validation = validateSceneDocument(input);
+    if (!validation.success) {
+      io.stderr("Scene document is invalid:");
+      for (const problem of validation.problems)
+        io.stderr(`  ${problem.path}: ${problem.message} [${problem.code}]`);
+      return 1;
+    }
+    io.stdout(
+      `Valid Glyphkiln scene document ${validation.data.id} (schema ${validation.data.schemaVersion}).`,
+    );
+    if (review)
+      io.stdout(JSON.stringify(reviewSceneReadingOrder(validation.data), null, 2));
+    return 0;
+  }
+  if (command === "inspect") {
+    const parsed = parseSceneInspectArguments(options);
+    if (parsed.resourceBundlePath !== undefined) {
+      const { earlyResult } = preflightSceneInspection(
+        input,
+        parsed.reviewReadingOrder,
+      );
+      if (earlyResult !== null) return reportSceneInspection(earlyResult, io);
+    }
+    const resources =
+      parsed.resourceBundlePath === undefined
+        ? { assets: [], fonts: [] }
+        : await loadSceneResourceBundle(parsed.resourceBundlePath, input);
+    const result = inspectScene(input, {
+      assets: resources.assets,
+      fonts: resources.fonts,
+      reviewReadingOrder: parsed.reviewReadingOrder,
+    });
+    return reportSceneInspection(result, io);
+  }
+  return renderCommand(input, options, io, true);
+}
+
+function reportSceneInspection(result: SceneInspection, io: CliIo): number {
+  io.stdout(
+    JSON.stringify(
+      {
+        sceneId: result.document.id,
+        fingerprint: result.fingerprint,
+        evidence: result.evidence,
+        qualityIssues: result.qualityIssues,
+      },
+      null,
+      2,
+    ),
+  );
+  return result.qualityIssues.some((issue) => issue.severity === "error") ? 1 : 0;
+}
+
+function parseReviewOption(options: readonly string[]): boolean {
+  if (options.length === 0) return false;
+  if (options.length === 1 && options[0] === "--review-reading-order") return true;
+  throw new CliUsageError(`Unknown scene option "${options[0]}".`);
+}
+
+function parseSceneInspectArguments(options: readonly string[]): {
+  resourceBundlePath?: string;
+  reviewReadingOrder: boolean;
+} {
+  let resourceBundlePath: string | undefined;
+  let reviewReadingOrder = false;
+  for (let index = 0; index < options.length; index += 1) {
+    const option = options[index];
+    if (option === "--resource-bundle" && resourceBundlePath === undefined) {
+      resourceBundlePath = requireOptionValue(options[++index], option);
+    } else if (option === "--review-reading-order" && !reviewReadingOrder) {
+      reviewReadingOrder = true;
+    } else {
+      throw new CliUsageError(`Unknown scene inspect option "${option}".`);
+    }
+  }
+  return {
+    ...(resourceBundlePath === undefined ? {} : { resourceBundlePath }),
+    reviewReadingOrder,
+  };
+}
+
 async function renderCommand(
   input: unknown,
   arguments_: readonly string[],
   io: CliIo,
+  scene = false,
 ): Promise<number> {
-  const parsed = parseRenderArguments(arguments_);
+  const parsed = parseRenderArguments(arguments_, scene);
   const resources =
     parsed.resourceBundlePath === undefined
       ? { assets: [], fonts: [] }
-      : await loadResourceBundle(parsed.resourceBundlePath, input);
-  const result = await renderGraphic(input, {
+      : await (scene ? loadSceneResourceBundle : loadResourceBundle)(
+          parsed.resourceBundlePath,
+          input,
+        );
+  const renderOptions = {
     formats: [parsed.format],
     assets: resources.assets,
     fonts: resources.fonts,
-  });
+  };
+  const result = scene
+    ? await renderScene(input, {
+        ...renderOptions,
+        ...(parsed.reviewReadingOrder === undefined
+          ? {}
+          : { reviewReadingOrder: parsed.reviewReadingOrder }),
+      })
+    : await renderGraphic(input, renderOptions);
   const output = result.outputs[0]!;
   if (
     parsed.verifyFingerprint !== undefined &&
@@ -102,6 +227,13 @@ async function renderCommand(
     });
   }
   await writeOutputs(files, parsed.force);
+  if (scene && parsed.reviewReadingOrder === true) {
+    for (const issue of result.qualityIssues) {
+      if (issue.code === "SCENE_READING_ORDER_UNCOVERED") {
+        io.stderr(JSON.stringify(issue));
+      }
+    }
+  }
   if (manifestPath !== undefined) {
     io.stdout(
       `Manifest: ${parsed.manifestPath ?? `${parsed.outputPath}.manifest.json`}`,
@@ -135,9 +267,13 @@ type RenderArguments = {
   manifestPath?: string;
   verifyFingerprint?: string;
   resourceBundlePath?: string;
+  reviewReadingOrder?: boolean;
 };
 
-function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
+function parseRenderArguments(
+  arguments_: readonly string[],
+  scene = false,
+): RenderArguments {
   let format: OutputFormat | undefined;
   let outputPath: string | undefined;
   let manifest = false;
@@ -145,6 +281,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
   let manifestPath: string | undefined;
   let verifyFingerprint: string | undefined;
   let resourceBundlePath: string | undefined;
+  let reviewReadingOrder = false;
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index];
     if (argument === "--format") {
@@ -171,6 +308,8 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
       resourceBundlePath = requireOptionValue(arguments_[++index], "--resource-bundle");
     } else if (argument === "--force") {
       force = true;
+    } else if (argument === "--review-reading-order" && scene && !reviewReadingOrder) {
+      reviewReadingOrder = true;
     } else {
       throw new CliUsageError(`Unknown render option "${argument}".`);
     }
@@ -189,6 +328,7 @@ function parseRenderArguments(arguments_: readonly string[]): RenderArguments {
     ...(manifestPath === undefined ? {} : { manifestPath }),
     ...(verifyFingerprint === undefined ? {} : { verifyFingerprint }),
     ...(resourceBundlePath === undefined ? {} : { resourceBundlePath }),
+    ...(reviewReadingOrder ? { reviewReadingOrder } : {}),
   };
 }
 
@@ -202,13 +342,17 @@ function assertNoCommandOptions(
   );
 }
 
-async function readJson(path: string): Promise<unknown> {
+async function readJson(
+  path: string,
+  maximumBytes = RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes,
+  kind: "Design" | "Scene" = "Design",
+): Promise<unknown> {
   const absolutePath = resolve(path);
   const displayPath = basename(path);
   let handle;
   try {
     handle = await open(absolutePath, "r");
-    const buffer = Buffer.alloc(RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes + 1);
+    const buffer = Buffer.alloc(maximumBytes + 1);
     let bytesRead = 0;
     while (bytesRead < buffer.byteLength) {
       const result = await handle.read(
@@ -220,12 +364,12 @@ async function readJson(path: string): Promise<unknown> {
       if (result.bytesRead === 0) break;
       bytesRead += result.bytesRead;
     }
-    if (bytesRead > RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes) {
+    if (bytesRead > maximumBytes) {
       throw new GlyphkilnError(
-        `Design file exceeds ${RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes} bytes.`,
+        `${kind} file exceeds ${maximumBytes} bytes.`,
         "INPUT_FILE_BYTES_LIMIT_EXCEEDED",
         {
-          maximum: RENDER_RESOURCE_LIMITS.maxDesignDocumentBytes,
+          maximum: maximumBytes,
           file: displayPath,
         },
       );
@@ -451,7 +595,13 @@ Usage:
   glyphkiln --version
   glyphkiln render <design.json> --format <svg|png> --output <path>
       [--resource-bundle <directory>] [--manifest [path]]
-      [--verify <fingerprint>] [--force]`;
+      [--verify <fingerprint>] [--force]
+  glyphkiln scene validate <scene.json> [--review-reading-order]
+  glyphkiln scene inspect <scene.json> [--resource-bundle <directory>]
+      [--review-reading-order]
+  glyphkiln scene render <scene.json> --format <svg|png> --output <path>
+      [--resource-bundle <directory>] [--manifest [path]]
+      [--verify <fingerprint>] [--force] [--review-reading-order]`;
 }
 
 class CliUsageError extends Error {}

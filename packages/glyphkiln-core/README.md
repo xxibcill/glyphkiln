@@ -180,6 +180,10 @@ uploaded SVG, host fonts, or runtime plugins. It provides deterministic SVG and
 PNG, per-output manifests, reproduction verification, and a canonical
 fingerprint; it does not provide automatic composition, book structure, PDF, or
 scientific review. See the [Scene Kernel guide](../../docs/scene-kernel.md).
+For measured layout evidence, optional reading-order review, offline Scene CLI,
+and worker rendering, see [Scene review](../../docs/scene-review.md). The
+[migration guide](../../docs/scene-kernel-migration.md) covers the former
+private `renderSceneToSvg` route.
 
 The reviewed Kilnform fixture uses the selected Kilnmaker Seal identity. Run
 `npm run identity:update --workspace @glyphkiln/core` to reproduce its outlined
