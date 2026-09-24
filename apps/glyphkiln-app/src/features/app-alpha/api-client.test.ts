@@ -27,9 +27,7 @@ describe("App Alpha API client", () => {
   });
 
   it("rejects a failure whose body status does not match HTTP status", async () => {
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      void input;
-      void init;
+    const fetchMock = vi.fn<typeof fetch>(() => {
       return Promise.resolve(
         jsonResponse(
           {
@@ -105,10 +103,10 @@ describe("App Alpha API client", () => {
   });
 
   it("rejects a dashboard that omits the server-owned feature policy", async () => {
-    const { features: _features, ...dashboard } = dashboardFixture({
+    const { features, ...dashboard } = dashboardFixture({
       campaignWorkflow: false,
     });
-    void _features;
+    expect(features).toBeDefined();
     const fetchMock = vi.fn(() =>
       Promise.resolve(jsonResponse({ ok: true, status: 200, value: dashboard }, 200)),
     );
@@ -123,9 +121,7 @@ describe("App Alpha API client", () => {
   });
 
   it("sends the operator bootstrap token only in the first-run command", async () => {
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      void input;
-      void init;
+    const fetchMock = vi.fn<typeof fetch>(() => {
       return Promise.resolve(
         jsonResponse(
           {
@@ -172,9 +168,7 @@ describe("App Alpha API client", () => {
 
   it("sends a matching CSRF header for mutation commands without exposing the session", async () => {
     document.cookie = "gk_csrf=csrf-token-123; Path=/";
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      void input;
-      void init;
+    const fetchMock = vi.fn<typeof fetch>(() => {
       return Promise.resolve(
         jsonResponse(
           {
@@ -476,9 +470,7 @@ describe("App Alpha API client", () => {
   });
 
   it("requests a campaign canvas seed for an exact scope", async () => {
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      void input;
-      void init;
+    const fetchMock = vi.fn<typeof fetch>(() => {
       return Promise.resolve(
         jsonResponse(
           {
