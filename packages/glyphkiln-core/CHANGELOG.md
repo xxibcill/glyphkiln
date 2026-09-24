@@ -1,5 +1,11 @@
 # @glyphkiln/core
 
+## 0.9.0
+
+### Minor Changes
+
+- 6f5a880: Add versioned Scene layout evidence, opt-in reading-order coverage, offline Scene CLI commands, and isolated Scene rendering. Document migration from the private SVG route and add a licensed Thai typography review fixture without changing default Scene pixels or fingerprints.
+
 ## 0.8.0
 
 ### Minor Changes
