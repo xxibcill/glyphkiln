@@ -1,0 +1,55 @@
+{
+  "manifestVersion": "1.0.0",
+  "renderId": "scene_123ea6e330cc44ad582b203f",
+  "renderFingerprint": "123ea6e330cc44ad582b203f1b6c119b79bd4241ddef5e4561be9e37b2798090",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.0.0",
+    "sceneId": "thai-offer-review-v1",
+    "sceneHash": "801c20cd40b85bae3f87083c141ddfacfbd52af35dbd84409c821b72bf04a0d9"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.5.0"
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
+    },
+    {
+      "family": "Noto Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1080
+  },
+  "output": {
+    "format": "svg",
+    "sha256": "7b6124709864aafb5fab7b10241f7f1595c9f5591d8004870748d833607fb46c",
+    "byteSize": 82416
+  },
+  "creationTimestamp": "2026-09-24T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "ข้อเสนอสำหรับวันนี้",
+    "description": "ตัวอย่างตรวจทานการตัดบรรทัดภาษาไทยและข้อความข้อเสนอ",
+    "readingOrder": [
+      "eyebrow",
+      "headline",
+      "offer",
+      "footnote"
+    ],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

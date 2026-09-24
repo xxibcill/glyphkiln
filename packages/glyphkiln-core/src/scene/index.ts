@@ -18,6 +18,16 @@ export {
 } from "./fingerprint.js";
 export type { SceneFingerprintInput } from "./fingerprint.js";
 export { renderScene } from "./render.js";
+export { renderSceneIsolated } from "../isolation/index.js";
+export type { IsolatedRenderOptions } from "../isolation/index.js";
+export { SCENE_EVIDENCE_VERSION } from "./evidence.js";
+export type {
+  SceneEvidence,
+  SceneElementEvidence,
+  SceneTextEvidence,
+  SceneImageEvidence,
+} from "./evidence.js";
+export { reviewSceneReadingOrder } from "./reading-order.js";
 export type {
   RenderSceneOptions,
   RenderSceneResult,

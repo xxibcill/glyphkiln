@@ -9,6 +9,7 @@ import {
   RENDER_WORKER_PROFILE,
   assertAssetResources,
   assertDesignInputResources,
+  assertSceneInputResources,
   assertFontResources,
 } from "../resources/index.js";
 import {
@@ -16,6 +17,11 @@ import {
   type RenderGraphicOptions,
   type RenderGraphicResult,
 } from "../renderer/index.js";
+import {
+  validateCreationTimestamp,
+  validateOutputFormats,
+} from "../renderer/options.js";
+import type { RenderSceneOptions, RenderSceneResult } from "../scene/render.js";
 
 export type IsolatedRenderOptions = {
   timeoutMilliseconds?: number;
@@ -23,7 +29,7 @@ export type IsolatedRenderOptions = {
 
 type WorkerSuccess = {
   ok: true;
-  result: RenderGraphicResult;
+  result: RenderGraphicResult | RenderSceneResult;
 };
 
 type WorkerFailure = {
@@ -51,8 +57,20 @@ export function renderGraphicIsolated(
   assertRenderGraphicOptionsResources(options);
   const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
   const render = renderQueue.then(
-    () => runRenderProcess(input, options, timeoutMilliseconds),
-    () => runRenderProcess(input, options, timeoutMilliseconds),
+    () =>
+      runRenderProcess<RenderGraphicResult>(
+        input,
+        options,
+        timeoutMilliseconds,
+        "graphic",
+      ),
+    () =>
+      runRenderProcess<RenderGraphicResult>(
+        input,
+        options,
+        timeoutMilliseconds,
+        "graphic",
+      ),
   );
   renderQueue = render.then(
     () => undefined,
@@ -61,11 +79,37 @@ export function renderGraphicIsolated(
   return render;
 }
 
-function runRenderProcess(
+export function renderSceneIsolated(
   input: unknown,
-  options: RenderGraphicOptions,
+  options: RenderSceneOptions = {},
+  isolation: IsolatedRenderOptions = {},
+): Promise<RenderSceneResult> {
+  assertSceneInputResources(input);
+  assertAssetResources(options.assets ?? []);
+  assertFontResources(options.fonts ?? []);
+  validateOutputFormats(options.formats ?? ["svg"]);
+  if (options.creationTimestamp !== undefined)
+    validateCreationTimestamp(options.creationTimestamp);
+  const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
+  const render = renderQueue.then(
+    () =>
+      runRenderProcess<RenderSceneResult>(input, options, timeoutMilliseconds, "scene"),
+    () =>
+      runRenderProcess<RenderSceneResult>(input, options, timeoutMilliseconds, "scene"),
+  );
+  renderQueue = render.then(
+    () => undefined,
+    () => undefined,
+  );
+  return render;
+}
+
+function runRenderProcess<Result extends RenderGraphicResult | RenderSceneResult>(
+  input: unknown,
+  options: RenderGraphicOptions | RenderSceneOptions,
   timeoutMilliseconds: number,
-): Promise<RenderGraphicResult> {
+  kind: "graphic" | "scene",
+): Promise<Result> {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = createRenderProcess();
     let settled = false;
@@ -86,7 +130,7 @@ function runRenderProcess(
       finish(() => {
         const response = parseWorkerResponse(message);
         if (response.ok) {
-          resolvePromise(response.result);
+          resolvePromise(response.result as Result);
           return;
         }
         rejectPromise(deserializeWorkerError(response.error));
@@ -115,7 +159,7 @@ function runRenderProcess(
         );
       });
     });
-    child.send({ input, options }, (error) => {
+    child.send({ kind, input, options }, (error) => {
       if (error === null) return;
       finish(() => {
         rejectPromise(

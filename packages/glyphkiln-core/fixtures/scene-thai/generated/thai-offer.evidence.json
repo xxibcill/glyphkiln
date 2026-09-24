@@ -1,0 +1,170 @@
+{
+  "version": "1.0.0",
+  "coordinateSpace": "canvas",
+  "boundsPolicy": "axis-aligned-before-clipping",
+  "elements": [
+    {
+      "id": "signal-rail",
+      "type": "rect",
+      "bounds": {
+        "x": 80,
+        "y": 80,
+        "width": 14,
+        "height": 920
+      }
+    },
+    {
+      "id": "eyebrow",
+      "type": "text",
+      "bounds": {
+        "x": 140,
+        "y": 114,
+        "width": 361.08,
+        "height": 36
+      }
+    },
+    {
+      "id": "headline",
+      "type": "text",
+      "bounds": {
+        "x": 140,
+        "y": 250,
+        "width": 687.9572679273527,
+        "height": 172.72000000000003
+      }
+    },
+    {
+      "id": "offer-panel",
+      "type": "rect",
+      "bounds": {
+        "x": 140,
+        "y": 610,
+        "width": 800,
+        "height": 230
+      }
+    },
+    {
+      "id": "offer",
+      "type": "text",
+      "bounds": {
+        "x": 180,
+        "y": 650,
+        "width": 356.8205509298698,
+        "height": 150
+      }
+    },
+    {
+      "id": "footnote",
+      "type": "text",
+      "bounds": {
+        "x": 140,
+        "y": 912,
+        "width": 623.7280000000001,
+        "height": 36.39999999999998
+      }
+    }
+  ],
+  "text": [
+    {
+      "id": "eyebrow",
+      "bounds": {
+        "x": 140,
+        "y": 114,
+        "width": 361.08,
+        "height": 36
+      },
+      "fittedFontSize": 30,
+      "lineCount": 1,
+      "lines": [
+        "THAI TYPE / ตัวอย่างการอ่าน"
+      ],
+      "wrap": {
+        "lineWidths": [
+          361.08
+        ],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": true,
+        "segmentationPolicy": "budoux-th",
+        "segmentationPolicyVersion": "budoux-th@0.7.0"
+      }
+    },
+    {
+      "id": "headline",
+      "bounds": {
+        "x": 140,
+        "y": 250,
+        "width": 687.9572679273527,
+        "height": 172.72000000000003
+      },
+      "fittedFontSize": 68,
+      "lineCount": 2,
+      "lines": [
+        "วันนี้มีข้อเสนอพิเศษ",
+        "สำหรับคนที่ชอบอ่านชัดๆ"
+      ],
+      "wrap": {
+        "lineWidths": [
+          558.0770036162127,
+          687.9572679273527
+        ],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": true,
+        "segmentationPolicy": "budoux-th",
+        "segmentationPolicyVersion": "budoux-th@0.7.0"
+      }
+    },
+    {
+      "id": "offer",
+      "bounds": {
+        "x": 180,
+        "y": 650,
+        "width": 356.8205509298698,
+        "height": 150
+      },
+      "fittedFontSize": 60,
+      "lineCount": 2,
+      "lines": [
+        "ลดสูงสุด 25%",
+        "วันนี้เท่านั้น"
+      ],
+      "wrap": {
+        "lineWidths": [
+          356.82055092986974,
+          271.0805205104291
+        ],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": true,
+        "segmentationPolicy": "budoux-th",
+        "segmentationPolicyVersion": "budoux-th@0.7.0"
+      }
+    },
+    {
+      "id": "footnote",
+      "bounds": {
+        "x": 140,
+        "y": 912,
+        "width": 623.7280000000001,
+        "height": 36.39999999999998
+      },
+      "fittedFontSize": 28,
+      "lineCount": 1,
+      "lines": [
+        "เงื่อนไขเป็นไปตามที่กำหนด • อ่านรายละเอียดก่อนตัดสินใจ"
+      ],
+      "wrap": {
+        "lineWidths": [
+          623.7280000000001
+        ],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": true,
+        "segmentationPolicy": "budoux-th",
+        "segmentationPolicyVersion": "budoux-th@0.7.0"
+      }
+    }
+  ],
+  "images": []
+}

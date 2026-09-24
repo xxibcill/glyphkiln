@@ -30,7 +30,13 @@ import type {
 import { renderSceneToSvg } from "../renderer/svg.js";
 import { analyzeTextLayoutSupport, fitText } from "../typography/index.js";
 import { createSceneFingerprint, type SceneFingerprintInput } from "./fingerprint.js";
+import {
+  createSceneEvidence,
+  type SceneEvidence,
+  type TextWrapFacts,
+} from "./evidence.js";
 import { createSceneRenderManifest, type SceneRenderManifest } from "./provenance.js";
+import { reviewSceneReadingOrder } from "./reading-order.js";
 import { validateSceneDocument } from "./schema.js";
 import type {
   SceneDocument,
@@ -45,6 +51,7 @@ export type RenderSceneOptions = {
   assets?: readonly ResolvedAsset[];
   fonts?: readonly ResolvedFont[];
   creationTimestamp?: string;
+  reviewReadingOrder?: boolean;
 };
 
 export type RenderedSceneOutput = {
@@ -59,6 +66,7 @@ export type RenderSceneResult = {
   document: SceneDocument;
   outputs: RenderedSceneOutput[];
   qualityIssues: QualityIssue[];
+  evidence: SceneEvidence;
 };
 
 type ResolvedScene = {
@@ -67,6 +75,7 @@ type ResolvedScene = {
   assetIds: Set<string>;
   fontKeys: Set<string>;
   selectableText: boolean;
+  textWraps: Map<string, TextWrapFacts>;
 };
 
 type ResolveContext = {
@@ -78,6 +87,7 @@ type ResolveContext = {
   fontKeys: Set<string>;
   selectableText: boolean;
   embeddedRasterBytes: number;
+  textWraps: Map<string, TextWrapFacts>;
 };
 
 export async function renderScene(
@@ -102,7 +112,11 @@ export async function renderScene(
   const fonts = new FontRegistry(options.fonts ?? []);
   fonts.validateDeclarations(document.fonts);
   const resolved = resolveScene(document, assets, fonts);
+  if (options.reviewReadingOrder === true) {
+    resolved.qualityIssues.push(...reviewSceneReadingOrder(document));
+  }
   blockOnSceneQualityErrors(resolved.qualityIssues);
+  const evidence = createSceneEvidence(resolved.scene, document, resolved.textWraps);
 
   const svg = renderSceneToSvg(resolved.scene);
   const manifestAssets = collectManifestAssets(document, resolved.assetIds);
@@ -149,7 +163,7 @@ export async function renderScene(
       manifest,
     });
   }
-  return { document, outputs, qualityIssues: resolved.qualityIssues };
+  return { document, outputs, qualityIssues: resolved.qualityIssues, evidence };
 }
 
 function resolveScene(
@@ -170,6 +184,7 @@ function resolveScene(
     fontKeys: new Set(),
     selectableText: false,
     embeddedRasterBytes: 0,
+    textWraps: new Map(),
   };
   const elements = document.elements.map((element) => resolveElement(element, context));
   applyReadingOrder(elements, document.readingOrder);
@@ -185,6 +200,7 @@ function resolveScene(
     assetIds: context.assetIds,
     fontKeys: context.fontKeys,
     selectableText: context.selectableText,
+    textWraps: context.textWraps,
   };
 }
 
@@ -328,6 +344,14 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
       : { keepTogether: element.fit.keepTogether }),
   });
   context.qualityIssues.push(...fitted.issues);
+  context.textWraps.set(element.id, {
+    lineWidths: [...fitted.lineWidths],
+    brokeLongWord: fitted.brokeLongWord,
+    orphanLineCount: fitted.orphanLines.length,
+    usesBalancedLineBreaking: fitted.usesBalancedLineBreaking,
+    segmentationPolicy: fitted.segmentationPolicy,
+    segmentationPolicyVersion: fitted.segmentationPolicyVersion,
+  });
   const y = verticallyAlignedY(element, fitted.height);
   const x = horizontallyAlignedX(element);
   const lines = fitted.lines.slice(0, element.fit.maximumLines);
