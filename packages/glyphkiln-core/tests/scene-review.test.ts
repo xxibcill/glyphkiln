@@ -134,6 +134,69 @@ describe("Scene review evidence", () => {
     ]);
   });
 
+  it("keeps strokes and connector arrowheads inside conservative bounds", async () => {
+    const input = document();
+    input.elements.push(
+      {
+        id: "stroked-rect",
+        type: "rect",
+        x: 100,
+        y: 100,
+        width: 10,
+        height: 10,
+        fill: "none",
+        stroke: "#111111",
+        strokeWidth: 8,
+      },
+      {
+        id: "stroked-circle",
+        type: "circle",
+        cx: 160,
+        cy: 120,
+        radius: 10,
+        fill: "none",
+        stroke: "#111111",
+        strokeWidth: 4,
+      },
+      {
+        id: "arrow-connector",
+        type: "connector",
+        fromId: "stroked-rect",
+        toId: "stroked-circle",
+        points: [
+          { x: 110, y: 130 },
+          { x: 160, y: 130 },
+        ],
+        stroke: "#111111",
+        strokeWidth: 2,
+        markers: { start: "none", end: "arrow" },
+        lineJoin: "round",
+      },
+    );
+    const result = await renderScene(input, { creationTimestamp: timestamp });
+    const bounds = new Map(
+      result.evidence.elements.map((element) => [element.id, element.bounds]),
+    );
+    expect(bounds.get("stroked-rect")).toEqual({
+      x: 96,
+      y: 96,
+      width: 18,
+      height: 18,
+    });
+    expect(bounds.get("stroked-circle")).toEqual({
+      x: 148,
+      y: 108,
+      width: 24,
+      height: 24,
+    });
+    const connector = bounds.get("arrow-connector")!;
+    const arrowHalfHeight = Math.sin(0.52) * 8;
+    expect(connector.y).toBeLessThanOrEqual(130 - arrowHalfHeight);
+    expect(connector.y + connector.height).toBeGreaterThanOrEqual(
+      130 + arrowHalfHeight,
+    );
+  });
+
   it("warns only when opted in and preserves default pixels and fingerprints", async () => {
     const input = document();
     input.readingOrder = [];

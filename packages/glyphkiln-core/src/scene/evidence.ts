@@ -1,7 +1,9 @@
-import type {
-  SceneKernel,
-  SceneKernelElement,
-  SceneTransform,
+import { SCENE_RESOURCE_LIMITS } from "../resources/index.js";
+import {
+  connectorArrowheadSize,
+  type SceneKernel,
+  type SceneKernelElement,
+  type SceneTransform,
 } from "../renderer/scene.js";
 import type { SceneBounds, SceneDocument } from "./types.js";
 
@@ -175,7 +177,15 @@ function primitiveBounds(
   element: Exclude<SceneKernelElement, { type: "group" }>,
 ): SceneBounds | null {
   switch (element.type) {
-    case "rect":
+    case "rect": {
+      const pad = shapeStrokePadding(element);
+      return {
+        x: element.x - pad,
+        y: element.y - pad,
+        width: element.width + 2 * pad,
+        height: element.height + 2 * pad,
+      };
+    }
     case "image":
       return {
         x: element.x,
@@ -183,19 +193,31 @@ function primitiveBounds(
         width: element.width,
         height: element.height,
       };
-    case "circle":
+    case "circle": {
+      const radius = element.radius + shapeStrokePadding(element);
       return {
-        x: element.cx - element.radius,
-        y: element.cy - element.radius,
-        width: 2 * element.radius,
-        height: 2 * element.radius,
+        x: element.cx - radius,
+        y: element.cy - radius,
+        width: 2 * radius,
+        height: 2 * radius,
       };
+    }
     case "text":
       return { ...element.bounds };
     case "connector": {
       const xs = element.points.map((point) => point.x);
       const ys = element.points.map((point) => point.y);
-      const pad = element.strokeWidth / 2;
+      // SVG defaults to a miter limit of 4; arrow coordinates are grid-rounded.
+      const shaftPad =
+        element.lineJoin === "round" || element.lineJoin === "bevel"
+          ? element.strokeWidth / 2
+          : element.strokeWidth * 4;
+      const markerPad =
+        element.startMarker === "arrow" || element.endMarker === "arrow"
+          ? connectorArrowheadSize(element.strokeWidth) +
+            SCENE_RESOURCE_LIMITS.serializationResolution
+          : 0;
+      const pad = Math.max(shaftPad, markerPad);
       return {
         x: Math.min(...xs) - pad,
         y: Math.min(...ys) - pad,
@@ -206,6 +228,15 @@ function primitiveBounds(
     case "path":
       return null;
   }
+}
+
+function shapeStrokePadding(element: {
+  stroke?: string | undefined;
+  strokeWidth?: number | undefined;
+}): number {
+  return element.stroke === undefined || element.stroke === "none"
+    ? 0
+    : (element.strokeWidth ?? 1) / 2;
 }
 
 function transformBounds(bounds: SceneBounds, matrix: Matrix): SceneBounds {

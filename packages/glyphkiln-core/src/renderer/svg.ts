@@ -15,6 +15,7 @@ import type {
   SceneTransform,
   TextElement,
 } from "./scene.js";
+import { connectorArrowheadSize } from "./scene.js";
 
 export function renderSceneToSvg(scene: Scene | SceneKernel): string {
   const { width, height } = scene.dimensions;
@@ -309,7 +310,7 @@ function renderArrowhead(
   id: string,
 ): string {
   const angle = Math.atan2(tip.y - previous.y, tip.x - previous.x);
-  const size = Math.max(6, strokeWidth * 4);
+  const size = connectorArrowheadSize(strokeWidth);
   const left = {
     x: tip.x + Math.cos(angle + Math.PI - 0.52) * size,
     y: tip.y + Math.sin(angle + Math.PI - 0.52) * size,

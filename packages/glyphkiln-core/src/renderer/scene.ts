@@ -106,6 +106,10 @@ export type ConnectorElement = BaseElement & {
   lineJoin?: "round" | "bevel" | "miter" | undefined;
 };
 
+export function connectorArrowheadSize(strokeWidth: number): number {
+  return Math.max(6, strokeWidth * 4);
+}
+
 export type GroupElement = BaseElement & {
   type: "group";
   elements: SceneKernelElement[];

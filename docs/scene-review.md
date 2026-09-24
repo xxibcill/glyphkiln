@@ -8,8 +8,9 @@ long-word result. Image
 records include the destination, visible and rendered bounds plus the source
 crop rectangle. `elements` exposes stable IDs and conservative axis-aligned
 canvas bounds for rectangles, circles, text, images, and connectors. Bounds
-include group transforms but precede clipping; path and group bounds are
-`null`. The evidence is bounded by Scene resource limits and is not a score or
+include group transforms, painted rectangle and circle strokes, and connector
+shafts and arrowheads, but precede clipping; path and group bounds are `null`.
+The evidence is bounded by Scene resource limits and is not a score or
 proof of legibility, semantic correctness, safe-area compliance, or commercial
 readability.
 
