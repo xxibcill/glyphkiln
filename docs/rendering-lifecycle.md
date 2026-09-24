@@ -57,9 +57,12 @@ termination.
    transparent selectable-text companion. Rasterize PNG from those exact SVG
    bytes with pinned Resvg.
 5. Validate each output and return its Scene fingerprint,
-   `SceneRenderManifest 1.0.0`, and bounded quality issues. Scene results do not
-   include the template-specific `RenderEvidence` returned by `renderGraphic`.
+   `SceneRenderManifest 1.0.0`, bounded quality issues, and versioned Scene
+   evidence. Scene results do not include the template-specific
+   `RenderEvidence` returned by `renderGraphic`.
 
-`renderScene` is currently an in-process expert operation. A service admitting
-untrusted scenes must provide its own process/container, authorization,
-concurrency, timeout, and tenant boundary.
+`renderScene` is an in-process expert operation. Services admitting untrusted
+scenes should use `renderSceneIsolated` for bounded child-process rendering,
+serialized concurrency, and timeout enforcement. They still own authorization,
+resource admission and scanning, and tenant and container-level
+network/credential boundaries.

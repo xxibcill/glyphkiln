@@ -28,11 +28,12 @@ Only the latest released minor version is supported during the pre-1.0 phase.
 - Untrusted jobs should use `renderGraphicIsolated`, which applies
   `RENDER_WORKER_PROFILE` in a permission-limited child process. Services may
   add a container-level network/credential policy for tenant defense in depth.
-- `renderScene` validates scene and resource limits but is an in-process expert
-  lifecycle in `0.8.0`; it is not wired into Glyphkiln App and has no dedicated
-  isolated-worker wrapper. A service that admits untrusted scenes must put the
-  complete resolve-to-render operation behind its own process/container,
-  timeout, concurrency, authorization, and tenant boundary.
+- `renderScene` validates scene and resource limits but renders in process.
+  Services admitting untrusted scenes should use `renderSceneIsolated`, which
+  applies the bounded child-process profile, serialized concurrency, and a
+  timeout. Services still own authorization, resource admission and scanning,
+  and tenant and container-level network/credential boundaries. Scene rendering
+  is not wired into Glyphkiln App.
 - Optional LLM adapters may propose a design document. Their output is untrusted
   data and receives exactly the same validation as any other caller. The App's
   provider-neutral response boundary grants proposal-only authority; model
@@ -62,6 +63,7 @@ bytes, depth and entries; scene geometry, nesting, paths, text, connectors, and
 reading order;
 asset count, bytes, dimensions and decoded pixels; font count and bytes; and
 requested outputs. The CLI performs a fixed-size input read.
-`renderGraphicIsolated` enforces serialized concurrency, V8 memory/stack
-limits, filesystem/subprocess permissions, and wall-clock termination without
-requiring a host to reimplement worker lifecycle.
+`renderGraphicIsolated` and `renderSceneIsolated` enforce serialized
+concurrency, V8 memory/stack limits, filesystem/subprocess permissions, and
+wall-clock termination without requiring a host to reimplement worker
+lifecycle.
