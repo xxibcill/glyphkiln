@@ -171,19 +171,11 @@ export function inspectScene(
   input: unknown,
   options: Pick<RenderSceneOptions, "assets" | "fonts" | "reviewReadingOrder"> = {},
 ): SceneInspection {
-  const document = requireSceneDocument(input);
-  const textLayout = collectSceneTextLayoutDiagnostics(document.elements);
-  if (textLayout.issues.length > 0) {
-    return {
-      document,
-      fingerprint: null,
-      qualityIssues:
-        options.reviewReadingOrder === true
-          ? [...textLayout.issues, ...reviewSceneReadingOrder(document)]
-          : textLayout.issues,
-      evidence: null,
-    };
-  }
+  const { document, earlyResult } = preflightSceneInspection(
+    input,
+    options.reviewReadingOrder,
+  );
+  if (earlyResult !== null) return earlyResult;
   const { resolved, fonts } = resolveSceneResources(document, options);
   const evidence = createSceneEvidence(
     resolved.scene,
@@ -205,6 +197,29 @@ export function inspectScene(
     qualityIssues: resolved.qualityIssues,
     evidence,
   };
+}
+
+/** Validate text layout before the CLI loads optional resource-bundle bytes. */
+export function preflightSceneInspection(
+  input: unknown,
+  reviewReadingOrder = false,
+): { document: SceneDocument; earlyResult: SceneInspection | null } {
+  const document = requireSceneDocument(input);
+  const textLayout = collectSceneTextLayoutDiagnostics(document.elements);
+  if (textLayout.issues.length > 0) {
+    return {
+      document,
+      earlyResult: {
+        document,
+        fingerprint: null,
+        qualityIssues: reviewReadingOrder
+          ? [...textLayout.issues, ...reviewSceneReadingOrder(document)]
+          : textLayout.issues,
+        evidence: null,
+      },
+    };
+  }
+  return { document, earlyResult: null };
 }
 
 function requireSceneDocument(input: unknown): SceneDocument {

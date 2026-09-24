@@ -122,6 +122,47 @@ describe("offline Scene CLI", () => {
     }
   });
 
+  it("reports unsupported text before loading an incomplete resource bundle", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-layout-bundle-cli-"));
+    try {
+      const scenePath = join(root, "scene.json");
+      const bundle = join(root, "bundle");
+      await mkdir(bundle);
+      const unsupported = structuredClone(input);
+      unsupported.fonts[0]!.family = "Custom Sans";
+      unsupported.fonts[0]!.sha256 = "0".repeat(64);
+      unsupported.elements[0]!.font.family = "Custom Sans";
+      unsupported.elements[0]!.text = "\u200F\u05D0\u1820";
+      await writeFile(scenePath, JSON.stringify(unsupported));
+      await writeFile(
+        join(bundle, "glyphkiln-resource-bundle.json"),
+        JSON.stringify({ bundleVersion: "1.0.0", assets: [], fonts: [] }),
+      );
+
+      const inspected = await invoke([
+        "scene",
+        "inspect",
+        scenePath,
+        "--resource-bundle",
+        bundle,
+      ]);
+      expect(inspected.code).toBe(1);
+      expect(inspected.stderr).toEqual([]);
+      const review = JSON.parse(inspected.stdout.join("\n")) as {
+        fingerprint: string | null;
+        evidence: unknown;
+        qualityIssues: { code: string }[];
+      };
+      expect(review.fingerprint).toBeNull();
+      expect(review.evidence).toBeNull();
+      expect(review.qualityIssues.map((issue) => issue.code)).toContain(
+        "BIDI_CONTROL_UNSUPPORTED",
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("prints opt-in reading-order warnings without requiring a manifest", async () => {
     const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-review-cli-"));
     try {

@@ -19,7 +19,11 @@ import {
   validateSceneDocument,
   SCENE_RESOURCE_LIMITS,
 } from "../scene/index.js";
-import { inspectScene } from "../scene/render.js";
+import {
+  inspectScene,
+  preflightSceneInspection,
+  type SceneInspection,
+} from "../scene/render.js";
 import { loadResourceBundle, loadSceneResourceBundle } from "./resource-bundle.js";
 
 type CliIo = {
@@ -106,6 +110,13 @@ async function sceneCommand(
   }
   if (command === "inspect") {
     const parsed = parseSceneInspectArguments(options);
+    if (parsed.resourceBundlePath !== undefined) {
+      const { earlyResult } = preflightSceneInspection(
+        input,
+        parsed.reviewReadingOrder,
+      );
+      if (earlyResult !== null) return reportSceneInspection(earlyResult, io);
+    }
     const resources =
       parsed.resourceBundlePath === undefined
         ? { assets: [], fonts: [] }
@@ -115,21 +126,25 @@ async function sceneCommand(
       fonts: resources.fonts,
       reviewReadingOrder: parsed.reviewReadingOrder,
     });
-    io.stdout(
-      JSON.stringify(
-        {
-          sceneId: result.document.id,
-          fingerprint: result.fingerprint,
-          evidence: result.evidence,
-          qualityIssues: result.qualityIssues,
-        },
-        null,
-        2,
-      ),
-    );
-    return result.qualityIssues.some((issue) => issue.severity === "error") ? 1 : 0;
+    return reportSceneInspection(result, io);
   }
   return renderCommand(input, options, io, true);
+}
+
+function reportSceneInspection(result: SceneInspection, io: CliIo): number {
+  io.stdout(
+    JSON.stringify(
+      {
+        sceneId: result.document.id,
+        fingerprint: result.fingerprint,
+        evidence: result.evidence,
+        qualityIssues: result.qualityIssues,
+      },
+      null,
+      2,
+    ),
+  );
+  return result.qualityIssues.some((issue) => issue.severity === "error") ? 1 : 0;
 }
 
 function parseReviewOption(options: readonly string[]): boolean {
