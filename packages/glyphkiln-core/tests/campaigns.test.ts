@@ -206,7 +206,7 @@ describe("campaign seed derivation", () => {
         code: "INVALID_CAMPAIGN_SEED_SCOPE",
       }),
     );
-    void [swappedCanvasKey, swappedDirectionKey];
+    expect([swappedCanvasKey, swappedDirectionKey]).toEqual(["direction-a", "hero-01"]);
   });
 
   it("publishes stable direction and canvas seed vectors", () => {

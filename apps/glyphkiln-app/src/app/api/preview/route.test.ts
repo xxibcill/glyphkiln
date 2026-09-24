@@ -6,7 +6,8 @@ import { POST } from "./route";
 
 describe("POST /api/preview", () => {
   it("never renders caller-authored documents through the legacy anonymous path", async () => {
-    const response = POST(
+    const handler: (request: Request) => ReturnType<typeof POST> = POST;
+    const response = handler(
       new Request("http://localhost/api/preview", {
         method: "POST",
         body: JSON.stringify(createPreviewDesign()),

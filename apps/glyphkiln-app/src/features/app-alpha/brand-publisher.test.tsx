@@ -32,8 +32,7 @@ describe("BrandPublisher", () => {
   });
 
   it("submits only manually entered brand values for server publication", () => {
-    const onPublish = vi.fn<(input: BrandPublishInput) => Promise<void>>((input) => {
-      void input;
+    const onPublish = vi.fn<(input: BrandPublishInput) => Promise<void>>(() => {
       return Promise.resolve();
     });
     act(() => {

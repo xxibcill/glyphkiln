@@ -15,8 +15,7 @@ const RESPONSE_HEADERS = {
  * App Alpha deliberately closes it: rendering now goes through the authenticated
  * workflow, which constructs trusted document fields from stored resources.
  */
-export function POST(request: Request): NextResponse {
-  void request;
+export function POST(): NextResponse {
   return NextResponse.json(
     {
       ok: false,

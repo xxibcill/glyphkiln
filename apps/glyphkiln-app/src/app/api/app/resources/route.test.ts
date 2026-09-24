@@ -73,9 +73,8 @@ describe("POST /api/app/resources", () => {
 
   it("admits an authorized raster without exposing its storage key or scan internals", async () => {
     let admissionActive = false;
-    const ingestRaster = vi.fn(
-      (input: unknown): ReturnType<ResourceIngestionService["ingestRaster"]> => {
-        void input;
+    const ingestRaster = vi.fn<ResourceIngestionService["ingestRaster"]>(
+      (): ReturnType<ResourceIngestionService["ingestRaster"]> => {
         return Promise.resolve({
           duplicate: false,
           ingestionId: "ingestion-one",

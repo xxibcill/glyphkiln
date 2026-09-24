@@ -46,7 +46,10 @@ describe("carousel delivery profiles", () => {
         code: "INVALID_CAROUSEL_SEQUENCE",
       }),
     );
-    void [rawSequenceKey, swappedSequenceKey];
+    expect([rawSequenceKey, swappedSequenceKey]).toEqual([
+      "launch-carousel",
+      "launch-carousel",
+    ]);
   });
 
   it("keeps native, API, organic, and paid-ad rules separate", () => {
