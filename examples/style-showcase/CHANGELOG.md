@@ -1,5 +1,12 @@
 # @glyphkiln/example-style-showcase
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [8e72700]
+  - @glyphkiln/core@0.8.0
+
 ## 0.0.4
 
 ### Patch Changes
