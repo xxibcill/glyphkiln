@@ -7,20 +7,45 @@ state them explicitly.
 Independent embedded versions protect reproducibility:
 
 - design schema: bump major/minor/patch according to contract compatibility
+- scene schema: bump when accepted `SceneDocument` data or its meaning changes
 - template: bump whenever required rules or pixels change
 - procedural algorithm: bump whenever pixels change for identical inputs
 - renderer: bump for SVG serialization, geometry, typography, or rasterizer
   behavior changes
 - manifest: bump when provenance fields or meanings change
+- scene manifest: bump when Scene Kernel provenance fields or meanings change
 
 Old document/template combinations must fail explicitly when unsupported; never
 silently migrate during render. Migration belongs in an explicit pure utility
 that produces a new reviewed document.
 
-Public exports in `packages/glyphkiln-core/src/index.ts` are intentional.
-Internal file paths are not
-public API. The `./schema` subpath is public for applications that need the
-runtime schema and JSON Schema export.
+Public exports from the package root and the documented `./schema`, `./browser`,
+and `./scene` subpaths are intentional. Internal file paths are not public API.
+The `./schema` subpath is for applications that need the semantic-design runtime
+schema and JSON Schema export. The `./scene` subpath is the expert Scene Kernel;
+it does not make renderer internals public.
+
+Core `0.8.0` adds that expert subpath as a new public capability. Scene document,
+Scene Kernel, and scene manifest versions start at `1.0.0`; the subpath exposes
+one deep `renderScene` lifecycle over a strict closed scene: nested groups,
+closed transforms and clips, explicit-route connectors with validated semantic
+endpoints, semantic reading order, and Core-laid-out `outline` or
+`outline-with-selectable-text`. SVG and PNG results carry a scene manifest and
+fingerprint. Adding the entry point is a package minor release.
+
+The shared renderer advances from `0.4.0` to `0.5.0` for the new geometry and
+serialization surface. Existing `DesignDocument` validation, template choices,
+SVG bytes, and PNG bytes remain unchanged. Their fingerprints and manifest bytes
+intentionally change because renderer identity is part of both contracts;
+manifest schema `1.2.0` does not change. Glyphkiln App does not accept Scene
+documents. A later semantic `@glyphkiln/book` compiler is a separate package and
+release decision.
+
+After the initial Scene Kernel release, accepted scene shape or field meaning is
+owned by the scene schema version. Changes to geometry, text layout,
+serialization, or raster output require renderer-version review and deliberate
+pixel baselines. Changes to recorded Scene provenance require a scene-manifest
+version review. A package bump never substitutes for those embedded versions.
 
 Text-layout acceptance has the independent
 `TEXT_LAYOUT_DIAGNOSTICS_VERSION`. Package `0.3.0` adds

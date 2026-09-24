@@ -1,9 +1,10 @@
 # Determinism contract
 
 Glyphkiln promises identical output bytes for identical pixel-affecting inputs
-in the same pinned renderer environment.
+in the same pinned renderer environment. The promise applies to both the
+semantic `renderGraphic` route and the expert `renderScene` route.
 
-The render fingerprint includes:
+The semantic-design fingerprint includes:
 
 - the validated document except `id` and `metadata`
 - seed
@@ -26,6 +27,43 @@ format is included because SVG and PNG are different byte products.
 Objects use recursive key sorting and compact canonical JSON before SHA-256.
 Arrays preserve order. Negative zero becomes zero; non-finite numbers and
 non-JSON values are rejected.
+
+## Scene Kernel fingerprints
+
+Scene Kernel v1 applies the same canonicalization rules to a validated
+`SceneDocument 1.0.0`. Its fingerprint covers every render-affecting input,
+including:
+
+- the exact ordered scene tree, excluding only documented non-rendering IDs and
+  metadata;
+- the scene schema version and the renderer, rasterizer, and output-format
+  identities;
+- primitive geometry, group nesting, closed transforms, clipping, paint order,
+  connector endpoint references, explicit route points, and marker policy;
+- Core-laid-out text content, font identities and hashes, layout constraints,
+  and the selected `outline` or `outline-with-selectable-text` mode;
+- semantic reading order when it changes serialized output semantics;
+- resolved asset identities and hashes (which bind the admitted bytes); and
+- relevant SVG and raster configuration.
+
+Core derives text and closed connector-marker geometry deterministically;
+connector route points remain explicit input. Ambiguous layout choices use
+documented stable tie-breaks and must not depend on object iteration, filesystem
+order, locale, host fonts, or registration order. Any procedural scene
+construction remains caller-owned input and must arrive as explicit data. A
+future procedural feature inside the kernel would require a seed and a
+versioned algorithm before release.
+
+The scene manifest is independently versioned. Scene fingerprint meaning is
+governed by the Scene Kernel version plus its embedded renderer configuration
+and renderer identity. Together they establish exact reproduction only when the
+complete input scene, admitted resource bytes, renderer configuration, output
+format, and pinned environment are identical.
+
+Core `0.8.0` advances the shared renderer identity from `0.4.0` to `0.5.0`.
+Legacy `DesignDocument` SVG and PNG bytes remain exact; their fingerprints and
+manifest bytes deliberately change because renderer identity is hashed and
+recorded.
 
 ## Randomness
 

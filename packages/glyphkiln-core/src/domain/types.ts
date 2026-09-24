@@ -8,7 +8,7 @@ export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
 ] as const);
 export const MANIFEST_VERSION = "1.2.0" as const;
 export const RENDERER_NAME = "glyphkiln-svg" as const;
-export const RENDERER_VERSION = "0.4.0" as const;
+export const RENDERER_VERSION = "0.5.0" as const;
 export const PRODUCT_CLAIM =
   "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately." as const;
 

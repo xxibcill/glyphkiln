@@ -1,0 +1,2220 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "editorial-decoder-spread-v1",
+  "seed": "editorial-decoder-spread-v1",
+  "dimensions": {
+    "width": 1800,
+    "height": 1100
+  },
+  "title": "The answer grows one token at a time",
+  "description": "A proof scene of one decoder-only transformer pass. Accepted token representations pass through repeated pre-normalized attention and feed-forward blocks with residual adds. Final normalization and the vocabulary output projection produce logits. A neutral field shows candidate scores. Greedy argmax selects clear, then that token is appended to the prefix and the loop repeats. This simplified fixture is not a scientific approval.",
+  "backgroundColor": "#F6F1E7",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "elements": [
+    {
+      "id": "spread-content",
+      "type": "group",
+      "semantic": {
+        "role": "content",
+        "conceptId": "decoder-pass",
+        "label": "One simplified decoder pass"
+      },
+      "clip": {
+        "type": "rect",
+        "x": 0,
+        "y": 0,
+        "width": 1800,
+        "height": 1100
+      },
+      "elements": [
+        {
+          "id": "gutter-rule",
+          "type": "rect",
+          "x": 899,
+          "y": 34,
+          "width": 2,
+          "height": 1032,
+          "fill": "#17262F",
+          "semantic": {
+            "role": "decoration",
+            "label": "Facing-page gutter"
+          }
+        },
+        {
+          "id": "left-page",
+          "type": "group",
+          "semantic": {
+            "role": "content",
+            "conceptId": "generation-loop",
+            "label": "Generation loop"
+          },
+          "clip": {
+            "type": "rect",
+            "x": 40,
+            "y": 20,
+            "width": 820,
+            "height": 1060
+          },
+          "elements": [
+            {
+              "id": "left-running-head",
+              "type": "text",
+              "text": "CHAPTER 05 · HOW ONE TOKEN BECOMES AN ANSWER",
+              "box": {
+                "x": 58,
+                "y": 28,
+                "width": 650,
+                "height": 24
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 12,
+                "minimumFontSize": 12,
+                "maximumLines": 1,
+                "lineHeight": 1.1,
+                "align": "left",
+                "letterSpacing": 1.2
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "running-head",
+                "label": "Chapter running head"
+              }
+            },
+            {
+              "id": "left-head-rule",
+              "type": "rect",
+              "x": 58,
+              "y": 62,
+              "width": 785,
+              "height": 2,
+              "fill": "#17262F",
+              "semantic": {
+                "role": "decoration"
+              }
+            },
+            {
+              "id": "left-kicker",
+              "type": "text",
+              "text": "ONE SIMPLIFIED DECODER PASS",
+              "box": {
+                "x": 58,
+                "y": 88,
+                "width": 390,
+                "height": 26
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 13,
+                "minimumFontSize": 13,
+                "maximumLines": 1,
+                "lineHeight": 1.1,
+                "align": "left",
+                "letterSpacing": 1.4
+              },
+              "fill": "#B94A35",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "decoder-pass",
+                "label": "One simplified decoder pass"
+              }
+            },
+            {
+              "id": "spread-title",
+              "type": "text",
+              "text": "The answer grows one token at a time.",
+              "box": {
+                "x": 58,
+                "y": 120,
+                "width": 770,
+                "height": 118
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 40,
+                "minimumFontSize": 36,
+                "maximumLines": 1,
+                "lineHeight": 0.98,
+                "align": "left"
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "content",
+                "conceptId": "lesson-outcome",
+                "label": "The answer grows one token at a time"
+              }
+            },
+            {
+              "id": "spread-deck",
+              "type": "text",
+              "text": "A decoder-only model transforms the accepted prefix and scores possible next tokens. Greedy argmax selects clear, appends it to the prefix, and runs the loop again.",
+              "box": {
+                "x": 58,
+                "y": 246,
+                "width": 770,
+                "height": 72
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 400,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 19,
+                "minimumFontSize": 17,
+                "maximumLines": 3,
+                "lineHeight": 1.28,
+                "align": "left"
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "content",
+                "conceptId": "lesson-summary",
+                "label": "Lesson summary"
+              }
+            },
+            {
+              "id": "generation-loop-ring",
+              "type": "circle",
+              "cx": 445,
+              "cy": 690,
+              "radius": 268,
+              "fill": "transparent",
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "semantic": {
+                "role": "decoration",
+                "conceptId": "generation-loop"
+              }
+            },
+            {
+              "id": "truth-boundary",
+              "type": "text",
+              "text": "Probability of the next token is not probability of truth.",
+              "box": {
+                "x": 302,
+                "y": 625,
+                "width": 290,
+                "height": 112
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 21,
+                "minimumFontSize": 18,
+                "maximumLines": 4,
+                "lineHeight": 1.14,
+                "align": "center",
+                "verticalAlign": "middle"
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "truth-boundary",
+                "label": "Probability of the next token is not probability of truth"
+              }
+            },
+            {
+              "id": "accepted-prefix-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "accepted-prefix",
+                "label": "Stage 1, accepted prefix"
+              },
+              "elements": [
+                {
+                  "id": "stage-01-label",
+                  "type": "text",
+                  "text": "01 · ACCEPTED PREFIX",
+                  "box": {
+                    "x": 78,
+                    "y": 806,
+                    "width": 220,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 12,
+                    "minimumFontSize": 12,
+                    "maximumLines": 1,
+                    "lineHeight": 1.1,
+                    "align": "left",
+                    "letterSpacing": 0.7
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix",
+                    "label": "Stage 1, accepted prefix"
+                  }
+                },
+                {
+                  "id": "prefix-token-tminus2",
+                  "type": "rect",
+                  "x": 82,
+                  "y": 842,
+                  "width": 58,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix"
+                  }
+                },
+                {
+                  "id": "prefix-token-tminus2-text",
+                  "type": "text",
+                  "text": "t−2",
+                  "box": {
+                    "x": 90,
+                    "y": 850,
+                    "width": 42,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 14,
+                    "minimumFontSize": 14,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix",
+                    "label": "Accepted token t minus 2"
+                  }
+                },
+                {
+                  "id": "prefix-token-tminus1",
+                  "type": "rect",
+                  "x": 144,
+                  "y": 842,
+                  "width": 58,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix"
+                  }
+                },
+                {
+                  "id": "prefix-token-tminus1-text",
+                  "type": "text",
+                  "text": "t−1",
+                  "box": {
+                    "x": 152,
+                    "y": 850,
+                    "width": 42,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 14,
+                    "minimumFontSize": 14,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix",
+                    "label": "Accepted token t minus 1"
+                  }
+                },
+                {
+                  "id": "prefix-token-t",
+                  "type": "rect",
+                  "x": 206,
+                  "y": 842,
+                  "width": 58,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix"
+                  }
+                },
+                {
+                  "id": "prefix-token-t-text",
+                  "type": "text",
+                  "text": "t",
+                  "box": {
+                    "x": 214,
+                    "y": 850,
+                    "width": 42,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 14,
+                    "minimumFontSize": 14,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "accepted-prefix",
+                    "label": "Accepted token t"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "representations-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "token-representations",
+                "label": "Stage 2, token representations"
+              },
+              "elements": [
+                {
+                  "id": "stage-02-label",
+                  "type": "text",
+                  "text": "02 · REPRESENTATIONS",
+                  "box": {
+                    "x": 88,
+                    "y": 510,
+                    "width": 230,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 12,
+                    "minimumFontSize": 12,
+                    "maximumLines": 1,
+                    "lineHeight": 1.1,
+                    "align": "left",
+                    "letterSpacing": 0.7
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "token-representations",
+                    "label": "Stage 2, token representations"
+                  }
+                },
+                {
+                  "id": "representation-bar-1",
+                  "type": "rect",
+                  "x": 126,
+                  "y": 552,
+                  "width": 3,
+                  "height": 66,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "token-representations"
+                  }
+                },
+                {
+                  "id": "representation-bar-2",
+                  "type": "rect",
+                  "x": 151,
+                  "y": 560,
+                  "width": 3,
+                  "height": 58,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "token-representations"
+                  }
+                },
+                {
+                  "id": "representation-bar-3",
+                  "type": "rect",
+                  "x": 176,
+                  "y": 545,
+                  "width": 7,
+                  "height": 73,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "token-representations"
+                  }
+                },
+                {
+                  "id": "representation-bar-4",
+                  "type": "rect",
+                  "x": 205,
+                  "y": 556,
+                  "width": 3,
+                  "height": 62,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "token-representations"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "repeated-blocks-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "repeated-decoder-blocks",
+                "label": "Stage 3, repeated decoder blocks"
+              },
+              "elements": [
+                {
+                  "id": "stage-03-label",
+                  "type": "text",
+                  "text": "03 · REPEATED DECODER BLOCKS",
+                  "box": {
+                    "x": 332,
+                    "y": 344,
+                    "width": 286,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 12,
+                    "minimumFontSize": 12,
+                    "maximumLines": 1,
+                    "lineHeight": 1.1,
+                    "align": "center",
+                    "letterSpacing": 0.6
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "repeated-decoder-blocks",
+                    "label": "Stage 3, repeated decoder blocks"
+                  }
+                },
+                {
+                  "id": "decoder-block-back",
+                  "type": "rect",
+                  "x": 366,
+                  "y": 382,
+                  "width": 170,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "repeated-decoder-blocks"
+                  }
+                },
+                {
+                  "id": "decoder-block-middle",
+                  "type": "rect",
+                  "x": 378,
+                  "y": 392,
+                  "width": 170,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "repeated-decoder-blocks"
+                  }
+                },
+                {
+                  "id": "decoder-block-front",
+                  "type": "rect",
+                  "x": 390,
+                  "y": 402,
+                  "width": 170,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "repeated-decoder-blocks",
+                    "label": "Repeated decoder block"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "final-logits-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "final-logits",
+                "label": "Stage 4, final normalization, output projection, and logits"
+              },
+              "elements": [
+                {
+                  "id": "stage-04-label",
+                  "type": "text",
+                  "text": "04 · FINAL NORM → OUTPUT PROJECTION → LOGITS",
+                  "box": {
+                    "x": 568,
+                    "y": 452,
+                    "width": 300,
+                    "height": 38
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 10,
+                    "minimumFontSize": 9,
+                    "maximumLines": 2,
+                    "lineHeight": 1.08,
+                    "align": "center",
+                    "letterSpacing": 0.4
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "final-logits",
+                    "label": "Stage 4, final normalization, output projection, and logits"
+                  }
+                },
+                {
+                  "id": "final-norm",
+                  "type": "circle",
+                  "cx": 656,
+                  "cy": 542,
+                  "radius": 29,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "final-normalization",
+                    "label": "Final normalization"
+                  }
+                },
+                {
+                  "id": "final-norm-text",
+                  "type": "text",
+                  "text": "RMS",
+                  "box": {
+                    "x": 630,
+                    "y": 529,
+                    "width": 52,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 10,
+                    "minimumFontSize": 10,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "final-normalization",
+                    "label": "RMS normalization"
+                  }
+                },
+                {
+                  "id": "output-projection",
+                  "type": "rect",
+                  "x": 701,
+                  "y": 507,
+                  "width": 16,
+                  "height": 70,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "output-projection",
+                    "label": "Vocabulary output projection"
+                  }
+                },
+                {
+                  "id": "logit-bar-1",
+                  "type": "rect",
+                  "x": 731,
+                  "y": 536,
+                  "width": 9,
+                  "height": 41,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "logits"
+                  }
+                },
+                {
+                  "id": "logit-bar-2",
+                  "type": "rect",
+                  "x": 749,
+                  "y": 518,
+                  "width": 9,
+                  "height": 59,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "logits"
+                  }
+                },
+                {
+                  "id": "logit-bar-3",
+                  "type": "rect",
+                  "x": 767,
+                  "y": 494,
+                  "width": 9,
+                  "height": 83,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "logits"
+                  }
+                },
+                {
+                  "id": "logit-bar-4",
+                  "type": "rect",
+                  "x": 785,
+                  "y": 526,
+                  "width": 9,
+                  "height": 51,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "logits"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "candidate-field-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "candidate-field",
+                "label": "Stage 5, neutral candidate field"
+              },
+              "elements": [
+                {
+                  "id": "stage-05-label",
+                  "type": "text",
+                  "text": "05 · NEUTRAL CANDIDATE SCORES",
+                  "box": {
+                    "x": 610,
+                    "y": 660,
+                    "width": 254,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 11,
+                    "minimumFontSize": 10,
+                    "maximumLines": 1,
+                    "lineHeight": 1.1,
+                    "align": "center",
+                    "letterSpacing": 0.5
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-field",
+                    "label": "Stage 5, neutral candidate scores"
+                  }
+                },
+                {
+                  "id": "candidate-ray-1",
+                  "type": "path",
+                  "data": "M 704 736 L 668 706",
+                  "fill": "none",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "lineCap": "round",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "candidate-field"
+                  }
+                },
+                {
+                  "id": "candidate-ray-2",
+                  "type": "path",
+                  "data": "M 738 730 L 748 692",
+                  "fill": "none",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "lineCap": "round",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "candidate-field"
+                  }
+                },
+                {
+                  "id": "candidate-ray-3",
+                  "type": "path",
+                  "data": "M 770 750 L 820 730",
+                  "fill": "none",
+                  "stroke": "#17262F",
+                  "strokeWidth": 1,
+                  "lineCap": "round",
+                  "semantic": {
+                    "role": "decoration",
+                    "conceptId": "candidate-field"
+                  }
+                },
+                {
+                  "id": "candidate-clear",
+                  "type": "rect",
+                  "x": 682,
+                  "y": 720,
+                  "width": 90,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-clear",
+                    "label": "Candidate clear, not yet selected"
+                  }
+                },
+                {
+                  "id": "candidate-clear-text",
+                  "type": "text",
+                  "text": "clear",
+                  "box": {
+                    "x": 691,
+                    "y": 728,
+                    "width": 72,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 14,
+                    "minimumFontSize": 14,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-clear",
+                    "label": "Candidate clear, not yet selected"
+                  }
+                },
+                {
+                  "id": "candidate-short",
+                  "type": "rect",
+                  "x": 778,
+                  "y": 766,
+                  "width": 70,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-short",
+                    "label": "Candidate short, not selected"
+                  }
+                },
+                {
+                  "id": "candidate-short-text",
+                  "type": "text",
+                  "text": "short",
+                  "box": {
+                    "x": 786,
+                    "y": 774,
+                    "width": 54,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-short",
+                    "label": "Candidate short, not selected"
+                  }
+                },
+                {
+                  "id": "candidate-visual",
+                  "type": "rect",
+                  "x": 638,
+                  "y": 784,
+                  "width": 82,
+                  "height": 42,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-visual",
+                    "label": "Candidate visual, not selected"
+                  }
+                },
+                {
+                  "id": "candidate-visual-text",
+                  "type": "text",
+                  "text": "visual",
+                  "box": {
+                    "x": 646,
+                    "y": 792,
+                    "width": 66,
+                    "height": 26
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "candidate-visual",
+                    "label": "Candidate visual, not selected"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "greedy-decoder-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "greedy-argmax-decoder",
+                "label": "Stage 6, greedy argmax decoder"
+              },
+              "elements": [
+                {
+                  "id": "stage-06-label",
+                  "type": "text",
+                  "text": "06 · SELECT",
+                  "box": {
+                    "x": 350,
+                    "y": 902,
+                    "width": 120,
+                    "height": 28
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 18,
+                    "minimumFontSize": 18,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "left"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "greedy-argmax-decoder",
+                    "label": "Stage 6, select"
+                  }
+                },
+                {
+                  "id": "greedy-decoder-gate",
+                  "type": "rect",
+                  "x": 420,
+                  "y": 930,
+                  "width": 142,
+                  "height": 52,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "greedy-argmax-decoder",
+                    "label": "Greedy argmax decoder"
+                  }
+                },
+                {
+                  "id": "greedy-decoder-label",
+                  "type": "text",
+                  "text": "GREEDY (ARGMAX)",
+                  "box": {
+                    "x": 431,
+                    "y": 941,
+                    "width": 120,
+                    "height": 30
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 10,
+                    "minimumFontSize": 10,
+                    "maximumLines": 2,
+                    "lineHeight": 1.05,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "greedy-argmax-decoder",
+                    "label": "Greedy argmax decoder"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "selected-token-stage",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "selected-clear",
+                "label": "Selected token clear"
+              },
+              "elements": [
+                {
+                  "id": "selected-token-label",
+                  "type": "text",
+                  "text": "SELECTED t+1",
+                  "box": {
+                    "x": 578,
+                    "y": 900,
+                    "width": 108,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 10,
+                    "minimumFontSize": 10,
+                    "maximumLines": 1,
+                    "lineHeight": 1.1,
+                    "align": "center",
+                    "letterSpacing": 0.4
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline",
+                  "semantic": {
+                    "role": "annotation",
+                    "conceptId": "selected-clear",
+                    "label": "Selected token t plus 1"
+                  }
+                },
+                {
+                  "id": "selected-clear",
+                  "type": "rect",
+                  "x": 582,
+                  "y": 930,
+                  "width": 100,
+                  "height": 52,
+                  "fill": "#B94A35",
+                  "stroke": "#B94A35",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "selected-clear",
+                    "label": "Selected token clear"
+                  }
+                },
+                {
+                  "id": "selected-clear-text",
+                  "type": "text",
+                  "text": "clear",
+                  "box": {
+                    "x": 592,
+                    "y": 942,
+                    "width": 80,
+                    "height": 28
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 14,
+                    "minimumFontSize": 14,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#F6F1E7",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "selected-clear",
+                    "label": "Selected token clear"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "append-repeat-label",
+              "type": "text",
+              "text": "APPEND TO PREFIX + REPEAT",
+              "box": {
+                "x": 80,
+                "y": 985,
+                "width": 290,
+                "height": 28
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 12,
+                "minimumFontSize": 12,
+                "maximumLines": 1,
+                "lineHeight": 1.1,
+                "align": "left",
+                "letterSpacing": 0.6
+              },
+              "fill": "#B94A35",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "append-and-repeat",
+                "label": "Append selected token to prefix and repeat"
+              }
+            },
+            {
+              "id": "accepted-to-representations",
+              "type": "connector",
+              "fromId": "accepted-prefix-stage",
+              "toId": "representations-stage",
+              "points": [
+                {
+                  "x": 235,
+                  "y": 840
+                },
+                {
+                  "x": 215,
+                  "y": 720
+                },
+                {
+                  "x": 185,
+                  "y": 620
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "accepted-to-representations",
+                "label": "Accepted prefix becomes token representations"
+              }
+            },
+            {
+              "id": "representations-to-blocks",
+              "type": "connector",
+              "fromId": "representations-stage",
+              "toId": "repeated-blocks-stage",
+              "points": [
+                {
+                  "x": 210,
+                  "y": 552
+                },
+                {
+                  "x": 270,
+                  "y": 465
+                },
+                {
+                  "x": 382,
+                  "y": 424
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "representations-to-blocks",
+                "label": "Representations enter repeated decoder blocks"
+              }
+            },
+            {
+              "id": "blocks-to-final-logits",
+              "type": "connector",
+              "fromId": "repeated-blocks-stage",
+              "toId": "final-logits-stage",
+              "points": [
+                {
+                  "x": 560,
+                  "y": 424
+                },
+                {
+                  "x": 604,
+                  "y": 456
+                },
+                {
+                  "x": 635,
+                  "y": 512
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "blocks-to-final-logits",
+                "label": "Repeated blocks feed final normalization and logits"
+              }
+            },
+            {
+              "id": "final-logits-to-candidates",
+              "type": "connector",
+              "fromId": "final-logits-stage",
+              "toId": "candidate-field-stage",
+              "points": [
+                {
+                  "x": 777,
+                  "y": 580
+                },
+                {
+                  "x": 777,
+                  "y": 642
+                },
+                {
+                  "x": 740,
+                  "y": 706
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "logits-to-candidate-field",
+                "label": "Logits feed the neutral candidate field"
+              }
+            },
+            {
+              "id": "candidates-to-decoder",
+              "type": "connector",
+              "fromId": "candidate-field-stage",
+              "toId": "greedy-decoder-stage",
+              "points": [
+                {
+                  "x": 666,
+                  "y": 826
+                },
+                {
+                  "x": 590,
+                  "y": 864
+                },
+                {
+                  "x": 520,
+                  "y": 930
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "candidate-field-to-decoder",
+                "label": "Candidate scores enter the greedy decoder"
+              }
+            },
+            {
+              "id": "decoder-to-selected",
+              "type": "connector",
+              "fromId": "greedy-decoder-stage",
+              "toId": "selected-token-stage",
+              "points": [
+                {
+                  "x": 562,
+                  "y": 956
+                },
+                {
+                  "x": 580,
+                  "y": 956
+                }
+              ],
+              "stroke": "#B94A35",
+              "strokeWidth": 3,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "decoder-to-selected",
+                "label": "Greedy argmax selects clear"
+              }
+            },
+            {
+              "id": "append-repeat-connector",
+              "type": "connector",
+              "fromId": "selected-token-stage",
+              "toId": "accepted-prefix-stage",
+              "points": [
+                {
+                  "x": 635,
+                  "y": 984
+                },
+                {
+                  "x": 635,
+                  "y": 1035
+                },
+                {
+                  "x": 100,
+                  "y": 1035
+                },
+                {
+                  "x": 100,
+                  "y": 890
+                }
+              ],
+              "stroke": "#17262F",
+              "strokeWidth": 2,
+              "markers": {
+                "start": "none",
+                "end": "arrow"
+              },
+              "lineCap": "round",
+              "lineJoin": "round",
+              "semantic": {
+                "role": "connector",
+                "conceptId": "append-and-repeat",
+                "label": "Append selected token to prefix and repeat"
+              }
+            }
+          ]
+        },
+        {
+          "id": "right-page",
+          "type": "group",
+          "transforms": [
+            {
+              "type": "translate",
+              "x": 900,
+              "y": 0
+            }
+          ],
+          "clip": {
+            "type": "rect",
+            "x": 40,
+            "y": 20,
+            "width": 820,
+            "height": 1060
+          },
+          "semantic": {
+            "role": "content",
+            "conceptId": "decoder-block-cutaway",
+            "label": "Opened decoder block"
+          },
+          "elements": [
+            {
+              "id": "right-running-head",
+              "type": "text",
+              "text": "DIRECTION A · RADIAL ATLAS + CUTAWAY",
+              "box": {
+                "x": 170,
+                "y": 28,
+                "width": 672,
+                "height": 24
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 12,
+                "minimumFontSize": 12,
+                "maximumLines": 1,
+                "lineHeight": 1.1,
+                "align": "right",
+                "letterSpacing": 1.2
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "direction-a",
+                "label": "Direction A, radial atlas and cutaway"
+              }
+            },
+            {
+              "id": "right-head-rule",
+              "type": "rect",
+              "x": 58,
+              "y": 62,
+              "width": 785,
+              "height": 2,
+              "fill": "#17262F",
+              "semantic": {
+                "role": "decoration"
+              }
+            },
+            {
+              "id": "right-kicker",
+              "type": "text",
+              "text": "ONE REPEATED BLOCK, OPENED",
+              "box": {
+                "x": 58,
+                "y": 88,
+                "width": 420,
+                "height": 26
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 13,
+                "minimumFontSize": 13,
+                "maximumLines": 1,
+                "lineHeight": 1.1,
+                "align": "left",
+                "letterSpacing": 1.3
+              },
+              "fill": "#B94A35",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "decoder-block-cutaway",
+                "label": "One repeated block, opened"
+              }
+            },
+            {
+              "id": "cutaway-title",
+              "type": "text",
+              "text": "Attention is one operation—not the whole model.",
+              "box": {
+                "x": 58,
+                "y": 120,
+                "width": 780,
+                "height": 94
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 700,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 32,
+                "minimumFontSize": 28,
+                "maximumLines": 1,
+                "lineHeight": 1.02,
+                "align": "left"
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "content",
+                "conceptId": "attention-boundary",
+                "label": "Attention is one operation, not the whole model"
+              }
+            },
+            {
+              "id": "decoder-block-diagram",
+              "type": "group",
+              "semantic": {
+                "role": "content",
+                "conceptId": "decoder-block-anatomy",
+                "label": "Decoder block anatomy"
+              },
+              "elements": [
+                {
+                  "id": "block-input",
+                  "type": "circle",
+                  "cx": 420,
+                  "cy": 252,
+                  "radius": 6,
+                  "fill": "#17262F",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "block-input",
+                    "label": "Block input"
+                  }
+                },
+                {
+                  "id": "attention-norm",
+                  "type": "rect",
+                  "x": 220,
+                  "y": 286,
+                  "width": 400,
+                  "height": 54,
+                  "radius": 10,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "attention-normalization",
+                    "label": "RMS normalization before attention"
+                  }
+                },
+                {
+                  "id": "attention-norm-label",
+                  "type": "text",
+                  "text": "RMSNORM",
+                  "box": {
+                    "x": 270,
+                    "y": 301,
+                    "width": 300,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "attention-normalization",
+                    "label": "RMS normalization before attention"
+                  }
+                },
+                {
+                  "id": "causal-attention",
+                  "type": "rect",
+                  "x": 150,
+                  "y": 378,
+                  "width": 540,
+                  "height": 142,
+                  "radius": 18,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "causal-self-attention",
+                    "label": "Causal self-attention with rotary position encoding on Q and K"
+                  }
+                },
+                {
+                  "id": "causal-attention-label",
+                  "type": "text",
+                  "text": "CAUSAL SELF-ATTENTION",
+                  "box": {
+                    "x": 220,
+                    "y": 394,
+                    "width": 400,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "letterSpacing": 0.5
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "causal-self-attention",
+                    "label": "Causal self-attention"
+                  }
+                },
+                {
+                  "id": "rope-label",
+                  "type": "text",
+                  "text": "RoPE ON Q/K",
+                  "box": {
+                    "x": 300,
+                    "y": 478,
+                    "width": 240,
+                    "height": 22
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 10,
+                    "minimumFontSize": 10,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center"
+                  },
+                  "fill": "#B94A35",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "annotation",
+                    "conceptId": "rope-qk",
+                    "label": "Rotary position encoding on Q and K"
+                  }
+                },
+                {
+                  "id": "attention-residual-add",
+                  "type": "circle",
+                  "cx": 420,
+                  "cy": 566,
+                  "radius": 24,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "attention-residual-add",
+                    "label": "Attention residual add"
+                  }
+                },
+                {
+                  "id": "attention-add-label",
+                  "type": "text",
+                  "text": "+  RESIDUAL ADD",
+                  "box": {
+                    "x": 455,
+                    "y": 553,
+                    "width": 190,
+                    "height": 28
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 11,
+                    "minimumFontSize": 11,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "left",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "attention-residual-add",
+                    "label": "Attention residual add"
+                  }
+                },
+                {
+                  "id": "ffn-norm",
+                  "type": "rect",
+                  "x": 220,
+                  "y": 620,
+                  "width": 400,
+                  "height": 54,
+                  "radius": 10,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "ffn-normalization",
+                    "label": "RMS normalization before feed-forward"
+                  }
+                },
+                {
+                  "id": "ffn-norm-label",
+                  "type": "text",
+                  "text": "RMSNORM",
+                  "box": {
+                    "x": 270,
+                    "y": 635,
+                    "width": 300,
+                    "height": 24
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "ffn-normalization",
+                    "label": "RMS normalization before feed-forward"
+                  }
+                },
+                {
+                  "id": "swiglu-ffn",
+                  "type": "rect",
+                  "x": 150,
+                  "y": 712,
+                  "width": 540,
+                  "height": 128,
+                  "radius": 18,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "swiglu-feed-forward",
+                    "label": "SwiGLU feed-forward"
+                  }
+                },
+                {
+                  "id": "swiglu-ffn-label",
+                  "type": "text",
+                  "text": "SWIGLU FEED-FORWARD",
+                  "box": {
+                    "x": 220,
+                    "y": 758,
+                    "width": 400,
+                    "height": 28
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 13,
+                    "minimumFontSize": 13,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "center",
+                    "letterSpacing": 0.5
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "swiglu-feed-forward",
+                    "label": "SwiGLU feed-forward"
+                  }
+                },
+                {
+                  "id": "ffn-residual-add",
+                  "type": "circle",
+                  "cx": 420,
+                  "cy": 890,
+                  "radius": 24,
+                  "fill": "#F6F1E7",
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "ffn-residual-add",
+                    "label": "Feed-forward residual add"
+                  }
+                },
+                {
+                  "id": "ffn-add-label",
+                  "type": "text",
+                  "text": "+  RESIDUAL ADD",
+                  "box": {
+                    "x": 455,
+                    "y": 877,
+                    "width": 190,
+                    "height": 28
+                  },
+                  "font": {
+                    "family": "Inter",
+                    "weight": 700,
+                    "style": "normal"
+                  },
+                  "fit": {
+                    "preferredFontSize": 11,
+                    "minimumFontSize": 11,
+                    "maximumLines": 1,
+                    "lineHeight": 1,
+                    "align": "left",
+                    "verticalAlign": "middle"
+                  },
+                  "fill": "#17262F",
+                  "textMode": "outline-with-selectable-text",
+                  "semantic": {
+                    "role": "content",
+                    "conceptId": "ffn-residual-add",
+                    "label": "Feed-forward residual add"
+                  }
+                },
+                {
+                  "id": "input-to-attention-norm",
+                  "type": "connector",
+                  "fromId": "block-input",
+                  "toId": "attention-norm",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 258
+                    },
+                    {
+                      "x": 420,
+                      "y": 284
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "block-input-to-attention-norm"
+                  }
+                },
+                {
+                  "id": "attention-norm-to-attention",
+                  "type": "connector",
+                  "fromId": "attention-norm",
+                  "toId": "causal-attention",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 340
+                    },
+                    {
+                      "x": 420,
+                      "y": 376
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "attention-norm-to-attention"
+                  }
+                },
+                {
+                  "id": "attention-to-add",
+                  "type": "connector",
+                  "fromId": "causal-attention",
+                  "toId": "attention-residual-add",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 520
+                    },
+                    {
+                      "x": 420,
+                      "y": 540
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "attention-to-residual-add"
+                  }
+                },
+                {
+                  "id": "attention-residual-bypass",
+                  "type": "connector",
+                  "fromId": "block-input",
+                  "toId": "attention-residual-add",
+                  "points": [
+                    {
+                      "x": 412,
+                      "y": 252
+                    },
+                    {
+                      "x": 98,
+                      "y": 252
+                    },
+                    {
+                      "x": 98,
+                      "y": 566
+                    },
+                    {
+                      "x": 394,
+                      "y": 566
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "attention-residual-bypass",
+                    "label": "Attention residual bypass ends at the first add"
+                  }
+                },
+                {
+                  "id": "attention-add-to-ffn-norm",
+                  "type": "connector",
+                  "fromId": "attention-residual-add",
+                  "toId": "ffn-norm",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 590
+                    },
+                    {
+                      "x": 420,
+                      "y": 618
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "attention-add-to-ffn-norm"
+                  }
+                },
+                {
+                  "id": "ffn-norm-to-ffn",
+                  "type": "connector",
+                  "fromId": "ffn-norm",
+                  "toId": "swiglu-ffn",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 674
+                    },
+                    {
+                      "x": 420,
+                      "y": 710
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "ffn-norm-to-ffn"
+                  }
+                },
+                {
+                  "id": "ffn-to-add",
+                  "type": "connector",
+                  "fromId": "swiglu-ffn",
+                  "toId": "ffn-residual-add",
+                  "points": [
+                    {
+                      "x": 420,
+                      "y": 840
+                    },
+                    {
+                      "x": 420,
+                      "y": 864
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "ffn-to-residual-add"
+                  }
+                },
+                {
+                  "id": "ffn-residual-bypass",
+                  "type": "connector",
+                  "fromId": "attention-residual-add",
+                  "toId": "ffn-residual-add",
+                  "points": [
+                    {
+                      "x": 446,
+                      "y": 566
+                    },
+                    {
+                      "x": 446,
+                      "y": 540
+                    },
+                    {
+                      "x": 700,
+                      "y": 540
+                    },
+                    {
+                      "x": 700,
+                      "y": 930
+                    },
+                    {
+                      "x": 446,
+                      "y": 930
+                    },
+                    {
+                      "x": 446,
+                      "y": 890
+                    }
+                  ],
+                  "stroke": "#17262F",
+                  "strokeWidth": 2,
+                  "markers": {
+                    "start": "none",
+                    "end": "arrow"
+                  },
+                  "lineCap": "round",
+                  "lineJoin": "round",
+                  "semantic": {
+                    "role": "connector",
+                    "conceptId": "ffn-residual-bypass",
+                    "label": "Feed-forward residual bypass ends at the second add"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "cutaway-note",
+              "type": "text",
+              "text": "SIMPLIFIED DECODER-ONLY TRANSFORMER BLOCK · COMPONENT SHAPES, DIMENSIONS, HEADS, CACHE, AND REPEATED LAYERS ARE OMITTED · PROTOTYPE MECHANISM FIXTURE, NOT SCIENTIFIC APPROVAL",
+              "box": {
+                "x": 58,
+                "y": 940,
+                "width": 760,
+                "height": 72
+              },
+              "font": {
+                "family": "Inter",
+                "weight": 400,
+                "style": "normal"
+              },
+              "fit": {
+                "preferredFontSize": 11,
+                "minimumFontSize": 10,
+                "maximumLines": 4,
+                "lineHeight": 1.25,
+                "align": "left",
+                "letterSpacing": 0.3
+              },
+              "fill": "#17262F",
+              "textMode": "outline-with-selectable-text",
+              "semantic": {
+                "role": "annotation",
+                "conceptId": "scope-note",
+                "label": "Simplified fixture scope note"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "readingOrder": [
+    "left-running-head",
+    "left-kicker",
+    "spread-title",
+    "spread-deck",
+    "stage-01-label",
+    "prefix-token-tminus2-text",
+    "prefix-token-tminus1-text",
+    "prefix-token-t-text",
+    "stage-02-label",
+    "stage-03-label",
+    "stage-04-label",
+    "stage-05-label",
+    "candidate-clear-text",
+    "candidate-short-text",
+    "candidate-visual-text",
+    "stage-06-label",
+    "greedy-decoder-label",
+    "selected-token-label",
+    "selected-clear-text",
+    "append-repeat-label",
+    "truth-boundary",
+    "right-running-head",
+    "right-kicker",
+    "cutaway-title",
+    "attention-norm-label",
+    "causal-attention-label",
+    "rope-label",
+    "attention-add-label",
+    "ffn-norm-label",
+    "swiglu-ffn-label",
+    "ffn-add-label",
+    "cutaway-note"
+  ]
+}

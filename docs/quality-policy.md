@@ -5,11 +5,14 @@ Core separates failures by when they can be known:
 - schema, resource, asset/font integrity, unsupported-version, isolation, and
   output-write failures throw `GlyphkilnError` with a stable `code`;
 - composition checks return `QualityIssue` records, and any error-severity issue
-  blocks rendering with `QUALITY_VALIDATION_FAILED`;
+  blocks semantic rendering with `QUALITY_VALIDATION_FAILED` or Scene rendering
+  with `SCENE_QUALITY_VALIDATION_FAILED`;
 - warning-severity issues remain in the successful result and manifest;
-- `verifyRenderReproduction` returns issue records for document, byte-size, and
-  output-hash mismatches so callers can report all reproduction differences at
-  once.
+- `verifyRenderReproduction` returns issue records for semantic document,
+  byte-size, and output-hash mismatches; `verifySceneReproduction` checks the
+  stricter Scene manifest, identity, resource, accessibility, format,
+  fingerprint, method, and byte contracts. Both let callers report all detected
+  reproduction differences at once.
 
 This is intentional API policy, not an accidental mix of exceptions and issues.
 Failures that make safe interpretation impossible stop immediately. Checks that

@@ -15,7 +15,8 @@ for dark and photographic surfaces. The exact hashes and usage rules are in the
 ## Workspaces
 
 - [`packages/glyphkiln-core`](packages/glyphkiln-core/) — the Apache-2.0
-  `@glyphkiln/core` SDK and `glyphkiln` CLI.
+  `@glyphkiln/core` SDK and `glyphkiln` CLI, including the validated expert
+  Scene Kernel for deterministic editorial geometry.
 - [`apps/glyphkiln-app`](apps/glyphkiln-app/) — the non-published application
   foundation, built with the Next.js App Router.
 - [`examples/style-showcase`](examples/style-showcase/) — a runnable consumer
@@ -94,6 +95,7 @@ Core-specific verification commands remain available at the root:
 ```bash
 npm run text-layout-data:verify
 npm run fixtures:verify
+npm run scene-kernel-fixture:verify
 npm run examples:verify
 npm run licenses:verify
 npm run test:package-consumer

@@ -1,0 +1,77 @@
+{
+  "manifestVersion": "1.0.0",
+  "renderId": "scene_e74a4dd36914d268410841b1",
+  "renderFingerprint": "e74a4dd36914d268410841b1c4439b52d64779866858ed1c712f74de265f1142",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.0.0",
+    "sceneId": "editorial-decoder-spread-v1",
+    "sceneHash": "13319515a02a2e81ceba59aa9d8c19a0d2fdbf6d8db57c76dc402c334b5148f1"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1800, "height": 1100 },
+  "output": {
+    "format": "png",
+    "sha256": "01bce8ab4d9165aca0dcc7dbdb700491b506a338f82ea6271b16be69106a8405",
+    "byteSize": 146147
+  },
+  "creationTimestamp": "2026-08-29T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "The answer grows one token at a time",
+    "description": "A proof scene of one decoder-only transformer pass. Accepted token representations pass through repeated pre-normalized attention and feed-forward blocks with residual adds. Final normalization and the vocabulary output projection produce logits. A neutral field shows candidate scores. Greedy argmax selects clear, then that token is appended to the prefix and the loop repeats. This simplified fixture is not a scientific approval.",
+    "readingOrder": [
+      "left-running-head",
+      "left-kicker",
+      "spread-title",
+      "spread-deck",
+      "stage-01-label",
+      "prefix-token-tminus2-text",
+      "prefix-token-tminus1-text",
+      "prefix-token-t-text",
+      "stage-02-label",
+      "stage-03-label",
+      "stage-04-label",
+      "stage-05-label",
+      "candidate-clear-text",
+      "candidate-short-text",
+      "candidate-visual-text",
+      "stage-06-label",
+      "greedy-decoder-label",
+      "selected-token-label",
+      "selected-clear-text",
+      "append-repeat-label",
+      "truth-boundary",
+      "right-running-head",
+      "right-kicker",
+      "cutaway-title",
+      "attention-norm-label",
+      "causal-attention-label",
+      "rope-label",
+      "attention-add-label",
+      "ffn-norm-label",
+      "swiglu-ffn-label",
+      "ffn-add-label",
+      "cutaway-note"
+    ],
+    "selectableText": true
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

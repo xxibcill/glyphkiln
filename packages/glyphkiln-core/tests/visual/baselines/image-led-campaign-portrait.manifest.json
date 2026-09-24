@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_519c1f625afbd41eb2b3ac3a",
-  "renderFingerprint": "519c1f625afbd41eb2b3ac3a8ed057e90e03dff62c59ac9fb153f9027bfca1cb",
+  "renderId": "render_0f793d009a97588a0b5b3bd2",
+  "renderFingerprint": "0f793d009a97588a0b5b3bd2e700ae81f69cb31b0108fd95c283365372da17a4",
   "designDocumentId": "baseline-image-led-campaign-portrait",
   "designDocumentHash": "bf765b41fbfcce72d90be905d00bd27a6ad6ccebc60ce0f94d307890987b619f",
   "seed": "kilnform-light-01",
   "template": { "id": "image-led-campaign", "version": "1.0.1" },
-  "renderer": { "name": "glyphkiln-svg", "version": "0.4.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
   "typographyPolicy": {
     "algorithmVersion": "2.0.1",
     "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",

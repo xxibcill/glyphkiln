@@ -1,7 +1,7 @@
 {
   "manifestVersion": "1.2.0",
-  "renderId": "render_858180c1105b7fc8d849cf97",
-  "renderFingerprint": "858180c1105b7fc8d849cf97e4bd5db3f1e5122ee38a4c4a578a9ede984ef6e2",
+  "renderId": "render_b93e4cabddbb2539d0635a8a",
+  "renderFingerprint": "b93e4cabddbb2539d0635a8a06f1a97e86ea4efb2092a5f2eb3639bc75bca4b9",
   "designDocumentId": "example-image-led-campaign",
   "designDocumentHash": "c2cc4939ce1420ebdfd20d848e351f47d5a55eea048cdfd4e30ba2332f5e4049",
   "seed": "kilnform-light-01",
@@ -11,7 +11,7 @@
   },
   "renderer": {
     "name": "glyphkiln-svg",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "typographyPolicy": {
     "algorithmVersion": "2.0.1",

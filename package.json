@@ -40,6 +40,8 @@
     "text-layout-data:update": "npm run text-layout-data:update --workspace @glyphkiln/core",
     "fixtures:verify": "npm run fixtures:verify --workspace @glyphkiln/core",
     "fixtures:update": "npm run fixtures:update --workspace @glyphkiln/core",
+    "scene-kernel-fixture:verify": "npm run scene-kernel-fixture:verify --workspace @glyphkiln/core",
+    "scene-kernel-fixture:update": "npm run scene-kernel-fixture:update --workspace @glyphkiln/core",
     "schema-conformance:verify": "npm run schema-conformance:verify --workspace @glyphkiln/core",
     "examples:verify": "npm run build --workspace @glyphkiln/core && npm run examples:verify --workspace @glyphkiln/core && npm run verify --workspace @glyphkiln/example-style-showcase",
     "identity:verify": "npm run identity:verify --workspace @glyphkiln/core && npm run identity:glyphkiln:verify",

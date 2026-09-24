@@ -5,14 +5,14 @@
    supported Node 22.22.2 release and the current Node 24 release: clean
    install, build, typecheck, lint/security
    scan, tests, standalone runtime, isolation, text-layout data verification,
-   diagnostic determinism, fixtures, dependency licenses, audit, packing, and
-   coverage.
+   diagnostic determinism, design and Scene Kernel fixtures, dependency
+   licenses, audit, packing, and coverage.
 3. Review deterministic-output changes and visual baselines.
 4. Run `npx changeset version` on a release branch.
 5. Review changelog, package version, renderer/version contracts, and lockfile.
 6. Run the complete local validation sequence from a clean clone, including
-   `npm run examples:verify`, `npm run test:package-consumer`, and
-   `npm audit --audit-level=low`.
+   `npm run scene-kernel-fixture:verify`, `npm run examples:verify`,
+   `npm run test:package-consumer`, and `npm audit --audit-level=low`.
 7. Inspect `npm run pack:core:dry-run`, then install the local archive in a fresh
    consumer and verify strict TypeScript, public exports, CLI, and
    direct/isolated rendering.

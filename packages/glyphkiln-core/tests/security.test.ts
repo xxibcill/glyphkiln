@@ -16,6 +16,15 @@ describe("security boundary", () => {
     expect(() =>
       assertSafeGeneratedSvg('<svg><rect onclick="alert(1)"/></svg>'),
     ).toThrow();
+    expect(() => assertSafeGeneratedSvg("<svg>invalid\u0000xml</svg>")).toThrow(
+      /XML 1\.0/i,
+    );
+  });
+
+  it("does not treat escaped prose as an SVG attribute", () => {
+    expect(() =>
+      assertSafeGeneratedSvg("<svg><text>onclick=example</text></svg>"),
+    ).not.toThrow();
   });
 
   it("contains no dynamic execution or network-fetch primitives", async () => {
