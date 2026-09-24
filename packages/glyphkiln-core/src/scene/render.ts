@@ -33,6 +33,7 @@ import { createSceneFingerprint, type SceneFingerprintInput } from "./fingerprin
 import {
   createSceneEvidence,
   type SceneEvidence,
+  type SceneImageResource,
   type TextWrapFacts,
 } from "./evidence.js";
 import { createSceneRenderManifest, type SceneRenderManifest } from "./provenance.js";
@@ -76,6 +77,7 @@ type ResolvedScene = {
   fontKeys: Set<string>;
   selectableText: boolean;
   textWraps: Map<string, TextWrapFacts>;
+  imageResources: Map<string, SceneImageResource>;
 };
 
 type ResolveContext = {
@@ -88,6 +90,7 @@ type ResolveContext = {
   selectableText: boolean;
   embeddedRasterBytes: number;
   textWraps: Map<string, TextWrapFacts>;
+  imageResources: Map<string, SceneImageResource>;
 };
 
 export async function renderScene(
@@ -116,7 +119,11 @@ export async function renderScene(
     resolved.qualityIssues.push(...reviewSceneReadingOrder(document));
   }
   blockOnSceneQualityErrors(resolved.qualityIssues);
-  const evidence = createSceneEvidence(resolved.scene, document, resolved.textWraps);
+  const evidence = createSceneEvidence(
+    resolved.scene,
+    resolved.textWraps,
+    resolved.imageResources,
+  );
 
   const svg = renderSceneToSvg(resolved.scene);
   const manifestAssets = collectManifestAssets(document, resolved.assetIds);
@@ -185,6 +192,7 @@ function resolveScene(
     selectableText: false,
     embeddedRasterBytes: 0,
     textWraps: new Map(),
+    imageResources: new Map(),
   };
   const elements = document.elements.map((element) => resolveElement(element, context));
   applyReadingOrder(elements, document.readingOrder);
@@ -201,6 +209,7 @@ function resolveScene(
     fontKeys: context.fontKeys,
     selectableText: context.selectableText,
     textWraps: context.textWraps,
+    imageResources: context.imageResources,
   };
 }
 
@@ -263,6 +272,11 @@ function resolveImage(
   }
   context.embeddedRasterBytes = nextEmbeddedBytes;
   context.assetIds.add(element.assetId);
+  context.imageResources.set(element.id, {
+    id: asset.id,
+    width: asset.width,
+    height: asset.height,
+  });
   return {
     id: element.id,
     type: "image",

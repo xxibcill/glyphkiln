@@ -1,3 +1,4 @@
+import { GlyphkilnError } from "../domain/types.js";
 import { SCENE_RESOURCE_LIMITS } from "../resources/index.js";
 import {
   connectorArrowheadSize,
@@ -5,7 +6,7 @@ import {
   type SceneKernelElement,
   type SceneTransform,
 } from "../renderer/scene.js";
-import type { SceneBounds, SceneDocument } from "./types.js";
+import type { SceneBounds } from "./types.js";
 
 export const SCENE_EVIDENCE_VERSION = "1.0.0" as const;
 
@@ -64,10 +65,16 @@ export type TextWrapFacts = Pick<
   | "segmentationPolicyVersion"
 >;
 
+export type SceneImageResource = {
+  id: string;
+  width: number;
+  height: number;
+};
+
 export function createSceneEvidence(
   scene: SceneKernel,
-  document: SceneDocument,
   textWraps: ReadonlyMap<string, TextWrapFacts>,
+  imageResources: ReadonlyMap<string, SceneImageResource>,
 ): SceneEvidence {
   const evidence: SceneEvidence = {
     version: SCENE_EVIDENCE_VERSION,
@@ -77,7 +84,6 @@ export function createSceneEvidence(
     text: [],
     images: [],
   };
-  const assets = new Map(document.assets.map((asset) => [asset.id, asset]));
   const pending = scene.elements
     .map((element) => ({ element, matrix: identity }))
     .reverse();
@@ -113,8 +119,14 @@ export function createSceneEvidence(
       });
     }
     if (element.type === "image") {
-      const declaration = assets.get(findImageAssetId(document.elements, element.id)!);
-      if (declaration === undefined) continue;
+      const declaration = imageResources.get(element.id);
+      if (declaration === undefined) {
+        throw new GlyphkilnError(
+          `Resolved scene image "${element.id}" has no evidence resource.`,
+          "SCENE_EVIDENCE_RESOURCE_MISSING",
+          { elementId: element.id },
+        );
+      }
       const scale =
         element.fit === "cover"
           ? Math.max(
@@ -157,20 +169,6 @@ export function createSceneEvidence(
     }
   }
   return evidence;
-}
-
-function findImageAssetId(
-  elements: readonly SceneDocument["elements"][number][],
-  id: string,
-): string | undefined {
-  for (const element of elements) {
-    if (element.id === id && element.type === "image") return element.assetId;
-    if (element.type === "group") {
-      const found = findImageAssetId(element.elements, id);
-      if (found !== undefined) return found;
-    }
-  }
-  return undefined;
 }
 
 function primitiveBounds(

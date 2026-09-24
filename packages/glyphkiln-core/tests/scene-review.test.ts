@@ -5,6 +5,7 @@ import { PNG } from "pngjs";
 import { describe, expect, it } from "vitest";
 
 import { DEVELOPMENT_FONT_SHA256, sha256 } from "../src/index.js";
+import { createSceneEvidence } from "../src/scene/evidence.js";
 import {
   SCENE_EVIDENCE_VERSION,
   renderScene,
@@ -74,6 +75,33 @@ function document(): SceneDocument {
 }
 
 describe("Scene review evidence", () => {
+  it("rejects a resolved image without its resource facts", () => {
+    expect(() =>
+      createSceneEvidence(
+        {
+          dimensions: { width: 20, height: 20 },
+          title: "Missing image resource",
+          description: "Missing image resource",
+          backgroundColor: "#ffffff",
+          elements: [
+            {
+              id: "missing-image",
+              type: "image",
+              x: 0,
+              y: 0,
+              width: 10,
+              height: 10,
+              href: "data:image/png;base64,AA==",
+              fit: "cover",
+            },
+          ],
+        },
+        new Map(),
+        new Map(),
+      ),
+    ).toThrow(/no evidence resource/);
+  });
+
   it("reports fitted text and transformed bounds from the resolved render", async () => {
     const result = await renderScene(document(), { creationTimestamp: timestamp });
     expect(result.evidence.version).toBe(SCENE_EVIDENCE_VERSION);
