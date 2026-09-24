@@ -92,9 +92,11 @@ most 1 MiB plus one sentinel byte, so an oversized file is rejected without
 loading the whole file.
 
 `SceneDocument` receives the same inert-data inspection with scene-specific
-problem codes. `renderScene` is currently an in-process expert API; services
-admitting untrusted scene work must add a process or container boundary and
-their own authorization, timeout, concurrency, and tenant controls.
+problem codes. `renderScene` is an in-process expert API. Services admitting
+untrusted scene work can use `renderSceneIsolated` for a bounded child process,
+serialized concurrency, timeout, and memory limits. They still own
+authorization, resource admission and scanning, and tenant and container-level
+network and credential boundaries.
 
 PNG assets must have a complete bounded chunk structure with `IHDR` dimensions
 and an `IEND` at end of file. JPEG assets must have a bounded marker structure,
@@ -105,12 +107,13 @@ limits before the asset can enter a scene.
 
 ## Process isolation
 
-`renderGraphicIsolated` applies `RENDER_WORKER_PROFILE` itself:
+`renderGraphicIsolated` and `renderSceneIsolated` apply the same
+`RENDER_WORKER_PROFILE`:
 
 - one concurrent render per worker;
 - a 15-second wall-clock timeout;
-- parent-side design, asset/font, output-format, and timestamp preflight before
-  IPC serialization;
+- parent-side design or scene, asset/font, output-format, and timestamp
+  preflight before IPC serialization;
 - no network or executable-code capability exposed to render input;
 - package/dependency read access, temporary-directory read/write access, and no
   child-process capability inside the render process;

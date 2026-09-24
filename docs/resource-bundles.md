@@ -1,7 +1,8 @@
 # Offline CLI resource bundles
 
 The CLI can resolve raster assets and caller-supplied fonts from one explicit
-local directory without adding paths or URLs to a `DesignDocument`.
+local directory without adding paths or URLs to a `DesignDocument` or
+`SceneDocument`.
 
 ```bash
 glyphkiln render design.json \
@@ -13,9 +14,10 @@ glyphkiln render design.json \
 
 `campaign-resources` must be a real directory, not a symbolic link, and must
 contain a fixed manifest named `glyphkiln-resource-bundle.json`.
-`--resource-bundle` is accepted only by `render`. The bundle root is an
-operator-selected CLI argument; document data can never select a filesystem
-path.
+`--resource-bundle` is accepted by `render`, `scene render`, and `scene inspect`.
+The bundle root is an operator-selected CLI argument; document data can never
+select a filesystem path. See [Scene review](scene-review.md) for Scene command
+examples.
 
 See [ADR 0013](adr/0013-offline-cli-resource-bundles.md) for the rejected
 alternatives and versioning decision.
@@ -56,15 +58,15 @@ rejected.
 ```
 
 Every asset entry must exactly match one asset declaration in the validated
-design, including its ID, MIME type, SHA-256, dimensions, and complete origin
-object. Every design asset must have exactly one bundle entry.
+design or scene, including its ID, MIME type, SHA-256, dimensions, and complete
+origin object. Every declared asset must have exactly one bundle entry.
 
-Every font entry must exactly match a design font declaration by family,
+Every font entry must exactly match a document font declaration by family,
 weight, style, and SHA-256. A caller-supplied font declaration must include its
 SHA-256. The bundled Inter normal variable face may be omitted; an exact Inter
 entry is permitted when a fully explicit bundle is preferable.
 
-Entries are returned to the renderer in design-document order, independent of
+Entries are returned to the renderer in document order, independent of
 manifest order. The loader verifies each file hash before passing its bytes to
 the existing Core registries. Core then independently enforces raster
 signature, MIME, structure, full decode, dimensions, pixels, origin, and font
@@ -98,5 +100,5 @@ identity checks and content hashes fail closed if a path or its bytes change.
 Core validates file structure and reproducibility; it is not a malware scanner
 and does not grant font or image rights. Scan hostile files at ingestion,
 retain the original licensing records, and ensure the declared asset origin is
-accurate. Use `renderGraphicIsolated` or an isolated application worker for
-untrusted render jobs.
+accurate. Use `renderGraphicIsolated` or `renderSceneIsolated` for the
+corresponding untrusted SDK render job, or an isolated application worker.
