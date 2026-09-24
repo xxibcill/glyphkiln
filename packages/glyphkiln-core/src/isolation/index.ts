@@ -56,27 +56,12 @@ export function renderGraphicIsolated(
   assertFontResources(options.fonts ?? []);
   assertRenderGraphicOptionsResources(options);
   const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
-  const render = renderQueue.then(
-    () =>
-      runRenderProcess<RenderGraphicResult>(
-        input,
-        options,
-        timeoutMilliseconds,
-        "graphic",
-      ),
-    () =>
-      runRenderProcess<RenderGraphicResult>(
-        input,
-        options,
-        timeoutMilliseconds,
-        "graphic",
-      ),
+  return queueRender<RenderGraphicResult>(
+    input,
+    options,
+    timeoutMilliseconds,
+    "graphic",
   );
-  renderQueue = render.then(
-    () => undefined,
-    () => undefined,
-  );
-  return render;
 }
 
 export function renderSceneIsolated(
@@ -91,11 +76,17 @@ export function renderSceneIsolated(
   if (options.creationTimestamp !== undefined)
     validateCreationTimestamp(options.creationTimestamp);
   const timeoutMilliseconds = validateTimeout(isolation.timeoutMilliseconds);
-  const render = renderQueue.then(
-    () =>
-      runRenderProcess<RenderSceneResult>(input, options, timeoutMilliseconds, "scene"),
-    () =>
-      runRenderProcess<RenderSceneResult>(input, options, timeoutMilliseconds, "scene"),
+  return queueRender<RenderSceneResult>(input, options, timeoutMilliseconds, "scene");
+}
+
+function queueRender<Result extends RenderGraphicResult | RenderSceneResult>(
+  input: unknown,
+  options: RenderGraphicOptions | RenderSceneOptions,
+  timeoutMilliseconds: number,
+  kind: "graphic" | "scene",
+): Promise<Result> {
+  const render = renderQueue.then(() =>
+    runRenderProcess<Result>(input, options, timeoutMilliseconds, kind),
   );
   renderQueue = render.then(
     () => undefined,
