@@ -51,6 +51,77 @@ async function invoke(args: string[]) {
 }
 
 describe("offline Scene CLI", () => {
+  it("inspects a schema-valid text overflow and keeps rendering blocked", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-overflow-cli-"));
+    try {
+      const scenePath = join(root, "scene.json");
+      const output = join(root, "scene.svg");
+      const overflowing = structuredClone(input);
+      overflowing.elements[0]!.box.width = 1;
+      overflowing.elements[0]!.box.height = 1;
+      await writeFile(scenePath, JSON.stringify(overflowing));
+      expect((await invoke(["scene", "validate", scenePath])).code).toBe(0);
+
+      const inspected = await invoke(["scene", "inspect", scenePath]);
+      expect(inspected.code).toBe(1);
+      const review = JSON.parse(inspected.stdout.join("\n")) as {
+        fingerprint: string | null;
+        evidence: {
+          text: { id: string; lineCount: number; wrap: { lineWidths: number[] } }[];
+        } | null;
+        qualityIssues: { code: string; severity: string }[];
+      };
+      expect(review.fingerprint).toBeNull();
+      expect(review.evidence?.text[0]?.id).toBe("label");
+      expect(review.evidence?.text[0]?.wrap.lineWidths).toHaveLength(
+        review.evidence?.text[0]?.lineCount ?? 0,
+      );
+      expect(review.qualityIssues).toContainEqual(
+        expect.objectContaining({ code: "TEXT_OVERFLOW", severity: "error" }),
+      );
+
+      const rendered = await invoke([
+        "scene",
+        "render",
+        scenePath,
+        "--format",
+        "svg",
+        "--output",
+        output,
+      ]);
+      expect(rendered.code).toBe(1);
+      expect(rendered.stderr.join(" ")).toContain("SCENE_QUALITY_VALIDATION_FAILED");
+      await expect(readFile(output)).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reports unsupported text-layout issues before measuring evidence", async () => {
+    const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-layout-cli-"));
+    try {
+      const scenePath = join(root, "scene.json");
+      const unsupported = structuredClone(input);
+      unsupported.elements[0]!.text = "\u200F\u05D0\u1820";
+      await writeFile(scenePath, JSON.stringify(unsupported));
+      const inspected = await invoke(["scene", "inspect", scenePath]);
+      expect(inspected.code).toBe(1);
+      const review = JSON.parse(inspected.stdout.join("\n")) as {
+        fingerprint: string | null;
+        evidence: unknown;
+        qualityIssues: { severity: string }[];
+      };
+      expect(review.fingerprint).toBeNull();
+      expect(review.evidence).toBeNull();
+      expect(review.qualityIssues.length).toBeGreaterThan(0);
+      expect(review.qualityIssues.every((issue) => issue.severity === "error")).toBe(
+        true,
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("prints opt-in reading-order warnings without requiring a manifest", async () => {
     const root = await mkdtemp(join(tmpdir(), "glyphkiln-scene-review-cli-"));
     try {

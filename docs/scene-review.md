@@ -37,7 +37,11 @@ rendering. The Scene document remains inert JSON. The CLI alone reads paths;
 the SDK accepts only resolved resource bytes. Existing `--force` output
 protection applies to Scene rendering. The CLI `inspect` command resolves the
 scene and reports evidence, quality issues, and the SVG fingerprint; it needs
-custom font and asset bytes through `--resource-bundle`.
+custom font and asset bytes through `--resource-bundle`. For a schema-valid
+scene with blocking layout errors, it exits nonzero but still prints structured
+quality issues and available evidence. Its fingerprint is `null` because no
+renderable output exists. Unsupported text layout is rejected before font
+resolution, so its evidence is also `null`.
 
 `renderSceneIsolated` uses the same queued child process, Node permission
 profile, byte preflight, memory cap, and timeout as `renderGraphicIsolated`.

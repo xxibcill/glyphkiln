@@ -70,6 +70,13 @@ export type RenderSceneResult = {
   evidence: SceneEvidence;
 };
 
+export type SceneInspection = {
+  document: SceneDocument;
+  fingerprint: string | null;
+  qualityIssues: QualityIssue[];
+  evidence: SceneEvidence | null;
+};
+
 type ResolvedScene = {
   scene: RenderScene;
   qualityIssues: QualityIssue[];
@@ -97,27 +104,13 @@ export async function renderScene(
   input: unknown,
   options: RenderSceneOptions = {},
 ): Promise<RenderSceneResult> {
-  const validation = validateSceneDocument(input);
-  if (!validation.success) {
-    throw new GlyphkilnError(
-      "Scene document validation failed.",
-      "INVALID_SCENE_DOCUMENT",
-      { problems: validation.problems },
-    );
-  }
-  const document = validation.data;
+  const document = requireSceneDocument(input);
   blockOnSceneTextLayoutErrors(collectSceneTextLayoutDiagnostics(document.elements));
   const formats = validateOutputFormats(options.formats ?? ["svg"]);
   const creationTimestamp = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
   );
-  const assets = new AssetRegistry(document.assets, options.assets ?? []);
-  const fonts = new FontRegistry(options.fonts ?? []);
-  fonts.validateDeclarations(document.fonts);
-  const resolved = resolveScene(document, assets, fonts);
-  if (options.reviewReadingOrder === true) {
-    resolved.qualityIssues.push(...reviewSceneReadingOrder(document));
-  }
+  const { resolved, fonts } = resolveSceneResources(document, options);
   blockOnSceneQualityErrors(resolved.qualityIssues);
   const evidence = createSceneEvidence(
     resolved.scene,
@@ -171,6 +164,70 @@ export async function renderScene(
     });
   }
   return { document, outputs, qualityIssues: resolved.qualityIssues, evidence };
+}
+
+/** CLI-only review path. Quality errors remain blocked from rendering. */
+export function inspectScene(
+  input: unknown,
+  options: Pick<RenderSceneOptions, "assets" | "fonts" | "reviewReadingOrder"> = {},
+): SceneInspection {
+  const document = requireSceneDocument(input);
+  const textLayout = collectSceneTextLayoutDiagnostics(document.elements);
+  if (textLayout.issues.length > 0) {
+    return {
+      document,
+      fingerprint: null,
+      qualityIssues: textLayout.issues,
+      evidence: null,
+    };
+  }
+  const { resolved, fonts } = resolveSceneResources(document, options);
+  const evidence = createSceneEvidence(
+    resolved.scene,
+    resolved.textWraps,
+    resolved.imageResources,
+  );
+  const hasErrors = resolved.qualityIssues.some((issue) => issue.severity === "error");
+  const fingerprint = hasErrors
+    ? null
+    : createSceneFingerprint({
+        document,
+        outputFormat: "svg",
+        assets: collectManifestAssets(document, resolved.assetIds),
+        fonts: collectManifestFonts(document, resolved.fontKeys, fonts),
+      });
+  return {
+    document,
+    fingerprint,
+    qualityIssues: resolved.qualityIssues,
+    evidence,
+  };
+}
+
+function requireSceneDocument(input: unknown): SceneDocument {
+  const validation = validateSceneDocument(input);
+  if (!validation.success) {
+    throw new GlyphkilnError(
+      "Scene document validation failed.",
+      "INVALID_SCENE_DOCUMENT",
+      { problems: validation.problems },
+    );
+  }
+  return validation.data;
+}
+
+function resolveSceneResources(
+  document: SceneDocument,
+  options: Pick<RenderSceneOptions, "assets" | "fonts" | "reviewReadingOrder">,
+): { resolved: ResolvedScene; fonts: FontRegistry } {
+  const assets = new AssetRegistry(document.assets, options.assets ?? []);
+  const fonts = new FontRegistry(options.fonts ?? []);
+  fonts.validateDeclarations(document.fonts);
+  const resolved = resolveScene(document, assets, fonts);
+  if (options.reviewReadingOrder === true) {
+    resolved.qualityIssues.push(...reviewSceneReadingOrder(document));
+  }
+  return { resolved, fonts };
 }
 
 function resolveScene(
@@ -358,8 +415,9 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
       : { keepTogether: element.fit.keepTogether }),
   });
   context.qualityIssues.push(...fitted.issues);
+  const lines = fitted.lines.slice(0, element.fit.maximumLines);
   context.textWraps.set(element.id, {
-    lineWidths: [...fitted.lineWidths],
+    lineWidths: fitted.lineWidths.slice(0, lines.length),
     brokeLongWord: fitted.brokeLongWord,
     orphanLineCount: fitted.orphanLines.length,
     usesBalancedLineBreaking: fitted.usesBalancedLineBreaking,
@@ -368,7 +426,6 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
   });
   const y = verticallyAlignedY(element, fitted.height);
   const x = horizontallyAlignedX(element);
-  const lines = fitted.lines.slice(0, element.fit.maximumLines);
   const outlines = context.fonts.outlineText({
     lines,
     family: element.font.family,

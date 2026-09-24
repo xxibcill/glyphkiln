@@ -19,6 +19,7 @@ import {
   validateSceneDocument,
   SCENE_RESOURCE_LIMITS,
 } from "../scene/index.js";
+import { inspectScene } from "../scene/render.js";
 import { loadResourceBundle, loadSceneResourceBundle } from "./resource-bundle.js";
 
 type CliIo = {
@@ -109,8 +110,7 @@ async function sceneCommand(
       parsed.resourceBundlePath === undefined
         ? { assets: [], fonts: [] }
         : await loadSceneResourceBundle(parsed.resourceBundlePath, input);
-    const result = await renderScene(input, {
-      formats: ["svg"],
+    const result = inspectScene(input, {
       assets: resources.assets,
       fonts: resources.fonts,
       reviewReadingOrder: parsed.reviewReadingOrder,
@@ -119,7 +119,7 @@ async function sceneCommand(
       JSON.stringify(
         {
           sceneId: result.document.id,
-          fingerprint: result.outputs[0]!.fingerprint,
+          fingerprint: result.fingerprint,
           evidence: result.evidence,
           qualityIssues: result.qualityIssues,
         },
@@ -127,7 +127,7 @@ async function sceneCommand(
         2,
       ),
     );
-    return 0;
+    return result.qualityIssues.some((issue) => issue.severity === "error") ? 1 : 0;
   }
   return renderCommand(input, options, io, true);
 }
