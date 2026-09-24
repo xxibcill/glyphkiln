@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { DEVELOPMENT_FONT_SHA256, sha256 } from "../src/index.js";
 import { createSceneEvidence } from "../src/scene/evidence.js";
+import { inspectScene } from "../src/scene/render.js";
 import {
   SCENE_EVIDENCE_VERSION,
   renderScene,
@@ -341,6 +342,34 @@ describe("Scene review evidence", () => {
         ],
       }),
     ).toEqual([]);
+  });
+
+  it("keeps requested reading-order warnings with unsupported text diagnostics", () => {
+    const input = document();
+    input.readingOrder = [];
+    const group = input.elements[0]!;
+    if (group.type !== "group") throw new Error("Expected review group.");
+    const label = group.elements[1]!;
+    if (label.type !== "text") throw new Error("Expected review label.");
+    label.text = "אב";
+
+    const inspected = inspectScene(input, { reviewReadingOrder: true });
+    expect(inspected.fingerprint).toBeNull();
+    expect(inspected.evidence).toBeNull();
+    expect(inspected.qualityIssues.map((issue) => issue.code)).toContain(
+      "BIDI_LAYOUT_UNSUPPORTED",
+    );
+    expect(inspected.qualityIssues).toContainEqual(
+      expect.objectContaining({
+        code: "SCENE_READING_ORDER_UNCOVERED",
+        layerId: "label",
+      }),
+    );
+    expect(
+      inspectScene(input).qualityIssues.some(
+        (issue) => issue.code === "SCENE_READING_ORDER_UNCOVERED",
+      ),
+    ).toBe(false);
   });
 
   it("covers ordered ancestors while reporting uncovered content and annotation", () => {

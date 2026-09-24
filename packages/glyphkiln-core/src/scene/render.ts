@@ -177,7 +177,10 @@ export function inspectScene(
     return {
       document,
       fingerprint: null,
-      qualityIssues: textLayout.issues,
+      qualityIssues:
+        options.reviewReadingOrder === true
+          ? [...textLayout.issues, ...reviewSceneReadingOrder(document)]
+          : textLayout.issues,
       evidence: null,
     };
   }
