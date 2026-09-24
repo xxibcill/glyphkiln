@@ -225,6 +225,54 @@ describe("Scene review evidence", () => {
     );
   });
 
+  it("includes diagonal square caps in connector evidence bounds", async () => {
+    const input = document();
+    input.elements.push(
+      {
+        id: "cap-start",
+        type: "rect",
+        x: 10,
+        y: 10,
+        width: 1,
+        height: 1,
+        fill: "none",
+      },
+      { id: "cap-end", type: "rect", x: 20, y: 20, width: 1, height: 1, fill: "none" },
+      {
+        id: "square-cap-connector",
+        type: "connector",
+        fromId: "cap-start",
+        toId: "cap-end",
+        points: [
+          { x: 10, y: 10 },
+          { x: 20, y: 20 },
+        ],
+        stroke: "#000000",
+        strokeWidth: 10,
+        markers: { start: "none", end: "none" },
+        lineCap: "square",
+        lineJoin: "round",
+      },
+    );
+    const result = await renderScene(input, {
+      formats: ["png"],
+      creationTimestamp: timestamp,
+    });
+    const bounds = result.evidence.elements.find(
+      (element) => element.id === "square-cap-connector",
+    )?.bounds;
+    const png = PNG.sync.read(Buffer.from(result.outputs[0]!.bytes));
+    for (const [x, y] of [
+      [4, 10],
+      [10, 4],
+    ] as const) {
+      const pixelOffset = (y * png.width + x) * 4;
+      expect(png.data[pixelOffset]).toBe(0);
+    }
+    expect(bounds?.x).toBeLessThanOrEqual(4);
+    expect(bounds?.y).toBeLessThanOrEqual(4);
+  });
+
   it("warns only when opted in and preserves default pixels and fingerprints", async () => {
     const input = document();
     input.readingOrder = [];

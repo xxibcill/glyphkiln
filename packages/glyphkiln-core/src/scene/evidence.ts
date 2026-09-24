@@ -206,16 +206,20 @@ function primitiveBounds(
       const xs = element.points.map((point) => point.x);
       const ys = element.points.map((point) => point.y);
       // SVG defaults to a miter limit of 4; arrow coordinates are grid-rounded.
-      const shaftPad =
+      const joinPad =
         element.lineJoin === "round" || element.lineJoin === "bevel"
           ? element.strokeWidth / 2
           : element.strokeWidth * 4;
+      const capPad =
+        element.lineCap === "square"
+          ? element.strokeWidth / Math.SQRT2
+          : element.strokeWidth / 2;
       const markerPad =
         element.startMarker === "arrow" || element.endMarker === "arrow"
           ? connectorArrowheadSize(element.strokeWidth) +
             SCENE_RESOURCE_LIMITS.serializationResolution
           : 0;
-      const pad = Math.max(shaftPad, markerPad);
+      const pad = Math.max(joinPad, capPad, markerPad);
       return {
         x: Math.min(...xs) - pad,
         y: Math.min(...ys) - pad,
