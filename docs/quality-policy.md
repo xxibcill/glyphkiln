@@ -45,6 +45,16 @@ under 45% of the preceding line width. Both include measured widths and the
 versioned segmentation/line-breaking policy. See
 [Typography wrapping](typography-wrapping.md).
 
+Scene rendering also reports `SCENE_TEXT_OCCLUDED` when a later-painted, fully
+opaque rectangular element covers fitted text. The warning identifies the text
+and covering element IDs and gives the covered area in canvas square units.
+PNG alpha is checked in the visible crop, so transparent source pixels do not
+count. JPEG images and solid square-corner rectangles are opaque; partially
+transparent paint is not reported as fully opaque. Authors can pass
+`intentionalTextOverlayIds` to `renderScene` for deliberate overlays. The check
+uses axis-aligned elements without group clips; rotated or clipped elements
+require visual review.
+
 `image-led-campaign@1.0.x` uses
 `composited-srgb-grid-5x5-v1`: 25 ordered samples from each text bound map
 through the focal crop, source alpha, and selected treatment. A worst sample

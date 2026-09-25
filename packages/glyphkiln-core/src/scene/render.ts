@@ -39,6 +39,7 @@ import {
 import { createSceneRenderManifest, type SceneRenderManifest } from "./provenance.js";
 import { reviewSceneReadingOrder } from "./reading-order.js";
 import { validateSceneDocument } from "./schema.js";
+import { reviewSceneTextOcclusion } from "./text-occlusion.js";
 import type {
   SceneDocument,
   SceneElement,
@@ -53,6 +54,8 @@ export type RenderSceneOptions = {
   fonts?: readonly ResolvedFont[];
   creationTimestamp?: string;
   reviewReadingOrder?: boolean;
+  /** IDs of deliberate later-painted overlays exempt from text-occlusion review. */
+  intentionalTextOverlayIds?: readonly string[];
 };
 
 export type RenderedSceneOutput = {
@@ -110,12 +113,20 @@ export async function renderScene(
   const creationTimestamp = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
   );
-  const { resolved, fonts } = resolveSceneResources(document, options);
+  const { resolved, fonts, assets } = resolveSceneResources(document, options);
   blockOnSceneQualityErrors(resolved.qualityIssues);
   const evidence = createSceneEvidence(
     resolved.scene,
     resolved.textWraps,
     resolved.imageResources,
+  );
+  resolved.qualityIssues.push(
+    ...reviewSceneTextOcclusion(
+      document,
+      evidence,
+      assets,
+      validateIntentionalOverlayIds(document, options.intentionalTextOverlayIds),
+    ),
   );
 
   const svg = renderSceneToSvg(resolved.scene);
@@ -169,18 +180,29 @@ export async function renderScene(
 /** CLI-only review path. Quality errors remain blocked from rendering. */
 export function inspectScene(
   input: unknown,
-  options: Pick<RenderSceneOptions, "assets" | "fonts" | "reviewReadingOrder"> = {},
+  options: Pick<
+    RenderSceneOptions,
+    "assets" | "fonts" | "reviewReadingOrder" | "intentionalTextOverlayIds"
+  > = {},
 ): SceneInspection {
   const { document, earlyResult } = preflightSceneInspection(
     input,
     options.reviewReadingOrder,
   );
   if (earlyResult !== null) return earlyResult;
-  const { resolved, fonts } = resolveSceneResources(document, options);
+  const { resolved, fonts, assets } = resolveSceneResources(document, options);
   const evidence = createSceneEvidence(
     resolved.scene,
     resolved.textWraps,
     resolved.imageResources,
+  );
+  resolved.qualityIssues.push(
+    ...reviewSceneTextOcclusion(
+      document,
+      evidence,
+      assets,
+      validateIntentionalOverlayIds(document, options.intentionalTextOverlayIds),
+    ),
   );
   const hasErrors = resolved.qualityIssues.some((issue) => issue.severity === "error");
   const fingerprint = hasErrors
@@ -237,7 +259,7 @@ function requireSceneDocument(input: unknown): SceneDocument {
 function resolveSceneResources(
   document: SceneDocument,
   options: Pick<RenderSceneOptions, "assets" | "fonts" | "reviewReadingOrder">,
-): { resolved: ResolvedScene; fonts: FontRegistry } {
+): { resolved: ResolvedScene; fonts: FontRegistry; assets: AssetRegistry } {
   const assets = new AssetRegistry(document.assets, options.assets ?? []);
   const fonts = new FontRegistry(options.fonts ?? []);
   fonts.validateDeclarations(document.fonts);
@@ -245,7 +267,34 @@ function resolveSceneResources(
   if (options.reviewReadingOrder === true) {
     resolved.qualityIssues.push(...reviewSceneReadingOrder(document));
   }
-  return { resolved, fonts };
+  return { resolved, fonts, assets };
+}
+
+function validateIntentionalOverlayIds(
+  document: SceneDocument,
+  ids: readonly string[] | undefined,
+): ReadonlySet<string> {
+  if (ids === undefined) return new Set();
+  if (!Array.isArray(ids) || ids.length > SCENE_RESOURCE_LIMITS.maxElements) {
+    throw new GlyphkilnError(
+      "Intentional text overlay IDs must be a bounded array.",
+      "INVALID_INTENTIONAL_TEXT_OVERLAYS",
+    );
+  }
+  const known = new Set<string>();
+  const pending = [...document.elements];
+  while (pending.length > 0) {
+    const element = pending.pop()!;
+    known.add(element.id);
+    if (element.type === "group") pending.push(...element.elements);
+  }
+  if (ids.some((id) => typeof id !== "string" || !known.has(id))) {
+    throw new GlyphkilnError(
+      "Intentional text overlay IDs must refer to scene elements.",
+      "INVALID_INTENTIONAL_TEXT_OVERLAYS",
+    );
+  }
+  return new Set(ids);
 }
 
 function resolveScene(

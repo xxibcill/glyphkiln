@@ -55,6 +55,13 @@ changes. Existing default SVG/PNG bytes and fingerprints stay exact. Opting in
 can add warnings to the manifest's existing quality-issues field without
 changing the pixel fingerprint.
 
+The next Core release adds default `SCENE_TEXT_OCCLUDED` Scene warnings for
+later opaque images and solid rectangles over measured text. The diagnostic
+changes the existing `qualityIssues` array in results and scene manifests;
+SVG/PNG bytes, render fingerprints, SceneDocument `1.0.0`, Scene Kernel `1.0.0`,
+renderer `0.5.0`, and Scene manifest `1.0.0` remain unchanged. An explicit
+`intentionalTextOverlayIds` render option suppresses deliberate overlays.
+
 Text-layout acceptance has the independent
 `TEXT_LAYOUT_DIAGNOSTICS_VERSION`. Package `0.3.0` adds
 `unicode-17.0.0/ltr-horizontal-v1` without changing design schema `1.0.0`,

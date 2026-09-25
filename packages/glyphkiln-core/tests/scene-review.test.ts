@@ -163,6 +163,75 @@ describe("Scene review evidence", () => {
     ]);
   });
 
+  it("reviews solid later rectangles using transformed text bounds", async () => {
+    const input = document();
+    input.elements.push({
+      id: "late-panel",
+      type: "rect",
+      x: 10,
+      y: 30,
+      width: 100,
+      height: 30,
+      fill: "#ffffff",
+    });
+    const result = await renderScene(input, { creationTimestamp: timestamp });
+    const textBounds = result.evidence.text[0]!.bounds;
+    expect(result.qualityIssues).toContainEqual(
+      expect.objectContaining({
+        code: "SCENE_TEXT_OCCLUDED",
+        layerId: "label",
+        details: {
+          textElementId: "label",
+          occludingElementId: "late-panel",
+          overlapArea:
+            Math.round(
+              textBounds.width *
+                (Math.min(textBounds.y + textBounds.height, 60) - 30) *
+                1_000_000,
+            ) / 1_000_000,
+        },
+      }),
+    );
+    expect(inspectScene(input).qualityIssues.map((issue) => issue.code)).toContain(
+      "SCENE_TEXT_OCCLUDED",
+    );
+
+    const panel = input.elements[1]!;
+    if (panel.type !== "rect") throw new Error("Expected late panel.");
+    panel.opacity = 0.5;
+    expect(
+      (await renderScene(input, { creationTimestamp: timestamp })).qualityIssues.some(
+        (issue) => issue.code === "SCENE_TEXT_OCCLUDED",
+      ),
+    ).toBe(false);
+
+    panel.opacity = 1;
+    panel.y = 45;
+    panel.stroke = "#ffffff";
+    panel.strokeWidth = 20;
+    expect(
+      (await renderScene(input, { creationTimestamp: timestamp })).qualityIssues.some(
+        (issue) => issue.code === "SCENE_TEXT_OCCLUDED",
+      ),
+    ).toBe(false);
+
+    panel.y = 30;
+    delete panel.stroke;
+    delete panel.strokeWidth;
+    input.elements[1] = {
+      id: "overlay-group",
+      type: "group",
+      elements: [panel],
+    };
+    const intentional = await renderScene(input, {
+      creationTimestamp: timestamp,
+      intentionalTextOverlayIds: ["overlay-group"],
+    });
+    expect(
+      intentional.qualityIssues.some((issue) => issue.code === "SCENE_TEXT_OCCLUDED"),
+    ).toBe(false);
+  });
+
   it("keeps strokes and connector arrowheads inside conservative bounds", async () => {
     const input = document();
     input.elements.push(
