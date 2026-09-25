@@ -22,6 +22,17 @@ subtrees remain valid. A warning is advisory and limited to 128 records.
 `scene render --review-reading-order` prints each warning as a JSON line on
 stderr, including when no manifest is requested.
 
+Text occlusion review runs by default in `renderScene` and `scene inspect`. A
+`SCENE_TEXT_OCCLUDED` warning means a later-painted opaque image or solid
+square-corner rectangle intersects measured text bounds. Its details contain
+`textElementId`, `occludingElementId`, and `overlapArea` in canvas square units.
+PNG transparency is checked in the visible image crop. For a deliberate overlay,
+pass `{ intentionalTextOverlayIds: ["overlay-id"] }` to `renderScene` or
+`renderSceneIsolated`; this suppresses that element's occlusion warnings and
+does not change pixels or the render fingerprint. The check excludes clipped,
+rotated, and partially transparent occluders to avoid reporting uncertain
+coverage; review those compositions visually.
+
 Offline CLI examples:
 
 ```sh

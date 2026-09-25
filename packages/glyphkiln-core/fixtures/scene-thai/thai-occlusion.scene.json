@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "thai-product-occlusion-v1",
+  "seed": "thai-product-occlusion-v1",
+  "dimensions": { "width": 1440, "height": 1800 },
+  "title": "ข้อเสนอพร้อมภาพสินค้า",
+  "description": "Regression scene for an image covering the lower edge of a Thai headline",
+  "backgroundColor": "#FFFFFF",
+  "assets": [
+    {
+      "id": "product",
+      "mimeType": "image/png",
+      "width": 1,
+      "height": 1,
+      "sha256": "dc1ee8a784c37702b5b456b1657db9c8ce3fc98fd4e30c203b300aaf724eae2f",
+      "origin": { "kind": "unknown" }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Noto Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
+    }
+  ],
+  "elements": [
+    {
+      "type": "text",
+      "id": "headline-first",
+      "text": "วันนี้มีข้อเสนอพิเศษ",
+      "box": { "x": 140, "y": 100, "width": 1100, "height": 100 },
+      "font": { "family": "Noto Sans Thai", "weight": 700, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 60,
+        "minimumFontSize": 60,
+        "maximumLines": 1,
+        "lineHeight": 1.2,
+        "align": "left"
+      },
+      "fill": "#202A29",
+      "textMode": "outline",
+      "semantic": { "role": "content" }
+    },
+    {
+      "type": "text",
+      "id": "headline-second",
+      "text": "สำหรับคนที่ชอบอ่านชัดๆ",
+      "box": { "x": 140, "y": 221, "width": 1100, "height": 150 },
+      "font": { "family": "Noto Sans Thai", "weight": 700, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 100,
+        "minimumFontSize": 100,
+        "maximumLines": 1,
+        "lineHeight": 1.2744,
+        "align": "left"
+      },
+      "fill": "#202A29",
+      "textMode": "outline",
+      "semantic": { "role": "content" }
+    },
+    {
+      "type": "image",
+      "id": "product-image",
+      "assetId": "product",
+      "x": 140,
+      "y": 320,
+      "width": 1100,
+      "height": 900,
+      "fit": "cover",
+      "semantic": { "role": "content" }
+    }
+  ],
+  "readingOrder": ["headline-first", "headline-second", "product-image"]
+}
