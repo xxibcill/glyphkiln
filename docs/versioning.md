@@ -55,7 +55,7 @@ changes. Existing default SVG/PNG bytes and fingerprints stay exact. Opting in
 can add warnings to the manifest's existing quality-issues field without
 changing the pixel fingerprint.
 
-The next Core release adds default `SCENE_TEXT_OCCLUDED` Scene warnings for
+Core `0.9.1` adds default `SCENE_TEXT_OCCLUDED` Scene warnings for
 later opaque images and solid rectangles over measured text. The diagnostic
 changes the existing `qualityIssues` array in results and scene manifests;
 SVG/PNG bytes, render fingerprints, SceneDocument `1.0.0`, Scene Kernel `1.0.0`,
