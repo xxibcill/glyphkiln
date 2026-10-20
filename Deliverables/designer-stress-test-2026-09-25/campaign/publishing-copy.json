@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "status": "fictional-internal-proof",
+  "caption": "The Studio Lamp returns in cobalt ceramic. A sculptural pool of light for the corners you keep. Meet the Second Firing from Kilnform.",
+  "images": [
+    {
+      "format": "linkedin-landscape",
+      "altText": "Cobalt ceramic table lamp on a warm plaster pedestal. Editorial text at left reads: Make room for the glow. Small Kilnform mark above."
+    },
+    {
+      "format": "instagram-square",
+      "altText": "Cobalt ceramic table lamp on a warm plaster pedestal. Editorial text at left reads: Clay to glow. Small Kilnform mark above."
+    },
+    {
+      "format": "instagram-portrait",
+      "altText": "Portrait crop of a cobalt ceramic table lamp on a warm plaster pedestal. Editorial text at left reads: Clay to glow. Small Kilnform mark above."
+    }
+  ]
+}

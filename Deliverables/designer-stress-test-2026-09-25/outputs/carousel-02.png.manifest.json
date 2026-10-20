@@ -1,0 +1,51 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_d3dc2b0d21337ef4d9313b55",
+  "renderFingerprint": "d3dc2b0d21337ef4d9313b5588732c594bdf1d77f4cdbda9c4ec97efd15e08a2",
+  "designDocumentId": "designer-day-carousel-02",
+  "designDocumentHash": "5274ea9db7b8463ff9f66939dac5e49a5fa222ad2c39adce166797215e14a1bc",
+  "seed": "2b3864d57a142f57f8aabb11789fcc1fc42df3a035c415d7712ceb5957e5ced1",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": { "recursive-subdivision": "1.1.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1440 },
+  "output": {
+    "format": "png",
+    "sha256": "534334a6583f6692994480b3b7892244ba2ea35aa8da7f51295f8d321da95901",
+    "byteSize": 35946
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

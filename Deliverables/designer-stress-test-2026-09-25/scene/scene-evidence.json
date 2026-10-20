@@ -1,0 +1,698 @@
+{
+  "version": "1.0.0",
+  "coordinateSpace": "canvas",
+  "boundsPolicy": "axis-aligned-before-clipping",
+  "elements": [
+    {
+      "id": "brand-mark-outer",
+      "type": "circle",
+      "bounds": { "x": 53.75, "y": 47.75, "width": 30.5, "height": 30.5 }
+    },
+    { "id": "brand-mark-inner", "type": "path", "bounds": null },
+    {
+      "id": "brand-wordmark",
+      "type": "text",
+      "bounds": {
+        "x": 93,
+        "y": 47,
+        "width": 106.81749871611996,
+        "height": 20.879999999999995
+      }
+    },
+    {
+      "id": "series-label",
+      "type": "text",
+      "bounds": {
+        "x": 1001.1851214625176,
+        "y": 49,
+        "width": 142.8148785374824,
+        "height": 15.079999999999998
+      }
+    },
+    {
+      "id": "headline",
+      "type": "text",
+      "bounds": { "x": 56, "y": 99, "width": 689.3546842702978, "height": 76.56 }
+    },
+    {
+      "id": "deck",
+      "type": "text",
+      "bounds": {
+        "x": 58,
+        "y": 185,
+        "width": 505.537109375,
+        "height": 23.19999999999999
+      }
+    },
+    {
+      "id": "header-rule",
+      "type": "rect",
+      "bounds": { "x": 56, "y": 230, "width": 1088, "height": 2 }
+    },
+    { "id": "stage-shape", "type": "group", "bounds": null },
+    {
+      "id": "shape-card",
+      "type": "rect",
+      "bounds": { "x": 55.5, "y": 251.5, "width": 252, "height": 312 }
+    },
+    {
+      "id": "shape-top-rule",
+      "type": "rect",
+      "bounds": { "x": 77, "y": 345, "width": 209, "height": 1 }
+    },
+    {
+      "id": "shape-index",
+      "type": "text",
+      "bounds": {
+        "x": 78,
+        "y": 271,
+        "width": 72.67494742191889,
+        "height": 15.079999999999984
+      }
+    },
+    {
+      "id": "shape-title",
+      "type": "text",
+      "bounds": {
+        "x": 77,
+        "y": 299,
+        "width": 92.51633414006795,
+        "height": 34.80000000000001
+      }
+    },
+    {
+      "id": "shape-roundel",
+      "type": "circle",
+      "bounds": { "x": 127.5, "y": 351, "width": 108, "height": 108 }
+    },
+    { "id": "shape-wheel", "type": "path", "bounds": null },
+    { "id": "shape-form-icon", "type": "path", "bounds": null },
+    { "id": "shape-rim", "type": "path", "bounds": null },
+    { "id": "shape-groove", "type": "path", "bounds": null },
+    {
+      "id": "shape-bottom-rule",
+      "type": "rect",
+      "bounds": { "x": 77, "y": 464, "width": 209, "height": 1 }
+    },
+    {
+      "id": "shape-body",
+      "type": "text",
+      "bounds": { "x": 77, "y": 478, "width": 208.8515625, "height": 42.24000000000001 }
+    },
+    { "id": "stage-dry", "type": "group", "bounds": null },
+    {
+      "id": "dry-card",
+      "type": "rect",
+      "bounds": { "x": 334.5, "y": 251.5, "width": 252, "height": 312 }
+    },
+    {
+      "id": "dry-top-rule",
+      "type": "rect",
+      "bounds": { "x": 356, "y": 345, "width": 209, "height": 1 }
+    },
+    {
+      "id": "dry-index",
+      "type": "text",
+      "bounds": {
+        "x": 357,
+        "y": 271,
+        "width": 70.4851333719057,
+        "height": 15.079999999999984
+      }
+    },
+    {
+      "id": "dry-title",
+      "type": "text",
+      "bounds": {
+        "x": 356,
+        "y": 299,
+        "width": 52.409199008244684,
+        "height": 34.80000000000001
+      }
+    },
+    {
+      "id": "dry-roundel",
+      "type": "circle",
+      "bounds": { "x": 406.5, "y": 351, "width": 108, "height": 108 }
+    },
+    { "id": "dry-shelf", "type": "path", "bounds": null },
+    { "id": "dry-form-icon", "type": "path", "bounds": null },
+    { "id": "dry-air-left", "type": "path", "bounds": null },
+    { "id": "dry-air-mid", "type": "path", "bounds": null },
+    { "id": "dry-air-right", "type": "path", "bounds": null },
+    {
+      "id": "dry-bottom-rule",
+      "type": "rect",
+      "bounds": { "x": 356, "y": 464, "width": 209, "height": 1 }
+    },
+    {
+      "id": "dry-body",
+      "type": "text",
+      "bounds": { "x": 356, "y": 478, "width": 197.53125, "height": 42.24000000000001 }
+    },
+    { "id": "stage-fire", "type": "group", "bounds": null },
+    {
+      "id": "fire-card",
+      "type": "rect",
+      "bounds": { "x": 613.5, "y": 251.5, "width": 252, "height": 312 }
+    },
+    {
+      "id": "fire-top-rule",
+      "type": "rect",
+      "bounds": { "x": 635, "y": 345, "width": 209, "height": 1 }
+    },
+    {
+      "id": "fire-index",
+      "type": "text",
+      "bounds": {
+        "x": 636,
+        "y": 271,
+        "width": 126.30136743973844,
+        "height": 15.079999999999984
+      }
+    },
+    {
+      "id": "fire-title",
+      "type": "text",
+      "bounds": {
+        "x": 635,
+        "y": 299,
+        "width": 55.096891601528796,
+        "height": 34.80000000000001
+      }
+    },
+    {
+      "id": "fire-roundel",
+      "type": "circle",
+      "bounds": { "x": 685.5, "y": 351, "width": 108, "height": 108 }
+    },
+    { "id": "fire-kiln", "type": "path", "bounds": null },
+    { "id": "fire-hearth", "type": "path", "bounds": null },
+    { "id": "fire-flame", "type": "path", "bounds": null },
+    { "id": "fire-flame-core", "type": "path", "bounds": null },
+    {
+      "id": "fire-bottom-rule",
+      "type": "rect",
+      "bounds": { "x": 635, "y": 464, "width": 209, "height": 1 }
+    },
+    {
+      "id": "fire-body",
+      "type": "text",
+      "bounds": {
+        "x": 635,
+        "y": 478,
+        "width": 205.3359375,
+        "height": 42.24000000000001
+      }
+    },
+    { "id": "stage-finish", "type": "group", "bounds": null },
+    {
+      "id": "finish-card",
+      "type": "rect",
+      "bounds": { "x": 892.5, "y": 251.5, "width": 252, "height": 312 }
+    },
+    {
+      "id": "finish-top-rule",
+      "type": "rect",
+      "bounds": { "x": 914, "y": 345, "width": 209, "height": 1 }
+    },
+    {
+      "id": "finish-index",
+      "type": "text",
+      "bounds": {
+        "x": 915,
+        "y": 271,
+        "width": 77.48939075028534,
+        "height": 15.079999999999984
+      }
+    },
+    {
+      "id": "finish-title",
+      "type": "text",
+      "bounds": {
+        "x": 914,
+        "y": 299,
+        "width": 88.04095868543038,
+        "height": 34.80000000000001
+      }
+    },
+    {
+      "id": "finish-roundel",
+      "type": "circle",
+      "bounds": { "x": 964.5, "y": 351, "width": 108, "height": 108 }
+    },
+    { "id": "finish-stem", "type": "path", "bounds": null },
+    { "id": "finish-shade", "type": "path", "bounds": null },
+    {
+      "id": "finish-bulb",
+      "type": "circle",
+      "bounds": { "x": 1013.5, "y": 411, "width": 10, "height": 10 }
+    },
+    { "id": "finish-ray-left", "type": "path", "bounds": null },
+    { "id": "finish-ray-right", "type": "path", "bounds": null },
+    { "id": "finish-ray-top", "type": "path", "bounds": null },
+    {
+      "id": "finish-bottom-rule",
+      "type": "rect",
+      "bounds": { "x": 914, "y": 464, "width": 209, "height": 1 }
+    },
+    {
+      "id": "finish-body",
+      "type": "text",
+      "bounds": {
+        "x": 914,
+        "y": 478,
+        "width": 186.5859375,
+        "height": 42.24000000000001
+      }
+    },
+    {
+      "id": "flow-shape-dry",
+      "type": "connector",
+      "bounds": {
+        "x": 187.999,
+        "y": 590.999,
+        "width": 264.00199999999995,
+        "height": 16.001999999999953
+      }
+    },
+    {
+      "id": "flow-dry-fire",
+      "type": "connector",
+      "bounds": {
+        "x": 466.999,
+        "y": 590.999,
+        "width": 264.00199999999995,
+        "height": 16.001999999999953
+      }
+    },
+    {
+      "id": "flow-fire-finish",
+      "type": "connector",
+      "bounds": {
+        "x": 745.999,
+        "y": 590.999,
+        "width": 264.00199999999995,
+        "height": 16.001999999999953
+      }
+    },
+    {
+      "id": "rail-shape",
+      "type": "circle",
+      "bounds": { "x": 176, "y": 593.5, "width": 11, "height": 11 }
+    },
+    {
+      "id": "rail-dry",
+      "type": "circle",
+      "bounds": { "x": 455, "y": 593.5, "width": 11, "height": 11 }
+    },
+    {
+      "id": "rail-fire",
+      "type": "circle",
+      "bounds": { "x": 734, "y": 593.5, "width": 11, "height": 11 }
+    },
+    {
+      "id": "rail-finish",
+      "type": "circle",
+      "bounds": { "x": 1013, "y": 593.5, "width": 11, "height": 11 }
+    },
+    {
+      "id": "footer-rule",
+      "type": "rect",
+      "bounds": { "x": 56, "y": 628, "width": 1088, "height": 1 }
+    },
+    {
+      "id": "footer-left",
+      "type": "text",
+      "bounds": {
+        "x": 56,
+        "y": 638,
+        "width": 189.3914593665528,
+        "height": 13.919999999999959
+      }
+    },
+    {
+      "id": "footer-right",
+      "type": "text",
+      "bounds": {
+        "x": 833.457855189323,
+        "y": 638,
+        "width": 310.542144810677,
+        "height": 13.919999999999959
+      }
+    }
+  ],
+  "text": [
+    {
+      "id": "brand-wordmark",
+      "bounds": {
+        "x": 93,
+        "y": 47,
+        "width": 106.81749871611996,
+        "height": 20.879999999999995
+      },
+      "fittedFontSize": 18,
+      "lineCount": 1,
+      "lines": ["KILNFORM"],
+      "wrap": {
+        "lineWidths": [106.81749871611996],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "series-label",
+      "bounds": {
+        "x": 1001.1851214625176,
+        "y": 49,
+        "width": 142.8148785374824,
+        "height": 15.079999999999998
+      },
+      "fittedFontSize": 13,
+      "lineCount": 1,
+      "lines": ["ATELIER NOTES / 01"],
+      "wrap": {
+        "lineWidths": [142.81487853748246],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "headline",
+      "bounds": { "x": 56, "y": 99, "width": 689.3546842702978, "height": 76.56 },
+      "fittedFontSize": 66,
+      "lineCount": 1,
+      "lines": ["How the light is made"],
+      "wrap": {
+        "lineWidths": [689.3546842702978],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "deck",
+      "bounds": {
+        "x": 58,
+        "y": 185,
+        "width": 505.537109375,
+        "height": 23.19999999999999
+      },
+      "fittedFontSize": 20,
+      "lineCount": 1,
+      "lines": ["Four deliberate stages, from raw clay to a warm glow."],
+      "wrap": {
+        "lineWidths": [505.537109375],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "shape-index",
+      "bounds": {
+        "x": 78,
+        "y": 271,
+        "width": 72.67494742191889,
+        "height": 15.079999999999984
+      },
+      "fittedFontSize": 13,
+      "lineCount": 1,
+      "lines": ["01 / FORM"],
+      "wrap": {
+        "lineWidths": [72.67494742191889],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "shape-title",
+      "bounds": {
+        "x": 77,
+        "y": 299,
+        "width": 92.51633414006795,
+        "height": 34.80000000000001
+      },
+      "fittedFontSize": 30,
+      "lineCount": 1,
+      "lines": ["Shape"],
+      "wrap": {
+        "lineWidths": [92.51633414006794],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "shape-body",
+      "bounds": {
+        "x": 77,
+        "y": 478,
+        "width": 208.8515625,
+        "height": 42.24000000000001
+      },
+      "fittedFontSize": 16,
+      "lineCount": 2,
+      "lines": ["Hands shape the clay into a", "calm, balanced form."],
+      "wrap": {
+        "lineWidths": [208.8515625, 159.2421875],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "dry-index",
+      "bounds": {
+        "x": 357,
+        "y": 271,
+        "width": 70.4851333719057,
+        "height": 15.079999999999984
+      },
+      "fittedFontSize": 13,
+      "lineCount": 1,
+      "lines": ["02 / REST"],
+      "wrap": {
+        "lineWidths": [70.48513337190573],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "dry-title",
+      "bounds": {
+        "x": 356,
+        "y": 299,
+        "width": 52.409199008244684,
+        "height": 34.80000000000001
+      },
+      "fittedFontSize": 30,
+      "lineCount": 1,
+      "lines": ["Dry"],
+      "wrap": {
+        "lineWidths": [52.40919900824466],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "dry-body",
+      "bounds": { "x": 356, "y": 478, "width": 197.53125, "height": 42.24000000000001 },
+      "fittedFontSize": 16,
+      "lineCount": 2,
+      "lines": ["Air leaves the body slowly", "before it enters the kiln."],
+      "wrap": {
+        "lineWidths": [197.53125, 178.640625],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "fire-index",
+      "bounds": {
+        "x": 636,
+        "y": 271,
+        "width": 126.30136743973844,
+        "height": 15.079999999999984
+      },
+      "fittedFontSize": 13,
+      "lineCount": 1,
+      "lines": ["03 / TRANSFORM"],
+      "wrap": {
+        "lineWidths": [126.3013674397384],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "fire-title",
+      "bounds": {
+        "x": 635,
+        "y": 299,
+        "width": 55.096891601528796,
+        "height": 34.80000000000001
+      },
+      "fittedFontSize": 30,
+      "lineCount": 1,
+      "lines": ["Fire"],
+      "wrap": {
+        "lineWidths": [55.096891601528746],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "fire-body",
+      "bounds": {
+        "x": 635,
+        "y": 478,
+        "width": 205.3359375,
+        "height": 42.24000000000001
+      },
+      "fittedFontSize": 16,
+      "lineCount": 2,
+      "lines": ["Heat hardens the body and", "sets its final surface."],
+      "wrap": {
+        "lineWidths": [205.3359375, 156.21875],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "finish-index",
+      "bounds": {
+        "x": 915,
+        "y": 271,
+        "width": 77.48939075028534,
+        "height": 15.079999999999984
+      },
+      "fittedFontSize": 13,
+      "lineCount": 1,
+      "lines": ["04 / GLOW"],
+      "wrap": {
+        "lineWidths": [77.4893907502853],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "finish-title",
+      "bounds": {
+        "x": 914,
+        "y": 299,
+        "width": 88.04095868543038,
+        "height": 34.80000000000001
+      },
+      "fittedFontSize": 30,
+      "lineCount": 1,
+      "lines": ["Finish"],
+      "wrap": {
+        "lineWidths": [88.04095868543041],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "finish-body",
+      "bounds": {
+        "x": 914,
+        "y": 478,
+        "width": 186.5859375,
+        "height": 42.24000000000001
+      },
+      "fittedFontSize": 16,
+      "lineCount": 2,
+      "lines": ["Glaze, wiring and testing", "turn the form into light."],
+      "wrap": {
+        "lineWidths": [186.5859375, 172.6484375],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "footer-left",
+      "bounds": {
+        "x": 56,
+        "y": 638,
+        "width": 189.3914593665528,
+        "height": 13.919999999999959
+      },
+      "fittedFontSize": 12,
+      "lineCount": 1,
+      "lines": ["EARTH / AIR / HEAT / LIGHT"],
+      "wrap": {
+        "lineWidths": [189.3914593665528],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    },
+    {
+      "id": "footer-right",
+      "bounds": {
+        "x": 833.457855189323,
+        "y": 638,
+        "width": 310.542144810677,
+        "height": 13.919999999999959
+      },
+      "fittedFontSize": 12,
+      "lineCount": 1,
+      "lines": ["KILNFORM · OBJECT 01 / CERAMIC TABLE LAMP"],
+      "wrap": {
+        "lineWidths": [310.5421448106769],
+        "brokeLongWord": false,
+        "orphanLineCount": 0,
+        "usesBalancedLineBreaking": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0"
+      }
+    }
+  ],
+  "images": []
+}

@@ -1,0 +1,61 @@
+{
+  "manifestVersion": "1.0.0",
+  "renderId": "scene_5638f99f4df394b5512c455a",
+  "renderFingerprint": "5638f99f4df394b5512c455a06a50506bbfe2ba68427b1756306132900406b7e",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.0.0",
+    "sceneId": "kilnform-how-the-light-is-made-v1",
+    "sceneHash": "64405cecc37ecdf0ba559d7b45c8c374a63b9fc12e872bed4e9fe1c6803cf602"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.5.0"
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": {
+    "width": 1200,
+    "height": 675
+  },
+  "output": {
+    "format": "png",
+    "sha256": "0d3e1ac7f82375cf3405f93e0ccbca8fd91e349d623bebb90ccd24ac8109d123",
+    "byteSize": 74563
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "How the light is made",
+    "description": "An editorial process diagram for fictional ceramic lighting brand Kilnform. Four stages read left to right: Shape, Dry, Fire, Finish. Drawn symbols are schematic; process wording is general and requires production review.",
+    "readingOrder": [
+      "brand-wordmark",
+      "series-label",
+      "headline",
+      "deck",
+      "stage-shape",
+      "stage-dry",
+      "stage-fire",
+      "stage-finish",
+      "footer-left",
+      "footer-right"
+    ],
+    "selectableText": true
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

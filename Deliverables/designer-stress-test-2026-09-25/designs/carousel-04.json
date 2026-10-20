@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.4.0",
+  "id": "designer-day-carousel-04",
+  "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+  "format": "tiktok-photo-carousel",
+  "seed": "57ba94b9802f99f1f643752d09354839ca9c5b80324bffa20e9db2e02ede4820",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-kilnform-second-firing-2026-09",
+    "version": "1.0.0",
+    "name": "Kilnform",
+    "palette": {
+      "primary": "#0D3B9C",
+      "secondary": "#C85F27",
+      "accent": "#F3C879",
+      "neutrals": ["#15100D", "#FFF6E7", "#A77B5A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF6E7",
+        "surface": "#F3E4CC",
+        "text": "#15100D",
+        "mutedText": "#5E4637"
+      },
+      "dark": {
+        "background": "#15100D",
+        "surface": "#2B211C",
+        "text": "#FFF6E7",
+        "mutedText": "#F3E4CC"
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": [
+      "layered-waves",
+      "recursive-subdivision",
+      "topographic-contours",
+      "flow-field"
+    ],
+    "safeArea": { "top": 0.08, "right": 0.07, "bottom": 0.08, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai-composition"],
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Inter",
+          "weight": 800,
+          "lineHeight": 0.92,
+          "tracking": -0.03
+        },
+        "body": {
+          "family": "Inter",
+          "weight": 400,
+          "lineHeight": 1.25,
+          "tracking": 0
+        },
+        "label": {
+          "family": "Inter",
+          "weight": 700,
+          "lineHeight": 1,
+          "tracking": 0.08
+        }
+      }
+    }
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "metadata": {
+    "brief": "fictional-kilnform-second-firing",
+    "sequence": "placement-edit",
+    "slideNumber": 4,
+    "narrativeRole": "explanation",
+    "directionSeed": "fafa13d942836f43515ca9cfa5cf2cbebc92e51f75d462940b639635d5bca04d"
+  },
+  "layers": [
+    { "id": "background", "visible": true, "type": "background" },
+    {
+      "id": "pattern-rail",
+      "visible": true,
+      "type": "procedural-decoration",
+      "style": "layered-waves",
+      "intensity": 0.38,
+      "density": 0.54,
+      "complexity": 0.5,
+      "contrast": 0.28,
+      "quietRegion": { "x": 0.24, "y": 0.12, "width": 0.62, "height": 0.58 }
+    },
+    {
+      "id": "slide-number",
+      "visible": true,
+      "type": "badge",
+      "text": "04 / 06"
+    },
+    {
+      "id": "headline",
+      "visible": true,
+      "type": "headline",
+      "text": "Give the shade room to breathe."
+    },
+    {
+      "id": "subtitle",
+      "visible": true,
+      "type": "subtitle",
+      "text": "Set it beside the task.\nLeave space for the shade."
+    }
+  ]
+}
