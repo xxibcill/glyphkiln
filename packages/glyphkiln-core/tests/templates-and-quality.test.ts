@@ -232,8 +232,13 @@ function svgImageBox(
 }
 
 describe("template registry", () => {
-  it("contains six stable versioned templates", () => {
+  it("contains eleven stable versioned templates", () => {
     expect(Object.keys(TEMPLATE_REGISTRY)).toEqual([
+      "testimonial-evidence",
+      "comparison",
+      "problem-solution",
+      "offer-urgency",
+      "benefit-proof",
       "product-announcement",
       "statistic-card",
       "quote-card",
@@ -242,12 +247,17 @@ describe("template registry", () => {
       "image-led-campaign",
     ]);
     const expectedVersions = {
-      "product-announcement": "1.1.1",
+      "testimonial-evidence": "1.0.0",
+      comparison: "1.0.0",
+      "problem-solution": "1.0.0",
+      "offer-urgency": "1.0.0",
+      "benefit-proof": "1.0.0",
+      "product-announcement": "1.2.0",
       "statistic-card": "1.1.0",
       "quote-card": "1.1.0",
       "article-cover": "1.1.0",
-      "tiktok-carousel-slide": "1.0.4",
-      "image-led-campaign": "1.0.1",
+      "tiktok-carousel-slide": "1.1.1",
+      "image-led-campaign": "1.1.1",
     };
     for (const template of Object.values(TEMPLATE_REGISTRY)) {
       expect(template.version).toBe(expectedVersions[template.id]);
@@ -522,10 +532,8 @@ describe("template registry", () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
     const template = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
 
-    expect(template.constraints.layout).toContain("typography-first");
-    expect(template.constraints.layout).toContain(
-      "no generated illustration or SVG asset",
-    );
+    expect(template.supportedLayers).toContain("image");
+    expect(template.requiredLayers).not.toContain("image");
     expect(document.assets).toEqual([]);
     expect(document.layers).not.toContainEqual(
       expect.objectContaining({ type: "procedural-decoration" }),

@@ -556,6 +556,7 @@ function createWorkflowApi(
     requestRevisionExport,
     renderJob,
     completedRenderJobs,
+    createStaticAdCampaign: () => Promise.resolve(missingResource()),
     createCampaign: () => Promise.resolve(missingResource()),
     campaignBoard: () =>
       options.withCampaign === true

@@ -1,3 +1,4 @@
+import { STATIC_AD_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
 import { describe, expect, it } from "vitest";
 
 import type { BrandSnapshot, DesignDocument } from "@glyphkiln/core";
@@ -20,6 +21,100 @@ import {
 const catalog = createPreviewCatalog();
 
 describe("manual App Alpha state", () => {
+  it.each(STATIC_AD_TEMPLATE_IDS)(
+    "round-trips %s copy and admitted asset roles",
+    (templateId) => {
+      const state = createInitialPreviewForm(catalog);
+      state.composition.templateId = templateId;
+      state.resources = {
+        assetIds: ["mark"],
+        fontIds: [],
+        logoAssetId: "mark",
+        logoAlt: "Brand",
+      };
+      if (templateId === "testimonial-evidence")
+        state.resources = {
+          ...state.resources,
+          assetIds: ["mark", "product", "person"],
+          imageAssetId: "product",
+          imageAlt: "Product",
+          portraitAssetId: "person",
+          portraitAlt: "Speaker",
+        };
+      if (templateId === "comparison")
+        state.copy.staticAds.comparison.rows = [
+          { label: "One", left: "First fact", right: "Second fact" },
+        ];
+      const document = buildPreviewDocument(state, catalog);
+      const reopened = formFromStoredDocument(document, catalog);
+      expect(reopened.copy.staticAds[templateId]).toEqual(
+        state.copy.staticAds[templateId],
+      );
+      expect(buildManualDraft(reopened, catalog).layers).toEqual(document.layers);
+      if (templateId === "testimonial-evidence") {
+        expect(reopened.resources.portraitAssetId).toBe("person");
+        expect(reopened.resources.imageAssetId).toBe("product");
+        expect(reopened.resources.portraitAlt).toBe("Speaker");
+      }
+    },
+  );
+
+  it("round-trips structured benefit copy and optional assets without losing facts", () => {
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "benefit-proof";
+    state.composition.formatId = "instagram-portrait";
+    state.copy.benefitProof.items = [
+      { title: "Complete product", description: "" },
+      { title: "Softer light", description: "A supplied explanation." },
+    ];
+    state.resources = {
+      assetIds: ["product", "mark"],
+      fontIds: [],
+      imageAssetId: "product",
+      imageAlt: "Whole product",
+      logoAssetId: "mark",
+      logoAlt: "Brand",
+    };
+    const document = buildPreviewDocument(state, catalog);
+    expect(document.schemaVersion).toBe("1.6.0");
+    expect(document.template).toEqual({ id: "benefit-proof", version: "1.0.0" });
+    const reopened = formFromStoredDocument(document, catalog);
+    expect(reopened.copy.benefitProof).toEqual(state.copy.benefitProof);
+    expect(reopened.resources.imageAssetId).toBe("product");
+    expect(reopened.resources.logoAssetId).toBe("mark");
+    expect(buildManualDraft(reopened, catalog).layers).toEqual(document.layers);
+  });
+  it("round-trips product offers, terms, and contained asset roles", () => {
+    const state = createInitialPreviewForm(catalog);
+    state.copy.productAnnouncement.badge = "SAVE 20%";
+    state.copy.productAnnouncement.footer = "Ends Sunday. Selected items only.";
+    state.resources = {
+      assetIds: ["product", "mark"],
+      fontIds: [],
+      imageAssetId: "product",
+      imageAlt: "Complete product",
+      logoAssetId: "mark",
+      logoAlt: "Brand",
+    };
+    const document = buildPreviewDocument(state, catalog);
+    expect(document.template.version).toBe("1.2.0");
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({
+        type: "product-screenshot",
+        assetId: "product",
+        fit: "contain",
+      }),
+    );
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({ type: "badge", text: "SAVE 20%" }),
+    );
+    const reopened = formFromStoredDocument(document, catalog);
+    expect(reopened.copy.productAnnouncement).toEqual(state.copy.productAnnouncement);
+    expect(reopened.resources.imageAssetId).toBe("product");
+    expect(reopened.resources.logoAssetId).toBe("mark");
+    expect(buildPreviewDocument(reopened, catalog).layers).toEqual(document.layers);
+  });
+
   it("keeps trusted document fields out of the manual draft", () => {
     const state = createInitialPreviewForm(catalog);
     const draft = buildManualDraft(state, catalog);

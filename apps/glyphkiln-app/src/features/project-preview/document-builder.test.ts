@@ -23,9 +23,51 @@ import type {
 } from "./types";
 
 const EXPECTED_LAYERS = {
+  "testimonial-evidence": [
+    ["background", "background"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["attribution", "attribution"],
+    ["subtitle", "subtitle"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+  ],
+  comparison: [
+    ["background", "background"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+    ["comparison", "comparison-table"],
+  ],
+  "problem-solution": [
+    ["background", "background"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+    ["problem-solution", "problem-solution"],
+  ],
+  "offer-urgency": [
+    ["background", "background"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["badge", "badge"],
+    ["subtitle", "subtitle"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+  ],
+
+  "benefit-proof": [
+    ["background", "background"],
+    ["eyebrow", "eyebrow"],
+    ["headline", "headline"],
+    ["benefits", "benefit-list"],
+    ["cta", "cta"],
+    ["footer", "footer"],
+  ],
   "product-announcement": [
     ["background", "background"],
-    ["procedure", "procedural-decoration"],
     ["eyebrow", "eyebrow"],
     ["headline", "headline"],
     ["subtitle", "subtitle"],
@@ -65,16 +107,57 @@ const EXPECTED_LAYERS = {
 >;
 
 const EXPECTED_STARTER_SVG_SHA256 = {
+  "testimonial-evidence":
+    "c93e7276b4aaad60ae64ae56c7259525ba054d971bc04e6b641e678da774e0b4",
+  comparison: "2b33ffc2ba14941eeacea016b7e0e94b9390544e32efd3607ab67cf4fa450dc7",
+  "problem-solution":
+    "9bfa415cabc2c9713fb14b29c679b318a356de243192d42270e8badbdbab6371",
+  "offer-urgency": "4a53862e705cc2a818256e0807f4df13c7266d6b4c04b92e9c74976361695f02",
+
+  "benefit-proof": "2d2f7aba7eb2b86abe1b8632c2cfe4983b882f61dd88569874c4d53a750acc80",
   "product-announcement":
-    "5633eabc6c0de601b052da3688b2202b8cdf945853335c2f1356423322f09ac9",
+    "4da22629df58933338aa910ece11c861e179a644200650e5fd2e49360b780830",
   "statistic-card": "c5a384df3d54bcef1169f2f6f25894f0de86610d3be9e5c03a8a96011f2bf40d",
   "quote-card": "d3dfb4fb33b47c6a6a76373637018a0e2d036b5b3a9db575e1cc1548b8b9b09c",
   "article-cover": "36018946915663a84db9541e20abfccd7279434958f1344cdf22dcc5af47fd6d",
   "tiktok-carousel-slide":
-    "a64763a91df544519843b30197d2d8b1d475ba14b508e87ccdb694c751e7421a",
+    "172fd0e43992308fbe364c9a544f67ed46ed25e7659a8d6d1c604597e2bacf96",
 } as const satisfies Record<(typeof PREVIEW_TEMPLATE_IDS)[number], string>;
 
 describe("buildPreviewDocument", () => {
+  it("adds an optional admitted carousel image with its exact focal intent", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "tiktok-carousel-slide";
+    state.composition.formatId = "tiktok-photo-carousel";
+    state.composition.imageFocalPoint = { x: 0.72, y: 0.4 };
+    state.resources = {
+      assetIds: ["product"],
+      fontIds: [],
+      imageAssetId: "product",
+      imageAlt: "A ceramic lamp.",
+    };
+    const document = buildPreviewDocument(state, catalog, [
+      rasterResource("product", "a"),
+    ]);
+    expect(document.template.version).toBe("1.1.1");
+    expect(validateDesignDocument(document).success).toBe(true);
+    expect(document.layers).toContainEqual(
+      expect.objectContaining({
+        type: "image",
+        assetId: "product",
+        alt: "A ceramic lamp.",
+        focalPoint: { x: 0.72, y: 0.4 },
+        fit: "cover",
+      }),
+    );
+    expect(document.layers.some((layer) => layer.type === "logo")).toBe(false);
+    delete state.resources.imageAssetId;
+    state.resources.assetIds = [];
+    const typographySlide = buildPreviewDocument(state, catalog, []);
+    expect(typographySlide.layers.some((layer) => layer.type === "image")).toBe(false);
+  });
+
   it("orders selected assets by deterministic code units", () => {
     const catalog = createPreviewCatalog({ resourceBacked: true });
     const state = createInitialPreviewForm(catalog);
@@ -237,18 +320,18 @@ describe("buildPreviewDocument", () => {
       ).toEqual([]);
       expect(result.outputs).toHaveLength(1);
       expect(result.outputs[0]?.format).toBe("svg");
-      expect(result.outputs[0]?.manifest.output.sha256).toBe(
-        EXPECTED_STARTER_SVG_SHA256[templateId],
-      );
+      expect
+        .soft(result.outputs[0]?.manifest.output.sha256, templateId)
+        .toBe(EXPECTED_STARTER_SVG_SHA256[templateId]);
     }
-  });
+  }, 30_000);
 
   it("omits blank optional copy while retaining valid required copy", () => {
     const product = createFormForTemplate("product-announcement");
     product.copy.productAnnouncement.eyebrow = " ";
     product.copy.productAnnouncement.subtitle = "";
     product.copy.productAnnouncement.cta = "\t";
-    expectLayerIds(build(product)).toEqual(["background", "procedure", "headline"]);
+    expectLayerIds(build(product)).toEqual(["background", "headline"]);
     expectCoreValid(build(product));
 
     const statistic = createFormForTemplate("statistic-card");

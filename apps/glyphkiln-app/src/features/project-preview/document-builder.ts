@@ -1,3 +1,8 @@
+import {
+  createStaticAdCopies,
+  isStaticAdTemplateId,
+  buildStaticAdLayers,
+} from "./static-ad-copy";
 import type { AssetOrigin, DesignDocument, DesignLayer } from "@glyphkiln/core";
 
 import { compareCanonicalStrings } from "@/lib/deterministic-order";
@@ -67,6 +72,21 @@ export function createInitialPreviewForm(catalog: PreviewCatalog): PreviewFormSt
       imageTreatment: "dark-scrim",
     },
     copy: {
+      staticAds: createStaticAdCopies(),
+      benefitProof: {
+        eyebrow: "GLYPHKILN / DESIGN SYSTEM",
+        headline: "Make every proof repeatable.",
+        items: [
+          { title: "Pinned inputs", description: "Versioned templates and assets." },
+          {
+            title: "Exact exports",
+            description: "The same input produces the same pixels.",
+          },
+          { title: "Visible evidence", description: "Review every generated proof." },
+        ],
+        cta: "Explore the workflow →",
+        footer: "Glyphkiln · product capabilities",
+      },
       productAnnouncement: {
         eyebrow: "FROM THE GLYPHKILN",
         headline: "Turn structured direction into reproducible graphics",
@@ -195,8 +215,11 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
   ];
 
   if (
+    !isStaticAdTemplateId(state.composition.templateId) &&
     state.composition.templateId !== "tiktok-carousel-slide" &&
-    state.composition.templateId !== "image-led-campaign"
+    state.composition.templateId !== "image-led-campaign" &&
+    state.composition.templateId !== "product-announcement" &&
+    state.composition.templateId !== "benefit-proof"
   ) {
     layers.push({
       id: "procedure",
@@ -212,9 +235,82 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
   }
 
   const templateId = state.composition.templateId;
+  if (isStaticAdTemplateId(templateId))
+    return [
+      ...layers,
+      ...buildStaticAdLayers(
+        templateId,
+        state.copy.staticAds[templateId],
+        state.resources,
+      ),
+    ];
   switch (templateId) {
+    case "benefit-proof": {
+      const copy = state.copy.benefitProof;
+      addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
+      addTextLayer(layers, "headline", "headline", copy.headline, true);
+      layers.push({
+        id: "benefits",
+        type: "benefit-list",
+        visible: true,
+        items: copy.items.map((item) => ({
+          title: item.title.trim(),
+          ...(item.description.trim() ? { description: item.description.trim() } : {}),
+        })),
+      });
+      addTextLayer(layers, "cta", "cta", copy.cta);
+      addTextLayer(layers, "footer", "footer", copy.footer);
+      if (state.resources.imageAssetId !== undefined)
+        layers.push({
+          id: "product",
+          type: "product-screenshot",
+          visible: true,
+          assetId: state.resources.imageAssetId,
+          alt: state.resources.imageAlt?.trim() ?? "",
+          fit: "contain",
+        });
+      if (state.resources.logoAssetId !== undefined)
+        layers.push({
+          id: "logo",
+          type: "logo",
+          visible: true,
+          assetId: state.resources.logoAssetId,
+          alt: state.resources.logoAlt?.trim() ?? "",
+          fit: "contain",
+        });
+      break;
+    }
     case "product-announcement": {
       const copy = state.copy.productAnnouncement;
+      if (copy.badge?.trim()) {
+        layers.push({
+          id: "offer",
+          type: "badge",
+          text: copy.badge.trim(),
+          visible: true,
+        });
+      }
+      addTextLayer(layers, "footer", "footer", copy.footer ?? "");
+      if (state.resources.imageAssetId !== undefined) {
+        layers.push({
+          id: "product",
+          type: "product-screenshot",
+          visible: true,
+          assetId: state.resources.imageAssetId,
+          alt: state.resources.imageAlt?.trim() ?? "",
+          fit: "contain",
+        });
+      }
+      if (state.resources.logoAssetId !== undefined) {
+        layers.push({
+          id: "logo",
+          type: "logo",
+          visible: true,
+          assetId: state.resources.logoAssetId,
+          alt: state.resources.logoAlt?.trim() ?? "",
+          fit: "contain",
+        });
+      }
       addTextLayer(layers, "eyebrow", "eyebrow", copy.eyebrow);
       addTextLayer(layers, "headline", "headline", copy.headline, true);
       addTextLayer(layers, "subtitle", "subtitle", copy.subtitle);
@@ -248,6 +344,18 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
       break;
     }
     case "tiktok-carousel-slide": {
+      if (state.resources.imageAssetId !== undefined) {
+        layers.push({
+          id: "carousel-image",
+          type: "image",
+          visible: true,
+          assetId: state.resources.imageAssetId,
+          alt: state.resources.imageAlt?.trim() ?? "",
+          fit: "cover",
+          focalPoint: { ...state.composition.imageFocalPoint },
+          treatment: state.composition.imageTreatment,
+        });
+      }
       const copy = state.copy.tiktokCarouselSlide;
       const slideNumber = copy.slideNumber.trim();
       layers.push({

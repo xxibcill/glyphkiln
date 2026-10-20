@@ -320,6 +320,35 @@ function projectLayerLocks(layer: DesignLayer): LayerLockProjections {
         copy: { ...identity, text: layer.text },
         palette: { id: layer.id, type: layer.type, color: layer.color },
       });
+    case "comparison-table":
+      return createLayerLockProjections(
+        { ...identity, rowCount: layer.rows.length },
+        {
+          copy: {
+            ...identity,
+            leftLabel: layer.leftLabel,
+            rightLabel: layer.rightLabel,
+            rows: layer.rows,
+          },
+        },
+      );
+    case "problem-solution":
+      return createLayerLockProjections(identity, {
+        copy: {
+          ...identity,
+          problemTitle: layer.problemTitle,
+          problem: layer.problem,
+          solutionTitle: layer.solutionTitle,
+          solution: layer.solution,
+        },
+      });
+    case "benefit-list":
+      return createLayerLockProjections(
+        { ...identity, itemCount: layer.items.length },
+        {
+          copy: { ...identity, items: layer.items },
+        },
+      );
     case "statistic":
       return createLayerLockProjections(identity, {
         copy: {

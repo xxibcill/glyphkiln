@@ -333,7 +333,7 @@ const LayerV1_2_0Schema = z.discriminatedUnion("type", [
   textLayerSchema("attribution"),
 ]);
 
-export const LayerSchema = z.discriminatedUnion("type", [
+const LayerV1_4_0Schema = z.discriminatedUnion("type", [
   backgroundLayerSchema,
   proceduralDecorationLayerSchema,
   assetLayerSchema("logo"),
@@ -350,6 +350,62 @@ export const LayerSchema = z.discriminatedUnion("type", [
   textLayerSchema("cta"),
   textLayerSchema("footer"),
   textLayerSchema("attribution"),
+]);
+
+const benefitListLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("benefit-list"),
+    items: z
+      .array(
+        z
+          .object({
+            title: z.string().min(1).max(80).regex(/\S/u),
+            description: z.string().min(1).max(180).regex(/\S/u).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(3),
+  })
+  .strict();
+
+const LayerV1_5_0Schema = z.discriminatedUnion("type", [
+  ...LayerV1_4_0Schema.options,
+  benefitListLayerSchema,
+]);
+
+const proofText = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
+const comparisonTableLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("comparison-table"),
+    leftLabel: proofText(60),
+    rightLabel: proofText(60),
+    rows: z
+      .array(
+        z
+          .object({ label: proofText(60), left: proofText(100), right: proofText(100) })
+          .strict(),
+      )
+      .min(1)
+      .max(3),
+  })
+  .strict();
+const problemSolutionLayerSchema = z
+  .object({
+    ...layerBase,
+    type: z.literal("problem-solution"),
+    problemTitle: proofText(80),
+    problem: proofText(180),
+    solutionTitle: proofText(80),
+    solution: proofText(180),
+  })
+  .strict();
+export const LayerSchema = z.discriminatedUnion("type", [
+  ...LayerV1_5_0Schema.options,
+  comparisonTableLayerSchema,
+  problemSolutionLayerSchema,
 ]);
 
 export const AssetDeclarationSchema = z
@@ -379,13 +435,26 @@ export const FontDeclarationSchema = z
   })
   .strict();
 
-export const TEMPLATE_IDS = [
+const DESIGN_DOCUMENT_1_4_0_TEMPLATE_IDS = [
   "product-announcement",
   "statistic-card",
   "quote-card",
   "article-cover",
   "tiktok-carousel-slide",
   "image-led-campaign",
+] as const;
+
+const DESIGN_DOCUMENT_1_5_0_TEMPLATE_IDS = [
+  ...DESIGN_DOCUMENT_1_4_0_TEMPLATE_IDS,
+  "benefit-proof",
+] as const;
+
+export const TEMPLATE_IDS = [
+  ...DESIGN_DOCUMENT_1_5_0_TEMPLATE_IDS,
+  "testimonial-evidence",
+  "comparison",
+  "problem-solution",
+  "offer-urgency",
 ] as const;
 
 const DESIGN_DOCUMENT_1_1_0_TEMPLATE_IDS = [
@@ -490,6 +559,21 @@ const DesignDocumentV1_3_0Schema = createVersionedDesignDocumentSchema(
 );
 
 const DesignDocumentV1_4_0Schema = createVersionedDesignDocumentSchema(
+  "1.4.0",
+  DESIGN_DOCUMENT_1_4_0_TEMPLATE_IDS,
+  FORMAT_IDS,
+  LayerV1_4_0Schema,
+  BrandSnapshotSchema,
+);
+
+const DesignDocumentV1_5_0Schema = createVersionedDesignDocumentSchema(
+  "1.5.0",
+  DESIGN_DOCUMENT_1_5_0_TEMPLATE_IDS,
+  FORMAT_IDS,
+  LayerV1_5_0Schema,
+  BrandSnapshotSchema,
+);
+const DesignDocumentV1_6_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_VERSION,
   TEMPLATE_IDS,
   FORMAT_IDS,
@@ -504,6 +588,8 @@ export const DesignDocumentSchema = z
     DesignDocumentV1_2_0Schema,
     DesignDocumentV1_3_0Schema,
     DesignDocumentV1_4_0Schema,
+    DesignDocumentV1_5_0Schema,
+    DesignDocumentV1_6_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
@@ -553,7 +639,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_4_0Schema>,
+  z.input<typeof DesignDocumentV1_6_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

@@ -1,3 +1,4 @@
+import type { StaticAdCopies } from "./static-ad-copy";
 import type {
   DESIGN_DOCUMENT_VERSION,
   DesignDocument,
@@ -143,7 +144,17 @@ export type CompositionFormState = {
 };
 
 export type CopyFormState = {
+  staticAds: StaticAdCopies;
+  benefitProof: {
+    eyebrow: string;
+    headline: string;
+    items: { title: string; description: string }[];
+    cta: string;
+    footer: string;
+  };
   productAnnouncement: {
+    badge?: string;
+    footer?: string;
     eyebrow: string;
     headline: string;
     subtitle: string;
@@ -214,6 +225,8 @@ export type PreviewFormState = {
   resources: {
     assetIds: string[];
     fontIds: string[];
+    portraitAssetId?: string;
+    portraitAlt?: string;
     imageAssetId?: string;
     logoAssetId?: string;
     imageAlt?: string;

@@ -185,10 +185,22 @@ const inertRecord = readExactInertDataRecord(
 assert.equal(inertRecord?.value, "safe");
 assert.equal(readInertArrayLength([inertRecord]), 1);
 assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
-assert.equal(AUTHORING_CONTRACT_VERSION, "1.2.0");
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.7.0");
+for (const id of ["testimonial-evidence", "comparison", "problem-solution", "offer-urgency"]) {
+  const contract = AUTHORING_TEMPLATE_REGISTRY[id + "@1.0.0"];
+  assert.deepEqual(contract.compatibleSchemaVersions, ["1.6.0"]);
+  assert.equal(contract.compatibleFormats.length, 4);
+}
+const benefitContract = AUTHORING_TEMPLATE_REGISTRY["benefit-proof@1.0.0"];
+assert.deepEqual(benefitContract.compatibleSchemaVersions, ["1.5.0", "1.6.0"]);
+assert.equal(
+  benefitContract.contentRoles.find((role) => role.layerType === "benefit-list")
+    ?.collection?.maximumItems,
+  3,
+);
 assert.equal(DELIVERY_PROFILE_METADATA_VERSION, "1.0.0");
 assert.equal(CAROUSEL_DELIVERY_SIDECAR_VERSION, "1.2.0");
-assert.equal(CAROUSEL_SEQUENCE_VERSION, "1.2.0");
+assert.equal(CAROUSEL_SEQUENCE_VERSION, "1.4.0");
 assert.equal(
   DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum,
   10,
@@ -221,13 +233,19 @@ assert.equal(
   candidates.candidates[0].canonicalDocument,
   canonicalJson(candidates.candidates[0].document),
 );
-assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.2.0");
+assert.equal(CAMPAIGN_FAMILY_METADATA_VERSION, "1.5.0");
+assert.equal(CAMPAIGN_FAMILY_REGISTRY["static-ads"].members.length, 6);
+const placementApi = await import("@glyphkiln/core");
+const browserPlacementApi = await import("@glyphkiln/core/browser");
+assert.equal(placementApi.STATIC_AD_PLACEMENT_VERSION, "1.0.0");
+assert.deepEqual(placementApi.STATIC_AD_FORMATS, browserPlacementApi.STATIC_AD_FORMATS);
+assert.equal(browserPlacementApi.isStaticAdFormat("instagram-story"), true);
 assert.equal(
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].template.version,
-  "1.0.1",
+  "1.1.1",
 );
 assert.deepEqual(
-  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[1],
+  CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[5],
   {
     template: { id: "tiktok-carousel-slide", version: "1.0.4" },
     formats: ["tiktok-photo-carousel"],
@@ -489,7 +507,7 @@ const campaignFamily: CampaignFamilyDefinition =
   CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
 if (
   campaignSeeds.version !== CAMPAIGN_SEED_DERIVATION_VERSION ||
-  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.2.0" ||
+  CAMPAIGN_FAMILY_METADATA_VERSION !== "1.5.0" ||
   campaignFamily.members[1]?.template.id !== "tiktok-carousel-slide"
 ) {
   throw new Error("campaign contract");
@@ -509,10 +527,10 @@ const authoringQuality: AuthoringQualityIssueMapping =
     },
   ]);
 if (
-  AUTHORING_CONTRACT_VERSION !== "1.2.0" ||
+  AUTHORING_CONTRACT_VERSION !== "1.7.0" ||
   DELIVERY_PROFILE_METADATA_VERSION !== "1.0.0" ||
   CAROUSEL_DELIVERY_SIDECAR_VERSION !== "1.2.0" ||
-  CAROUSEL_SEQUENCE_VERSION !== "1.2.0" ||
+  CAROUSEL_SEQUENCE_VERSION !== "1.4.0" ||
   DELIVERY_PROFILE_REGISTRY["instagram-api-carousel"].slideCount.value.maximum !==
     10 ||
   authoringQuality.version !== AUTHORING_QUALITY_ISSUE_MAPPING_VERSION ||

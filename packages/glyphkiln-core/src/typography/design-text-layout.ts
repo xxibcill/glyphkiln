@@ -122,6 +122,33 @@ function getTextFields(layer: DesignLayer, layerIndex: number): TextField[] {
           ? []
           : [{ text: layer.trend, fieldPath: `${layerPath}/trend` }]),
       ];
+    case "comparison-table":
+      return [
+        { text: layer.leftLabel, fieldPath: `${layerPath}/leftLabel` },
+        { text: layer.rightLabel, fieldPath: `${layerPath}/rightLabel` },
+        ...layer.rows.flatMap((row, index) =>
+          (["label", "left", "right"] as const).map((field) => ({
+            text: row[field],
+            fieldPath: `${layerPath}/rows/${index}/${field}`,
+          })),
+        ),
+      ];
+    case "problem-solution":
+      return (["problemTitle", "problem", "solutionTitle", "solution"] as const).map(
+        (field) => ({ text: layer[field], fieldPath: `${layerPath}/${field}` }),
+      );
+    case "benefit-list":
+      return layer.items.flatMap((item, index) => [
+        { text: item.title, fieldPath: `${layerPath}/items/${index}/title` },
+        ...(item.description === undefined
+          ? []
+          : [
+              {
+                text: item.description,
+                fieldPath: `${layerPath}/items/${index}/description`,
+              },
+            ]),
+      ]);
     case "chart":
       return layer.values.map((value, valueIndex) => ({
         text: value.label,

@@ -1,10 +1,24 @@
+import {
+  testimonialEvidenceTemplate,
+  comparisonTemplate,
+  problemSolutionTemplate,
+  offerUrgencyTemplate,
+} from "./static-ad-families.js";
 import { GlyphkilnError, type QualityIssue } from "../domain/types.js";
 import type { DesignDocument, TemplateId } from "../schema/index.js";
+import {
+  balancedEditorialCampaignTemplate,
+  balancedImageCarouselTemplate,
+  imageCarouselTemplate,
+  splitEditorialCampaignTemplate,
+} from "./image-editorial.js";
 import { articleCoverTemplate } from "./article-cover.js";
 import {
   imageLedCampaignTemplate,
   imageLedCampaignV1_0_0Template,
 } from "./image-led-campaign.js";
+import { benefitProofTemplate } from "./benefit-proof.js";
+import { productOfferTemplate } from "./product-offer.js";
 import { productAnnouncementTemplate } from "./product-announcement.js";
 import { quoteCardTemplate } from "./quote-card.js";
 import { statisticCardTemplate } from "./statistic-card.js";
@@ -16,18 +30,31 @@ import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
   Object.freeze({
-    "product-announcement": productAnnouncementTemplate,
+    "testimonial-evidence": testimonialEvidenceTemplate,
+    comparison: comparisonTemplate,
+    "problem-solution": problemSolutionTemplate,
+    "offer-urgency": offerUrgencyTemplate,
+    "benefit-proof": benefitProofTemplate,
+    "product-announcement": productOfferTemplate,
     "statistic-card": statisticCardTemplate,
     "quote-card": quoteCardTemplate,
     "article-cover": articleCoverTemplate,
-    "tiktok-carousel-slide": tiktokCarouselSlideV1_0_4Template,
-    "image-led-campaign": imageLedCampaignTemplate,
+    "tiktok-carousel-slide": balancedImageCarouselTemplate,
+    "image-led-campaign": balancedEditorialCampaignTemplate,
   });
 
 const TEMPLATE_VERSION_REGISTRY: Readonly<
   Record<TemplateId, readonly TemplateDefinition[]>
 > = Object.freeze({
-  "product-announcement": Object.freeze([productAnnouncementTemplate]),
+  "testimonial-evidence": Object.freeze([testimonialEvidenceTemplate]),
+  comparison: Object.freeze([comparisonTemplate]),
+  "problem-solution": Object.freeze([problemSolutionTemplate]),
+  "offer-urgency": Object.freeze([offerUrgencyTemplate]),
+  "benefit-proof": Object.freeze([benefitProofTemplate]),
+  "product-announcement": Object.freeze([
+    productAnnouncementTemplate,
+    productOfferTemplate,
+  ]),
   "statistic-card": Object.freeze([statisticCardTemplate]),
   "quote-card": Object.freeze([quoteCardTemplate]),
   "article-cover": Object.freeze([articleCoverTemplate]),
@@ -36,10 +63,14 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     tiktokCarouselSlideTemplate,
     tiktokCarouselSlideV1_0_3Template,
     tiktokCarouselSlideV1_0_4Template,
+    imageCarouselTemplate,
+    balancedImageCarouselTemplate,
   ]),
   "image-led-campaign": Object.freeze([
     imageLedCampaignV1_0_0Template,
     imageLedCampaignTemplate,
+    splitEditorialCampaignTemplate,
+    balancedEditorialCampaignTemplate,
   ]),
 });
 

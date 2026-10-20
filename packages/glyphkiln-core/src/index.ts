@@ -266,3 +266,16 @@ export { inspectDesignDocument } from "./inspect.js";
 export type { DesignInspection } from "./inspect.js";
 export type { RenderManifest } from "./provenance/index.js";
 export { verifyRenderReproduction } from "./provenance/index.js";
+
+export {
+  STATIC_AD_PLACEMENT_VERSION,
+  STATIC_AD_FORMATS,
+  STATIC_AD_TEMPLATE_IDS,
+  isStaticAdFormat,
+  reviewStaticAdPlacement,
+} from "./campaigns/static-ad-placement.js";
+export type {
+  StaticAdFormat,
+  StaticAdTemplateId,
+  StaticAdPlacementReview,
+} from "./campaigns/static-ad-placement.js";

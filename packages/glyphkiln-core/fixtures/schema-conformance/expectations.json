@@ -1,4 +1,23 @@
 {
+  "comparison-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "comparison-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
+  "problem-solution-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "problem-solution-legacy": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  },
+  "comparison-excess-rows": { "jsonSchemaValid": false, "runtimeValid": false },
+  "problem-solution-blank-copy": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  },
+  "benefit-proof-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "benefit-proof-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
+  "benefit-proof-too-many": { "jsonSchemaValid": false, "runtimeValid": false },
+  "benefit-proof-blank-title": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  },
   "valid": { "jsonSchemaValid": true, "runtimeValid": true },
   "duplicate-layer-id": { "jsonSchemaValid": true, "runtimeValid": false },
   "quiet-region-sum": { "jsonSchemaValid": true, "runtimeValid": false },

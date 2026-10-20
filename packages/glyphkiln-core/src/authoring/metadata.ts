@@ -7,11 +7,18 @@ import {
   type CarouselCopyAdvisoryRange,
 } from "./carousel-copy-policy.js";
 
-export const AUTHORING_CONTRACT_VERSION = "1.2.0" as const;
+export const AUTHORING_CONTRACT_VERSION = "1.7.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
 export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
+  "testimonial-evidence@1.0.0",
+  "comparison@1.0.0",
+  "problem-solution@1.0.0",
+  "offer-urgency@1.0.0",
+
+  "benefit-proof@1.0.0",
   "product-announcement@1.1.1",
+  "product-announcement@1.2.0",
   "statistic-card@1.1.0",
   "quote-card@1.1.0",
   "article-cover@1.1.0",
@@ -21,10 +28,15 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "tiktok-carousel-slide@1.0.4",
   "image-led-campaign@1.0.0",
   "image-led-campaign@1.0.1",
+  "image-led-campaign@1.1.0",
+  "tiktok-carousel-slide@1.1.0",
+  "image-led-campaign@1.1.1",
+  "tiktok-carousel-slide@1.1.1",
 ] as const);
 export type AuthoringTemplateKey = (typeof AUTHORING_TEMPLATE_KEYS)[number];
 
-type DesignSchemaVersion = "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "1.4.0";
+type DesignSchemaVersion =
+  "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "1.4.0" | "1.5.0" | "1.6.0";
 type ContentLayerType = Extract<
   DesignLayer["type"],
   | "eyebrow"
@@ -32,6 +44,9 @@ type ContentLayerType = Extract<
   | "headline"
   | "subtitle"
   | "statistic"
+  | "comparison-table"
+  | "problem-solution"
+  | "benefit-list"
   | "cta"
   | "footer"
   | "attribution"
@@ -40,7 +55,17 @@ type AssetLayerType = Extract<
   DesignLayer["type"],
   "image" | "logo" | "product-screenshot"
 >;
-type ContentFieldName = "text" | "value" | "label" | "trend";
+type ContentFieldName =
+  | "text"
+  | "value"
+  | "label"
+  | "trend"
+  | "leftLabel"
+  | "rightLabel"
+  | "problemTitle"
+  | "problem"
+  | "solutionTitle"
+  | "solution";
 
 export type AuthoringContentField = {
   readonly name: ContentFieldName;
@@ -59,6 +84,17 @@ export type AuthoringContentRole = {
   readonly required: boolean;
   readonly fields: readonly AuthoringContentField[];
   readonly guidance: string;
+  readonly collection?: {
+    readonly name: "items" | "rows";
+    readonly minimumItems: 1;
+    readonly maximumItems: 3;
+    readonly fields: readonly {
+      readonly name: "title" | "description" | "label" | "left" | "right";
+      readonly required: boolean;
+      readonly minimumCharacters: number;
+      readonly maximumCharacters: number;
+    }[];
+  };
 };
 
 export type AuthoringAssetRole = {
@@ -228,15 +264,21 @@ const allSchemaVersions = Object.freeze([
   "1.2.0",
   "1.3.0",
   "1.4.0",
+  "1.5.0",
+  "1.6.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const tiktokSchemaVersions = Object.freeze([
   "1.1.0",
   "1.2.0",
   "1.3.0",
   "1.4.0",
+  "1.5.0",
+  "1.6.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const currentSchemaVersions = Object.freeze([
   "1.4.0",
+  "1.5.0",
+  "1.6.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const acceptedRasterMimeTypes = Object.freeze(["image/png", "image/jpeg"] as const);
 const supportedAssetFits = Object.freeze(["contain", "cover"] as const);
@@ -337,8 +379,12 @@ const tiktokContentRoles = Object.freeze([
 ]);
 
 function imageLedCampaignContract(
-  key: "image-led-campaign@1.0.0" | "image-led-campaign@1.0.1",
-  version: "1.0.0" | "1.0.1",
+  key:
+    | "image-led-campaign@1.0.0"
+    | "image-led-campaign@1.0.1"
+    | "image-led-campaign@1.1.0"
+    | "image-led-campaign@1.1.1",
+  version: "1.0.0" | "1.0.1" | "1.1.0" | "1.1.1",
 ): AuthoringTemplateContract {
   return templateContract({
     key,
@@ -347,10 +393,15 @@ function imageLedCampaignContract(
     compatibleFormats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
     compositionVariant: {
       id: "focal-editorial",
-      label: "Focal editorial",
+      label:
+        version === "1.1.0" || version === "1.1.1"
+          ? "Split editorial"
+          : "Focal editorial",
       selection: "fixed-by-template-version",
       guidance:
-        "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
+        version === "1.1.0" || version === "1.1.1"
+          ? "Separate image and copy regions; side-by-side in landscape or square and stacked in portrait."
+          : "Full-bleed focal imagery with safe-area editorial copy and a compact brand mark.",
     },
     contentRoles: [
       contentRole("eyebrow", false, "Use a compact category or campaign cue."),
@@ -362,7 +413,7 @@ function imageLedCampaignContract(
       assetRole(
         "image",
         true,
-        "Use an admitted full-bleed raster with an explicit focal point.",
+        "Use an admitted raster with an explicit focal point; inspect the exact image window.",
         {
           supportedFits: ["cover"],
           supportsFocalPoint: true,
@@ -381,7 +432,9 @@ function imageLedCampaignContract(
     optionalDecorativeLayers: ["background"],
     headlineMaximumLines: 4,
     safeAreaGuidance:
-      "Keep logo and copy inside the safe area; only the focal image is full bleed.",
+      version === "1.1.0" || version === "1.1.1"
+        ? "Keep image, logo, and copy inside the safe area in separate regions."
+        : "Keep logo and copy inside the safe area; only the focal image is full bleed.",
     authoringGuidance: [
       "Choose crop intent explicitly and review the returned crop evidence.",
       "Choose a closed treatment and review composited contrast evidence.",
@@ -390,7 +443,393 @@ function imageLedCampaignContract(
   });
 }
 
+function imageCarouselContract(
+  key: "tiktok-carousel-slide@1.1.0" | "tiktok-carousel-slide@1.1.1",
+  version: "1.1.0" | "1.1.1",
+): AuthoringTemplateContract {
+  return templateContract({
+    key,
+    template: { id: "tiktok-carousel-slide", version },
+    compatibleSchemaVersions: currentSchemaVersions,
+    compatibleFormats: ["tiktok-photo-carousel"],
+    compositionVariant: {
+      id: "organic-photo-editorial",
+      label: "Image and type editorial",
+      selection: "fixed-by-template-version",
+      guidance:
+        "Alternate subject-led image windows with typography slides; keep captions and actions separate from the photograph.",
+    },
+    contentRoles: tiktokContentRoles,
+    assetRoles: [
+      assetRole(
+        "image",
+        false,
+        "Use a product, detail, or contextual photograph with specific alt text. Omit for a typography slide.",
+        {
+          supportedFits: ["cover"],
+          supportsFocalPoint: true,
+          supportedTreatments: ["none", "dark-scrim", "light-scrim"],
+        },
+      ),
+    ],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 4,
+    mutuallyExclusiveRoles: [["subtitle", "statistic"]],
+    safeAreaGuidance:
+      "Honor compact top, action-side, and bottom interface insets for both image and copy.",
+    authoringGuidance: [
+      "Use imagery that adds information to the story; review focal crops at delivery size.",
+      "Keep one supporting idea per slide and alternate image and typography compositions.",
+      version === "1.1.1"
+        ? "Image and typography slides share the editorial header and action line; imagery is optional."
+        : "Image slides use an opaque editorial field; procedural decoration remains outside that field.",
+    ],
+  });
+}
+
 const authoringTemplateRegistry = {
+  "testimonial-evidence@1.0.0": templateContract({
+    key: "testimonial-evidence@1.0.0",
+    template: { id: "testimonial-evidence", version: "1.0.0" },
+    compatibleSchemaVersions: ["1.6.0"],
+    compatibleFormats: [
+      "instagram-square",
+      "instagram-portrait",
+      "instagram-story",
+      "linkedin-landscape",
+    ],
+    compositionVariant: {
+      id: "testimonial-evidence",
+      label: "Testimonial / Evidence",
+      selection: "fixed-by-template-version",
+      guidance: "Quote with attributed speaker, optional portrait, rating and product.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Product or campaign context."),
+      contentRole(
+        "headline",
+        true,
+        "Use an authentic supplied quote; label fictional samples.",
+      ),
+      contentRole("attribution", true, "Name the speaker."),
+      contentRole("subtitle", false, "Speaker role or context."),
+      contentRole(
+        "badge",
+        false,
+        "Supplied rating with its scale; never infer a rating.",
+      ),
+      contentRole("cta", false, "Short action phrase."),
+      contentRole(
+        "footer",
+        true,
+        "Keep the supplied source, qualification or offer terms visible.",
+      ),
+    ],
+    assetRoles: [
+      assetRole("logo", false, "Use an admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+      assetRole("product-screenshot", false, "Preserve the full product image.", {
+        supportedFits: ["contain"],
+      }),
+      assetRole(
+        "image",
+        false,
+        "Optional admitted speaker portrait; do not substitute an invented customer.",
+        { supportedFits: ["contain"], supportedTreatments: ["none"] },
+      ),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 4,
+    safeAreaGuidance:
+      "Keep claims, sources, action and attribution inside the brand safe area.",
+    authoringGuidance: [
+      "Quote with attributed speaker, optional portrait, rating and product.",
+      "Supply evidence and terms; never invent performance, testimonials or scarcity.",
+    ],
+  }),
+  "comparison@1.0.0": templateContract({
+    key: "comparison@1.0.0",
+    template: { id: "comparison", version: "1.0.0" },
+    compatibleSchemaVersions: ["1.6.0"],
+    compatibleFormats: [
+      "instagram-square",
+      "instagram-portrait",
+      "instagram-story",
+      "linkedin-landscape",
+    ],
+    compositionVariant: {
+      id: "comparison",
+      label: "Comparison",
+      selection: "fixed-by-template-version",
+      guidance: "One to three matched criteria and two named options.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Product or campaign context."),
+      contentRole("headline", true, "Frame a fair comparison."),
+      {
+        layerType: "comparison-table",
+        required: true,
+        guidance: "Compare matching criteria using supplied evidence.",
+        fields: [
+          {
+            name: "leftLabel",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 60,
+          },
+          {
+            name: "rightLabel",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 60,
+          },
+        ],
+        collection: {
+          name: "rows",
+          minimumItems: 1,
+          maximumItems: 3,
+          fields: [
+            {
+              name: "label",
+              required: true,
+              minimumCharacters: 1,
+              maximumCharacters: 60,
+            },
+            {
+              name: "left",
+              required: true,
+              minimumCharacters: 1,
+              maximumCharacters: 100,
+            },
+            {
+              name: "right",
+              required: true,
+              minimumCharacters: 1,
+              maximumCharacters: 100,
+            },
+          ],
+        },
+      },
+      contentRole("cta", false, "Short action phrase."),
+      contentRole(
+        "footer",
+        true,
+        "Keep the supplied source, qualification or offer terms visible.",
+      ),
+    ],
+    assetRoles: [
+      assetRole("logo", false, "Use an admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 2,
+    safeAreaGuidance:
+      "Keep claims, sources, action and attribution inside the brand safe area.",
+    authoringGuidance: [
+      "One to three matched criteria and two named options.",
+      "Supply evidence and terms; never invent performance, testimonials or scarcity.",
+    ],
+  }),
+  "problem-solution@1.0.0": templateContract({
+    key: "problem-solution@1.0.0",
+    template: { id: "problem-solution", version: "1.0.0" },
+    compatibleSchemaVersions: ["1.6.0"],
+    compatibleFormats: [
+      "instagram-square",
+      "instagram-portrait",
+      "instagram-story",
+      "linkedin-landscape",
+    ],
+    compositionVariant: {
+      id: "problem-solution",
+      label: "Problem / Solution",
+      selection: "fixed-by-template-version",
+      guidance: "Labeled problem and solution panels, stacked on tall canvases.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Product or campaign context."),
+      contentRole("headline", true, "Introduce a concrete problem."),
+      {
+        layerType: "problem-solution",
+        required: true,
+        guidance:
+          "Use a concrete problem and a supported solution without invented outcomes.",
+        fields: [
+          {
+            name: "problemTitle",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 80,
+          },
+          {
+            name: "problem",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 180,
+          },
+          {
+            name: "solutionTitle",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 80,
+          },
+          {
+            name: "solution",
+            required: true,
+            minimumCharacters: 1,
+            maximumCharacters: 180,
+          },
+        ],
+      },
+      contentRole("cta", false, "Short action phrase."),
+      contentRole(
+        "footer",
+        false,
+        "Keep the supplied source, qualification or offer terms visible.",
+      ),
+    ],
+    assetRoles: [
+      assetRole("logo", false, "Use an admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 2,
+    safeAreaGuidance:
+      "Keep claims, sources, action and attribution inside the brand safe area.",
+    authoringGuidance: [
+      "Labeled problem and solution panels, stacked on tall canvases.",
+      "Supply evidence and terms; never invent performance, testimonials or scarcity.",
+    ],
+  }),
+  "offer-urgency@1.0.0": templateContract({
+    key: "offer-urgency@1.0.0",
+    template: { id: "offer-urgency", version: "1.0.0" },
+    compatibleSchemaVersions: ["1.6.0"],
+    compatibleFormats: [
+      "instagram-square",
+      "instagram-portrait",
+      "instagram-story",
+      "linkedin-landscape",
+    ],
+    compositionVariant: {
+      id: "offer-urgency",
+      label: "Offer / Urgency",
+      selection: "fixed-by-template-version",
+      guidance: "A dominant offer with supplied deadline, scope and terms.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Product or campaign context."),
+      contentRole("headline", true, "Name the product or offer context."),
+      contentRole("badge", true, "Use the supplied price or discount."),
+      contentRole(
+        "subtitle",
+        false,
+        "State the supplied deadline or offer scope, never a fabricated countdown.",
+      ),
+      contentRole("cta", false, "Short action phrase."),
+      contentRole(
+        "footer",
+        true,
+        "Keep the supplied source, qualification or offer terms visible.",
+      ),
+    ],
+    assetRoles: [
+      assetRole("logo", false, "Use an admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+      assetRole("product-screenshot", false, "Preserve the full product image.", {
+        supportedFits: ["contain"],
+      }),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 2,
+    safeAreaGuidance:
+      "Keep claims, sources, action and attribution inside the brand safe area.",
+    authoringGuidance: [
+      "A dominant offer with supplied deadline, scope and terms.",
+      "Supply evidence and terms; never invent performance, testimonials or scarcity.",
+    ],
+  }),
+
+  "benefit-proof@1.0.0": templateContract({
+    key: "benefit-proof@1.0.0",
+    template: { id: "benefit-proof", version: "1.0.0" },
+    compatibleSchemaVersions: ["1.5.0", "1.6.0"],
+    compatibleFormats: [
+      "instagram-square",
+      "instagram-portrait",
+      "instagram-story",
+      "linkedin-landscape",
+    ],
+    compositionVariant: {
+      id: "benefit-proof",
+      label: "Benefit / feature proof",
+      selection: "fixed-by-template-version",
+      guidance:
+        "One benefit headline, an optional contained product, and one to three supporting facts.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Name the product or range."),
+      contentRole(
+        "headline",
+        true,
+        "Lead with one useful benefit in up to three lines.",
+      ),
+      {
+        layerType: "benefit-list",
+        required: true,
+        fields: [],
+        guidance: "Supply one to three substantiated features; no invented proof.",
+        collection: {
+          name: "items",
+          minimumItems: 1,
+          maximumItems: 3,
+          fields: [
+            {
+              name: "title",
+              required: true,
+              minimumCharacters: 1,
+              maximumCharacters: 80,
+            },
+            {
+              name: "description",
+              required: false,
+              minimumCharacters: 1,
+              maximumCharacters: 180,
+            },
+          ],
+        },
+      },
+      contentRole("cta", false, "Use a short action phrase."),
+      contentRole(
+        "footer",
+        false,
+        "Keep the supplied source or qualification legible.",
+      ),
+    ],
+    assetRoles: [
+      assetRole(
+        "product-screenshot",
+        false,
+        "Use an admitted, tightly framed product image; its full bounds remain visible.",
+        { supportedFits: ["contain"] },
+      ),
+      assetRole("logo", false, "Use an admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 3,
+    safeAreaGuidance:
+      "Keep headline, product, facts, action and source inside the safe area.",
+    authoringGuidance: [
+      "Supply claims and sources as inert data.",
+      "Review at feed size; shorten overflowing copy instead of removing its qualification.",
+    ],
+  }),
   "product-announcement@1.1.1": templateContract({
     key: "product-announcement@1.1.1",
     template: { id: "product-announcement", version: "1.1.1" },
@@ -436,6 +875,56 @@ const authoringTemplateRegistry = {
     authoringGuidance: [
       "Lead with the product change, not a generic campaign slogan.",
       "Treat asset declarations as server-resolved references, never URLs or paths.",
+    ],
+  }),
+  "product-announcement@1.2.0": templateContract({
+    key: "product-announcement@1.2.0",
+    template: { id: "product-announcement", version: "1.2.0" },
+    compatibleSchemaVersions: allSchemaVersions,
+    compatibleFormats: commonFormats,
+    compositionVariant: {
+      id: "product-offer",
+      label: "Product and offer",
+      selection: "fixed-by-template-version",
+      guidance:
+        "Separate benefit, contained product, offer, action, and terms. Columns in landscape; stacked in square and portrait.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Name the brand or product range."),
+      contentRole(
+        "badge",
+        false,
+        "Use a short supplied offer or price; may accompany an eyebrow.",
+        badgeField,
+      ),
+      contentRole("headline", true, "Lead with one benefit in up to three lines."),
+      contentRole("subtitle", false, "Support the benefit in up to two short lines."),
+      contentRole("cta", false, "Use a short action in the filled CTA."),
+      contentRole(
+        "footer",
+        false,
+        "Supply concise offer terms or a source; review legibility at delivery size.",
+      ),
+    ],
+    assetRoles: [
+      assetRole(
+        "product-screenshot",
+        false,
+        "Use a product cutout or screenshot; the complete image stays visible.",
+        { supportedFits: ["contain"] },
+      ),
+      assetRole("logo", false, "Use a compact admitted brand mark.", {
+        supportedFits: ["contain"],
+      }),
+    ],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 3,
+    safeAreaGuidance:
+      "Keep product, logo, offer, action, and terms inside the brand safe area.",
+    authoringGuidance: [
+      "Use only supplied offers and claims.",
+      "Prefer tightly framed product assets; source padding remains visible.",
+      "Shorten overflowing copy instead of omitting offer terms.",
     ],
   }),
   "statistic-card@1.1.0": templateContract({
@@ -581,7 +1070,7 @@ const authoringTemplateRegistry = {
   "tiktok-carousel-slide@1.0.3": templateContract({
     key: "tiktok-carousel-slide@1.0.3",
     template: { id: "tiktok-carousel-slide", version: "1.0.3" },
-    compatibleSchemaVersions: ["1.3.0", "1.4.0"],
+    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0"],
     compatibleFormats: ["tiktok-photo-carousel"],
     compositionVariant: {
       id: "organic-photo-editorial",
@@ -603,7 +1092,7 @@ const authoringTemplateRegistry = {
   "tiktok-carousel-slide@1.0.4": templateContract({
     key: "tiktok-carousel-slide@1.0.4",
     template: { id: "tiktok-carousel-slide", version: "1.0.4" },
-    compatibleSchemaVersions: ["1.3.0", "1.4.0"],
+    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0"],
     compatibleFormats: ["tiktok-photo-carousel"],
     compositionVariant: {
       id: "organic-photo-editorial",
@@ -631,6 +1120,22 @@ const authoringTemplateRegistry = {
   "image-led-campaign@1.0.1": imageLedCampaignContract(
     "image-led-campaign@1.0.1",
     "1.0.1",
+  ),
+  "image-led-campaign@1.1.0": imageLedCampaignContract(
+    "image-led-campaign@1.1.0",
+    "1.1.0",
+  ),
+  "tiktok-carousel-slide@1.1.0": imageCarouselContract(
+    "tiktok-carousel-slide@1.1.0",
+    "1.1.0",
+  ),
+  "image-led-campaign@1.1.1": imageLedCampaignContract(
+    "image-led-campaign@1.1.1",
+    "1.1.1",
+  ),
+  "tiktok-carousel-slide@1.1.1": imageCarouselContract(
+    "tiktok-carousel-slide@1.1.1",
+    "1.1.1",
   ),
 } as const satisfies Record<AuthoringTemplateKey, AuthoringTemplateContract>;
 

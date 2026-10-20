@@ -1,3 +1,7 @@
+import { STATIC_AD_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
+import { createInitialPreviewForm } from "@/features/project-preview/document-builder";
+import { createPreviewCatalog } from "@/lib/project-preview/catalog";
+import { buildManualDraft } from "@/features/app-alpha/manual-state";
 import { readFile } from "node:fs/promises";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -21,7 +25,7 @@ import {
   createPGliteDatabase,
   type PGliteDatabase,
 } from "@/server/persistence/pglite-database";
-import { migrateDatabase } from "@/server/persistence/migrations";
+import { migrateDatabase, rollbackMigrations } from "@/server/persistence/migrations";
 import { PostgresRenderQueue, RenderQueueCapacityError } from "@/server/render-queue";
 import { RenderResourceResolutionError } from "@/server/render-worker";
 import type {
@@ -389,6 +393,278 @@ describe("AppWorkflow", () => {
     );
   });
 
+  it("creates an atomic static-ad set with trusted seeds, shared brand, and placement sidecars", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const evidence = ownerEvidence(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Shared brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const catalog = createPreviewCatalog();
+    const form = createInitialPreviewForm(catalog);
+    const drafts = (
+      ["product-announcement", "benefit-proof", ...STATIC_AD_TEMPLATE_IDS] as const
+    ).map((templateId) =>
+      buildManualDraft(
+        {
+          ...form,
+          composition: {
+            ...form.composition,
+            templateId,
+            formatId: "instagram-square",
+          },
+        },
+        catalog,
+      ),
+    );
+    const command = {
+      type: "campaign.static-ads.create" as const,
+      workspaceId,
+      brandSnapshotId: brand.snapshotId,
+      name: "Static set",
+      brief: "One shared brief",
+      campaignSeed: "static-test",
+      drafts,
+    };
+    const campaign = expectReceipt(
+      await workflow.execute({ evidence, command }),
+      "campaign-created",
+    ).campaign;
+    const board = expectProjection(
+      await workflow.read({
+        evidence,
+        query: { type: "campaign.board", workspaceId, campaignId: campaign.id },
+      }),
+      "campaign-board",
+    );
+    expect(board.campaign.familyId).toBe("static-ads");
+    const direction = board.directions[0];
+    expect(direction.canvases).toHaveLength(6);
+    expect(new Set(direction.canvases.map((canvas) => canvas.canvasSeed)).size).toBe(6);
+    for (const canvas of direction.canvases) {
+      const revision = expectProjection(
+        await workflow.read({
+          evidence,
+          query: {
+            type: "design.revision",
+            workspaceId,
+            designId: canvas.designId,
+            revision: { revisionId: canvas.revisionId },
+          },
+        }),
+        "design-revision",
+      );
+      expect(revision.brandSnapshotId).toBe(brand.snapshotId);
+      expect(revision.document.seed).toBe(canvas.canvasSeed);
+      expect(revision.document.seed).not.toBe(form.composition.seed);
+    }
+    const canvas = direction.canvases[0];
+    const singleCampaign = campaign;
+    const singleDirection = direction;
+    const single = canvas;
+    const query = {
+      type: "campaign.handoff" as const,
+      workspaceId,
+      campaignId: singleCampaign.id,
+      directionId: singleDirection.id,
+    };
+    expectFailure(
+      await workflow.read({ evidence, query: { ...query, approvedOnly: true } }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+    const handoff = expectProjection(
+      await workflow.read({ evidence, query }),
+      "campaign-handoff",
+    );
+    expect(handoff).toMatchObject({
+      approvedCanvasCount: 0,
+      unapprovedCanvasCount: 6,
+      fileCount: 48,
+    });
+    const archive = JSON.parse(Buffer.from(handoff.base64, "base64").toString()) as {
+      files: { path: string; base64: string }[];
+    };
+    const delivery = archive.files.find((file) => file.path.endsWith(".delivery.json"));
+    if (delivery === undefined) throw new Error("Missing placement report");
+    expect(JSON.parse(Buffer.from(delivery.base64, "base64").toString())).toMatchObject(
+      {
+        version: "1.0.0",
+        policy: "glyphkiln-advisory",
+        format: "instagram-square",
+      },
+    );
+    const scope = {
+      workspaceId,
+      designId: single.designId,
+      revisionId: single.revisionId,
+    };
+    const comparison = expectProjection(
+      await workflow.read({
+        evidence,
+        query: {
+          type: "revision.compare",
+          workspaceId,
+          leftDesignId: single.designId,
+          leftRevisionId: single.revisionId,
+          rightDesignId: single.designId,
+          rightRevisionId: single.revisionId,
+        },
+      }),
+      "revision-comparison",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: { type: "revision.review.submit", ...scope },
+      }),
+      "revision-review-submitted",
+    );
+    const queued = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "revision.export.request",
+          ...scope,
+          idempotencyKey: "static-approved",
+        },
+      }),
+      "render-job-queued",
+    );
+    const claim = await renderQueue.claim({ workerId: "static-worker", now: NOW });
+    if (claim === undefined) throw new Error("Missing render claim");
+    await renderQueue.complete(
+      claim,
+      completedRenderEvidence(comparison.left.outputs),
+      new Date(NOW.getTime() + 1),
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "revision.review.approve",
+          ...scope,
+          renderJobId: queued.jobId,
+        },
+      }),
+      "revision-approved",
+    );
+    const approved = expectProjection(
+      await workflow.read({ evidence, query: { ...query, approvedOnly: true } }),
+      "campaign-handoff",
+    );
+    expect(approved).toMatchObject({
+      approvedCanvasCount: 1,
+      unapprovedCanvasCount: 0,
+      fileCount: 8,
+    });
+    expect(canvas.compositionVariantId).toBe("static-ad");
+    await expect(
+      rollbackMigrations(database, { allowDataLoss: true, warn: () => undefined }),
+    ).rejects.toThrow();
+    expect(
+      await database.query("SELECT id FROM campaigns WHERE family_id = 'static-ads'"),
+    ).toHaveLength(1);
+  }, 60_000);
+
+  it("rejects unauthorized, foreign, duplicate, oversized and invalid static-ad batches without partial writes", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const evidence = ownerEvidence(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const catalog = createPreviewCatalog();
+    const form = createInitialPreviewForm(catalog);
+    form.composition.templateId = "product-announcement";
+    const draft = buildManualDraft(form, catalog);
+    const command = {
+      type: "campaign.static-ads.create" as const,
+      workspaceId,
+      brandSnapshotId: brand.snapshotId,
+      name: "Static set",
+      brief: "Shared brief",
+      campaignSeed: "test",
+      drafts: [draft],
+    };
+    const viewer = await registerMember(
+      owner,
+      workspaceId,
+      "static-viewer@example.com",
+      "viewer",
+    );
+    expect(
+      (await workflow.execute({ evidence: ownerEvidence(viewer), command })).ok,
+    ).toBe(false);
+    expect((await workflow.execute({ evidence: {}, command })).ok).toBe(false);
+    expect(
+      (
+        await workflow.execute({
+          evidence,
+          command: { ...command, brandSnapshotId: "foreign-brand" },
+        })
+      ).ok,
+    ).toBe(false);
+    expect(
+      (
+        await workflow.execute({
+          evidence,
+          command: { ...command, drafts: [draft, draft] },
+        })
+      ).ok,
+    ).toBe(false);
+    expect(
+      (
+        await workflow.execute({
+          evidence,
+          command: { ...command, drafts: Array.from({ length: 25 }, () => draft) },
+        })
+      ).ok,
+    ).toBe(false);
+    const invalid = { ...draft, templateId: "benefit-proof" as const };
+    expect(
+      (
+        await workflow.execute({
+          evidence,
+          command: { ...command, drafts: [draft, invalid] },
+        })
+      ).ok,
+    ).toBe(false);
+    expect(await database.query("SELECT id FROM campaigns")).toEqual([]);
+    expect(await database.query("SELECT id FROM designs")).toEqual([]);
+    expect(
+      (
+        await workflow.execute({
+          evidence,
+          command: {
+            ...command,
+            drafts: [
+              { ...draft, resources: { assetIds: ["missing-asset"], fontIds: [] } },
+            ],
+          },
+        })
+      ).ok,
+    ).toBe(false);
+  });
+
   it("derives campaign canvas seeds only from trusted campaign scope", async () => {
     const owner = await bootstrapOwner();
     const workspaceId = requireWorkspaceId(owner);
@@ -425,7 +701,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("hero-landscape"),
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -452,7 +728,7 @@ describe("AppWorkflow", () => {
       campaignId: campaign.id,
       directionId: direction.id,
       canvasKey: "hero-landscape",
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
       seedDerivationVersion: expected.version,
@@ -784,7 +1060,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("photo-01"),
-      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
+      template: { id: "tiktok-carousel-slide", version: "1.1.1" },
       format: "tiktok-photo-carousel",
       compositionVariantId: "organic-photo-editorial",
     });
@@ -903,7 +1179,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("hero-landscape"),
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -924,7 +1200,7 @@ describe("AppWorkflow", () => {
       "campaign-canvas-seed",
     );
     expect(seedAdvice).toMatchObject({
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       seedDerivationVersion: expectedSeeds.version,
       directionSeed: expectedSeeds.directionSeed,
       canvasSeed: expectedSeeds.canvasSeed,
@@ -946,7 +1222,7 @@ describe("AppWorkflow", () => {
       "campaign-canvas-seed",
     );
     expect(carouselSeedAdvice).toMatchObject({
-      template: { id: "tiktok-carousel-slide", version: "1.0.4" },
+      template: { id: "tiktok-carousel-slide", version: "1.1.1" },
       format: "tiktok-photo-carousel",
       directionSeed: seedAdvice.directionSeed,
     });
@@ -1125,7 +1401,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(branched.directionKey),
       canvasKey: createCampaignCanvasKey("hero-square"),
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "instagram-square",
       compositionVariantId: "focal-editorial",
     });
@@ -1259,7 +1535,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(branched.directionKey),
       canvasKey: createCampaignCanvasKey("hero-square-close"),
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "instagram-square",
       compositionVariantId: "focal-editorial",
     });
@@ -2024,7 +2300,7 @@ describe("AppWorkflow", () => {
       familyId: campaign.familyId,
       directionKey: createCampaignDirectionKey(direction.directionKey),
       canvasKey: createCampaignCanvasKey("concurrent-copy-variant"),
-      template: { id: "image-led-campaign", version: "1.0.1" },
+      template: { id: "image-led-campaign", version: "1.1.1" },
       format: "linkedin-landscape",
       compositionVariantId: "focal-editorial",
     });
@@ -3146,6 +3422,211 @@ describe("AppWorkflow", () => {
         [workspaceId],
       ),
     ).resolves.toEqual([{ owner_count: 1 }]);
+  });
+
+  it.each(STATIC_AD_TEMPLATE_IDS)(
+    "persists %s revisions and rejects invalid copy",
+    async (templateId) => {
+      const owner = await bootstrapOwner();
+      const workspaceId = requireWorkspaceId(owner);
+      const brand = expectReceipt(
+        await workflow.execute({
+          evidence: ownerEvidence(owner),
+          command: {
+            type: "brand.publish",
+            workspaceId,
+            name: "Static ad brand",
+            snapshot: brandDraft("#A4462A"),
+          },
+        }),
+        "brand-snapshot-published",
+      );
+      const catalog = createPreviewCatalog();
+      const form = createInitialPreviewForm(catalog);
+      form.composition.templateId = templateId;
+      const draft = buildManualDraft(form, catalog);
+      const saved = expectReceipt(
+        await workflow.execute({
+          evidence: ownerEvidence(owner),
+          command: {
+            type: "design.create",
+            workspaceId,
+            name: "Static ad",
+            brandSnapshotId: brand.snapshotId,
+            draft,
+          },
+        }),
+        "design-saved",
+      );
+      const changed = structuredClone(draft);
+      const headline = changed.layers.find((layer) => layer.type === "headline");
+      if (!headline) throw new Error("Missing headline");
+      headline.text = "Revised headline";
+      const revised = expectReceipt(
+        await workflow.execute({
+          evidence: ownerEvidence(owner),
+          command: {
+            type: "design.revise",
+            workspaceId,
+            designId: saved.designId,
+            baseRevisionId: saved.revisionId,
+            brandSnapshotId: brand.snapshotId,
+            draft: changed,
+          },
+        }),
+        "design-saved",
+      );
+      for (const [revisionId, layers] of [
+        [saved.revisionId, draft.layers],
+        [revised.revisionId, changed.layers],
+      ] as const) {
+        const reopened = expectProjection(
+          await workflow.read({
+            evidence: { sessionToken: owner.sessionToken },
+            query: {
+              type: "design.revision",
+              workspaceId,
+              designId: saved.designId,
+              revision: { revisionId },
+            },
+          }),
+          "design-revision",
+        );
+        expect(reopened.document.layers).toEqual(layers);
+        expect(reopened.document.schemaVersion).toBe("1.6.0");
+        expect(reopened.document.template).toEqual({
+          id: templateId,
+          version: "1.0.0",
+        });
+        await expect(
+          renderGraphic(reopened.document, { formats: ["svg"] }),
+        ).resolves.toBeDefined();
+      }
+      headline.text = "";
+      expect(
+        (
+          await workflow.execute({
+            evidence: ownerEvidence(owner),
+            command: {
+              type: "design.revise",
+              workspaceId,
+              designId: saved.designId,
+              baseRevisionId: revised.revisionId,
+              brandSnapshotId: brand.snapshotId,
+              draft: changed,
+            },
+          })
+        ).ok,
+      ).toBe(false);
+    },
+  );
+
+  it("saves and revises benefit proof while retaining immutable facts and rejecting excess items", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Benefit brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const draft: ManualDraft = {
+      templateId: "benefit-proof",
+      format: "instagram-portrait",
+      seed: "benefit-workflow",
+      mode: "light",
+      layers: [
+        { id: "headline", type: "headline", visible: true, text: "Useful by design." },
+        {
+          id: "benefits",
+          type: "benefit-list",
+          visible: true,
+          items: [{ title: "First fact", description: "Supplied evidence." }],
+        },
+        { id: "footer", type: "footer", visible: true, text: "Illustrative brief." },
+      ],
+    };
+    const saved = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.create",
+          workspaceId,
+          name: "Benefit proof",
+          brandSnapshotId: brand.snapshotId,
+          draft,
+        },
+      }),
+      "design-saved",
+    );
+    const changed = structuredClone(draft);
+    const facts = changed.layers.find((layer) => layer.type === "benefit-list");
+    if (!facts) throw new Error("Missing facts");
+    facts.items = [{ title: "Revised fact", description: "Supplied evidence." }];
+    const revised = expectReceipt(
+      await workflow.execute({
+        evidence: ownerEvidence(owner),
+        command: {
+          type: "design.revise",
+          workspaceId,
+          designId: saved.designId,
+          baseRevisionId: saved.revisionId,
+          brandSnapshotId: brand.snapshotId,
+          draft: changed,
+        },
+      }),
+      "design-saved",
+    );
+    for (const [revisionId, title] of [
+      [saved.revisionId, "First fact"],
+      [revised.revisionId, "Revised fact"],
+    ] as const) {
+      const reopened = expectProjection(
+        await workflow.read({
+          evidence: { sessionToken: owner.sessionToken },
+          query: {
+            type: "design.revision",
+            workspaceId,
+            designId: saved.designId,
+            revision: { revisionId },
+          },
+        }),
+        "design-revision",
+      );
+      expect(reopened.document.schemaVersion).toBe("1.6.0");
+      expect(reopened.document.template).toEqual({
+        id: "benefit-proof",
+        version: "1.0.0",
+      });
+      expect(reopened.document.layers).toContainEqual(
+        expect.objectContaining({
+          type: "benefit-list",
+          items: [{ title, description: "Supplied evidence." }],
+        }),
+      );
+      await expect(
+        renderGraphic(reopened.document, { formats: ["svg"] }),
+      ).resolves.toBeDefined();
+    }
+    facts.items = Array.from({ length: 4 }, () => ({ title: "Too many" }));
+    const invalid = await workflow.execute({
+      evidence: ownerEvidence(owner),
+      command: {
+        type: "design.revise",
+        workspaceId,
+        designId: saved.designId,
+        baseRevisionId: revised.revisionId,
+        brandSnapshotId: brand.snapshotId,
+        draft: changed,
+      },
+    });
+    expect(invalid.ok).toBe(false);
   });
 
   it("keeps immutable snapshots and append-only revisions exact across reopen and revise", async () => {

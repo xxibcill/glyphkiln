@@ -1,0 +1,74 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_9419a5a9f5b808b68da45dc1",
+  "renderFingerprint": "9419a5a9f5b808b68da45dc10c8eacd4a66ee2df62543f4a636c467dac16de53",
+  "designDocumentId": "problem-solution-square",
+  "designDocumentHash": "8bbc73bff8689f28d263025c433727b193a21f13aa2bcedd78016fa320801a2f",
+  "seed": "kilnform-light-01",
+  "template": { "id": "problem-solution", "version": "1.0.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "0cf0e5f7a12439ebafbf02e636f7fdc6d3fe690e024fbf57f15265e5b98683ee",
+    "byteSize": 70551
+  },
+  "creationTimestamp": "2026-07-29T10:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "problem-solution-1-body",
+      "details": {
+        "affectedLine": "document.",
+        "lineNumber": 3,
+        "phrase": "document.",
+        "previousLine": "together in a versioned",
+        "measuredLineWidths": [319.739, 289.865, 134.175],
+        "previousLineWidth": 289.865,
+        "finalLineWidth": 134.175,
+        "finalLineToPreviousLineWidthRatio": 0.463,
+        "isolatedWord": true,
+        "disproportionatelyShort": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.1"
+      }
+    }
+  ],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

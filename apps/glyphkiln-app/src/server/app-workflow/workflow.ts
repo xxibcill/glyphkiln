@@ -1,6 +1,8 @@
 import { BrandSnapshotSchema } from "@glyphkiln/core/schema";
 import {
   CAMPAIGN_FAMILY_REGISTRY,
+  isStaticAdFormat,
+  reviewStaticAdPlacement,
   CAROUSEL_SEQUENCE_LIMITS,
   canonicalJson,
   createCampaignCanvasKey,
@@ -366,6 +368,8 @@ class AppWorkflowImplementation implements AppWorkflow {
         return this.#createDesign(command, evidence);
       case "design.revise":
         return this.#reviseDesign(command, evidence);
+      case "campaign.static-ads.create":
+        return this.#createStaticAdCampaign(command, evidence);
       case "campaign.create":
         return this.#createCampaign(command, evidence);
       case "campaign.direction.create":
@@ -1417,6 +1421,163 @@ class AppWorkflowImplementation implements AppWorkflow {
     return success({ kind: "design-saved", ...saved }, 201);
   }
 
+  async #createStaticAdCampaign(
+    command: Extract<AppCommand, { type: "campaign.static-ads.create" }>,
+    evidence: RequestEvidence,
+  ): Promise<AppResult<CommandReceipt>> {
+    const context = await this.#authenticate(evidence, true);
+    await this.#authorizeWorkspace(
+      context,
+      command.workspaceId,
+      "coordinate_campaigns",
+    );
+    await this.#authorizeWorkspace(context, command.workspaceId, "create_design");
+    this.#requireCampaignWorkflow();
+    const resources: ManualResourceDeclarations[] = [];
+    for (const draft of command.drafts) {
+      resources.push(
+        await this.#resolveManualResourceDeclarations(command.workspaceId, draft),
+      );
+    }
+    const now = this.#clock.now();
+    const ownership = {
+      workspaceId: command.workspaceId,
+      createdBy: context.session.user.id,
+      createdAt: now,
+    };
+    const campaign = {
+      ...ownership,
+      updatedAt: now,
+      id: this.#secretFactory.createId(),
+      name: command.name,
+      brief: command.brief,
+      campaignSeed: command.campaignSeed,
+      familyId: "static-ads" as const,
+    };
+    const direction = {
+      ...ownership,
+      id: this.#secretFactory.createId(),
+      campaignId: campaign.id,
+      directionKey: "static-ads",
+      name: "Static ads",
+      locks: [] as AuthoringLockId[],
+    };
+    await context.state.transaction(async (state) => {
+      const brand = await this.#brandSnapshotOrNotFound(
+        state,
+        command.workspaceId,
+        command.brandSnapshotId,
+      );
+      await state.insertCampaign(campaign);
+      await state.insertCampaignDirection(direction);
+      for (const [ordinal, draft] of command.drafts.entries()) {
+        const canvasKey = `${draft.templateId}-${draft.format}`;
+        const seeds = deriveStoredCampaignCanvasSeed(campaign, direction, {
+          canvasKey,
+          templateId: draft.templateId,
+          format: draft.format,
+          compositionVariantId: "static-ad",
+        });
+        const member = CAMPAIGN_FAMILY_REGISTRY["static-ads"].members.find(
+          (candidate) => candidate.template.id === draft.templateId,
+        );
+        if (member === undefined) throw invalidCampaignCanvas();
+        for (const role of [...member.contentRoles, ...member.assetRoles]) {
+          if (
+            role.required &&
+            !draft.layers.some(
+              (layer) =>
+                layer.type === role.layerType &&
+                layer.visible &&
+                (!("text" in layer) || layer.text.trim().length > 0),
+            )
+          ) {
+            throw invalidCampaignCanvas(
+              `${draft.templateId} requires ${role.layerType}.`,
+            );
+          }
+        }
+        const designId = this.#secretFactory.createId();
+        const revisionId = this.#secretFactory.createId();
+        const admitted = resources[ordinal];
+        const construction = constructManualDocument({
+          documentId: designId,
+          brand: brand.snapshot,
+          draft: { ...draft, seed: seeds.canvasSeed },
+          ...admitted,
+        });
+        if (!construction.ok) throw invalidDocument(construction.problems);
+        if (construction.document.template.version !== seeds.template.version)
+          throw invalidCampaignCanvas();
+        await state.insertDesign({
+          ...ownership,
+          id: designId,
+          name: `${command.name.slice(0, 65)} · ${canvasKey}`,
+        });
+        await state.insertDesignRevision({
+          ...ownership,
+          id: revisionId,
+          designId,
+          revisionNumber: 1,
+          brandSnapshotId: brand.id,
+          document: construction.document,
+          canonicalHash: hashCanonical(construction.document),
+          resourceReferences: admitted.resourceReferences,
+        });
+        if (
+          !(await state.setDesignHead({
+            workspaceId: command.workspaceId,
+            designId,
+            headRevisionId: revisionId,
+            updatedAt: now,
+          }))
+        )
+          throw revisionConflict();
+        await state.insertCampaignCanvas({
+          ...ownership,
+          id: this.#secretFactory.createId(),
+          campaignId: campaign.id,
+          directionId: direction.id,
+          canvasKey,
+          designId,
+          revisionId,
+          templateId: draft.templateId,
+          templateVersion: seeds.template.version,
+          format: draft.format,
+          compositionVariantId: "static-ad",
+          narrativeRole: "action",
+          seedDerivationVersion: seeds.seedDerivationVersion,
+          directionSeed: seeds.directionSeed,
+          canvasSeed: seeds.canvasSeed,
+          ordinal,
+        });
+      }
+      await this.#audit(state, {
+        ...ownership,
+        actorUserId: context.session.user.id,
+        action: "campaign.static-ads.created",
+        targetType: "campaign",
+        targetId: campaign.id,
+        metadata: { canvasCount: command.drafts.length, brandSnapshotId: brand.id },
+      });
+    });
+    return success(
+      {
+        kind: "campaign-created",
+        campaign: {
+          id: campaign.id,
+          name: campaign.name,
+          brief: campaign.brief,
+          familyId: campaign.familyId,
+          campaignSeed: campaign.campaignSeed,
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+        },
+      },
+      201,
+    );
+  }
+
   async #createCampaign(
     command: Extract<AppCommand, { type: "campaign.create" }>,
     evidence: RequestEvidence,
@@ -2409,6 +2570,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           board.campaign.createdAt,
           canvas,
         );
+      if (query.approvedOnly === true && review?.approval === undefined) continue;
       const proof = await this.#renderDocument(
         query.workspaceId,
         revision.document,
@@ -2430,6 +2592,7 @@ class AppWorkflowImplementation implements AppWorkflow {
         })
           ? "approved"
           : "unapproved";
+      if (query.approvedOnly === true && approvalStatus !== "approved") continue;
       if (approvalStatus === "approved") approvedCanvasCount += 1;
       else unapprovedCanvasCount += 1;
       if (canvas.carouselSequenceKey !== undefined) {
@@ -2445,6 +2608,16 @@ class AppWorkflowImplementation implements AppWorkflow {
         archive,
         ...createCampaignHandoffCanvasFiles({
           canvasPrefix,
+          ...(board.campaign.familyId === "static-ads" &&
+          isStaticAdFormat(revision.document.format)
+            ? {
+                delivery: reviewStaticAdPlacement(
+                  revision.document.format,
+                  proof.evidence,
+                  proof.qualityIssues,
+                ),
+              }
+            : {}),
           document: revision.document,
           resources: {
             revisionId: revision.revisionId,
@@ -2475,6 +2648,8 @@ class AppWorkflowImplementation implements AppWorkflow {
         }),
       );
     }
+    if (query.approvedOnly === true && approvedCanvasCount === 0)
+      throw invalidCampaignCanvas("No approved proofs are available for download.");
     addCampaignHandoffSequenceFiles(archive, {
       campaignPrefix,
       directionKey: direction.directionKey,

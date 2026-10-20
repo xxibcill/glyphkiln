@@ -1,3 +1,4 @@
+import { staticAdCopiesFromDocument } from "@/features/project-preview/static-ad-copy";
 import { canonicalJson } from "@glyphkiln/core/browser";
 import type { BrandSnapshot, DesignDocument, DesignLayer } from "@glyphkiln/core";
 
@@ -130,6 +131,9 @@ export function formFromStoredDocument(
     fontIds: [],
   };
   const imageLayer = document.layers.find((layer) => layer.type === "image");
+  const productLayer = document.layers.find(
+    (layer) => layer.type === "product-screenshot",
+  );
   const logoLayer = document.layers.find((layer) => layer.type === "logo");
 
   return {
@@ -140,7 +144,8 @@ export function formFromStoredDocument(
       templateId,
       formatId: document.format,
       seed: document.seed,
-      ...(imageLayer?.type === "image"
+      ...(imageLayer?.type === "image" &&
+      document.template.id !== "testimonial-evidence"
         ? {
             imageFocalPoint: readImageFocalPoint(imageLayer),
             imageTreatment: readImageTreatment(imageLayer),
@@ -158,7 +163,24 @@ export function formFromStoredDocument(
           }),
     },
     copy: {
+      staticAds: staticAdCopiesFromDocument(document),
+      benefitProof: {
+        eyebrow: textFor(document.layers, "eyebrow"),
+        headline: textFor(document.layers, "headline"),
+        items: document.layers.flatMap((layer) =>
+          layer.type === "benefit-list"
+            ? layer.items.map((item) => ({
+                title: item.title,
+                description: item.description ?? "",
+              }))
+            : [],
+        ),
+        cta: textFor(document.layers, "cta"),
+        footer: textFor(document.layers, "footer"),
+      },
       productAnnouncement: {
+        badge: badgeTextFor(document.layers, "offer"),
+        footer: textFor(document.layers, "footer"),
         eyebrow: textFor(document.layers, "eyebrow"),
         headline: textFor(document.layers, "headline"),
         subtitle: textFor(document.layers, "subtitle"),
@@ -200,7 +222,15 @@ export function formFromStoredDocument(
     },
     resources: {
       ...resources,
-      ...(imageLayer?.type === "image"
+      ...(imageLayer?.type === "image" &&
+      document.template.id === "testimonial-evidence"
+        ? { portraitAssetId: imageLayer.assetId, portraitAlt: imageLayer.alt }
+        : {}),
+      ...(productLayer?.type === "product-screenshot"
+        ? { imageAssetId: productLayer.assetId, imageAlt: productLayer.alt }
+        : {}),
+      ...(imageLayer?.type === "image" &&
+      document.template.id !== "testimonial-evidence"
         ? { imageAssetId: imageLayer.assetId, imageAlt: imageLayer.alt }
         : {}),
       ...(logoLayer?.type === "logo"

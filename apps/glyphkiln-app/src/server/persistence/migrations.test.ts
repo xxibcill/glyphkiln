@@ -70,6 +70,7 @@ const MIGRATION_VERSIONS = [
   "202608190015_campaign_carousel_sequence",
   "202608190016_campaign_canvas_source_notes",
   "202608190017_campaign_canvas_alt_text",
+  "202609250018_static_ad_campaign",
 ] as const;
 
 type TableNameRow = {
