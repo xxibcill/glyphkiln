@@ -47,6 +47,8 @@ export type CraftModel = {
   /** Flattened primitives in paint order. */
   elements: CraftElement[];
   accentColors: string[];
+  /** Brand marks to review, with the same canvas rendered without them. */
+  marks: { elementIds: string[]; background: CraftRaster | null };
 };
 
 /** Typical lowercase x-height ratio used only when a face cannot report one. */
@@ -57,6 +59,8 @@ export function buildCraftModel(input: {
   raster: CraftRaster;
   fonts: FontRegistry;
   accentColors: readonly string[];
+  markIds?: readonly string[];
+  markBackground?: CraftRaster | null;
 }): CraftModel {
   const elements: CraftElement[] = [];
   const metrics = new Map<string, number>();
@@ -121,6 +125,10 @@ export function buildCraftModel(input: {
     raster: input.raster,
     elements,
     accentColors,
+    marks: {
+      elementIds: [...(input.markIds ?? [])],
+      background: input.markBackground ?? null,
+    },
   };
 }
 

@@ -3,6 +3,7 @@ import { normalizeHexColor, parseHexColor } from "./geometry.js";
 import type { CraftElement, CraftModel, CraftRaster } from "./model.js";
 import {
   CRAFT_BACKGROUND_AREA,
+  CRAFT_MARK_PIXEL_DIFFERENCE,
   CRAFT_MINIMUM_CONTAINER_AREA,
   CRAFT_PIXEL_TOLERANCE,
   CRAFT_REVIEW_DEFAULTS,
@@ -35,6 +36,16 @@ export type CraftContainerMetric = {
   largestEmptyBandAxis: "rows" | "columns";
 };
 
+export type CraftMarkMetric = {
+  elementId: string;
+  /** Share of the mark's box whose pixels differ from the canvas without it. */
+  visibleFraction: number;
+  /** Median WCAG contrast between each visible mark pixel and the ground behind it. */
+  medianContrast: number | null;
+  /** Longer side of the visible mark, in display pixels. */
+  displayedSize: number;
+};
+
 export type CraftEmptyBand = {
   axis: "rows" | "columns";
   start: number;
@@ -62,6 +73,7 @@ export type CraftReview = {
       usageCount: number;
       elementIds: string[];
     };
+    marks: CraftMarkMetric[];
   };
 };
 
@@ -116,13 +128,14 @@ export function analyzeCraft(
   const containers = reviewContainers(model, content, thresholds, findings);
   const canvasEmptyBand = reviewCanvasSpace(model, content, thresholds, findings);
   const accent = reviewAccent(model, content, thresholds, findings);
+  const marks = reviewMarks(model, thresholds, findings);
 
   return {
     policyVersion: CRAFT_REVIEW_POLICY_VERSION,
     thresholds,
     canvas: { ...model.canvas },
     findings,
-    metrics: { text, dominance, containers, canvasEmptyBand, accent },
+    metrics: { text, dominance, containers, canvasEmptyBand, accent, marks },
   };
 }
 
@@ -491,6 +504,113 @@ function accentUsageCount(elements: readonly CraftElement[]): number {
     );
   }
   return signatures.size;
+}
+
+function reviewMarks(
+  model: CraftModel,
+  thresholds: CraftReviewThresholds,
+  findings: CraftFinding[],
+): CraftMarkMetric[] {
+  const background = model.marks.background;
+  if (background === null) return [];
+  const scale = thresholds.displayWidth / model.canvas.width;
+  const metrics: CraftMarkMetric[] = [];
+  for (const id of model.marks.elementIds) {
+    const element = model.elements.find((candidate) => candidate.id === id);
+    if (element?.bounds == null) continue;
+    const box = clipBounds(element.bounds, model.canvas.width, model.canvas.height);
+    if (box === null) continue;
+    const x0 = Math.floor(box.x);
+    const y0 = Math.floor(box.y);
+    const x1 = Math.ceil(box.x + box.width);
+    const y1 = Math.ceil(box.y + box.height);
+    const ratios: number[] = [];
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let y = y0; y < y1; y += 1) {
+      for (let x = x0; x < x1; x += 1) {
+        const offset = (y * model.raster.width + x) * 4;
+        const foreground = model.raster.data.subarray(offset, offset + 3);
+        const ground = background.data.subarray(offset, offset + 3);
+        if (
+          Math.max(
+            Math.abs(foreground[0]! - ground[0]!),
+            Math.abs(foreground[1]! - ground[1]!),
+            Math.abs(foreground[2]! - ground[2]!),
+          ) <= CRAFT_MARK_PIXEL_DIFFERENCE
+        ) {
+          continue;
+        }
+        ratios.push(pixelContrast(foreground, ground));
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + 1);
+        maxY = Math.max(maxY, y + 1);
+      }
+    }
+    ratios.sort((left, right) => left - right);
+    const boxArea = Math.max(1, (x1 - x0) * (y1 - y0));
+    const medianContrast =
+      ratios.length === 0 ? null : ratios[Math.floor((ratios.length - 1) / 2)]!;
+    const displayedSize =
+      ratios.length === 0 ? 0 : Math.max(maxX - minX, maxY - minY) * scale;
+    const metric: CraftMarkMetric = {
+      elementId: id,
+      visibleFraction: round(ratios.length / boxArea),
+      medianContrast: medianContrast === null ? null : round(medianContrast),
+      displayedSize: round(displayedSize),
+    };
+    metrics.push(metric);
+    if (
+      medianContrast !== null &&
+      medianContrast >= thresholds.markMinimumContrast &&
+      displayedSize >= thresholds.markMinimumSize
+    ) {
+      continue;
+    }
+    const reasons = [
+      ...(medianContrast === null || medianContrast < thresholds.markMinimumContrast
+        ? [
+            `median contrast ${medianContrast === null ? "none" : round(medianContrast, 2)}:1 against its ground`,
+          ]
+        : []),
+      ...(displayedSize < thresholds.markMinimumSize
+        ? [`${round(displayedSize, 1)} px across at ${thresholds.displayWidth} px wide`]
+        : []),
+    ];
+    findings.push({
+      code: "CRAFT_MARK_LOW_VISIBILITY",
+      severity: "advisory",
+      message: `Mark "${id}" may not be recognizable: ${reasons.join("; ")}. Use an approved light, dark, or one-color variant, give it a quieter ground, or enlarge it.`,
+      elementId: id,
+      details: {
+        ...metric,
+        displayWidth: thresholds.displayWidth,
+        markMinimumContrast: thresholds.markMinimumContrast,
+        markMinimumSize: thresholds.markMinimumSize,
+      },
+    });
+  }
+  return metrics;
+}
+
+function pixelContrast(
+  foreground: ArrayLike<number>,
+  background: ArrayLike<number>,
+): number {
+  const first = luminance(foreground);
+  const second = luminance(background);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
+function luminance(rgb: ArrayLike<number>): number {
+  const linear = (channel: number): number => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * linear(rgb[0]!) + 0.7152 * linear(rgb[1]!) + 0.0722 * linear(rgb[2]!);
 }
 
 function pixelMatches(

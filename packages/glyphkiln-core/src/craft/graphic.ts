@@ -5,6 +5,7 @@ import { resolveCraftThresholds, type CraftReview } from "./analyze.js";
 import {
   reviewSceneKernelCraft,
   validateAccentColors,
+  validateMarkIds,
   type CraftReviewOptions,
 } from "./review.js";
 
@@ -30,6 +31,12 @@ export async function reviewGraphicCraft(
   const accentColors = validateAccentColors(
     options.accentColors ?? [document.brand.palette.accent],
   );
+  const markIds = validateMarkIds(
+    options.markIds ??
+      document.layers
+        .filter((layer) => layer.type === "logo" && layer.visible)
+        .map((layer) => layer.id),
+  );
   const { templateResult, fonts } = prepareGraphicScene(document, options);
   return reviewSceneKernelCraft(
     templateResult.scene,
@@ -37,6 +44,7 @@ export async function reviewGraphicCraft(
     fonts.list(),
     accentColors,
     thresholds,
+    markIds,
   );
 }
 

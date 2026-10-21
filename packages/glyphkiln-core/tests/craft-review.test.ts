@@ -72,13 +72,18 @@ function text(
 
 function model(
   elements: CraftElement[],
-  options: { raster?: CraftRaster; accentColors?: string[] } = {},
+  options: {
+    raster?: CraftRaster;
+    accentColors?: string[];
+    marks?: CraftModel["marks"];
+  } = {},
 ): CraftModel {
   return {
     canvas: { width: 1000, height: 1000 },
     raster: options.raster ?? raster(1000, 1000, [255, 255, 255]),
     elements,
     accentColors: options.accentColors ?? [],
+    marks: options.marks ?? { elementIds: [], background: null },
   };
 }
 
@@ -87,12 +92,13 @@ const fullWidth = { x: 0, y: 0, width: 1000, height: 1000 };
 
 describe("craft review policy", () => {
   it("publishes a closed, versioned advisory vocabulary", () => {
-    expect(CRAFT_REVIEW_POLICY_VERSION).toBe("1.0.0");
+    expect(CRAFT_REVIEW_POLICY_VERSION).toBe("1.1.0");
     expect(CRAFT_FINDING_CODES).toEqual([
       "CRAFT_TEXT_SMALL_AT_DELIVERY",
       "CRAFT_WEAK_SCALE_CONTRAST",
       "CRAFT_DEAD_SPACE",
       "CRAFT_ACCENT_OVERUSE",
+      "CRAFT_MARK_LOW_VISIBILITY",
     ]);
     expect(Object.isFrozen(CRAFT_REVIEW_DEFAULTS)).toBe(true);
     const review = analyzeCraft(model([text("tiny", 10, fullWidth)]));
@@ -321,6 +327,64 @@ describe("accent budget", () => {
   });
 });
 
+describe("mark visibility", () => {
+  const box = { x: 100, y: 100, width: 200, height: 200 };
+  const mark = element({ id: "logo", kind: "image", bounds: box });
+  const ground: Rgb = [150, 110, 60];
+
+  function marked(ink: Rgb, size = 200): CraftModel {
+    const background = raster(1000, 1000, ground);
+    const final = raster(1000, 1000, ground);
+    paint(final, 100, 100, size, size, ink);
+    return model([mark], {
+      raster: final,
+      marks: { elementIds: ["logo"], background },
+    });
+  }
+
+  it("accepts a large mark with strong contrast against its ground", () => {
+    const review = analyzeCraft(marked([255, 255, 255]));
+    expect(codes(review)).not.toContain("CRAFT_MARK_LOW_VISIBILITY");
+    expect(review.metrics.marks[0]).toMatchObject({
+      elementId: "logo",
+      visibleFraction: 1,
+      displayedSize: 72,
+    });
+  });
+
+  it("flags a mark whose ink barely differs from the ground behind it", () => {
+    const review = analyzeCraft(marked([110, 80, 50]));
+    const finding = review.findings.find(
+      (item) => item.code === "CRAFT_MARK_LOW_VISIBILITY",
+    );
+    expect(finding?.elementId).toBe("logo");
+    expect(finding?.details["medianContrast"]).toBeLessThan(3);
+  });
+
+  it("flags a mark that is too small at the display width", () => {
+    // 50 canvas px shown at 360/1000 scale is 18 display px.
+    const review = analyzeCraft(marked([255, 255, 255], 50));
+    expect(review.metrics.marks[0]!.displayedSize).toBe(18);
+    expect(codes(review)).toContain("CRAFT_MARK_LOW_VISIBILITY");
+  });
+
+  it("flags a mark with no visible pixels", () => {
+    const background = raster(1000, 1000, ground);
+    const review = analyzeCraft(
+      model([mark], {
+        raster: raster(1000, 1000, ground),
+        marks: { elementIds: ["logo"], background },
+      }),
+    );
+    expect(review.metrics.marks[0]).toMatchObject({
+      visibleFraction: 0,
+      medianContrast: null,
+      displayedSize: 0,
+    });
+    expect(codes(review)).toContain("CRAFT_MARK_LOW_VISIBILITY");
+  });
+});
+
 describe("path bounds", () => {
   it("handles absolute, relative, implicit and closing commands", () => {
     expect(pathDataBounds("M10 20 L30 40 Z")).toEqual({
@@ -373,7 +437,7 @@ describe("reviewGraphicCraft", () => {
       before.outputs.map((output) => sha256(output.bytes)),
     );
     expect(after.qualityIssues).toEqual(before.qualityIssues);
-    expect(first.policyVersion).toBe("1.0.0");
+    expect(first.policyVersion).toBe("1.1.0");
     expect(first.metrics.accent.colors).toEqual([
       document.brand.palette.accent.toLowerCase(),
     ]);
@@ -397,6 +461,23 @@ describe("reviewGraphicCraft", () => {
     const document = await loadExample("quote-card");
     await expect(
       reviewGraphicCraft(document, { accentColors: ["gold"] }),
+    ).rejects.toMatchObject({ code: "INVALID_CRAFT_REVIEW_OPTIONS" });
+  });
+});
+
+describe("reviewGraphicCraft marks", () => {
+  it("reviews visible logo layers by default and validates mark IDs", async () => {
+    const document = await loadExample("image-led-campaign");
+    const assets = await loadExampleAssets(document);
+    const logo = document.layers.find((layer) => layer.type === "logo");
+    expect(logo).toBeDefined();
+    const review = await reviewGraphicCraft(document, { assets });
+    expect(review.metrics.marks.map((metric) => metric.elementId)).toEqual([logo!.id]);
+    expect(review.metrics.marks[0]!.visibleFraction).toBeGreaterThan(0);
+    const none = await reviewGraphicCraft(document, { assets, markIds: [] });
+    expect(none.metrics.marks).toEqual([]);
+    await expect(
+      reviewGraphicCraft(document, { assets, markIds: ["missing"] }),
     ).rejects.toMatchObject({ code: "INVALID_CRAFT_REVIEW_OPTIONS" });
   });
 });

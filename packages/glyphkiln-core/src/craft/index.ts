@@ -7,6 +7,7 @@ export {
   type CraftContainerMetric,
   type CraftEmptyBand,
   type CraftFinding,
+  type CraftMarkMetric,
   type CraftReview,
   type CraftTextMetric,
 } from "./analyze.js";

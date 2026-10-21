@@ -273,6 +273,7 @@ export type {
   CraftEmptyBand,
   CraftFinding,
   CraftFindingCode,
+  CraftMarkMetric,
   CraftReview,
   CraftReviewOptions,
   CraftReviewThresholds,

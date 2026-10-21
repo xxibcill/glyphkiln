@@ -5,13 +5,14 @@
  *
  * Thresholds are documented starting values for review, not proven optima.
  */
-export const CRAFT_REVIEW_POLICY_VERSION = "1.0.0" as const;
+export const CRAFT_REVIEW_POLICY_VERSION = "1.1.0" as const;
 
 export const CRAFT_FINDING_CODES = [
   "CRAFT_TEXT_SMALL_AT_DELIVERY",
   "CRAFT_WEAK_SCALE_CONTRAST",
   "CRAFT_DEAD_SPACE",
   "CRAFT_ACCENT_OVERUSE",
+  "CRAFT_MARK_LOW_VISIBILITY",
 ] as const;
 
 export type CraftFindingCode = (typeof CRAFT_FINDING_CODES)[number];
@@ -35,6 +36,10 @@ export type CraftReviewThresholds = {
   accentAreaFraction: number;
   /** Maximum distinct accent uses; repeated same-size marks count once. */
   accentUsageCount: number;
+  /** Minimum median contrast between a brand mark and what lies behind it. */
+  markMinimumContrast: number;
+  /** Minimum displayed size, in display pixels, of a mark's longer visible side. */
+  markMinimumSize: number;
 };
 
 export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.freeze({
@@ -47,6 +52,8 @@ export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.fre
   emptyLineCoverage: 0.05,
   accentAreaFraction: 0.08,
   accentUsageCount: 5,
+  markMinimumContrast: 3,
+  markMinimumSize: 24,
 });
 
 /** Containers smaller than this share of the canvas are treated as marks or rules. */
@@ -55,3 +62,5 @@ export const CRAFT_MINIMUM_CONTAINER_AREA = 0.04;
 export const CRAFT_BACKGROUND_AREA = 0.9;
 /** Per-channel tolerance when comparing rendered pixels with a declared color. */
 export const CRAFT_PIXEL_TOLERANCE = 8;
+/** Per-channel difference that separates mark ink from the ground behind it. */
+export const CRAFT_MARK_PIXEL_DIFFERENCE = 16;

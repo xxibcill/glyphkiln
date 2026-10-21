@@ -38,18 +38,18 @@
     },
     {
       "design": "designs/campaign-instagram-portrait.json",
-      "findings": [],
-      "desktopFindings": []
+      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/campaign-instagram-square.json",
-      "findings": [],
-      "desktopFindings": []
+      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/campaign-linkedin-landscape.json",
-      "findings": [],
-      "desktopFindings": []
+      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/carousel-01.json",
@@ -183,7 +183,7 @@
       "template": "product-announcement@1.1.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -193,7 +193,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1200,
@@ -297,7 +299,8 @@
             "areaFraction": 0.0041,
             "usageCount": 3,
             "elementIds": ["announcement-accent", "eyebrow", "cta"]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": []
@@ -307,7 +310,7 @@
       "template": "product-announcement@1.1.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -317,7 +320,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1200,
@@ -421,7 +426,8 @@
             "areaFraction": 0.0044,
             "usageCount": 3,
             "elementIds": ["announcement-accent", "eyebrow", "cta"]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": []
@@ -431,7 +437,7 @@
       "template": "article-cover@1.1.0",
       "format": "youtube-thumbnail",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -441,7 +447,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1280,
@@ -540,7 +548,8 @@
             "areaFraction": 0.0015,
             "usageCount": 2,
             "elementIds": ["article-accent", "eyebrow"]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [
@@ -554,7 +563,7 @@
       "template": "image-led-campaign@1.0.1",
       "format": "instagram-portrait",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -564,13 +573,31 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
           "height": 1350
         },
-        "findings": [],
+        "findings": [
+          {
+            "code": "CRAFT_MARK_LOW_VISIBILITY",
+            "severity": "advisory",
+            "message": "Mark \"brand-mark\" may not be recognizable: median contrast 1.43:1 against its ground; 20.3 px across at 360 px wide. Use an approved light, dark, or one-color variant, give it a quieter ground, or enlarge it.",
+            "elementId": "brand-mark",
+            "details": {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3692,
+              "medianContrast": 1.4258,
+              "displayedSize": 20.3333,
+              "displayWidth": 360,
+              "markMinimumContrast": 3,
+              "markMinimumSize": 24
+            }
+          }
+        ],
         "metrics": {
           "text": [
             {
@@ -592,17 +619,25 @@
             "areaFraction": 0,
             "usageCount": 1,
             "elementIds": ["image-led-accent"]
-          }
+          },
+          "marks": [
+            {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3692,
+              "medianContrast": 1.4258,
+              "displayedSize": 20.3333
+            }
+          ]
         }
       },
-      "desktopFindings": []
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/campaign-instagram-square.json",
       "template": "image-led-campaign@1.0.1",
       "format": "instagram-square",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -612,13 +647,31 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
           "height": 1080
         },
-        "findings": [],
+        "findings": [
+          {
+            "code": "CRAFT_MARK_LOW_VISIBILITY",
+            "severity": "advisory",
+            "message": "Mark \"brand-mark\" may not be recognizable: median contrast 1.39:1 against its ground; 20.3 px across at 360 px wide. Use an approved light, dark, or one-color variant, give it a quieter ground, or enlarge it.",
+            "elementId": "brand-mark",
+            "details": {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3622,
+              "medianContrast": 1.3891,
+              "displayedSize": 20.3333,
+              "displayWidth": 360,
+              "markMinimumContrast": 3,
+              "markMinimumSize": 24
+            }
+          }
+        ],
         "metrics": {
           "text": [
             {
@@ -640,17 +693,25 @@
             "areaFraction": 0,
             "usageCount": 1,
             "elementIds": ["image-led-accent"]
-          }
+          },
+          "marks": [
+            {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3622,
+              "medianContrast": 1.3891,
+              "displayedSize": 20.3333
+            }
+          ]
         }
       },
-      "desktopFindings": []
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/campaign-linkedin-landscape.json",
       "template": "image-led-campaign@1.0.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -660,13 +721,31 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1200,
           "height": 627
         },
-        "findings": [],
+        "findings": [
+          {
+            "code": "CRAFT_MARK_LOW_VISIBILITY",
+            "severity": "advisory",
+            "message": "Mark \"brand-mark\" may not be recognizable: median contrast 1.09:1 against its ground; 10.5 px across at 360 px wide. Use an approved light, dark, or one-color variant, give it a quieter ground, or enlarge it.",
+            "elementId": "brand-mark",
+            "details": {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3647,
+              "medianContrast": 1.088,
+              "displayedSize": 10.5,
+              "displayWidth": 360,
+              "markMinimumContrast": 3,
+              "markMinimumSize": 24
+            }
+          }
+        ],
         "metrics": {
           "text": [
             {
@@ -688,17 +767,25 @@
             "areaFraction": 0,
             "usageCount": 1,
             "elementIds": ["image-led-accent"]
-          }
+          },
+          "marks": [
+            {
+              "elementId": "brand-mark",
+              "visibleFraction": 0.3647,
+              "medianContrast": 1.088,
+              "displayedSize": 10.5
+            }
+          ]
         }
       },
-      "desktopFindings": []
+      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
     },
     {
       "design": "designs/carousel-01.json",
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -708,7 +795,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -851,7 +940,8 @@
               "slide-number-background",
               "cta-marker"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE (canvas)"]
@@ -861,7 +951,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -871,7 +961,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -999,7 +1091,8 @@
               "carousel-pattern-bar-3",
               "slide-number-background"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [
@@ -1012,7 +1105,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1022,7 +1115,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1163,7 +1258,8 @@
               "slide-number-background",
               "placement-count-value"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": ["CRAFT_ACCENT_OVERUSE (canvas)"]
@@ -1173,7 +1269,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1183,7 +1279,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1311,7 +1409,8 @@
               "carousel-pattern-bar-3",
               "slide-number-background"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [
@@ -1324,7 +1423,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1334,7 +1433,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1462,7 +1563,8 @@
               "carousel-pattern-bar-3",
               "slide-number-background"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [
@@ -1475,7 +1577,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1485,7 +1587,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1623,7 +1727,8 @@
               "slide-number-background",
               "cta-marker"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [
@@ -1636,7 +1741,7 @@
       "template": "quote-card@1.1.0",
       "format": "instagram-portrait",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1646,7 +1751,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1726,7 +1833,8 @@
             "areaFraction": 0.0005,
             "usageCount": 1,
             "elementIds": ["quote-accent"]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
@@ -1736,7 +1844,7 @@
       "template": "statistic-card@1.1.0",
       "format": "instagram-square",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1746,7 +1854,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1080,
@@ -1838,7 +1948,8 @@
             "areaFraction": 0.0138,
             "usageCount": 2,
             "elementIds": ["statistic-accent", "placement-count-value"]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
@@ -1848,7 +1959,7 @@
       "template": "scene-kernel",
       "format": "1200x675",
       "review": {
-        "policyVersion": "1.0.0",
+        "policyVersion": "1.1.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1858,7 +1969,9 @@
           "canvasEmptyBand": 0.33,
           "emptyLineCoverage": 0.05,
           "accentAreaFraction": 0.08,
-          "accentUsageCount": 5
+          "accentUsageCount": 5,
+          "markMinimumContrast": 3,
+          "markMinimumSize": 24
         },
         "canvas": {
           "width": 1200,
@@ -2314,7 +2427,8 @@
               "rail-fire",
               "rail-finish"
             ]
-          }
+          },
+          "marks": []
         }
       },
       "desktopFindings": [

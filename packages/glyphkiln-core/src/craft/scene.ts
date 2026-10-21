@@ -3,6 +3,7 @@ import { resolveCraftThresholds, type CraftReview } from "./analyze.js";
 import {
   reviewSceneKernelCraft,
   validateAccentColors,
+  validateMarkIds,
   type CraftReviewOptions,
 } from "./review.js";
 
@@ -17,6 +18,14 @@ export async function reviewSceneCraft(
 ): Promise<CraftReview> {
   const thresholds = resolveCraftThresholds(options.thresholds);
   const accentColors = validateAccentColors(options.accentColors ?? []);
+  const markIds = validateMarkIds(options.markIds ?? []);
   const { scene, fonts, rasterFonts } = prepareSceneForReview(input, options);
-  return reviewSceneKernelCraft(scene, fonts, rasterFonts, accentColors, thresholds);
+  return reviewSceneKernelCraft(
+    scene,
+    fonts,
+    rasterFonts,
+    accentColors,
+    thresholds,
+    markIds,
+  );
 }

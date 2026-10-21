@@ -37,6 +37,7 @@ export type {
   CraftContainerMetric,
   CraftEmptyBand,
   CraftFinding,
+  CraftMarkMetric,
   CraftReview,
   CraftTextMetric,
 } from "../craft/analyze.js";
