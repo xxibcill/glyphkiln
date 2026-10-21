@@ -85,10 +85,38 @@ function upgrade(before, version) {
   return document;
 }
 
+/**
+ * Photo campaign: recompose each format on the separated image/copy template
+ * that already exists (image-led-campaign@1.1.1) instead of overlaying copy on a
+ * globally darkened photograph. With no copy on the photo, the scrim has no job,
+ * so the cobalt glaze is shown at full strength. The square crop's focal point
+ * moves right so the whole shade stays in frame.
+ */
+function campaignAfter(before) {
+  const document = structuredClone(before);
+  document.id = `${before.id}-p1`;
+  document.template = { ...before.template, version: "1.1.1" };
+  document.layers = document.layers.map((layer) =>
+    layer.type === "image"
+      ? {
+          ...layer,
+          treatment: "none",
+          ...(before.format === "instagram-square"
+            ? { focalPoint: { x: 0.62, y: layer.focalPoint?.y ?? 0.5 } }
+            : {}),
+        }
+      : layer,
+  );
+  return document;
+}
+
 const cases = [
   { name: "announcement-b", after: announcementAfter },
   { name: "quote", after: (before) => upgrade(before, "1.2.0") },
   { name: "statistic", after: (before) => upgrade(before, "1.2.0") },
+  { name: "campaign-linkedin-landscape", after: campaignAfter },
+  { name: "campaign-instagram-square", after: campaignAfter },
+  { name: "campaign-instagram-portrait", after: campaignAfter },
 ];
 
 function downscale(bytes, width) {
@@ -151,7 +179,9 @@ for (const item of cases) {
     resolve(OUT, "phone-width", `${item.name}.png`),
     downscale(png.bytes, 360),
   );
-  const reviewBefore = await reviewGraphicCraft(before);
+  const reviewBefore = await reviewGraphicCraft(before, {
+    assets: before.assets.map((asset) => ({ ...asset, bytes: assetBytes[asset.id] })),
+  });
   const reviewAfter = await reviewGraphicCraft(after, { assets });
   summary.push({
     design: item.name,

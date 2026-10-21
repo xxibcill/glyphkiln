@@ -41,6 +41,33 @@
       ],
       "craftAfter": [],
       "outputSha256": {}
+    },
+    {
+      "design": "campaign-linkedin-landscape",
+      "before": "image-led-campaign@1.0.1",
+      "after": "image-led-campaign@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {}
+    },
+    {
+      "design": "campaign-instagram-square",
+      "before": "image-led-campaign@1.0.1",
+      "after": "image-led-campaign@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {}
+    },
+    {
+      "design": "campaign-instagram-portrait",
+      "before": "image-led-campaign@1.0.1",
+      "after": "image-led-campaign@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {}
     }
   ]
 }

@@ -15,9 +15,11 @@
 - **P1 (first slice):** opt-in
   [`quote-card@1.2.0` and `statistic-card@1.2.0`](../editorial-fill-templates.md)
   fill their fields, avoid orphaned display words and use the accent once; the
-  Kilnform announcement was re-authored to show the product.
+  Kilnform announcement was re-authored to show the product, and the photo
+  campaign was recomposed per format on `image-led-campaign@1.1.1` without the
+  scrim that dimmed the product.
   [Before/after proofs](../../Deliverables/benchmarks/p1-craft-2026-10/README.md):
-  advisory findings 2 → 0 (quote, statistic) and 3 → 2 (announcement). Still
+  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), and 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant). Still
   open in P1: the font library and pairings (decision §8.3), rich-text emphasis
   and OpenType controls, color roles in brand snapshots, decoration off by
   default, and product-color protection in image treatments.
