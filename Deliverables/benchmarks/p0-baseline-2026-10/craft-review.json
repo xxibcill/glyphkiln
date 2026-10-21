@@ -1,0 +1,2338 @@
+{
+  "purpose": "Advisory craft heuristics (policy craft-review 1.0.0) applied to the Kilnform stress-test designs. Findings are review prompts, not quality verdicts or audience results.",
+  "displayWidths": {
+    "primary": 360,
+    "desktopSensitivity": 600
+  },
+  "summary": [
+    {
+      "design": "designs/announcement-a.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY subtitle",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/announcement-b.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY subtitle",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/article-cover.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY byline",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY byline",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/campaign-instagram-portrait.json",
+      "findings": [],
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/campaign-instagram-square.json",
+      "findings": [],
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/campaign-linkedin-landscape.json",
+      "findings": [],
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/carousel-01.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ],
+      "desktopFindings": ["CRAFT_DEAD_SPACE (canvas)"]
+    },
+    {
+      "design": "designs/carousel-02.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-03.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "desktopFindings": ["CRAFT_ACCENT_OVERUSE (canvas)"]
+    },
+    {
+      "design": "designs/carousel-04.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-05.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-06.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/quote.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY attribution",
+        "CRAFT_DEAD_SPACE brand-surface"
+      ],
+      "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
+    },
+    {
+      "design": "designs/statistic.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_DEAD_SPACE brand-surface"
+      ],
+      "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
+    },
+    {
+      "design": "scene/scene.json",
+      "findings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY brand-wordmark",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY series-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY deck",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-title",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-title",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-title",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-title",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-left",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-right",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "desktopFindings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY brand-wordmark",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY series-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY deck",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-left",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-right",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "design": "designs/announcement-a.json",
+      "template": "product-announcement@1.1.1",
+      "format": "linkedin-landscape",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1200,
+          "height": 627
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"eyebrow\" has a 3.6 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "eyebrow",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 22,
+              "displayedFontSize": 6.6,
+              "displayedXHeight": 3.6029,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"subtitle\" has a 4.09 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "subtitle",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 7.5,
+              "displayedXHeight": 4.0942,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"cta\" has a 3.44 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "cta",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 21,
+              "displayedFontSize": 6.3,
+              "displayedXHeight": 3.4392,
+              "minimumXHeight": 5.5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "eyebrow",
+              "fontSize": 22,
+              "displayedFontSize": 6.6,
+              "displayedXHeight": 3.6029
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 66,
+              "displayedFontSize": 19.8,
+              "displayedXHeight": 10.8088
+            },
+            {
+              "elementId": "subtitle",
+              "fontSize": 25,
+              "displayedFontSize": 7.5,
+              "displayedXHeight": 4.0942
+            },
+            {
+              "elementId": "cta",
+              "fontSize": 21,
+              "displayedFontSize": 6.3,
+              "displayedXHeight": 3.4392
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "subtitle",
+            "ratio": 2.64
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 48,
+                "y": 75.24,
+                "width": 840,
+                "height": 388.74
+              },
+              "emptyFraction": 0.923,
+              "largestEmptyBand": 0.3681,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "columns",
+            "start": 888,
+            "end": 1200,
+            "fraction": 0.26
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0041,
+            "usageCount": 3,
+            "elementIds": ["announcement-accent", "eyebrow", "cta"]
+          }
+        }
+      },
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/announcement-b.json",
+      "template": "product-announcement@1.1.1",
+      "format": "linkedin-landscape",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1200,
+          "height": 627
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"eyebrow\" has a 3.6 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "eyebrow",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 22,
+              "displayedFontSize": 6.6,
+              "displayedXHeight": 3.6029,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"subtitle\" has a 4.09 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "subtitle",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 7.5,
+              "displayedXHeight": 4.0942,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"cta\" has a 3.44 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "cta",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 21,
+              "displayedFontSize": 6.3,
+              "displayedXHeight": 3.4392,
+              "minimumXHeight": 5.5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "eyebrow",
+              "fontSize": 22,
+              "displayedFontSize": 6.6,
+              "displayedXHeight": 3.6029
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 66,
+              "displayedFontSize": 19.8,
+              "displayedXHeight": 10.8088
+            },
+            {
+              "elementId": "subtitle",
+              "fontSize": 25,
+              "displayedFontSize": 7.5,
+              "displayedXHeight": 4.0942
+            },
+            {
+              "elementId": "cta",
+              "fontSize": 21,
+              "displayedFontSize": 6.3,
+              "displayedXHeight": 3.4392
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "subtitle",
+            "ratio": 2.64
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 48,
+                "y": 75.24,
+                "width": 840,
+                "height": 388.74
+              },
+              "emptyFraction": 0.8811,
+              "largestEmptyBand": 0.3577,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "columns",
+            "start": 888,
+            "end": 1200,
+            "fraction": 0.26
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0044,
+            "usageCount": 3,
+            "elementIds": ["announcement-accent", "eyebrow", "cta"]
+          }
+        }
+      },
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/article-cover.json",
+      "template": "article-cover@1.1.0",
+      "format": "youtube-thumbnail",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1280,
+          "height": 720
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"eyebrow\" has a 3.07 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "eyebrow",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 20,
+              "displayedFontSize": 5.625,
+              "displayedXHeight": 3.0707,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"byline\" has a 2.76 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "byline",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 18,
+              "displayedFontSize": 5.0625,
+              "displayedXHeight": 2.7636,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "34% of the canvas height (0–245 px) carries almost no content; confirm the space is intentional or recompose to use it.",
+            "details": {
+              "scope": "canvas",
+              "axis": "rows",
+              "start": 0,
+              "end": 245,
+              "fraction": 0.3403,
+              "canvasEmptyBand": 0.33,
+              "emptyLineCoverage": 0.05
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "eyebrow",
+              "fontSize": 20,
+              "displayedFontSize": 5.625,
+              "displayedXHeight": 3.0707
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 62,
+              "displayedFontSize": 17.4375,
+              "displayedXHeight": 9.5191
+            },
+            {
+              "elementId": "byline",
+              "fontSize": 18,
+              "displayedFontSize": 5.0625,
+              "displayedXHeight": 2.7636
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "eyebrow",
+            "ratio": 3.1
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 51.2,
+                "y": 244.8,
+                "width": 998.4,
+                "height": 417.6
+              },
+              "emptyFraction": 0.9273,
+              "largestEmptyBand": 0.3656,
+              "largestEmptyBandAxis": "columns"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 0,
+            "end": 245,
+            "fraction": 0.3403
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0015,
+            "usageCount": 2,
+            "elementIds": ["article-accent", "eyebrow"]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY byline",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/campaign-instagram-portrait.json",
+      "template": "image-led-campaign@1.0.1",
+      "format": "instagram-portrait",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1350
+        },
+        "findings": [],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "headline",
+              "fontSize": 82,
+              "displayedFontSize": 27.3333,
+              "displayedXHeight": 14.9212
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": null,
+            "ratio": null
+          },
+          "containers": [],
+          "canvasEmptyBand": null,
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0,
+            "usageCount": 1,
+            "elementIds": ["image-led-accent"]
+          }
+        }
+      },
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/campaign-instagram-square.json",
+      "template": "image-led-campaign@1.0.1",
+      "format": "instagram-square",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1080
+        },
+        "findings": [],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "headline",
+              "fontSize": 82,
+              "displayedFontSize": 27.3333,
+              "displayedXHeight": 14.9212
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": null,
+            "ratio": null
+          },
+          "containers": [],
+          "canvasEmptyBand": null,
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0,
+            "usageCount": 1,
+            "elementIds": ["image-led-accent"]
+          }
+        }
+      },
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/campaign-linkedin-landscape.json",
+      "template": "image-led-campaign@1.0.1",
+      "format": "linkedin-landscape",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1200,
+          "height": 627
+        },
+        "findings": [],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "headline",
+              "fontSize": 41.8,
+              "displayedFontSize": 12.54,
+              "displayedXHeight": 6.8456
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": null,
+            "ratio": null
+          },
+          "containers": [],
+          "canvasEmptyBand": null,
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0,
+            "usageCount": 1,
+            "elementIds": ["image-led-accent"]
+          }
+        }
+      },
+      "desktopFindings": []
+    },
+    {
+      "design": "designs/carousel-01.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"eyebrow\" has a 4.73 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "eyebrow",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 26,
+              "displayedFontSize": 8.6667,
+              "displayedXHeight": 4.7311,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"cta\" has a 5.46 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "cta",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 10,
+              "displayedXHeight": 5.459,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"footer\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "footer",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "33% of the canvas height (796–1276 px) carries almost no content; confirm the space is intentional or recompose to use it.",
+            "details": {
+              "scope": "canvas",
+              "axis": "rows",
+              "start": 796,
+              "end": 1276,
+              "fraction": 0.3333,
+              "canvasEmptyBand": 0.33,
+              "emptyLineCoverage": 0.05
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "eyebrow",
+              "fontSize": 26,
+              "displayedFontSize": 8.6667,
+              "displayedXHeight": 4.7311
+            },
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 102,
+              "displayedFontSize": 34,
+              "displayedXHeight": 18.5605
+            },
+            {
+              "elementId": "cta",
+              "fontSize": 30,
+              "displayedFontSize": 10,
+              "displayedXHeight": 5.459
+            },
+            {
+              "elementId": "footer",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "cta",
+            "ratio": 3.4
+          },
+          "containers": [
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 91.6,
+                "y": 199.2,
+                "width": 821.2,
+                "height": 510
+              },
+              "emptyFraction": 0.8578,
+              "largestEmptyBand": 0.2277,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 796,
+            "end": 1276,
+            "fraction": 0.3333
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0105,
+            "usageCount": 5,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "slide-number-background",
+              "cta-marker"
+            ]
+          }
+        }
+      },
+      "desktopFindings": ["CRAFT_DEAD_SPACE (canvas)"]
+    },
+    {
+      "design": "designs/carousel-02.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"carousel-type-field\" shows its bare fill over 93% of its area, with an empty band across 52% of its height; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "carousel-type-field",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9263,
+              "largestEmptyBand": 0.5153,
+              "axis": "rows",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          },
+          {
+            "code": "CRAFT_ACCENT_OVERUSE",
+            "severity": "advisory",
+            "message": "The accent color has 6 distinct uses across 7 elements and 1% of non-photographic pixels; reserve it for the dominant element or the action so it still signals priority.",
+            "details": {
+              "colors": ["#f3c879"],
+              "areaFraction": 0.0102,
+              "usageCount": 6,
+              "elementCount": 7,
+              "elementIds": [
+                "carousel-story-spine",
+                "carousel-type-field-accent",
+                "carousel-field-index",
+                "carousel-pattern-divider",
+                "carousel-pattern-bar-0",
+                "carousel-pattern-bar-3",
+                "slide-number-background"
+              ],
+              "accentAreaFraction": 0.08,
+              "accentUsageCount": 5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 70,
+              "displayedFontSize": 23.3333,
+              "displayedXHeight": 12.7376
+            },
+            {
+              "elementId": "subtitle",
+              "fontSize": 34,
+              "displayedFontSize": 11.3333,
+              "displayedXHeight": 6.1868
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "subtitle",
+            "ratio": 2.0588
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 64.8,
+                "y": 172.8,
+                "width": 669.6,
+                "height": 835.2
+              },
+              "emptyFraction": 0.9343,
+              "largestEmptyBand": 0.1955,
+              "largestEmptyBandAxis": "columns"
+            },
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 91.6,
+                "y": 185.2,
+                "width": 682.56,
+                "height": 560
+              },
+              "emptyFraction": 0.9263,
+              "largestEmptyBand": 0.5153,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 1008,
+            "end": 1440,
+            "fraction": 0.3
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0102,
+            "usageCount": 6,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "carousel-pattern-divider",
+              "carousel-pattern-bar-0",
+              "carousel-pattern-bar-3",
+              "slide-number-background"
+            ]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-03.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"placement-count-trend\" has a 4 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "placement-count-trend",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 22,
+              "displayedFontSize": 7.3333,
+              "displayedXHeight": 4.0033,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_ACCENT_OVERUSE",
+            "severity": "advisory",
+            "message": "The accent color has 8 distinct uses across 8 elements and 1.8% of non-photographic pixels; reserve it for the dominant element or the action so it still signals priority.",
+            "details": {
+              "colors": ["#f3c879"],
+              "areaFraction": 0.0175,
+              "usageCount": 8,
+              "elementCount": 8,
+              "elementIds": [
+                "carousel-story-spine",
+                "carousel-type-field-accent",
+                "carousel-field-index",
+                "carousel-pattern-divider",
+                "carousel-pattern-ring-0",
+                "carousel-pattern-ring-3",
+                "slide-number-background",
+                "placement-count-value"
+              ],
+              "accentAreaFraction": 0.08,
+              "accentUsageCount": 5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 70,
+              "displayedFontSize": 23.3333,
+              "displayedXHeight": 12.7376
+            },
+            {
+              "elementId": "placement-count-value",
+              "fontSize": 152,
+              "displayedFontSize": 50.6667,
+              "displayedXHeight": 27.6589
+            },
+            {
+              "elementId": "placement-count-label",
+              "fontSize": 31,
+              "displayedFontSize": 10.3333,
+              "displayedXHeight": 5.641
+            },
+            {
+              "elementId": "placement-count-trend",
+              "fontSize": 22,
+              "displayedFontSize": 7.3333,
+              "displayedXHeight": 4.0033
+            }
+          ],
+          "dominance": {
+            "firstElementId": "placement-count-value",
+            "secondElementId": "headline",
+            "ratio": 2.1714
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 64.8,
+                "y": 172.8,
+                "width": 669.6,
+                "height": 835.2
+              },
+              "emptyFraction": 0.9049,
+              "largestEmptyBand": 0.0722,
+              "largestEmptyBandAxis": "columns"
+            },
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 91.6,
+                "y": 185.2,
+                "width": 682.56,
+                "height": 720
+              },
+              "emptyFraction": 0.8995,
+              "largestEmptyBand": 0.3091,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 1008,
+            "end": 1440,
+            "fraction": 0.3
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0175,
+            "usageCount": 8,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "carousel-pattern-divider",
+              "carousel-pattern-ring-0",
+              "carousel-pattern-ring-3",
+              "slide-number-background",
+              "placement-count-value"
+            ]
+          }
+        }
+      },
+      "desktopFindings": ["CRAFT_ACCENT_OVERUSE (canvas)"]
+    },
+    {
+      "design": "designs/carousel-04.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"carousel-type-field\" shows its bare fill over 90% of its area, with an empty band across 45% of its height; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "carousel-type-field",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9026,
+              "largestEmptyBand": 0.4541,
+              "axis": "rows",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          },
+          {
+            "code": "CRAFT_ACCENT_OVERUSE",
+            "severity": "advisory",
+            "message": "The accent color has 7 distinct uses across 7 elements and 1% of non-photographic pixels; reserve it for the dominant element or the action so it still signals priority.",
+            "details": {
+              "colors": ["#f3c879"],
+              "areaFraction": 0.0101,
+              "usageCount": 7,
+              "elementCount": 7,
+              "elementIds": [
+                "carousel-story-spine",
+                "carousel-type-field-accent",
+                "carousel-field-index",
+                "carousel-pattern-divider",
+                "carousel-pattern-bar-0",
+                "carousel-pattern-bar-3",
+                "slide-number-background"
+              ],
+              "accentAreaFraction": 0.08,
+              "accentUsageCount": 5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 70,
+              "displayedFontSize": 23.3333,
+              "displayedXHeight": 12.7376
+            },
+            {
+              "elementId": "subtitle",
+              "fontSize": 34,
+              "displayedFontSize": 11.3333,
+              "displayedXHeight": 6.1868
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "subtitle",
+            "ratio": 2.0588
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 259.2,
+                "y": 172.8,
+                "width": 669.6,
+                "height": 835.2
+              },
+              "emptyFraction": 0.9224,
+              "largestEmptyBand": 0.3084,
+              "largestEmptyBandAxis": "rows"
+            },
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 230.24,
+                "y": 185.2,
+                "width": 682.56,
+                "height": 560
+              },
+              "emptyFraction": 0.9026,
+              "largestEmptyBand": 0.4541,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 1008,
+            "end": 1440,
+            "fraction": 0.3
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0101,
+            "usageCount": 7,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "carousel-pattern-divider",
+              "carousel-pattern-bar-0",
+              "carousel-pattern-bar-3",
+              "slide-number-background"
+            ]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-05.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"carousel-type-field\" shows its bare fill over 90% of its area, with an empty band across 44% of its height; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "carousel-type-field",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9004,
+              "largestEmptyBand": 0.4414,
+              "axis": "rows",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          },
+          {
+            "code": "CRAFT_ACCENT_OVERUSE",
+            "severity": "advisory",
+            "message": "The accent color has 7 distinct uses across 7 elements and 1% of non-photographic pixels; reserve it for the dominant element or the action so it still signals priority.",
+            "details": {
+              "colors": ["#f3c879"],
+              "areaFraction": 0.01,
+              "usageCount": 7,
+              "elementCount": 7,
+              "elementIds": [
+                "carousel-story-spine",
+                "carousel-type-field-accent",
+                "carousel-field-index",
+                "carousel-pattern-divider",
+                "carousel-pattern-bar-0",
+                "carousel-pattern-bar-3",
+                "slide-number-background"
+              ],
+              "accentAreaFraction": 0.08,
+              "accentUsageCount": 5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 70,
+              "displayedFontSize": 23.3333,
+              "displayedXHeight": 12.7376
+            },
+            {
+              "elementId": "subtitle",
+              "fontSize": 34,
+              "displayedFontSize": 11.3333,
+              "displayedXHeight": 6.1868
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "subtitle",
+            "ratio": 2.0588
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 259.2,
+                "y": 172.8,
+                "width": 669.6,
+                "height": 835.2
+              },
+              "emptyFraction": 0.9209,
+              "largestEmptyBand": 0.3084,
+              "largestEmptyBandAxis": "rows"
+            },
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 230.24,
+                "y": 185.2,
+                "width": 682.56,
+                "height": 560
+              },
+              "emptyFraction": 0.9004,
+              "largestEmptyBand": 0.4414,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 1008,
+            "end": 1440,
+            "fraction": 0.3
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.01,
+            "usageCount": 7,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "carousel-pattern-divider",
+              "carousel-pattern-bar-0",
+              "carousel-pattern-bar-3",
+              "slide-number-background"
+            ]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/carousel-06.json",
+      "template": "tiktok-carousel-slide@1.0.4",
+      "format": "tiktok-photo-carousel",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1440
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"slide-number\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "slide-number",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"cta\" has a 5.46 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "cta",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 10,
+              "displayedXHeight": 5.459,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"footer\" has a 4.55 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "footer",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"carousel-type-field\" shows its bare fill over 94% of its area, with an empty band across 70% of its height; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "carousel-type-field",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9433,
+              "largestEmptyBand": 0.705,
+              "axis": "rows",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "34% of the canvas height (782–1276 px) carries almost no content; confirm the space is intentional or recompose to use it.",
+            "details": {
+              "scope": "canvas",
+              "axis": "rows",
+              "start": 782,
+              "end": 1276,
+              "fraction": 0.3431,
+              "canvasEmptyBand": 0.33,
+              "emptyLineCoverage": 0.05
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "slide-number",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 102,
+              "displayedFontSize": 34,
+              "displayedXHeight": 18.5605
+            },
+            {
+              "elementId": "cta",
+              "fontSize": 30,
+              "displayedFontSize": 10,
+              "displayedXHeight": 5.459
+            },
+            {
+              "elementId": "footer",
+              "fontSize": 25,
+              "displayedFontSize": 8.3333,
+              "displayedXHeight": 4.5492
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "cta",
+            "ratio": 3.4
+          },
+          "containers": [
+            {
+              "elementId": "carousel-type-field",
+              "bounds": {
+                "x": 91.6,
+                "y": 185.2,
+                "width": 821.2,
+                "height": 510
+              },
+              "emptyFraction": 0.9433,
+              "largestEmptyBand": 0.705,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 782,
+            "end": 1276,
+            "fraction": 0.3431
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0105,
+            "usageCount": 5,
+            "elementIds": [
+              "carousel-story-spine",
+              "carousel-type-field-accent",
+              "carousel-field-index",
+              "slide-number-background",
+              "cta-marker"
+            ]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ]
+    },
+    {
+      "design": "designs/quote.json",
+      "template": "quote-card@1.1.0",
+      "format": "instagram-portrait",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1350
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"attribution\" has a 4.19 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "attribution",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 23,
+              "displayedFontSize": 7.6667,
+              "displayedXHeight": 4.1852,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"brand-surface\" shows its bare fill over 96% of its area, with an empty band across 55% of its height; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "brand-surface",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9644,
+              "largestEmptyBand": 0.546,
+              "axis": "rows",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "quote",
+              "fontSize": 66,
+              "displayedFontSize": 22,
+              "displayedXHeight": 12.0098
+            },
+            {
+              "elementId": "attribution",
+              "fontSize": 23,
+              "displayedFontSize": 7.6667,
+              "displayedXHeight": 4.1852
+            }
+          ],
+          "dominance": {
+            "firstElementId": "quote",
+            "secondElementId": "attribution",
+            "ratio": 2.8696
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 86.4,
+                "y": 243,
+                "width": 907.2,
+                "height": 918
+              },
+              "emptyFraction": 0.9644,
+              "largestEmptyBand": 0.546,
+              "largestEmptyBandAxis": "rows"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 0,
+            "end": 243,
+            "fraction": 0.18
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0005,
+            "usageCount": 1,
+            "elementIds": ["quote-accent"]
+          }
+        }
+      },
+      "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
+    },
+    {
+      "design": "designs/statistic.json",
+      "template": "statistic-card@1.1.0",
+      "format": "instagram-square",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1080,
+          "height": 1080
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"placement-count-trend\" has a 3.64 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "placement-count-trend",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 20,
+              "displayedFontSize": 6.6667,
+              "displayedXHeight": 3.6393,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_DEAD_SPACE",
+            "severity": "advisory",
+            "message": "Container \"brand-surface\" shows its bare fill over 96% of its area, with an empty band across 61% of its width; resize it to its content, give the space a job, or remove the container.",
+            "elementId": "brand-surface",
+            "details": {
+              "scope": "container",
+              "emptyFraction": 0.9637,
+              "largestEmptyBand": 0.6073,
+              "axis": "columns",
+              "containerEmptyFraction": 0.75,
+              "containerEmptyBand": 0.4
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "headline",
+              "fontSize": 42,
+              "displayedFontSize": 14,
+              "displayedXHeight": 7.6426
+            },
+            {
+              "elementId": "placement-count-value",
+              "fontSize": 176,
+              "displayedFontSize": 58.6667,
+              "displayedXHeight": 32.026
+            },
+            {
+              "elementId": "placement-count-label",
+              "fontSize": 35,
+              "displayedFontSize": 11.6667,
+              "displayedXHeight": 6.3688
+            },
+            {
+              "elementId": "placement-count-trend",
+              "fontSize": 20,
+              "displayedFontSize": 6.6667,
+              "displayedXHeight": 3.6393
+            }
+          ],
+          "dominance": {
+            "firstElementId": "placement-count-value",
+            "secondElementId": "headline",
+            "ratio": 4.1905
+          },
+          "containers": [
+            {
+              "elementId": "brand-surface",
+              "bounds": {
+                "x": 43.2,
+                "y": 334.8,
+                "width": 993.6,
+                "height": 583.2
+              },
+              "emptyFraction": 0.9637,
+              "largestEmptyBand": 0.6073,
+              "largestEmptyBandAxis": "columns"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 136,
+            "end": 335,
+            "fraction": 0.1843
+          },
+          "accent": {
+            "colors": ["#f3c879"],
+            "areaFraction": 0.0138,
+            "usageCount": 2,
+            "elementIds": ["statistic-accent", "placement-count-value"]
+          }
+        }
+      },
+      "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
+    },
+    {
+      "design": "scene/scene.json",
+      "template": "scene-kernel",
+      "format": "1200x675",
+      "review": {
+        "policyVersion": "1.0.0",
+        "thresholds": {
+          "displayWidth": 360,
+          "minimumXHeight": 5.5,
+          "minimumDominanceRatio": 1.5,
+          "containerEmptyFraction": 0.75,
+          "containerEmptyBand": 0.4,
+          "canvasEmptyBand": 0.33,
+          "emptyLineCoverage": 0.05,
+          "accentAreaFraction": 0.08,
+          "accentUsageCount": 5
+        },
+        "canvas": {
+          "width": 1200,
+          "height": 675
+        },
+        "findings": [
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"brand-wordmark\" has a 2.95 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "brand-wordmark",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 18,
+              "displayedFontSize": 5.4,
+              "displayedXHeight": 2.9479,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"series-label\" has a 2.13 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "series-label",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"deck\" has a 3.28 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "deck",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 20,
+              "displayedFontSize": 6,
+              "displayedXHeight": 3.2754,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"shape-index\" has a 2.13 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "shape-index",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"shape-title\" has a 4.91 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "shape-title",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"shape-body\" has a 2.62 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "shape-body",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"dry-index\" has a 2.13 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "dry-index",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"dry-title\" has a 4.91 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "dry-title",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"dry-body\" has a 2.62 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "dry-body",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"fire-index\" has a 2.13 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "fire-index",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"fire-title\" has a 4.91 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "fire-title",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"fire-body\" has a 2.62 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "fire-body",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"finish-index\" has a 2.13 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "finish-index",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"finish-title\" has a 4.91 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "finish-title",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"finish-body\" has a 2.62 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "finish-body",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"footer-left\" has a 1.97 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "footer-left",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 12,
+              "displayedFontSize": 3.6,
+              "displayedXHeight": 1.9652,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_TEXT_SMALL_AT_DELIVERY",
+            "severity": "advisory",
+            "message": "Text \"footer-right\" has a 1.97 px x-height when the canvas is shown 360 px wide; enlarge it, move it to publishing copy, or confirm it is intentionally secondary.",
+            "elementId": "footer-right",
+            "details": {
+              "displayWidth": 360,
+              "fontSize": 12,
+              "displayedFontSize": 3.6,
+              "displayedXHeight": 1.9652,
+              "minimumXHeight": 5.5
+            }
+          },
+          {
+            "code": "CRAFT_ACCENT_OVERUSE",
+            "severity": "advisory",
+            "message": "The accent color has 8 distinct uses across 17 elements and 0.2% of non-photographic pixels; reserve it for the dominant element or the action so it still signals priority.",
+            "details": {
+              "colors": ["#a34f37"],
+              "areaFraction": 0.002,
+              "usageCount": 8,
+              "elementCount": 17,
+              "elementIds": [
+                "brand-mark-outer",
+                "brand-mark-inner",
+                "series-label",
+                "shape-index",
+                "dry-index",
+                "dry-air-left",
+                "dry-air-mid",
+                "dry-air-right",
+                "fire-index",
+                "finish-index",
+                "finish-ray-left",
+                "finish-ray-right",
+                "finish-ray-top",
+                "rail-shape",
+                "rail-dry",
+                "rail-fire",
+                "rail-finish"
+              ],
+              "accentAreaFraction": 0.08,
+              "accentUsageCount": 5
+            }
+          }
+        ],
+        "metrics": {
+          "text": [
+            {
+              "elementId": "brand-wordmark",
+              "fontSize": 18,
+              "displayedFontSize": 5.4,
+              "displayedXHeight": 2.9479
+            },
+            {
+              "elementId": "series-label",
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129
+            },
+            {
+              "elementId": "headline",
+              "fontSize": 66,
+              "displayedFontSize": 19.8,
+              "displayedXHeight": 10.8088
+            },
+            {
+              "elementId": "deck",
+              "fontSize": 20,
+              "displayedFontSize": 6,
+              "displayedXHeight": 3.2754
+            },
+            {
+              "elementId": "shape-index",
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129
+            },
+            {
+              "elementId": "shape-title",
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131
+            },
+            {
+              "elementId": "shape-body",
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203
+            },
+            {
+              "elementId": "dry-index",
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129
+            },
+            {
+              "elementId": "dry-title",
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131
+            },
+            {
+              "elementId": "dry-body",
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203
+            },
+            {
+              "elementId": "fire-index",
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129
+            },
+            {
+              "elementId": "fire-title",
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131
+            },
+            {
+              "elementId": "fire-body",
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203
+            },
+            {
+              "elementId": "finish-index",
+              "fontSize": 13,
+              "displayedFontSize": 3.9,
+              "displayedXHeight": 2.129
+            },
+            {
+              "elementId": "finish-title",
+              "fontSize": 30,
+              "displayedFontSize": 9,
+              "displayedXHeight": 4.9131
+            },
+            {
+              "elementId": "finish-body",
+              "fontSize": 16,
+              "displayedFontSize": 4.8,
+              "displayedXHeight": 2.6203
+            },
+            {
+              "elementId": "footer-left",
+              "fontSize": 12,
+              "displayedFontSize": 3.6,
+              "displayedXHeight": 1.9652
+            },
+            {
+              "elementId": "footer-right",
+              "fontSize": 12,
+              "displayedFontSize": 3.6,
+              "displayedXHeight": 1.9652
+            }
+          ],
+          "dominance": {
+            "firstElementId": "headline",
+            "secondElementId": "shape-title",
+            "ratio": 2.2
+          },
+          "containers": [
+            {
+              "elementId": "shape-card",
+              "bounds": {
+                "x": 56,
+                "y": 252,
+                "width": 251,
+                "height": 311
+              },
+              "emptyFraction": 0.8253,
+              "largestEmptyBand": 0.127,
+              "largestEmptyBandAxis": "rows"
+            },
+            {
+              "elementId": "dry-card",
+              "bounds": {
+                "x": 335,
+                "y": 252,
+                "width": 251,
+                "height": 311
+              },
+              "emptyFraction": 0.831,
+              "largestEmptyBand": 0.127,
+              "largestEmptyBandAxis": "rows"
+            },
+            {
+              "elementId": "fire-card",
+              "bounds": {
+                "x": 614,
+                "y": 252,
+                "width": 251,
+                "height": 311
+              },
+              "emptyFraction": 0.8268,
+              "largestEmptyBand": 0.127,
+              "largestEmptyBandAxis": "rows"
+            },
+            {
+              "elementId": "finish-card",
+              "bounds": {
+                "x": 893,
+                "y": 252,
+                "width": 251,
+                "height": 311
+              },
+              "emptyFraction": 0.8273,
+              "largestEmptyBand": 0.1417,
+              "largestEmptyBandAxis": "columns"
+            }
+          ],
+          "canvasEmptyBand": {
+            "axis": "rows",
+            "start": 563,
+            "end": 628,
+            "fraction": 0.0963
+          },
+          "accent": {
+            "colors": ["#a34f37"],
+            "areaFraction": 0.002,
+            "usageCount": 8,
+            "elementIds": [
+              "brand-mark-outer",
+              "brand-mark-inner",
+              "series-label",
+              "shape-index",
+              "dry-index",
+              "dry-air-left",
+              "dry-air-mid",
+              "dry-air-right",
+              "fire-index",
+              "finish-index",
+              "finish-ray-left",
+              "finish-ray-right",
+              "finish-ray-top",
+              "rail-shape",
+              "rail-dry",
+              "rail-fire",
+              "rail-finish"
+            ]
+          }
+        }
+      },
+      "desktopFindings": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY brand-wordmark",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY series-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY deck",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY shape-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY dry-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY fire-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-index",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY finish-body",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-left",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer-right",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ]
+    }
+  ]
+}

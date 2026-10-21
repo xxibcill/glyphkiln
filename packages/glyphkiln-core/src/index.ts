@@ -262,6 +262,23 @@ export { RENDER_EVIDENCE_VERSION } from "./renderer/index.js";
 export { renderGraphicIsolated } from "./isolation/index.js";
 export type { IsolatedRenderOptions } from "./isolation/index.js";
 
+export {
+  CRAFT_FINDING_CODES,
+  CRAFT_REVIEW_DEFAULTS,
+  CRAFT_REVIEW_POLICY_VERSION,
+  reviewGraphicCraft,
+} from "./craft/index.js";
+export type {
+  CraftContainerMetric,
+  CraftEmptyBand,
+  CraftFinding,
+  CraftFindingCode,
+  CraftReview,
+  CraftReviewOptions,
+  CraftReviewThresholds,
+  CraftTextMetric,
+} from "./craft/index.js";
+
 export { inspectDesignDocument } from "./inspect.js";
 export type { DesignInspection } from "./inspect.js";
 export type { RenderManifest } from "./provenance/index.js";

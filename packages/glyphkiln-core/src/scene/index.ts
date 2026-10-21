@@ -27,6 +27,21 @@ export type {
   SceneTextEvidence,
   SceneImageEvidence,
 } from "./evidence.js";
+export {
+  CRAFT_FINDING_CODES,
+  CRAFT_REVIEW_DEFAULTS,
+  CRAFT_REVIEW_POLICY_VERSION,
+} from "../craft/policy.js";
+export { reviewSceneCraft } from "../craft/scene.js";
+export type {
+  CraftContainerMetric,
+  CraftEmptyBand,
+  CraftFinding,
+  CraftReview,
+  CraftTextMetric,
+} from "../craft/analyze.js";
+export type { CraftFindingCode, CraftReviewThresholds } from "../craft/policy.js";
+export type { CraftReviewOptions } from "../craft/review.js";
 export { reviewSceneReadingOrder } from "./reading-order.js";
 export type {
   RenderSceneOptions,

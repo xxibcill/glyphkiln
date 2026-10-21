@@ -133,6 +133,24 @@ fetches, accepts a path or URL, mutates the source, or runs inside
 and other color spaces fail explicitly until a bounded decoder can expose raw
 samples safely.
 
+### Advisory craft review
+
+Passing every quality check does not make a graphic well designed.
+`reviewGraphicCraft(document, { assets, fonts })` renders the same scene and
+pixels as `renderGraphic`, writes nothing, and returns advisory findings for
+text that is too small at a declared display width (default 360 px), weak scale
+contrast, container and canvas dead space, and accent overuse. Findings never
+block rendering and never enter manifests or fingerprints. `reviewSceneCraft`
+from `@glyphkiln/core/scene` reviews Scene Kernel documents the same way. See
+the [quality policy](../../docs/quality-policy.md#advisory-craft-review).
+
+```ts
+const review = await reviewGraphicCraft(document, {
+  thresholds: { displayWidth: 360 },
+});
+for (const finding of review.findings) console.log(finding.code, finding.message);
+```
+
 ### Expert Scene Kernel
 
 Use `@glyphkiln/core/scene` when reviewed explicit geometry is the input. The

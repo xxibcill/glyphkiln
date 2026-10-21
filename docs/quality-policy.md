@@ -60,3 +60,44 @@ require visual review.
 through the focal crop, source alpha, and selected treatment. A worst sample
 below 4.5 emits `LOW_TEXT_CONTRAST`. Successful renders return the bounded
 sample evidence with crop and text bounds so the App can draw proof overlays.
+
+## Advisory craft review
+
+Correctness checks cannot say whether a graphic is well designed: a layout can
+pass every check above and still read as a template. `reviewGraphicCraft`
+(root entry) and `reviewSceneCraft` (`@glyphkiln/core/scene`) add a separate,
+**advisory** review of visual craft risks under policy
+`CRAFT_REVIEW_POLICY_VERSION` `1.0.0`.
+
+The review is kept apart from correctness on purpose:
+
+- findings are `CraftFinding` records with `severity: "advisory"`, not
+  `QualityIssue` records;
+- they never block rendering and are never written to render manifests,
+  fingerprints, or evidence;
+- the review renders the same scene and PNG pixels through the same checks as
+  `renderGraphic` / `renderScene` (blocking quality errors still throw), but it
+  produces no output files, so existing output bytes are unchanged;
+- results are deterministic for identical input, resources, and thresholds.
+
+| Code                           | What it measures                                                                                                                                                                                                                                                 | Default starting threshold                                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `CRAFT_TEXT_SMALL_AT_DELIVERY` | Rendered x-height of each text element, in display pixels, when the whole canvas is shown at `displayWidth` (the exact face's x-height ratio is used)                                                                                                            | `displayWidth` 360, `minimumXHeight` 5.5                                                                          |
+| `CRAFT_WEAK_SCALE_CONTRAST`    | Largest text size divided by the next largest; lists every competitor within the ratio                                                                                                                                                                           | `minimumDominanceRatio` 1.5                                                                                       |
+| `CRAFT_DEAD_SPACE`             | `scope: "container"`: share of a filled rectangle (4–90% of the canvas) still showing its bare fill in the rendered pixels, plus its longest empty row/column band. `scope: "canvas"`: longest canvas band whose rows or columns are almost uncovered by content | `containerEmptyFraction` 0.75 with `containerEmptyBand` 0.4; `canvasEmptyBand` 0.33 with `emptyLineCoverage` 0.05 |
+| `CRAFT_ACCENT_OVERUSE`         | Share of non-photographic pixels in an accent color, and the number of distinct accent uses (repeated same-size marks count once)                                                                                                                                | `accentAreaFraction` 0.08, `accentUsageCount` 5                                                                   |
+
+Design documents budget the brand snapshot accent by default; scenes budget
+only the `accentColors` the caller declares. Procedural background texture is
+excluded from content analysis. Full-canvas rectangles count as ground, while
+full-bleed photographs count as content. Text bounds come from glyph
+outlines; path bounds are conservative control-point hulls; rotated groups use
+axis-aligned bounds.
+
+These thresholds are documented starting values, not proven optima or a
+beauty score. A finding is a prompt for review: an intentional quiet field, a
+deliberate pair of equal-weight elements, or an accent applied consistently to
+one role may be correct. Record the judgment rather than silencing the
+heuristic. Delivery width matters: review landscape graphics at the width
+where they will actually be seen, and pass `thresholds.displayWidth`
+accordingly.
