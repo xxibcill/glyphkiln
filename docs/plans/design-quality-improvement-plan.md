@@ -17,9 +17,10 @@
   fill their fields, avoid orphaned display words and use the accent once; the
   Kilnform announcement was re-authored to show the product, and the photo
   campaign was recomposed per format on `image-led-campaign@1.1.1` without the
-  scrim that dimmed the product.
+  scrim that dimmed the product, and the carousel now shows the lamp on three
+  of six slides (`tiktok-carousel-slide@1.1.1`).
   [Before/after proofs](../../Deliverables/benchmarks/p1-craft-2026-10/README.md):
-  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), and 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant). Still
+  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant), and 22 → 15 across the carousel. Still
   open in P1: the font library and pairings (decision §8.3), rich-text emphasis
   and OpenType controls, color roles in brand snapshots, decoration off by
   default, and product-color protection in image treatments.

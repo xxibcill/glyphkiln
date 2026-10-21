@@ -110,6 +110,41 @@ function campaignAfter(before) {
   return document;
 }
 
+/**
+ * Carousel: re-author on tiktok-carousel-slide@1.1.1, which accepts an
+ * optional photograph, so the lamp appears on the cover, the "three corners"
+ * slide, and the final call to action. Procedural decoration is removed (it
+ * had no subject job), and slide 05 keeps its two sentences whole.
+ */
+const CAROUSEL_IMAGE_SLIDES = new Set(["carousel-01", "carousel-03", "carousel-06"]);
+function carouselAfter(before) {
+  const document = structuredClone(before);
+  document.id = `${before.id}-p1`;
+  document.template = { ...before.template, version: "1.1.1" };
+  document.layers = document.layers
+    .filter((layer) => layer.type !== "procedural-decoration")
+    .map((layer) =>
+      layer.type === "headline" && before.id.endsWith("carousel-05")
+        ? { ...layer, keepTogether: ["Keep the lamp.", "Shift the mood."] }
+        : layer,
+    );
+  const slide = before.id.replace("designer-day-", "");
+  if (CAROUSEL_IMAGE_SLIDES.has(slide)) {
+    document.assets = [lampAsset];
+    document.layers.push({
+      id: "lamp",
+      type: "image",
+      visible: true,
+      assetId: lampAsset.id,
+      alt: "A cobalt ceramic table lamp on a warm plaster pedestal.",
+      fit: "cover",
+      focalPoint: { x: 0.62, y: 0.5 },
+      treatment: "none",
+    });
+  }
+  return document;
+}
+
 const cases = [
   { name: "announcement-b", after: announcementAfter },
   { name: "quote", after: (before) => upgrade(before, "1.2.0") },
@@ -117,6 +152,10 @@ const cases = [
   { name: "campaign-linkedin-landscape", after: campaignAfter },
   { name: "campaign-instagram-square", after: campaignAfter },
   { name: "campaign-instagram-portrait", after: campaignAfter },
+  ...["01", "02", "03", "04", "05", "06"].map((number) => ({
+    name: `carousel-${number}`,
+    after: carouselAfter,
+  })),
 ];
 
 function downscale(bytes, width) {

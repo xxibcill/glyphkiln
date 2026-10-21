@@ -68,6 +68,105 @@
       "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
       "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
       "outputSha256": {}
+    },
+    {
+      "design": "carousel-01",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ],
+      "craftAfter": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "outputSha256": {}
+    },
+    {
+      "design": "carousel-02",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": ["warning ORPHAN_LINE"],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "craftAfter": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "outputSha256": {}
+    },
+    {
+      "design": "carousel-03",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "craftAfter": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_WEAK_SCALE_CONTRAST headline"
+      ],
+      "outputSha256": {}
+    },
+    {
+      "design": "carousel-04",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "craftAfter": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "outputSha256": {}
+    },
+    {
+      "design": "carousel-05",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": ["warning ORPHAN_LINE"],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_ACCENT_OVERUSE (canvas)"
+      ],
+      "craftAfter": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE editorial-paper"
+      ],
+      "outputSha256": {}
+    },
+    {
+      "design": "carousel-06",
+      "before": "tiktok-carousel-slide@1.0.4",
+      "after": "tiktok-carousel-slide@1.1.1",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer",
+        "CRAFT_DEAD_SPACE carousel-type-field",
+        "CRAFT_DEAD_SPACE (canvas)"
+      ],
+      "craftAfter": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "outputSha256": {}
     }
   ]
 }
