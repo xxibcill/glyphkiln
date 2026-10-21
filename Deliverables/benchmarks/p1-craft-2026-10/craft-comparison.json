@@ -1,0 +1,46 @@
+{
+  "purpose": "P1 craft repairs on three Kilnform graphics. Advisory craft-review findings before and after (policy 1.1.0); not audience or expert-comparison evidence.",
+  "summary": [
+    {
+      "design": "announcement-b",
+      "before": "product-announcement@1.1.1",
+      "after": "product-announcement@1.2.0",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY subtitle",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "craftAfter": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "outputSha256": {},
+      "copyMovedToCaption": "A warm new chapter for the corners you keep."
+    },
+    {
+      "design": "quote",
+      "before": "quote-card@1.1.0",
+      "after": "quote-card@1.2.0",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY attribution",
+        "CRAFT_DEAD_SPACE brand-surface"
+      ],
+      "craftAfter": [],
+      "outputSha256": {}
+    },
+    {
+      "design": "statistic",
+      "before": "statistic-card@1.1.0",
+      "after": "statistic-card@1.2.0",
+      "qualityIssues": [],
+      "craftBefore": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_DEAD_SPACE brand-surface"
+      ],
+      "craftAfter": [],
+      "outputSha256": {}
+    }
+  ]
+}

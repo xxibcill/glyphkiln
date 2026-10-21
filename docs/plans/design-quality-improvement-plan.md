@@ -3,13 +3,24 @@
 **Drafted 20 October 2026. Status: proposed plan; P0 partly implemented on
 22 October 2026.**
 
-**Progress, 22 October 2026:** P0's internal work is done — the
-[critique ledger, craft-heuristic results and twelve benchmark briefs](../../Deliverables/benchmarks/p0-baseline-2026-10/README.md),
-and the advisory craft review (`reviewGraphicCraft` / `reviewSceneCraft`,
-policy `craft-review 1.0.0`, see
-[quality policy](../quality-policy.md#advisory-craft-review)). Still open in
-P0: commissioning the expert baselines and running the first blind round
-(owner decision §8.2). No baseline win rate exists yet.
+**Progress, 22 October 2026:**
+
+- **P0 (internal part done):** the
+  [critique ledger, craft-heuristic results and twelve benchmark briefs](../../Deliverables/benchmarks/p0-baseline-2026-10/README.md),
+  and the advisory craft review (`reviewGraphicCraft` / `reviewSceneCraft`,
+  policy `craft-review 1.1.0` including brand-mark visibility, see
+  [quality policy](../quality-policy.md#advisory-craft-review)). Still open:
+  commissioning the expert baselines and the first blind round (owner decision
+  §8.2). No baseline win rate exists yet.
+- **P1 (first slice):** opt-in
+  [`quote-card@1.2.0` and `statistic-card@1.2.0`](../editorial-fill-templates.md)
+  fill their fields, avoid orphaned display words and use the accent once; the
+  Kilnform announcement was re-authored to show the product.
+  [Before/after proofs](../../Deliverables/benchmarks/p1-craft-2026-10/README.md):
+  advisory findings 2 → 0 (quote, statistic) and 3 → 2 (announcement). Still
+  open in P1: the font library and pairings (decision §8.3), rich-text emphasis
+  and OpenType controls, color roles in brand snapshots, decoration off by
+  default, and product-color protection in image treatments.
 
 Author: Claude (Opus 5.5) for the project owner. Sources: the owner's
 assessment ("the output is useful but not yet graphic design; it cannot beat an

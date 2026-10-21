@@ -101,6 +101,8 @@ describe("AI-ready authoring metadata", () => {
       "product-announcement@1.2.0",
       "statistic-card@1.1.0",
       "quote-card@1.1.0",
+      "statistic-card@1.2.0",
+      "quote-card@1.2.0",
       "article-cover@1.1.0",
       "tiktok-carousel-slide@1.0.1",
       "tiktok-carousel-slide@1.0.2",

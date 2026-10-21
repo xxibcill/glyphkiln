@@ -21,6 +21,8 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "product-announcement@1.2.0",
   "statistic-card@1.1.0",
   "quote-card@1.1.0",
+  "statistic-card@1.2.0",
+  "quote-card@1.2.0",
   "article-cover@1.1.0",
   "tiktok-carousel-slide@1.0.1",
   "tiktok-carousel-slide@1.0.2",
@@ -991,6 +993,77 @@ const authoringTemplateRegistry = {
     authoringGuidance: [
       "Do not fabricate or paraphrase a quotation without explicit brief authority.",
       "Keep attribution as content data, not provenance evidence.",
+    ],
+  }),
+  "statistic-card@1.2.0": templateContract({
+    key: "statistic-card@1.2.0",
+    template: { id: "statistic-card", version: "1.2.0" },
+    compatibleSchemaVersions: allSchemaVersions,
+    compatibleFormats: commonFormats,
+    compositionVariant: {
+      id: "hero-statistic-fill",
+      label: "Hero statistic, fitted to its field",
+      selection: "fixed-by-template-version",
+      guidance:
+        "The value grows to fill the copy field between an optional headline and its label; only the value carries the accent.",
+    },
+    contentRoles: [
+      contentRole(
+        "headline",
+        false,
+        "Use a short framing statement of at most two lines that does not repeat the label.",
+      ),
+      contentRole(
+        "statistic",
+        true,
+        "Supply one value and its exact supporting label; omit the trend unless it adds new information.",
+        statisticFields,
+      ),
+    ],
+    assetRoles: [],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 2,
+    safeAreaGuidance:
+      "The statistic block fills the procedural quiet region when one is declared, otherwise the safe area.",
+    authoringGuidance: [
+      "Preserve the meaning and units of the supplied metric.",
+      "Do not invent chart data or additional metrics.",
+      "Avoid restating the value in the headline, label, and trend.",
+    ],
+  }),
+  "quote-card@1.2.0": templateContract({
+    key: "quote-card@1.2.0",
+    template: { id: "quote-card", version: "1.2.0" },
+    compatibleSchemaVersions: allSchemaVersions,
+    compatibleFormats: commonFormats,
+    compositionVariant: {
+      id: "typographic-quote",
+      label: "Typographic quote",
+      selection: "fixed-by-template-version",
+      guidance:
+        "The quotation is fitted to fill its field under a hanging accent quotation mark, with a tracked attribution.",
+    },
+    contentRoles: [
+      contentRole(
+        "headline",
+        true,
+        "Keep the quotation focused enough to fit in six lines; omit surrounding quotation marks.",
+      ),
+      contentRole(
+        "attribution",
+        true,
+        "Name the supplied source accurately and concisely.",
+      ),
+    ],
+    assetRoles: [],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 6,
+    safeAreaGuidance:
+      "The quote block fills the procedural quiet region when one is declared, otherwise the safe area.",
+    authoringGuidance: [
+      "Do not fabricate or paraphrase a quotation without explicit brief authority.",
+      "Keep attribution as content data, not provenance evidence.",
+      "The template draws the opening quotation mark; do not include one in the text.",
     ],
   }),
   "article-cover@1.1.0": templateContract({
