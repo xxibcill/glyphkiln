@@ -7,7 +7,7 @@ import {
   type CarouselCopyAdvisoryRange,
 } from "./carousel-copy-policy.js";
 
-export const AUTHORING_CONTRACT_VERSION = "1.7.0" as const;
+export const AUTHORING_CONTRACT_VERSION = "1.8.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
 export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
@@ -34,11 +34,14 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "tiktok-carousel-slide@1.1.0",
   "image-led-campaign@1.1.1",
   "tiktok-carousel-slide@1.1.1",
+  "quote-card@1.3.0",
+  "statistic-card@1.3.0",
+  "image-led-campaign@1.2.0",
 ] as const);
 export type AuthoringTemplateKey = (typeof AUTHORING_TEMPLATE_KEYS)[number];
 
 type DesignSchemaVersion =
-  "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "1.4.0" | "1.5.0" | "1.6.0";
+  "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "1.4.0" | "1.5.0" | "1.6.0" | "1.7.0";
 type ContentLayerType = Extract<
   DesignLayer["type"],
   | "eyebrow"
@@ -268,6 +271,7 @@ const allSchemaVersions = Object.freeze([
   "1.4.0",
   "1.5.0",
   "1.6.0",
+  "1.7.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const tiktokSchemaVersions = Object.freeze([
   "1.1.0",
@@ -276,12 +280,24 @@ const tiktokSchemaVersions = Object.freeze([
   "1.4.0",
   "1.5.0",
   "1.6.0",
+  "1.7.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const currentSchemaVersions = Object.freeze([
   "1.4.0",
   "1.5.0",
   "1.6.0",
+  "1.7.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
+const b2SchemaVersions = Object.freeze([
+  "1.7.0",
+] as const satisfies readonly DesignSchemaVersion[]);
+const b2AuthoringGuidance = [
+  "Emphasis phrases (schema 1.7.0) must occur in the text; they are kept on one line and set in a closed style: strong, accent, strong-accent, italic (needs a declared italic face), or muted.",
+  "Strong emphasis uses the base weight plus 200 (at least 700, at most 900); declare that face.",
+  "Tracking and leading follow the size-setting@1.0.0 curve; brand typography roles supply family and weight only.",
+  "Procedural decoration is drawn only when the layer declares a job (atmosphere or identity).",
+  "The accent is used once and within the brand accent area budget (default 8% of the canvas).",
+] as const;
 const acceptedRasterMimeTypes = Object.freeze(["image/png", "image/jpeg"] as const);
 const supportedAssetFits = Object.freeze(["contain", "cover"] as const);
 
@@ -493,7 +509,7 @@ const authoringTemplateRegistry = {
   "testimonial-evidence@1.0.0": templateContract({
     key: "testimonial-evidence@1.0.0",
     template: { id: "testimonial-evidence", version: "1.0.0" },
-    compatibleSchemaVersions: ["1.6.0"],
+    compatibleSchemaVersions: ["1.6.0", "1.7.0"],
     compatibleFormats: [
       "instagram-square",
       "instagram-portrait",
@@ -553,7 +569,7 @@ const authoringTemplateRegistry = {
   "comparison@1.0.0": templateContract({
     key: "comparison@1.0.0",
     template: { id: "comparison", version: "1.0.0" },
-    compatibleSchemaVersions: ["1.6.0"],
+    compatibleSchemaVersions: ["1.6.0", "1.7.0"],
     compatibleFormats: [
       "instagram-square",
       "instagram-portrait",
@@ -637,7 +653,7 @@ const authoringTemplateRegistry = {
   "problem-solution@1.0.0": templateContract({
     key: "problem-solution@1.0.0",
     template: { id: "problem-solution", version: "1.0.0" },
-    compatibleSchemaVersions: ["1.6.0"],
+    compatibleSchemaVersions: ["1.6.0", "1.7.0"],
     compatibleFormats: [
       "instagram-square",
       "instagram-portrait",
@@ -709,7 +725,7 @@ const authoringTemplateRegistry = {
   "offer-urgency@1.0.0": templateContract({
     key: "offer-urgency@1.0.0",
     template: { id: "offer-urgency", version: "1.0.0" },
-    compatibleSchemaVersions: ["1.6.0"],
+    compatibleSchemaVersions: ["1.6.0", "1.7.0"],
     compatibleFormats: [
       "instagram-square",
       "instagram-portrait",
@@ -759,7 +775,7 @@ const authoringTemplateRegistry = {
   "benefit-proof@1.0.0": templateContract({
     key: "benefit-proof@1.0.0",
     template: { id: "benefit-proof", version: "1.0.0" },
-    compatibleSchemaVersions: ["1.5.0", "1.6.0"],
+    compatibleSchemaVersions: ["1.5.0", "1.6.0", "1.7.0"],
     compatibleFormats: [
       "instagram-square",
       "instagram-portrait",
@@ -1143,7 +1159,7 @@ const authoringTemplateRegistry = {
   "tiktok-carousel-slide@1.0.3": templateContract({
     key: "tiktok-carousel-slide@1.0.3",
     template: { id: "tiktok-carousel-slide", version: "1.0.3" },
-    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0"],
+    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"],
     compatibleFormats: ["tiktok-photo-carousel"],
     compositionVariant: {
       id: "organic-photo-editorial",
@@ -1165,7 +1181,7 @@ const authoringTemplateRegistry = {
   "tiktok-carousel-slide@1.0.4": templateContract({
     key: "tiktok-carousel-slide@1.0.4",
     template: { id: "tiktok-carousel-slide", version: "1.0.4" },
-    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0"],
+    compatibleSchemaVersions: ["1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"],
     compatibleFormats: ["tiktok-photo-carousel"],
     compositionVariant: {
       id: "organic-photo-editorial",
@@ -1210,6 +1226,138 @@ const authoringTemplateRegistry = {
     "tiktok-carousel-slide@1.1.1",
     "1.1.1",
   ),
+  "quote-card@1.3.0": templateContract({
+    key: "quote-card@1.3.0",
+    template: { id: "quote-card", version: "1.3.0" },
+    compatibleSchemaVersions: b2SchemaVersions,
+    compatibleFormats: commonFormats,
+    compositionVariant: {
+      id: "typographic-quote-roles",
+      label: "Typographic quote with color roles",
+      selection: "fixed-by-template-version",
+      guidance:
+        "The figure-colored quotation fills its field under a hanging mark; emphasis phrases give it internal hierarchy; the accent is used once.",
+    },
+    contentRoles: [
+      contentRole(
+        "headline",
+        true,
+        "Keep the quotation focused enough to fit in six lines; omit surrounding quotation marks. Optionally emphasize one phrase.",
+      ),
+      contentRole(
+        "attribution",
+        true,
+        "Name the supplied source accurately and concisely.",
+      ),
+    ],
+    assetRoles: [],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 6,
+    safeAreaGuidance:
+      "The quote block fills the quiet region of decoration that declares a job, otherwise the safe area.",
+    authoringGuidance: [
+      "Do not fabricate or paraphrase a quotation without explicit brief authority.",
+      "Keep attribution as content data, not provenance evidence.",
+      "The template draws the opening quotation mark; do not include one in the text.",
+      "An accent emphasis phrase takes the accent from the quotation mark.",
+      ...b2AuthoringGuidance,
+    ],
+  }),
+  "statistic-card@1.3.0": templateContract({
+    key: "statistic-card@1.3.0",
+    template: { id: "statistic-card", version: "1.3.0" },
+    compatibleSchemaVersions: b2SchemaVersions,
+    compatibleFormats: commonFormats,
+    compositionVariant: {
+      id: "hero-statistic-roles",
+      label: "Hero statistic with color roles",
+      selection: "fixed-by-template-version",
+      guidance:
+        "The value fills the field; it carries the accent only if its ink fits the accent budget, otherwise an accent rule sits above it.",
+    },
+    contentRoles: [
+      contentRole(
+        "headline",
+        false,
+        "Use a short framing statement of at most two lines that does not repeat the label.",
+      ),
+      contentRole(
+        "statistic",
+        true,
+        "Supply one value and its exact supporting label; omit the trend unless it adds new information.",
+        statisticFields,
+      ),
+    ],
+    assetRoles: [],
+    optionalDecorativeLayers: ["background", "procedural-decoration"],
+    headlineMaximumLines: 2,
+    safeAreaGuidance:
+      "The statistic block fills the quiet region of decoration that declares a job, otherwise the safe area.",
+    authoringGuidance: [
+      "Preserve the meaning and units of the supplied metric.",
+      "Do not invent chart data or additional metrics.",
+      "Avoid restating the value in the headline, label, and trend.",
+      "The trend uses the signal role and tabular lining numerals.",
+      ...b2AuthoringGuidance,
+    ],
+  }),
+  "image-led-campaign@1.2.0": templateContract({
+    key: "image-led-campaign@1.2.0",
+    template: { id: "image-led-campaign", version: "1.2.0" },
+    compatibleSchemaVersions: b2SchemaVersions,
+    compatibleFormats: ["linkedin-landscape", "instagram-square", "instagram-portrait"],
+    compositionVariant: {
+      id: "subject-aware-overlay",
+      label: "Copy beside the subject",
+      selection: "fixed-by-template-version",
+      guidance:
+        "Full-bleed photograph; the copy column takes the largest free side of the safe area outside the declared subject region, over a local scrim.",
+    },
+    contentRoles: [
+      contentRole("eyebrow", false, "Use a compact category or campaign cue."),
+      contentRole("headline", true, "Write the primary message to fit in four lines."),
+      contentRole("subtitle", false, "Add one concise supporting statement."),
+      contentRole("cta", false, "Use a short action phrase."),
+    ],
+    assetRoles: [
+      assetRole(
+        "image",
+        true,
+        "Use an admitted raster with an explicit focal point and a subjectRegion around the product; inspect the exact image window.",
+        {
+          supportedFits: ["cover"],
+          supportsFocalPoint: true,
+          supportedTreatments: [
+            "none",
+            "dark-scrim",
+            "light-scrim",
+            "local-dark-scrim",
+            "local-light-scrim",
+          ],
+        },
+      ),
+      assetRole(
+        "logo",
+        true,
+        "Use an admitted raster brand mark with sufficient quiet space.",
+        {
+          supportedFits: ["contain"],
+        },
+      ),
+    ],
+    optionalDecorativeLayers: ["background"],
+    headlineMaximumLines: 4,
+    safeAreaGuidance:
+      "Keep logo and copy inside the safe area and outside the subject region; only the photograph is full bleed.",
+    authoringGuidance: [
+      "Declare subjectRegion in source-image coordinates so the copy and the scrim avoid the product.",
+      "Prefer a local scrim over a global one: it darkens only behind copy and never inside the subject.",
+      "COPY_OVER_SUBJECT means no side had room; move the focal point or shorten the copy.",
+      "Choose crop intent explicitly and review the returned crop evidence.",
+      "Treat asset declarations as server-resolved references, never URLs or paths.",
+      ...b2AuthoringGuidance,
+    ],
+  }),
 } as const satisfies Record<AuthoringTemplateKey, AuthoringTemplateContract>;
 
 export const AUTHORING_TEMPLATE_REGISTRY = deepFreeze(authoringTemplateRegistry);

@@ -22,7 +22,15 @@ export type TemplateRenderResult = {
 export type TemplateDefinition = {
   id: TemplateId;
   version:
-    "1.0.0" | "1.0.1" | "1.0.2" | "1.0.3" | "1.0.4" | "1.1.0" | "1.1.1" | "1.2.0";
+    | "1.0.0"
+    | "1.0.1"
+    | "1.0.2"
+    | "1.0.3"
+    | "1.0.4"
+    | "1.1.0"
+    | "1.1.1"
+    | "1.2.0"
+    | "1.3.0";
   requiredLayers: readonly DesignLayer["type"][];
   supportedLayers: readonly DesignLayer["type"][];
   mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];
@@ -31,10 +39,26 @@ export type TemplateDefinition = {
     fit: "contain" | "cover";
   }[];
   supportedFormats: readonly FormatId[];
+  /**
+   * DesignDocument 1.7.0 layer fields this exact version implements. A visible
+   * layer that uses an unlisted field is rejected with
+   * TEMPLATE_FEATURE_UNSUPPORTED instead of being silently ignored.
+   */
+  capabilities?: TemplateCapabilities;
   constraints: {
     headlineMaximumLines: number;
     safeAreaBehavior: string;
     layout: string;
   };
   render(context: TemplateRenderContext): TemplateRenderResult;
+};
+
+export type TemplateTextLayerType =
+  "headline" | "subtitle" | "eyebrow" | "cta" | "footer" | "attribution";
+
+export type TemplateCapabilities = {
+  textEmphasis?: readonly TemplateTextLayerType[];
+  openTypeFeatures?: readonly TemplateTextLayerType[];
+  localImageTreatments?: boolean;
+  subjectRegion?: boolean;
 };

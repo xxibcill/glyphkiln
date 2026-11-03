@@ -23,6 +23,27 @@ export const DESIGN_DOCUMENT_RUNTIME_REFINEMENTS = [
     path: "$.layers[*].quietRegion",
     description: "y + height must be less than or equal to 1.",
   },
+  {
+    code: "SUBJECT_REGION_HORIZONTAL_BOUNDS",
+    path: "$.layers[*].subjectRegion",
+    description: "x + width must be less than or equal to 1 (schema 1.7.0).",
+  },
+  {
+    code: "SUBJECT_REGION_VERTICAL_BOUNDS",
+    path: "$.layers[*].subjectRegion",
+    description: "y + height must be less than or equal to 1 (schema 1.7.0).",
+  },
+  {
+    code: "UNIQUE_EMPHASIS_PHRASES",
+    path: "$.layers[*].emphasis[*].phrase",
+    description: "Emphasis phrases must be unique within a text layer (schema 1.7.0).",
+  },
+  {
+    code: "EMPHASIS_PHRASE_IN_TEXT",
+    path: "$.layers[*].emphasis[*].phrase",
+    description:
+      "After whitespace normalization, each emphasis phrase must occur within one paragraph of the layer text (schema 1.7.0).",
+  },
 ] as const;
 
 export function getDesignDocumentJsonSchema(): object {

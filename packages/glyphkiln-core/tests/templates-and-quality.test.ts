@@ -148,7 +148,7 @@ async function loadLegacyTikTokCarouselDocument(): Promise<DesignDocument> {
   document.template.version = "1.0.1";
   document.format = "tiktok-carousel";
   document.brand.safeArea = { top: 0.07, right: 0.16, bottom: 0.18, left: 0.07 };
-  document.layers.splice(1, 0, {
+  (document.layers as DesignLayer[]).splice(1, 0, {
     id: "kiln-witness",
     type: "procedural-decoration",
     visible: true,
@@ -272,7 +272,7 @@ describe("template registry", () => {
     "rejects the unimplemented $type layer before resource resolution",
     async (layer) => {
       const document = cloneDocument(await loadExample("product-announcement"));
-      document.layers.push(structuredClone(layer));
+      (document.layers as DesignLayer[]).push(structuredClone(layer));
       await expectQualityIssue(document, "UNSUPPORTED_VISIBLE_LAYER", layer.id);
     },
   );
@@ -610,7 +610,7 @@ describe("template registry", () => {
     const narrative = cloneDocument(await loadExample("tiktok-carousel-slide"));
     const metric = cloneDocument(narrative);
     metric.layers = metric.layers.filter((layer) => layer.type !== "subtitle");
-    metric.layers.push({
+    (metric.layers as DesignLayer[]).push({
       id: "metric",
       type: "statistic",
       value: "100%",
@@ -628,7 +628,7 @@ describe("template registry", () => {
       "899d91245e3857c4bca253426e94dc458cb8f7e901db3891654157b66c3c1679",
     );
 
-    metric.layers.push({
+    (metric.layers as DesignLayer[]).push({
       id: "conflicting-subtitle",
       type: "subtitle",
       text: "This conflicts with the metric mode.",
@@ -704,7 +704,7 @@ describe("template registry", () => {
 
   it("renders deterministic Core-owned pattern interrupts", async () => {
     const document = cloneDocument(await loadExample("tiktok-carousel-slide"));
-    document.layers.splice(1, 0, {
+    (document.layers as DesignLayer[]).splice(1, 0, {
       id: "pattern-interrupt",
       type: "procedural-decoration",
       style: "topographic-contours",
@@ -905,14 +905,14 @@ describe("template registry", () => {
     const source = cloneDocument(await loadExample("product-announcement"));
     source.layers = source.layers.filter((layer) => layer.type !== "eyebrow");
     const first = cloneDocument(source);
-    first.layers.push({
+    (first.layers as DesignLayer[]).push({
       id: "announcement-badge",
       type: "badge",
       text: "BETA",
       visible: true,
     });
     const second = cloneDocument(source);
-    second.layers.push({
+    (second.layers as DesignLayer[]).push({
       id: "announcement-badge",
       type: "badge",
       text: "LIVE",
@@ -943,7 +943,7 @@ describe("template registry", () => {
     "rejects a visible layer that the %s template does not implement",
     async (name) => {
       const document = cloneDocument(await loadExample(name));
-      document.layers.push({
+      (document.layers as DesignLayer[]).push({
         id: "unsupported-icon",
         type: "icon",
         name: "check",
@@ -960,13 +960,13 @@ describe("template registry", () => {
   it("rejects a duplicate visible semantic layer instead of ignoring it", async () => {
     const document = cloneDocument(await loadExample("article-cover"));
     const headline = document.layers.find((layer) => layer.type === "headline")!;
-    document.layers.push({ ...headline, id: "second-headline" });
+    (document.layers as DesignLayer[]).push({ ...headline, id: "second-headline" });
     await expectQualityIssue(document, "DUPLICATE_VISIBLE_LAYER", "second-headline");
   });
 
   it("rejects mutually exclusive announcement eyebrow and badge layers", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
-    document.layers.push({
+    (document.layers as DesignLayer[]).push({
       id: "announcement-badge",
       type: "badge",
       text: "BETA",

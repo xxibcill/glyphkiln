@@ -1,4 +1,21 @@
 {
+  "b2-craft-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "b2-color-roles-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "b2-craft-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
+  "b2-color-roles-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
+  "b2-emphasis-phrase-missing": {
+    "jsonSchemaValid": true,
+    "runtimeValid": false
+  },
+  "b2-emphasis-style-unknown": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  },
+  "b2-subject-region-sum": { "jsonSchemaValid": true, "runtimeValid": false },
+  "b2-accent-budget-excess": {
+    "jsonSchemaValid": false,
+    "runtimeValid": false
+  },
   "comparison-valid": { "jsonSchemaValid": true, "runtimeValid": true },
   "comparison-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
   "problem-solution-valid": { "jsonSchemaValid": true, "runtimeValid": true },

@@ -138,6 +138,41 @@ export const BrandSnapshotSchema = z
   })
   .strict();
 
+/** Closed color-role names introduced by DesignDocument 1.7.0. */
+export const BRAND_COLOR_ROLE_IDS = [
+  "ground",
+  "figure",
+  "text",
+  "accent",
+  "signal",
+] as const;
+
+const colorRoleSetSchema = z
+  .object({
+    ground: color,
+    figure: color,
+    text: color,
+    accent: color,
+    signal: color,
+  })
+  .strict();
+
+export const BrandColorRolesSchema = z
+  .object({
+    light: colorRoleSetSchema,
+    dark: colorRoleSetSchema,
+    accentAreaBudget: z.number().min(0.01).max(0.3).default(0.08),
+  })
+  .strict();
+
+const BrandSnapshotV1_7_0Schema = z
+  .object({
+    ...brandSnapshotFields,
+    typography: currentTypographySchema,
+    colorRoles: BrandColorRolesSchema.optional(),
+  })
+  .strict();
+
 const layerBase = {
   id: identifier,
   visible: z.boolean().default(true),
@@ -188,6 +223,59 @@ function textLayerSchema<T extends string>(type: T) {
     .strict();
 }
 
+/** Closed rich-text emphasis styles introduced by DesignDocument 1.7.0. */
+export const TEXT_EMPHASIS_STYLE_IDS = [
+  "strong",
+  "accent",
+  "strong-accent",
+  "italic",
+  "muted",
+] as const;
+
+const emphasisSpans = z
+  .array(
+    z
+      .object({
+        phrase: keepTogetherPhrase,
+        style: z.enum(TEXT_EMPHASIS_STYLE_IDS),
+      })
+      .strict(),
+  )
+  .min(1)
+  .max(8)
+  .refine((spans) => new Set(spans.map((span) => span.phrase)).size === spans.length, {
+    message: "Emphasis phrases must be unique.",
+  });
+
+/** Closed numeral styles for explicit OpenType control (1.7.0). */
+export const OPENTYPE_NUMERAL_STYLE_IDS = [
+  "proportional-lining",
+  "tabular-lining",
+  "proportional-oldstyle",
+  "tabular-oldstyle",
+] as const;
+
+export const OpenTypeFeatureSettingsSchema = z
+  .object({
+    kerning: z.boolean().optional(),
+    ligatures: z.boolean().optional(),
+    numerals: z.enum(OPENTYPE_NUMERAL_STYLE_IDS).optional(),
+    caseSensitiveForms: z.boolean().optional(),
+    smallCaps: z.boolean().optional(),
+  })
+  .strict();
+
+function textLayerV1_7_0Schema<T extends string>(type: T) {
+  return z
+    .object({
+      ...textLayerFields(type),
+      keepTogether: keepTogetherPhrases.optional(),
+      emphasis: emphasisSpans.optional(),
+      openType: OpenTypeFeatureSettingsSchema.optional(),
+    })
+    .strict();
+}
+
 function assetLayerSchema<T extends string>(type: T) {
   return z
     .object({
@@ -201,6 +289,11 @@ function assetLayerSchema<T extends string>(type: T) {
 }
 
 export const IMAGE_TREATMENT_IDS = ["none", "dark-scrim", "light-scrim"] as const;
+/** Local treatments (1.7.0) darken or lighten only behind copy. */
+export const LOCAL_IMAGE_TREATMENT_IDS = [
+  "local-dark-scrim",
+  "local-light-scrim",
+] as const;
 
 export const FocalPointSchema = z
   .object({
@@ -221,6 +314,22 @@ const currentImageLayerSchema = z
   })
   .strict();
 
+const imageLayerV1_7_0Schema = z
+  .object({
+    ...layerBase,
+    type: z.literal("image"),
+    assetId: identifier,
+    alt: z.string().min(1).max(500),
+    fit: z.enum(["contain", "cover"]).default("contain"),
+    focalPoint: FocalPointSchema.optional(),
+    treatment: z
+      .enum([...IMAGE_TREATMENT_IDS, ...LOCAL_IMAGE_TREATMENT_IDS])
+      .optional(),
+    /** Normalized region of the source image that holds the product or subject. */
+    subjectRegion: QuietRegionSchema.optional(),
+  })
+  .strict();
+
 const backgroundLayerSchema = z
   .object({
     ...layerBase,
@@ -229,16 +338,26 @@ const backgroundLayerSchema = z
   })
   .strict();
 
-const proceduralDecorationLayerSchema = z
+const proceduralDecorationFields = {
+  ...layerBase,
+  type: z.literal("procedural-decoration"),
+  style: z.enum(PROCEDURAL_STYLE_IDS),
+  intensity: normalized,
+  density: normalized,
+  complexity: normalized,
+  contrast: normalized,
+  quietRegion: QuietRegionSchema,
+};
+
+const proceduralDecorationLayerSchema = z.object(proceduralDecorationFields).strict();
+
+/** Declared jobs that let decoration render in decoration-off templates (1.7.0). */
+export const DECORATION_JOB_IDS = ["atmosphere", "identity"] as const;
+
+const proceduralDecorationLayerV1_7_0Schema = z
   .object({
-    ...layerBase,
-    type: z.literal("procedural-decoration"),
-    style: z.enum(PROCEDURAL_STYLE_IDS),
-    intensity: normalized,
-    density: normalized,
-    complexity: normalized,
-    contrast: normalized,
-    quietRegion: QuietRegionSchema,
+    ...proceduralDecorationFields,
+    job: z.enum(DECORATION_JOB_IDS).optional(),
   })
   .strict();
 
@@ -402,8 +521,30 @@ const problemSolutionLayerSchema = z
     solution: proofText(180),
   })
   .strict();
-export const LayerSchema = z.discriminatedUnion("type", [
+const LayerV1_6_0Schema = z.discriminatedUnion("type", [
   ...LayerV1_5_0Schema.options,
+  comparisonTableLayerSchema,
+  problemSolutionLayerSchema,
+]);
+
+export const LayerSchema = z.discriminatedUnion("type", [
+  backgroundLayerSchema,
+  proceduralDecorationLayerV1_7_0Schema,
+  assetLayerSchema("logo"),
+  assetLayerSchema("product-screenshot"),
+  imageLayerV1_7_0Schema,
+  iconLayerSchema,
+  badgeLayerSchema,
+  shapeLayerSchema,
+  statisticLayerSchema,
+  chartLayerSchema,
+  textLayerV1_7_0Schema("headline"),
+  textLayerV1_7_0Schema("subtitle"),
+  textLayerV1_7_0Schema("eyebrow"),
+  textLayerV1_7_0Schema("cta"),
+  textLayerV1_7_0Schema("footer"),
+  textLayerV1_7_0Schema("attribution"),
+  benefitListLayerSchema,
   comparisonTableLayerSchema,
   problemSolutionLayerSchema,
 ]);
@@ -574,11 +715,18 @@ const DesignDocumentV1_5_0Schema = createVersionedDesignDocumentSchema(
   BrandSnapshotSchema,
 );
 const DesignDocumentV1_6_0Schema = createVersionedDesignDocumentSchema(
+  "1.6.0",
+  TEMPLATE_IDS,
+  FORMAT_IDS,
+  LayerV1_6_0Schema,
+  BrandSnapshotSchema,
+);
+const DesignDocumentV1_7_0Schema = createVersionedDesignDocumentSchema(
   DESIGN_DOCUMENT_VERSION,
   TEMPLATE_IDS,
   FORMAT_IDS,
   LayerSchema,
-  BrandSnapshotSchema,
+  BrandSnapshotV1_7_0Schema,
 );
 
 export const DesignDocumentSchema = z
@@ -590,11 +738,39 @@ export const DesignDocumentSchema = z
     DesignDocumentV1_4_0Schema,
     DesignDocumentV1_5_0Schema,
     DesignDocumentV1_6_0Schema,
+    DesignDocumentV1_7_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
     checkUniqueIds(document.assets, "asset", context);
+    checkEmphasisPhrases(document.layers, context);
   });
+
+/** Normalize whitespace exactly as the line wrapper does before matching. */
+export function normalizeEmphasisText(text: string): string {
+  return text.trim().replace(/\s+/g, " ");
+}
+
+function checkEmphasisPhrases(
+  layers: readonly object[],
+  context: z.RefinementCtx,
+): void {
+  for (const [index, layer] of layers.entries()) {
+    if (!("emphasis" in layer) || !("text" in layer)) continue;
+    const spans = layer.emphasis as { phrase: string }[] | undefined;
+    if (spans === undefined) continue;
+    const paragraphs = String(layer.text).split(/\r?\n/).map(normalizeEmphasisText);
+    for (const [spanIndex, span] of spans.entries()) {
+      const phrase = normalizeEmphasisText(span.phrase);
+      if (paragraphs.some((paragraph) => paragraph.includes(phrase))) continue;
+      context.addIssue({
+        code: "custom",
+        message: `Emphasis phrase "${span.phrase}" does not occur in the layer text.`,
+        path: ["layers", index, "emphasis", spanIndex, "phrase"],
+      });
+    }
+  }
+}
 
 function checkUniqueIds(
   entries: readonly { id: string }[],
@@ -622,7 +798,16 @@ export type DesignLayer =
 export type BrandSnapshot = DesignDocument["brand"];
 export type BrandTypographyRole = z.infer<typeof typographyRoleSchema>;
 export type FocalPoint = z.infer<typeof FocalPointSchema>;
-export type ImageTreatmentId = (typeof IMAGE_TREATMENT_IDS)[number];
+export type LegacyImageTreatmentId = (typeof IMAGE_TREATMENT_IDS)[number];
+export type LocalImageTreatmentId = (typeof LOCAL_IMAGE_TREATMENT_IDS)[number];
+export type ImageTreatmentId = LegacyImageTreatmentId | LocalImageTreatmentId;
+export type TextEmphasisStyleId = (typeof TEXT_EMPHASIS_STYLE_IDS)[number];
+export type TextEmphasisSpan = { phrase: string; style: TextEmphasisStyleId };
+export type OpenTypeFeatureSettings = z.infer<typeof OpenTypeFeatureSettingsSchema>;
+export type BrandColorRoles = z.infer<typeof BrandColorRolesSchema>;
+export type BrandColorRoleSet = z.infer<typeof colorRoleSetSchema>;
+export type DecorationJobId = (typeof DECORATION_JOB_IDS)[number];
+export type NormalizedRegion = z.infer<typeof QuietRegionSchema>;
 export type AssetDeclaration = DesignDocument["assets"][number];
 export type FontDeclaration = DesignDocument["fonts"][number];
 export type ProceduralStyleId = (typeof PROCEDURAL_STYLE_IDS)[number];
@@ -639,7 +824,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_6_0Schema>,
+  z.input<typeof DesignDocumentV1_7_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;

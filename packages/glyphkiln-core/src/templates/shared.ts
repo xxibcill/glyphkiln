@@ -41,12 +41,25 @@ export type TemplateCanvas = {
   evidence: RenderEvidence;
 };
 
-export function createTemplateCanvas(context: TemplateRenderContext): TemplateCanvas {
+export type TemplateCanvasOptions = {
+  /**
+   * "always" (every version before the 1.7.0-era templates) draws any visible
+   * procedural layer; "declared-job" draws it only when it declares a job.
+   */
+  decoration?: "always" | "declared-job";
+  /** Ground color when no background layer overrides it. */
+  ground?: string;
+};
+
+export function createTemplateCanvas(
+  context: TemplateRenderContext,
+  options: TemplateCanvasOptions = {},
+): TemplateCanvas {
   const { document } = context;
   const dimensions = getFormatDimensions(document.format);
   const theme = document.brand.themes[document.mode];
   const backgroundLayer = findLayer(document.layers, "background");
-  const backgroundColor = backgroundLayer?.color ?? theme.background;
+  const backgroundColor = backgroundLayer?.color ?? options.ground ?? theme.background;
   const scene: Scene = {
     dimensions,
     title: `${document.template.id} graphic`,
@@ -55,7 +68,14 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
     elements: [],
   };
   const proceduralAlgorithmVersions: Record<string, string> = {};
-  const procedural = findLayer(document.layers, "procedural-decoration");
+  const declaredProcedural = findLayer(document.layers, "procedural-decoration");
+  const procedural =
+    options.decoration === "declared-job" &&
+    (declaredProcedural === undefined ||
+      !("job" in declaredProcedural) ||
+      declaredProcedural.job === undefined)
+      ? undefined
+      : declaredProcedural;
   if (procedural !== undefined) {
     const quietRegion = {
       x: procedural.quietRegion.x * dimensions.width,

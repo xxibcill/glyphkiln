@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { renderGraphic, type DesignDocument } from "../src/index.js";
+import { renderGraphic, type DesignDocument, type DesignLayer } from "../src/index.js";
 import { loadExampleAssets } from "./helpers.js";
 
 async function fixture(): Promise<DesignDocument> {
@@ -91,7 +91,7 @@ describe("product and offer composition", () => {
       document.layers.find((layer) => layer.type === "headline")!,
       { text: "A warmer welcome for every corner of your home." },
     );
-    document.layers.push({
+    (document.layers as DesignLayer[]).push({
       id: "logo",
       type: "logo",
       assetId: document.assets[0]!.id,

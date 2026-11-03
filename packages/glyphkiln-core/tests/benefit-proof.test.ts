@@ -5,6 +5,7 @@ import {
   renderGraphic,
   validateDesignDocument,
   type DesignDocument,
+  type DesignLayer,
 } from "../src/index.js";
 
 async function candidate() {
@@ -46,7 +47,7 @@ describe("benefit proof", () => {
     const facts = document.layers.find((layer) => layer.type === "benefit-list");
     if (!facts) throw new Error("Missing benefits");
     facts.items = facts.items.slice(0, count).map((item) => ({ title: item.title }));
-    document.layers.push({
+    (document.layers as DesignLayer[]).push({
       id: "logo",
       type: "logo",
       assetId: document.assets[0]!.id,

@@ -23,7 +23,7 @@ import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 
 type CopyField = { bounds: Bounds; ground: string };
 
-const COMMON_FORMATS = [
+export const COMMON_FORMATS = [
   "linkedin-landscape",
   "instagram-square",
   "instagram-portrait",
@@ -73,7 +73,7 @@ function signalColor(
   return canvas.textColor;
 }
 
-function unitFor(canvas: TemplateCanvas): number {
+export function unitFor(canvas: TemplateCanvas): number {
   return Math.min(
     canvas.scene.dimensions.width / 1080,
     canvas.scene.dimensions.height / 1080,
@@ -104,7 +104,7 @@ function fitWithoutOrphan(
   return { options: current, fitted };
 }
 
-function syntheticLayer(
+export function syntheticLayer(
   id: string,
   type: "headline" | "subtitle" | "footer",
   text: string,
@@ -215,7 +215,7 @@ export const quoteCardTypographicTemplate: TemplateDefinition = {
   },
 };
 
-function addHangingQuoteMark(
+export function addHangingQuoteMark(
   canvas: TemplateCanvas,
   context: TemplateRenderContext,
   input: { id: string; x: number; bottom: number; inkHeight: number; color: string },

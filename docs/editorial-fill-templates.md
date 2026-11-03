@@ -37,3 +37,16 @@ shape follows that typeface; the statistic template cannot detect when the
 headline, label, and trend repeat each other, which remains an authoring
 judgment. Before/after Kilnform proofs are in
 [Deliverables/benchmarks/p1-craft-2026-10](../Deliverables/benchmarks/p1-craft-2026-10/README.md).
+
+## 1.3.0: color roles and type craft
+
+`quote-card@1.3.0` and `statistic-card@1.3.0` keep the 1.2.0 fill-the-field
+geometry and require DesignDocument `1.7.0`. They add emphasis phrases in the
+headline, size-dependent tracking and leading, OpenType settings, brand color
+roles with an accent area budget, and decoration that is drawn only when it
+declares a job. The statistic value carries the accent only if its ink fits the
+budget; otherwise an accent rule sits above it. A quote's accent phrase takes
+the accent from the hanging mark. Visual baselines:
+`quote-card-roles.png` and `statistic-card-roles.png`. These are opt-in exact
+versions, and the App default is unchanged. See
+[Type and color craft controls](type-and-color-craft.md).

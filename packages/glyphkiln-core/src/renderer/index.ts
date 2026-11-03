@@ -191,8 +191,14 @@ function collectManifestFonts(
     ),
   );
   const used = new Map<string, ManifestFont>();
-  for (const element of flattenSceneElements(scene.elements)) {
-    if (element.type !== "text") continue;
+  for (const sceneElement of flattenSceneElements(scene.elements)) {
+    const element =
+      sceneElement.type === "text"
+        ? sceneElement
+        : sceneElement.type === "path" && sceneElement.glyphRun !== undefined
+          ? { id: sceneElement.id, ...sceneElement.glyphRun }
+          : undefined;
+    if (element === undefined) continue;
     const key = fontReferenceKey(
       element.fontFamily,
       element.fontWeight,

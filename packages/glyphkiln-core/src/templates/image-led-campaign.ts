@@ -3,7 +3,7 @@ import {
   inspectImageTextContrast,
   type ContrastRaster,
 } from "../assets/image-contrast.js";
-import { IMAGE_TREATMENTS } from "../assets/image-policy.js";
+import { legacyTreatment } from "../assets/image-policy.js";
 import type { Bounds, QualityIssue } from "../domain/types.js";
 import type { BrandTypographyRole, ImageTreatmentId } from "../schema/index.js";
 import {
@@ -256,7 +256,7 @@ function addTreatment(
   treatmentId: ImageTreatmentId,
   bounds: Bounds,
 ): void {
-  const treatment = IMAGE_TREATMENTS[treatmentId];
+  const treatment = legacyTreatment(treatmentId);
   if (treatment.opacity === 0) return;
   canvas.scene.elements.push({
     id: `${imageLayerId}-treatment`,

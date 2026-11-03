@@ -57,6 +57,11 @@ const baselines = [
   "image-carousel-balanced",
   "image-carousel-metric-balanced",
   "type-carousel-balanced",
+  "quote-card-roles",
+  "statistic-card-roles",
+  "image-led-campaign-local-square",
+  "image-led-campaign-local-portrait",
+  "image-led-campaign-local-landscape",
 ] as const;
 
 describe("reviewed visual baselines", () => {

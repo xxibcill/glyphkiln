@@ -134,6 +134,13 @@ function collectColorUses(document: DesignDocument): ColorUse[] {
   for (const [name, color] of Object.entries(document.brand.themes[document.mode])) {
     uses.push({ source: `Selected theme field "${name}"`, color });
   }
+  if ("colorRoles" in document.brand && document.brand.colorRoles !== undefined) {
+    for (const [name, color] of Object.entries(
+      document.brand.colorRoles[document.mode],
+    )) {
+      uses.push({ source: `Selected color role "${name}"`, color });
+    }
+  }
   for (const layer of document.layers) {
     if (!layer.visible) continue;
     if ("color" in layer && layer.color !== undefined) {

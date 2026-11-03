@@ -51,6 +51,8 @@ original decision state. Glyph coverage shipped before `v0.2.0`; the accepted
 ADR remains unchanged as historical evidence.
 
 Current limitations: normal Inter variable is the built-in face, font fallback
-stacks are not supported, explicit OpenType feature selection is not exposed,
+stacks are not supported, explicit OpenType feature selection is limited to the
+closed DesignDocument 1.7.0 settings in
+[type and color craft controls](type-and-color-craft.md),
 and color/bitmap glyphs are rejected by the portable SVG outliner. Bidi and
 vertical layout are diagnosed but not implemented.

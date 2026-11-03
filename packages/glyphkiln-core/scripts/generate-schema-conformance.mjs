@@ -19,7 +19,84 @@ const comparison = JSON.parse(
 const panels = JSON.parse(
   await readFile(new URL("examples/problem-solution.json", root), "utf8"),
 );
+const b2Campaign = JSON.parse(
+  await readFile(
+    new URL("tests/visual/baselines/image-led-campaign-local-square.design.json", root),
+    "utf8",
+  ),
+);
+const b2Statistic = JSON.parse(
+  await readFile(
+    new URL("tests/visual/baselines/statistic-card-roles.design.json", root),
+    "utf8",
+  ),
+);
+function mutateB2(source, callback) {
+  const document = structuredClone(source);
+  callback(document);
+  return document;
+}
 const cases = [
+  {
+    name: "b2-craft-valid",
+    document: structuredClone(b2Campaign),
+    jsonSchemaValid: true,
+    runtimeValid: true,
+  },
+  {
+    name: "b2-color-roles-valid",
+    document: structuredClone(b2Statistic),
+    jsonSchemaValid: true,
+    runtimeValid: true,
+  },
+  {
+    name: "b2-craft-legacy",
+    document: { ...structuredClone(b2Campaign), schemaVersion: "1.6.0" },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "b2-color-roles-legacy",
+    document: { ...structuredClone(b2Statistic), schemaVersion: "1.6.0" },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "b2-emphasis-phrase-missing",
+    document: mutateB2(b2Campaign, (document) => {
+      document.layers.find((layer) => layer.type === "headline").emphasis = [
+        { phrase: "not in the headline", style: "accent" },
+      ];
+    }),
+    jsonSchemaValid: true,
+    runtimeValid: false,
+  },
+  {
+    name: "b2-emphasis-style-unknown",
+    document: mutateB2(b2Campaign, (document) => {
+      document.layers.find((layer) => layer.type === "headline").emphasis = [
+        { phrase: "fired into form.", style: "underline" },
+      ];
+    }),
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "b2-subject-region-sum",
+    document: mutateB2(b2Campaign, (document) => {
+      document.layers.find((layer) => layer.type === "image").subjectRegion.x = 0.9;
+    }),
+    jsonSchemaValid: true,
+    runtimeValid: false,
+  },
+  {
+    name: "b2-accent-budget-excess",
+    document: mutateB2(b2Statistic, (document) => {
+      document.brand.colorRoles.accentAreaBudget = 0.5;
+    }),
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
   ...[comparison, panels].flatMap((document) => [
     {
       name: `${document.template.id}-valid`,

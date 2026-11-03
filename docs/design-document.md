@@ -1,7 +1,7 @@
 # Design-document specification
 
 `DesignDocument` is strict, JSON-compatible, and currently versioned at
-`1.6.0`. Schemas `1.0.0`–`1.5.0` remain readable. The
+`1.7.0`. Schemas `1.0.0`–`1.6.0` remain readable. The
 [`benefit-list` layer](benefit-proof-template.md) contains one to three ordered
 title/description items for `benefit-proof@1.0.0`. The organic
 TikTok photo-carousel format requires `1.3.0`; preserved 9:16 carousel documents
@@ -101,3 +101,13 @@ exclusive eyebrow/badge contract and does not support logo or footer. See the
 [product-and-offer guide](product-offer-template.md).
 
 Schema 1.6.0 adds the four remaining static-ad IDs and strict `comparison-table` and `problem-solution` layers. See [field contracts](static-ad-starter-set.md). The 1.5.0 branch remains closed and unchanged.
+
+Schema 1.7.0 adds closed craft controls: text-layer `emphasis` and `openType`,
+a procedural-decoration `job`, an image `subjectRegion`, the
+`local-dark-scrim` and `local-light-scrim` treatments, and brand `colorRoles`
+with an `accentAreaBudget`. Earlier schemas reject every one of these fields.
+Template versions that do not implement a field fail with
+`TEMPLATE_FEATURE_UNSUPPORTED`. `quote-card@1.3.0`, `statistic-card@1.3.0` and
+`image-led-campaign@1.2.0` implement them. Runtime refinements add
+`EMPHASIS_PHRASE_IN_TEXT`, `UNIQUE_EMPHASIS_PHRASES` and the subject-region
+bounds. See [Type and color craft controls](type-and-color-craft.md).

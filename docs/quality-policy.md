@@ -32,7 +32,11 @@ Stable quality codes currently include `REQUIRED_LAYER_MISSING`,
 `NON_PREFERRED_PROCEDURAL_STYLE`, `LOW_TEXT_CONTRAST`, `TEXT_OVERFLOW`,
 `LINGUISTIC_WORD_BROKEN`, `ORPHAN_LINE`, `MISSING_GLYPH`,
 `QUIET_REGION_MISALIGNED`, `BIDI_CONTROL_UNSUPPORTED`,
-`BIDI_LAYOUT_UNSUPPORTED`, `VERTICAL_LAYOUT_UNSUPPORTED`, and reproduction
+`BIDI_LAYOUT_UNSUPPORTED`, `VERTICAL_LAYOUT_UNSUPPORTED`,
+`TEMPLATE_FEATURE_UNSUPPORTED`, `TEXT_EMPHASIS_FACE_UNAVAILABLE`,
+`OPENTYPE_FEATURE_UNAVAILABLE`, `ACCENT_BUDGET_APPLIED`,
+`ACCENT_AREA_BUDGET_EXCEEDED`, `DECORATION_WITHOUT_JOB`, `COPY_OVER_SUBJECT`
+(see [Type and color craft controls](type-and-color-craft.md)), and reproduction
 mismatch codes. The three text-layout codes carry a document-rooted field path,
 numeric code-point evidence, scalar indexes, and an independent diagnostic
 policy version. Tests exercise every policy family; new codes require a
