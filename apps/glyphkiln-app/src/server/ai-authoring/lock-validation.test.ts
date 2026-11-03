@@ -495,7 +495,7 @@ function authoringDocument(): DesignDocument {
       origin: { kind: "unknown" },
     },
   ];
-  document.layers.push({
+  (document.layers as DesignLayer[]).push({
     id: "product-preview-layer",
     type: "product-screenshot",
     assetId: "product-preview",

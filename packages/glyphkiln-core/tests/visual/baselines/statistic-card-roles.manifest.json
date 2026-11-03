@@ -1,0 +1,57 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_808ffba132fc2325f08f459f",
+  "renderFingerprint": "808ffba132fc2325f08f459fef5f0423d86dbb7ad040f4b98fcdeec1f536751a",
+  "designDocumentId": "statistic-card-roles",
+  "designDocumentHash": "7db01600dbb7bb7ef87b46362ab8383173b9931041d18d6bf6dbb9c40a4a3d3a",
+  "seed": "metrics-retention-42",
+  "template": { "id": "statistic-card", "version": "1.3.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "5c4fad087de886a2dbd93c92d32c80e60a808420b6fe180ca91597ee8b3737e5",
+    "byteSize": 65101
+  },
+  "creationTimestamp": "2026-07-29T10:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

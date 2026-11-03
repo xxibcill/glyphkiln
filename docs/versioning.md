@@ -206,3 +206,19 @@ manual product drafts select `1.2.0`. Shared renderer, design schema, manifest,
 procedural algorithms, campaign-family metadata, and database stay unchanged.
 
 The completed [static-ad starter set](static-ad-starter-set.md) introduces four new templates at 1.0.0, DesignDocument 1.6.0 and authoring metadata 1.7.0. Existing template pixels and shared renderer/manifest versions remain unchanged.
+
+DesignDocument `1.7.0` adds the B2 craft controls (emphasis, OpenType settings,
+decoration jobs, subject regions, local scrims, brand color roles with an
+accent budget). Schemas `1.0.0`–`1.6.0` keep their accepted shapes, and
+`DESIGN_DOCUMENT_VERSION` is now `1.7.0`. The new pixels are owned by three new
+template versions: `quote-card@1.3.0`, `statistic-card@1.3.0` and
+`image-led-campaign@1.2.0`. Each pins `emphasis-runs@1.0.0`,
+`opentype-settings@1.0.0`, `size-setting@1.0.0`, `color-roles@1.0.0`,
+`accent-coverage-grid@1.0.0` and (campaign only) `local-copy-scrim-v1`, so
+changing one of these policies needs a new template version. Renderer `0.5.0`,
+the procedural algorithms, `image-treatment-v1`, the typography algorithm and
+manifest `1.2.0` are unchanged. Every existing SVG, PNG and fingerprint stays
+exact. The optional `glyphRun` provenance on path elements does not serialize.
+Authoring metadata `1.8.0` publishes the three versions and lists `1.7.0` as
+compatible with existing templates. App template defaults are unchanged. See
+[Type and color craft controls](type-and-color-craft.md).

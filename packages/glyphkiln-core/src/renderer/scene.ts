@@ -56,6 +56,22 @@ export type CircleElement = BaseElement & {
 export type PathElement = BaseElement & {
   type: "path";
   data: string;
+  /**
+   * Set when the path is a run of outlined glyphs drawn for a text layer, such
+   * as a rich-text emphasis run. It carries the face for manifest font
+   * provenance and never changes serialized SVG.
+   */
+  glyphRun?:
+    | {
+        layerId: string;
+        text: string;
+        fontFamily: string;
+        fontWeight: number;
+        fontStyle: "normal" | "italic";
+        fontSize: number;
+        bounds: Bounds;
+      }
+    | undefined;
   fill: string;
   stroke?: string | undefined;
   strokeWidth?: number | undefined;

@@ -1,0 +1,208 @@
+{
+  "purpose": "B2 (P1 remainder without fonts) on the Kilnform set. Advisory craft-review findings at P1 and after B2 (policy craft-review 1.1.0); not audience or expert-comparison evidence.",
+  "summary": [
+    {
+      "design": "quote",
+      "p1": "quote-card@1.2.0",
+      "b2": "quote-card@1.3.0",
+      "changed": true,
+      "qualityIssues": ["warning DECORATION_WITHOUT_JOB"],
+      "craftP1": [],
+      "craftB2": [],
+      "outputSha256": {
+        "svg": "4f29d6e5cbba71c1b42cd5e3571bc49e1decb98f3edf3bf8d9d14f02de312ae1",
+        "png": "bd3e48a94306b40de77fe909c3091b450ce5356423d84b66548d2d9448b49d6b"
+      }
+    },
+    {
+      "design": "statistic",
+      "p1": "statistic-card@1.2.0",
+      "b2": "statistic-card@1.3.0",
+      "changed": true,
+      "qualityIssues": ["warning DECORATION_WITHOUT_JOB"],
+      "craftP1": [],
+      "craftB2": [],
+      "outputSha256": {
+        "svg": "20d3d1cc3a4a9a33a0d9f8bd6bd5a08bfda6a215b4b13b255d21ca9080e2a378",
+        "png": "50b7e942f57eca62cd0ad7d71e717051f9cc85891586228616c7440c5bec1be2"
+      }
+    },
+    {
+      "design": "campaign-instagram-square",
+      "p1": "image-led-campaign@1.1.1",
+      "b2": "image-led-campaign@1.2.0",
+      "changed": true,
+      "qualityIssues": [],
+      "craftP1": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftB2": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {
+        "svg": "68e2b6ae6aec40ec46de46d77022ebf1059b4a4d25891b3ff963c4c237610360",
+        "png": "1e8ec7b357e1da31b72e11616dff4e22d2117030a411cad0a1ba0fa9fd4e6acb"
+      }
+    },
+    {
+      "design": "campaign-instagram-portrait",
+      "p1": "image-led-campaign@1.1.1",
+      "b2": "image-led-campaign@1.2.0",
+      "changed": true,
+      "qualityIssues": [],
+      "craftP1": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftB2": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {
+        "svg": "65e8da245d3c7cd9faec022dfc3b8cb78f1e8653c8c19edcbd3fd67af289d538",
+        "png": "d7d48f641c19741d3f92f48e4002acffced74565d71edc7424e6abe7e2c6817a"
+      }
+    },
+    {
+      "design": "campaign-linkedin-landscape",
+      "p1": "image-led-campaign@1.1.1",
+      "b2": "image-led-campaign@1.2.0",
+      "changed": true,
+      "qualityIssues": [],
+      "craftP1": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftB2": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "outputSha256": {
+        "svg": "3735676827b8ef8790cfc5f110505dda947da82fcdad1d7cc0caec9246b249be",
+        "png": "505968474e3e1408fca9e8accdd9a968e04bdb54f657c01bf64998a6d9a2222a"
+      }
+    },
+    {
+      "design": "announcement-b",
+      "p1": "product-announcement@1.2.0",
+      "b2": "product-announcement@1.2.0",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": [],
+      "craftP1": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "craftB2": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta"
+      ],
+      "outputSha256": {
+        "svg": "873edc783463d74eced40a6a38fb33259e0da8faaf05e88c4a47af342560fbe9",
+        "png": "4c7f0c643a346ee71d2766f56f6b2184afc76613eb8d99a8f5d1043e35743716"
+      }
+    },
+    {
+      "design": "carousel-01",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": [],
+      "craftP1": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "craftB2": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY eyebrow",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "outputSha256": {
+        "svg": "a4211cda85ae7289c20bdc0021c05516944b51b72a2960802b703cb88f243b3a",
+        "png": "6901709c863584d1c9cef6c5c62e1249818b314f148054cffb9c8dfca9f28b8e"
+      }
+    },
+    {
+      "design": "carousel-02",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": ["warning ORPHAN_LINE"],
+      "craftP1": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "craftB2": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "outputSha256": {
+        "svg": "c1ce146516ddd46cf2b6a641dde2597abe5812e804c5158b22545db092e1fdfe",
+        "png": "f479dad2d8695a1b8ad9a763263eaecbe00b2e6ac8a9162669354d24aa696bf9"
+      }
+    },
+    {
+      "design": "carousel-03",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": [],
+      "craftP1": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_WEAK_SCALE_CONTRAST headline"
+      ],
+      "craftB2": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-label",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY placement-count-trend",
+        "CRAFT_WEAK_SCALE_CONTRAST headline"
+      ],
+      "outputSha256": {
+        "svg": "158de406b36a1eb2d0a9532f7b36f980245d5994e6aa9972bc9e05c54c755f68",
+        "png": "8a243cb3fdb4381eac7e898b1cb63da2ce74be7a863f2fc6bde9aa9f8e4927cc"
+      }
+    },
+    {
+      "design": "carousel-04",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": [],
+      "craftP1": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "craftB2": ["CRAFT_TEXT_SMALL_AT_DELIVERY slide-number"],
+      "outputSha256": {
+        "svg": "d8cbd6e4c001c8c4ce00575ab7e98def0d5cccc7b8bcd2d06a27fe7c944a1b29",
+        "png": "0c69a7f871063baa3924aae8c9872186d49dbcf08d1aad2f2df1bfc173017623"
+      }
+    },
+    {
+      "design": "carousel-05",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": ["warning ORPHAN_LINE"],
+      "craftP1": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE editorial-paper"
+      ],
+      "craftB2": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_DEAD_SPACE editorial-paper"
+      ],
+      "outputSha256": {
+        "svg": "d158ea622cc4cde942ffea6a391685c794bfcf826f1327207eea6c620c695eb9",
+        "png": "b76305dc7c40fb975d00b74618eb7c76d129bb19f160ad21d6e8a1b595af9a7d"
+      }
+    },
+    {
+      "design": "carousel-06",
+      "p1": "tiktok-carousel-slide@1.1.1",
+      "b2": "tiktok-carousel-slide@1.1.1",
+      "changed": false,
+      "files": "identical to Deliverables/benchmarks/p1-craft-2026-10 (verified)",
+      "qualityIssues": [],
+      "craftP1": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "craftB2": [
+        "CRAFT_TEXT_SMALL_AT_DELIVERY slide-number",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY cta",
+        "CRAFT_TEXT_SMALL_AT_DELIVERY footer"
+      ],
+      "outputSha256": {
+        "svg": "01259d4aaec58585e29ae325008cdd7436be56e43cba60ea6728fee8158e999e",
+        "png": "941e786fbc8b88989c596edd12d30fcfcc574cea75de27491cf66e0d50549f7c"
+      }
+    }
+  ]
+}

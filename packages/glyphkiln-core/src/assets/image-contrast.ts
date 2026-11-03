@@ -7,7 +7,7 @@ import { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "../resources/inde
 import type { ImageTreatmentId } from "../schema/index.js";
 import type { ContrastEvidence } from "../renderer/evidence.js";
 import type { FocalCropGeometry } from "./focal-crop.js";
-import { IMAGE_CONTRAST_POLICY_VERSION, IMAGE_TREATMENTS } from "./image-policy.js";
+import { IMAGE_CONTRAST_POLICY_VERSION, treatmentFill } from "./image-policy.js";
 
 const SAMPLE_GRID_SIZE = 5;
 const MINIMUM_CONTRAST_RATIO = 4.5;
@@ -28,7 +28,7 @@ export function inspectImageTextContrast(input: {
   treatment: ImageTreatmentId;
 }): ContrastEvidence {
   const raster = input.raster;
-  const treatment = IMAGE_TREATMENTS[input.treatment];
+  const treatment = treatmentFill(input.treatment);
   const samples: ContrastEvidence["samples"] = [];
 
   for (let row = 0; row < SAMPLE_GRID_SIZE; row += 1) {

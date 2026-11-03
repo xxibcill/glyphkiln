@@ -13,6 +13,16 @@ const DEVELOPMENT_FONT_PATH = new URL(
   "../../assets/fonts/Inter-Variable.ttf",
   import.meta.url,
 );
+/** Closed OpenType feature map: a tag switched on (true) or off (false). */
+export type OpenTypeFeatureMap = Readonly<Record<string, boolean>>;
+
+/** One styled run of a line laid out by outlineSegments. */
+export type OutlineSegment = {
+  text: string;
+  weight: number;
+  style: ResolvedFont["style"];
+};
+
 export const DEVELOPMENT_FONT_SHA256 =
   "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031";
 
@@ -63,9 +73,10 @@ export class FontRegistry {
     style: ResolvedFont["style"],
     fontSize: number,
     letterSpacing = 0,
+    features?: OpenTypeFeatureMap,
   ): number {
     const face = this.#getFace(family, weight, style);
-    const run = face.layout(text);
+    const run = layoutRun(face, text, features);
     return (
       (run.advanceWidth / face.unitsPerEm) * fontSize +
       Math.max(0, run.glyphs.length - 1) * letterSpacing
@@ -98,12 +109,13 @@ export class FontRegistry {
     y: number;
     align: "left" | "center" | "right";
     letterSpacing?: number;
+    features?: OpenTypeFeatureMap;
   }): string[] {
     const face = this.#getFace(input.family, input.weight, input.style);
     const scale = input.fontSize / face.unitsPerEm;
     const firstBaseline = input.y + face.ascent * scale;
     return input.lines.map((line, lineIndex) => {
-      const run = face.layout(line);
+      const run = layoutRun(face, line, input.features);
       const lineWidth =
         run.advanceWidth * scale +
         Math.max(0, run.glyphs.length - 1) * (input.letterSpacing ?? 0);
@@ -116,6 +128,56 @@ export class FontRegistry {
       const baseline = firstBaseline + lineIndex * input.fontSize * input.lineHeight;
       return outlineRun(run, lineX, baseline, scale, input.letterSpacing ?? 0);
     });
+  }
+
+  /**
+   * Outline one line made of styled runs, set left to right from `x` on one
+   * shared baseline. Letter spacing also separates adjacent runs. Returns one
+   * path per run and the total advance width.
+   */
+  public outlineSegments(input: {
+    segments: readonly OutlineSegment[];
+    family: string;
+    fontSize: number;
+    x: number;
+    baseline: number;
+    letterSpacing?: number;
+    features?: OpenTypeFeatureMap;
+  }): { paths: string[]; width: number } {
+    const letterSpacing = input.letterSpacing ?? 0;
+    const paths: string[] = [];
+    let penX = input.x;
+    for (const [index, segment] of input.segments.entries()) {
+      if (index > 0) penX += letterSpacing;
+      const face = this.#getFace(input.family, segment.weight, segment.style);
+      const scale = input.fontSize / face.unitsPerEm;
+      const run = layoutRun(face, segment.text, input.features);
+      paths.push(outlineRun(run, penX, input.baseline, scale, letterSpacing));
+      penX +=
+        run.advanceWidth * scale + Math.max(0, run.glyphs.length - 1) * letterSpacing;
+    }
+    return { paths, width: penX - input.x };
+  }
+
+  /** Em-relative ascent of an exact registered face. */
+  public ascent(family: string, weight: number, style: ResolvedFont["style"]): number {
+    const face = this.#getFace(family, weight, style);
+    return face.ascent / face.unitsPerEm;
+  }
+
+  /** Whether an exact registered face declares an OpenType feature tag. */
+  public hasFeature(
+    family: string,
+    weight: number,
+    style: ResolvedFont["style"],
+    tag: string,
+  ): boolean {
+    return this.#getFace(family, weight, style).availableFeatures.includes(tag);
+  }
+
+  /** Whether a face is registered for this exact family, weight, and style. */
+  public has(family: string, weight: number, style: ResolvedFont["style"]): boolean {
+    return this.#fonts.has(fontReferenceKey(family, weight, style));
   }
 
   /** Em-relative x-height and cap height of an exact registered face. */
@@ -186,6 +248,16 @@ export class FontRegistry {
       }
     }
   }
+}
+
+/**
+ * Shape a run. Without explicit features this is fontkit's default layout, so
+ * every pre-1.7.0 path stays byte-identical. fontkit mutates the feature object
+ * it receives, so each call gets a fresh copy.
+ */
+function layoutRun(face: Font, text: string, features?: OpenTypeFeatureMap): GlyphRun {
+  if (features === undefined) return face.layout(text);
+  return face.layout(text, { ...features });
 }
 
 function outlineRun(

@@ -3,7 +3,7 @@
 **Drafted 20 October 2026. Status: proposed plan; P0 partly implemented on
 22 October 2026.**
 
-**Progress, 22 October 2026:**
+**Progress, 22 October and 3 November 2026:**
 
 - **P0 (internal part done):** the
   [critique ledger, craft-heuristic results and twelve benchmark briefs](../../Deliverables/benchmarks/p0-baseline-2026-10/README.md),
@@ -20,10 +20,19 @@
   scrim that dimmed the product, and the carousel now shows the lamp on three
   of six slides (`tiktok-carousel-slide@1.1.1`).
   [Before/after proofs](../../Deliverables/benchmarks/p1-craft-2026-10/README.md):
-  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant), and 22 → 15 across the carousel. Still
-  open in P1: the font library and pairings (decision §8.3), rich-text emphasis
-  and OpenType controls, color roles in brand snapshots, decoration off by
-  default, and product-color protection in image treatments.
+  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant), and 22 → 15 across the carousel.
+- **P1 remainder (B2 without fonts), 3 November 2026:** DesignDocument `1.7.0`
+  adds rich-text emphasis, closed OpenType settings, a decoration `job`,
+  image `subjectRegion` with local scrims, and brand color roles with an accent
+  area budget. These ship in opt-in `quote-card@1.3.0`, `statistic-card@1.3.0`
+  and `image-led-campaign@1.2.0`, together with the `size-setting@1.0.0`
+  tracking and leading curve ([controls](../type-and-color-craft.md)). In the
+  [Kilnform re-render](../../Deliverables/benchmarks/p1-craft-2026-10-b2/README.md),
+  copy sits on the photograph again without dimming the cobalt lamp. Advisory
+  findings did not change (0 → 0 quote and statistic; 1 → 1 per campaign
+  format, the mark). Still open in P1: the font library and pairings (decision
+  §8.3), a light brand mark from the owner, and App defaults for the new
+  versions (owner approval).
 
 Author: Claude (Opus 5.5) for the project owner. Sources: the owner's
 assessment ("the output is useful but not yet graphic design; it cannot beat an

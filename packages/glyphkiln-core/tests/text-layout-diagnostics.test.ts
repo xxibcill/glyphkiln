@@ -221,7 +221,7 @@ describe("text-layout render quality", () => {
 
   it("does not block unsupported text in hidden layers", async () => {
     const document = cloneDocument(await loadExample("product-announcement"));
-    document.layers.push({
+    (document.layers as DesignLayer[]).push({
       id: "hidden-footer",
       type: "footer",
       text: "\u05D0",

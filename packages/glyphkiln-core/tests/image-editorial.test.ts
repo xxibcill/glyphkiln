@@ -1,3 +1,4 @@
+import type { DesignLayer } from "../src/index.js";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import {
@@ -136,7 +137,7 @@ describe("reference-led editorial compositions", () => {
     document.layers = document.layers.filter((layer) =>
       ["image", "headline", "badge"].includes(layer.type),
     );
-    document.layers.push({
+    (document.layers as DesignLayer[]).push({
       id: "footer",
       type: "footer",
       text: "KILNFORM / SERIES 01",

@@ -185,14 +185,14 @@ const inertRecord = readExactInertDataRecord(
 assert.equal(inertRecord?.value, "safe");
 assert.equal(readInertArrayLength([inertRecord]), 1);
 assert.equal(readInertArrayDataValue([inertRecord], 0), inertRecord);
-assert.equal(AUTHORING_CONTRACT_VERSION, "1.7.0");
+assert.equal(AUTHORING_CONTRACT_VERSION, "1.8.0");
 for (const id of ["testimonial-evidence", "comparison", "problem-solution", "offer-urgency"]) {
   const contract = AUTHORING_TEMPLATE_REGISTRY[id + "@1.0.0"];
-  assert.deepEqual(contract.compatibleSchemaVersions, ["1.6.0"]);
+  assert.deepEqual(contract.compatibleSchemaVersions, ["1.6.0", "1.7.0"]);
   assert.equal(contract.compatibleFormats.length, 4);
 }
 const benefitContract = AUTHORING_TEMPLATE_REGISTRY["benefit-proof@1.0.0"];
-assert.deepEqual(benefitContract.compatibleSchemaVersions, ["1.5.0", "1.6.0"]);
+assert.deepEqual(benefitContract.compatibleSchemaVersions, ["1.5.0", "1.6.0", "1.7.0"]);
 assert.equal(
   benefitContract.contentRoles.find((role) => role.layerType === "benefit-list")
     ?.collection?.maximumItems,
@@ -527,7 +527,7 @@ const authoringQuality: AuthoringQualityIssueMapping =
     },
   ]);
 if (
-  AUTHORING_CONTRACT_VERSION !== "1.7.0" ||
+  AUTHORING_CONTRACT_VERSION !== "1.8.0" ||
   DELIVERY_PROFILE_METADATA_VERSION !== "1.0.0" ||
   CAROUSEL_DELIVERY_SIDECAR_VERSION !== "1.2.0" ||
   CAROUSEL_SEQUENCE_VERSION !== "1.4.0" ||

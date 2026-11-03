@@ -1,4 +1,4 @@
-import { IMAGE_TREATMENTS } from "../assets/image-policy.js";
+import { legacyTreatment } from "../assets/image-policy.js";
 import type { Bounds } from "../domain/types.js";
 import type { BrandTypographyRole } from "../schema/index.js";
 import {
@@ -161,8 +161,9 @@ function renderImageEditorial(context: TemplateRenderContext, balanced = false) 
   });
   if (image !== undefined) {
     addFocalImage(canvas, context, image, imageBox);
-    const treatment =
-      IMAGE_TREATMENTS["treatment" in image ? (image.treatment ?? "none") : "none"];
+    const treatment = legacyTreatment(
+      "treatment" in image ? (image.treatment ?? "none") : "none",
+    );
     if (treatment.opacity > 0) {
       canvas.scene.elements.push({
         id: `${image.id}-treatment`,

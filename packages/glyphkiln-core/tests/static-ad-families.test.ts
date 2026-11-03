@@ -6,6 +6,7 @@ import {
   validateDesignDocument,
   TEMPLATE_REGISTRY,
   type DesignDocument,
+  type DesignLayer,
 } from "../src/index.js";
 import { loadExampleAssets } from "./helpers.js";
 
@@ -90,7 +91,7 @@ describe("static ad families", () => {
   it("preserves optional speaker portrait, product and logo as separate contain assets", async () => {
     const document = await example("testimonial-evidence");
     const assetId = document.assets[0]!.id;
-    document.layers.push(
+    (document.layers as DesignLayer[]).push(
       {
         id: "speaker",
         type: "image",
@@ -160,7 +161,7 @@ describe("static ad families", () => {
     headline.id = "custom-headline";
     document.layers.find((layer) => layer.type === "footer")!.id = "headline";
     headline.fontSize = 40;
-    document.layers.unshift({
+    (document.layers as DesignLayer[]).unshift({
       id: "hidden",
       type: "headline",
       visible: false,

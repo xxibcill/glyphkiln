@@ -1,0 +1,70 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_c2a4012b59ec99a3ce875a14",
+  "renderFingerprint": "c2a4012b59ec99a3ce875a1405229aec1e5dc47cd4b3edee02e7f33c33de2e0a",
+  "designDocumentId": "image-led-campaign-local-landscape",
+  "designDocumentHash": "44bfe24fc71288c68f12b281fd46ddee32ddf266c09d47ebbfcb304203190df6",
+  "seed": "kilnform-light-01",
+  "template": { "id": "image-led-campaign", "version": "1.2.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "kilnform-lamp-campaign",
+      "sha256": "42930ab31255277669c7aea6da1c25b27ddc61891d29ca8298adcc4b65d13368",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform lamp campaign fixture",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    },
+    {
+      "id": "kilnform-mark",
+      "sha256": "4c582c95cbb7fdff2597bb6c57a11da219a7ce328f0e67447b4894c95ad575d9",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform Kilnmaker Seal, deterministically redrawn from generated concept",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1200, "height": 627 },
+  "output": {
+    "format": "png",
+    "sha256": "3aabe295e38d79bb88828aafb19fcb1c08372f53aa0dbae908b47e877cd320af",
+    "byteSize": 1518366
+  },
+  "creationTimestamp": "2026-07-29T10:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

@@ -71,6 +71,8 @@ export type FittedText = WrappedText & {
   fontSize: number;
   bounds: Bounds;
   issues: QualityIssue[];
+  /** Present only when fitted with `settingAtSize`: the applied setting. */
+  setting?: { lineHeight: number; letterSpacingEm: number };
 };
 
 export type WrapTextOptions = {
@@ -89,6 +91,11 @@ export type FitTextOptions = {
   layerId: string;
   keepTogether?: readonly string[];
   letterSpacingEm?: number;
+  /**
+   * Size-dependent setting. When present it replaces `style.lineHeight` and
+   * `letterSpacingEm` at every candidate size.
+   */
+  settingAtSize?: (fontSize: number) => { lineHeight: number; letterSpacingEm: number };
 };
 
 type ParagraphWrap = {
@@ -242,6 +249,15 @@ export function fitText(options: FitTextOptions): FittedText {
 }
 
 function textStyleAtSize(options: FitTextOptions, fontSize: number): TextStyle {
+  if (options.settingAtSize !== undefined) {
+    const setting = options.settingAtSize(fontSize);
+    return {
+      ...options.style,
+      fontSize,
+      lineHeight: setting.lineHeight,
+      letterSpacing: setting.letterSpacingEm * fontSize,
+    };
+  }
   return {
     ...options.style,
     fontSize,
@@ -556,6 +572,9 @@ function toFittedText(
   return {
     ...wrapped,
     fontSize,
+    ...(options.settingAtSize === undefined
+      ? {}
+      : { setting: options.settingAtSize(fontSize) }),
     bounds: {
       x: options.box.x,
       y: options.box.y,
@@ -674,6 +693,11 @@ export {
   WHITESPACE_SEGMENTATION_POLICY_VERSION,
   segmentThaiText,
 };
+
+export { OPENTYPE_FEATURE_POLICY_VERSION } from "./opentype.js";
+export { RICH_TEXT_POLICY_VERSION } from "./rich-text.js";
+export { SIZE_SETTING_POLICY_VERSION, sizeSetting } from "./size-setting.js";
+export type { SizeSetting, SizeSettingRole } from "./size-setting.js";
 
 export {
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,

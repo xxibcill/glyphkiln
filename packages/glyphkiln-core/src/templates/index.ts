@@ -14,6 +14,10 @@ import {
 } from "./image-editorial.js";
 import { articleCoverTemplate } from "./article-cover.js";
 import {
+  quoteCardRolesTemplate,
+  statisticCardRolesTemplate,
+} from "./editorial-roles.js";
+import {
   quoteCardTypographicTemplate,
   statisticCardHeroTemplate,
 } from "./editorial-fill.js";
@@ -21,6 +25,7 @@ import {
   imageLedCampaignTemplate,
   imageLedCampaignV1_0_0Template,
 } from "./image-led-campaign.js";
+import { imageLedCampaignLocalTemplate } from "./image-led-campaign-local.js";
 import { benefitProofTemplate } from "./benefit-proof.js";
 import { productOfferTemplate } from "./product-offer.js";
 import { productAnnouncementTemplate } from "./product-announcement.js";
@@ -59,8 +64,16 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     productAnnouncementTemplate,
     productOfferTemplate,
   ]),
-  "statistic-card": Object.freeze([statisticCardTemplate, statisticCardHeroTemplate]),
-  "quote-card": Object.freeze([quoteCardTemplate, quoteCardTypographicTemplate]),
+  "statistic-card": Object.freeze([
+    statisticCardTemplate,
+    statisticCardHeroTemplate,
+    statisticCardRolesTemplate,
+  ]),
+  "quote-card": Object.freeze([
+    quoteCardTemplate,
+    quoteCardTypographicTemplate,
+    quoteCardRolesTemplate,
+  ]),
   "article-cover": Object.freeze([articleCoverTemplate]),
   "tiktok-carousel-slide": Object.freeze([
     tiktokCarouselSlideV1_0_1Template,
@@ -75,6 +88,7 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     imageLedCampaignTemplate,
     splitEditorialCampaignTemplate,
     balancedEditorialCampaignTemplate,
+    imageLedCampaignLocalTemplate,
   ]),
 });
 
@@ -155,6 +169,7 @@ export function checkTemplateRequirements(
       });
     }
   }
+  issues.push(...checkTemplateCapabilities(visibleLayers, template));
   for (const requirement of template.requiredAssetFits ?? []) {
     const layer = visibleLayers.find(
       (candidate) => candidate.type === requirement.layerType,
@@ -174,6 +189,57 @@ export function checkTemplateRequirements(
         actual: layer.fit,
       },
     });
+  }
+  return issues;
+}
+
+function checkTemplateCapabilities(
+  visibleLayers: readonly DesignDocument["layers"][number][],
+  template: TemplateDefinition,
+): QualityIssue[] {
+  const capabilities = template.capabilities ?? {};
+  const issues: QualityIssue[] = [];
+  const unsupported = (layerId: string, layerType: string, feature: string): void => {
+    issues.push({
+      code: "TEMPLATE_FEATURE_UNSUPPORTED",
+      severity: "error",
+      message: `Template "${template.id}@${template.version}" does not implement "${feature}" on "${layerType}" layers.`,
+      layerId,
+      details: {
+        templateId: template.id,
+        templateVersion: template.version,
+        layerType,
+        feature,
+      },
+    });
+  };
+  for (const layer of visibleLayers) {
+    if ("emphasis" in layer && layer.emphasis !== undefined) {
+      if (!(capabilities.textEmphasis ?? []).some((type) => type === layer.type)) {
+        unsupported(layer.id, layer.type, "emphasis");
+      }
+    }
+    if ("openType" in layer && layer.openType !== undefined) {
+      if (!(capabilities.openTypeFeatures ?? []).some((type) => type === layer.type)) {
+        unsupported(layer.id, layer.type, "openType");
+      }
+    }
+    if (layer.type !== "image") continue;
+    if (
+      "treatment" in layer &&
+      (layer.treatment === "local-dark-scrim" ||
+        layer.treatment === "local-light-scrim") &&
+      capabilities.localImageTreatments !== true
+    ) {
+      unsupported(layer.id, layer.type, `treatment:${layer.treatment}`);
+    }
+    if (
+      "subjectRegion" in layer &&
+      layer.subjectRegion !== undefined &&
+      capabilities.subjectRegion !== true
+    ) {
+      unsupported(layer.id, layer.type, "subjectRegion");
+    }
   }
   return issues;
 }
