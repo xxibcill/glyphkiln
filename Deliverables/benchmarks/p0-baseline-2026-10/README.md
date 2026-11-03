@@ -8,7 +8,7 @@ which need the owner's budget decision.**
 | File                                     | What it is                                                                                                                                           |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [critique-ledger.md](critique-ledger.md) | Seven-dimension critique of all 15 Kilnform stress-test graphics at full size and at 360 px phone width, with located findings, classes, and repairs |
-| [craft-review.json](craft-review.json)   | Advisory craft-heuristic results (policy `craft-review 1.1.0`) at 360 px, with a 600 px sensitivity run                                              |
+| [craft-review.json](craft-review.json)   | Advisory craft-heuristic results (policy `craft-review 1.2.0`) at 360 px, with a 600 px sensitivity run and the campaign format-set review           |
 | [phone-width/](phone-width/)             | Deterministic 360 px box-filtered previews used for the delivered-size critique                                                                      |
 | [briefs/](briefs/)                       | Twelve fixed benchmark briefs (seven Kilnform, five GD20 studies) and the [blind scoring protocol](briefs/scoring-sheet.md)                          |
 

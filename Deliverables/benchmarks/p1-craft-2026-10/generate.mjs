@@ -9,7 +9,9 @@ import { PNG } from "pngjs";
 import prettier from "prettier";
 
 import {
+  CRAFT_REVIEW_POLICY_VERSION,
   renderGraphic,
+  reviewFormatSet,
   reviewGraphicCraft,
 } from "../../../packages/glyphkiln-core/dist/index.js";
 import { createQualificationEmitter } from "../../../scripts/qualification-output.mjs";
@@ -195,6 +197,7 @@ function label(finding) {
 }
 
 const summary = [];
+const campaignReviews = { before: [], after: [] };
 for (const item of cases) {
   const before = await load(item.name);
   const after = item.after(before);
@@ -222,6 +225,10 @@ for (const item of cases) {
     assets: before.assets.map((asset) => ({ ...asset, bytes: assetBytes[asset.id] })),
   });
   const reviewAfter = await reviewGraphicCraft(after, { assets });
+  if (item.name.startsWith("campaign-")) {
+    campaignReviews.before.push({ format: before.format, review: reviewBefore });
+    campaignReviews.after.push({ format: after.format, review: reviewAfter });
+  }
   summary.push({
     design: item.name,
     before: `${before.template.id}@${before.template.version}`,
@@ -241,16 +248,38 @@ for (const item of cases) {
   });
 }
 
+function formatSetSummary(entries) {
+  const review = reviewFormatSet(entries);
+  return {
+    findings: review.findings.map(
+      (finding) =>
+        `${finding.code} ${finding.details.formats.join(" / ")} (${finding.details.layoutDistance})`,
+    ),
+    pairs: review.metrics.pairs.map((pair) => ({
+      formats: pair.formats,
+      layoutDistance: pair.layoutDistance,
+      sameReadingOrder: pair.sameReadingOrder,
+    })),
+  };
+}
+const campaignFormatSet = {
+  before: formatSetSummary(campaignReviews.before),
+  after: formatSetSummary(campaignReviews.after),
+};
+
 await emit(
   resolve(OUT, "craft-comparison.json"),
   await prettier.format(
     JSON.stringify({
-      purpose:
-        "P1 craft repairs on three Kilnform graphics. Advisory craft-review findings before and after (policy 1.1.0); not audience or expert-comparison evidence.",
+      purpose: `P1 craft repairs on three Kilnform graphics. Advisory craft-review findings before and after (policy ${CRAFT_REVIEW_POLICY_VERSION}); not audience or expert-comparison evidence.`,
       summary,
+      campaignFormatSet,
     }),
     { parser: "json" },
   ),
+);
+console.log(
+  `campaign format set: ${campaignFormatSet.before.findings.length} → ${campaignFormatSet.after.findings.length} findings`,
 );
 for (const item of summary) {
   console.log(

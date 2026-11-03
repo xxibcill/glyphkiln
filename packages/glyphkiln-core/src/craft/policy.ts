@@ -5,7 +5,7 @@
  *
  * Thresholds are documented starting values for review, not proven optima.
  */
-export const CRAFT_REVIEW_POLICY_VERSION = "1.1.0" as const;
+export const CRAFT_REVIEW_POLICY_VERSION = "1.2.0" as const;
 
 export const CRAFT_FINDING_CODES = [
   "CRAFT_TEXT_SMALL_AT_DELIVERY",
@@ -13,6 +13,8 @@ export const CRAFT_FINDING_CODES = [
   "CRAFT_DEAD_SPACE",
   "CRAFT_ACCENT_OVERUSE",
   "CRAFT_MARK_LOW_VISIBILITY",
+  "CRAFT_PRODUCT_COLOR_DIMMED",
+  "CRAFT_FORMATS_NOT_RECOMPOSED",
 ] as const;
 
 export type CraftFindingCode = (typeof CRAFT_FINDING_CODES)[number];
@@ -40,6 +42,18 @@ export type CraftReviewThresholds = {
   markMinimumContrast: number;
   /** Minimum displayed size, in display pixels, of a mark's longer visible side. */
   markMinimumSize: number;
+  /**
+   * Minimum share of a photograph's dominant-color chroma (OKLab) that must
+   * survive into the rendered canvas.
+   */
+  imageChromaRetention: number;
+  /** Largest allowed drop in OKLab lightness (0–1) of a dominant image color. */
+  imageLightnessDrop: number;
+  /**
+   * Format-set review only: normalized layout distance at or below which two
+   * formats with the same reading order count as one composition resized.
+   */
+  formatLayoutDistance: number;
 };
 
 export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.freeze({
@@ -54,6 +68,9 @@ export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.fre
   accentUsageCount: 5,
   markMinimumContrast: 3,
   markMinimumSize: 24,
+  imageChromaRetention: 0.75,
+  imageLightnessDrop: 0.1,
+  formatLayoutDistance: 0.12,
 });
 
 /** Containers smaller than this share of the canvas are treated as marks or rules. */
@@ -64,3 +81,22 @@ export const CRAFT_BACKGROUND_AREA = 0.9;
 export const CRAFT_PIXEL_TOLERANCE = 8;
 /** Per-channel difference that separates mark ink from the ground behind it. */
 export const CRAFT_MARK_PIXEL_DIFFERENCE = 16;
+/** Photographs smaller than this share of the canvas are not color-reviewed. */
+export const CRAFT_IMAGE_MINIMUM_AREA = 0.04;
+/** Samples per axis across an image's visible region. */
+export const CRAFT_IMAGE_SAMPLE_GRID = 96;
+/** OKLab chroma below which a source pixel is treated as neutral. */
+export const CRAFT_IMAGE_CHROMATIC_MINIMUM = 0.04;
+/** Hue bins, of equal width, used to group dominant image colors. */
+export const CRAFT_IMAGE_HUE_BINS = 12;
+/**
+ * Share of chromatic samples a hue bin needs to count as a dominant color. Low
+ * enough that a product occupying a small part of a photograph is included.
+ */
+export const CRAFT_IMAGE_COLOR_SHARE = 0.02;
+/** Minimum samples in a dominant color, so tiny regions are not judged. */
+export const CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES = 16;
+/** Dominant colors reported per image. */
+export const CRAFT_IMAGE_MAXIMUM_COLORS = 4;
+/** Reviews accepted by one format-set review. */
+export const CRAFT_FORMAT_SET_MAXIMUM = 16;

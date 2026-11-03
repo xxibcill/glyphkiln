@@ -92,13 +92,15 @@ const fullWidth = { x: 0, y: 0, width: 1000, height: 1000 };
 
 describe("craft review policy", () => {
   it("publishes a closed, versioned advisory vocabulary", () => {
-    expect(CRAFT_REVIEW_POLICY_VERSION).toBe("1.1.0");
+    expect(CRAFT_REVIEW_POLICY_VERSION).toBe("1.2.0");
     expect(CRAFT_FINDING_CODES).toEqual([
       "CRAFT_TEXT_SMALL_AT_DELIVERY",
       "CRAFT_WEAK_SCALE_CONTRAST",
       "CRAFT_DEAD_SPACE",
       "CRAFT_ACCENT_OVERUSE",
       "CRAFT_MARK_LOW_VISIBILITY",
+      "CRAFT_PRODUCT_COLOR_DIMMED",
+      "CRAFT_FORMATS_NOT_RECOMPOSED",
     ]);
     expect(Object.isFrozen(CRAFT_REVIEW_DEFAULTS)).toBe(true);
     const review = analyzeCraft(model([text("tiny", 10, fullWidth)]));
@@ -437,7 +439,7 @@ describe("reviewGraphicCraft", () => {
       before.outputs.map((output) => sha256(output.bytes)),
     );
     expect(after.qualityIssues).toEqual(before.qualityIssues);
-    expect(first.policyVersion).toBe("1.1.0");
+    expect(first.policyVersion).toBe("1.2.0");
     expect(first.metrics.accent.colors).toEqual([
       document.brand.palette.accent.toLowerCase(),
     ]);

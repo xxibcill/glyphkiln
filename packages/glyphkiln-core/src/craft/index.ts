@@ -1,6 +1,16 @@
 export { reviewGraphicCraft } from "./graphic.js";
 export { reviewSceneCraft } from "./scene.js";
 export type { CraftReviewOptions } from "./review.js";
+export type { CraftImageColorMetric, CraftImageMetric } from "./color.js";
+export {
+  reviewFormatSet,
+  type CraftFormatPairMetric,
+  type CraftFormatSetEntry,
+  type CraftFormatSetFinding,
+  type CraftFormatSetReview,
+  type CraftLayoutElement,
+  type CraftLayoutRole,
+} from "./layout.js";
 export {
   analyzeCraft,
   resolveCraftThresholds,
