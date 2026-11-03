@@ -266,6 +266,7 @@ export {
   CRAFT_FINDING_CODES,
   CRAFT_REVIEW_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
+  reviewFormatSet,
   reviewGraphicCraft,
 } from "./craft/index.js";
 export type {
@@ -273,6 +274,14 @@ export type {
   CraftEmptyBand,
   CraftFinding,
   CraftFindingCode,
+  CraftFormatPairMetric,
+  CraftFormatSetEntry,
+  CraftFormatSetFinding,
+  CraftFormatSetReview,
+  CraftImageColorMetric,
+  CraftImageMetric,
+  CraftLayoutElement,
+  CraftLayoutRole,
   CraftMarkMetric,
   CraftReview,
   CraftReviewOptions,

@@ -39,6 +39,25 @@ export type CraftElement = {
   stroke: string | null;
   opacity: number;
   text?: CraftTextFacts;
+  /**
+   * Images only: canvas-space region where the image is actually painted
+   * (placed image within its box and clip), or null when it cannot be mapped
+   * axis-aligned. `bounds` keeps the full placement box.
+   */
+  visibleBounds?: Bounds | null;
+};
+
+/**
+ * Source pixels of a placed image and where they land on the canvas, so
+ * rendered pixels can be compared with the asset at the same positions.
+ */
+export type CraftImageSource = {
+  elementId: string;
+  source: CraftRaster;
+  /** Canvas-space rectangle covered by the whole (unclipped) source image. */
+  placed: Bounds;
+  /** Canvas-space region where the image is visible. */
+  visible: Bounds;
 };
 
 export type CraftModel = {
@@ -49,7 +68,12 @@ export type CraftModel = {
   accentColors: string[];
   /** Brand marks to review, with the same canvas rendered without them. */
   marks: { elementIds: string[]; background: CraftRaster | null };
+  /** Decoded image sources for the product-color check; absent means none. */
+  images?: CraftImageSource[];
 };
+
+/** Decodes an image href to straight RGBA pixels, or null when it cannot. */
+export type CraftImageDecoder = (href: string) => CraftRaster | null;
 
 /** Typical lowercase x-height ratio used only when a face cannot report one. */
 const FALLBACK_X_HEIGHT_RATIO = 0.5;
@@ -61,8 +85,10 @@ export function buildCraftModel(input: {
   accentColors: readonly string[];
   markIds?: readonly string[];
   markBackground?: CraftRaster | null;
+  decodeImage?: CraftImageDecoder;
 }): CraftModel {
   const elements: CraftElement[] = [];
+  const images: CraftImageSource[] = [];
   const metrics = new Map<string, number>();
   const visit = (
     element: SceneKernelElement,
@@ -110,6 +136,19 @@ export function buildCraftModel(input: {
         lineCount: element.lines.length,
       };
     }
+    if (element.type === "image") {
+      const source = input.decodeImage?.(element.href) ?? null;
+      const placement = imagePlacement(element, matrix, source);
+      record.visibleBounds = placement?.visible ?? null;
+      if (source !== null && placement !== null && placement.placed !== null) {
+        images.push({
+          elementId: element.id,
+          source,
+          placed: placement.placed,
+          visible: placement.visible,
+        });
+      }
+    }
     elements.push(record);
   };
   for (const element of input.scene.elements) visit(element, IDENTITY, 1, false);
@@ -129,7 +168,64 @@ export function buildCraftModel(input: {
       elementIds: [...(input.markIds ?? [])],
       background: input.markBackground ?? null,
     },
+    images,
   };
+}
+
+/**
+ * Where an image is painted, following the SVG serializer: the source is
+ * fitted into its box (xMidYMid meet for "contain", slice for "cover"), clipped
+ * to the box for "cover" and to `clipBounds` when present. Only axis-aligned
+ * transforms can be mapped; rotated images return null. Without decoded
+ * source dimensions the visible region is the box and clip intersection.
+ */
+function imagePlacement(
+  element: Extract<SceneKernelElement, { type: "image" }>,
+  matrix: Matrix,
+  source: CraftRaster | null,
+): { placed: Bounds | null; visible: Bounds } | null {
+  const [, b, c] = matrix;
+  if (Math.abs(b) > 1e-9 || Math.abs(c) > 1e-9) return null;
+  const box = {
+    x: element.x,
+    y: element.y,
+    width: element.width,
+    height: element.height,
+  };
+  let placed: Bounds | null = null;
+  let visible: Bounds | null = box;
+  if (source !== null && source.width > 0 && source.height > 0) {
+    const scale =
+      element.fit === "cover"
+        ? Math.max(box.width / source.width, box.height / source.height)
+        : Math.min(box.width / source.width, box.height / source.height);
+    const width = source.width * scale;
+    const height = source.height * scale;
+    placed = {
+      x: box.x + (box.width - width) / 2,
+      y: box.y + (box.height - height) / 2,
+      width,
+      height,
+    };
+    visible = intersectBounds(box, placed);
+  }
+  if (visible !== null && element.clipBounds !== undefined) {
+    visible = intersectBounds(visible, element.clipBounds);
+  }
+  if (visible === null) return null;
+  return {
+    placed: placed === null ? null : transformBounds(placed, matrix),
+    visible: transformBounds(visible, matrix),
+  };
+}
+
+function intersectBounds(left: Bounds, right: Bounds): Bounds | null {
+  const x = Math.max(left.x, right.x);
+  const y = Math.max(left.y, right.y);
+  const x1 = Math.min(left.x + left.width, right.x + right.width);
+  const y1 = Math.min(left.y + left.height, right.y + right.height);
+  if (x1 <= x || y1 <= y) return null;
+  return { x, y, width: x1 - x, height: y1 - y };
 }
 
 function xHeightRatio(

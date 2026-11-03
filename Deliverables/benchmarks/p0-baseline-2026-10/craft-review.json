@@ -1,5 +1,5 @@
 {
-  "purpose": "Advisory craft heuristics (policy craft-review 1.0.0) applied to the Kilnform stress-test designs. Findings are review prompts, not quality verdicts or audience results.",
+  "purpose": "Advisory craft heuristics (policy craft-review 1.2.0) applied to the Kilnform stress-test designs. Findings are review prompts, not quality verdicts or audience results.",
   "displayWidths": {
     "primary": 360,
     "desktopSensitivity": 600
@@ -38,18 +38,36 @@
     },
     {
       "design": "designs/campaign-instagram-portrait.json",
-      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "findings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/campaign-instagram-square.json",
-      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "findings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/campaign-linkedin-landscape.json",
-      "findings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "findings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/carousel-01.json",
@@ -177,13 +195,115 @@
       ]
     }
   ],
+  "formatSets": {
+    "campaign": {
+      "findings": [
+        "CRAFT_FORMATS_NOT_RECOMPOSED instagram-portrait / instagram-square (0.0228)",
+        "CRAFT_FORMATS_NOT_RECOMPOSED instagram-portrait / linkedin-landscape (0.0688)",
+        "CRAFT_FORMATS_NOT_RECOMPOSED instagram-square / linkedin-landscape (0.0748)"
+      ],
+      "review": {
+        "policyVersion": "1.2.0",
+        "formatLayoutDistance": 0.12,
+        "formats": [
+          {
+            "format": "instagram-portrait",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            }
+          },
+          {
+            "format": "instagram-square",
+            "canvas": {
+              "width": 1080,
+              "height": 1080
+            }
+          },
+          {
+            "format": "linkedin-landscape",
+            "canvas": {
+              "width": 1200,
+              "height": 627
+            }
+          }
+        ],
+        "findings": [
+          {
+            "code": "CRAFT_FORMATS_NOT_RECOMPOSED",
+            "severity": "advisory",
+            "message": "\"instagram-portrait\" and \"instagram-square\" place their text, image, and mark elements in nearly the same normalized positions and reading order (layout distance 0.023); recompose each format for its shape instead of resizing one composition.",
+            "details": {
+              "formats": ["instagram-portrait", "instagram-square"],
+              "layoutDistance": 0.0228,
+              "sameReadingOrder": true,
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "formatLayoutDistance": 0.12
+            }
+          },
+          {
+            "code": "CRAFT_FORMATS_NOT_RECOMPOSED",
+            "severity": "advisory",
+            "message": "\"instagram-portrait\" and \"linkedin-landscape\" place their text, image, and mark elements in nearly the same normalized positions and reading order (layout distance 0.069); recompose each format for its shape instead of resizing one composition.",
+            "details": {
+              "formats": ["instagram-portrait", "linkedin-landscape"],
+              "layoutDistance": 0.0688,
+              "sameReadingOrder": true,
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "formatLayoutDistance": 0.12
+            }
+          },
+          {
+            "code": "CRAFT_FORMATS_NOT_RECOMPOSED",
+            "severity": "advisory",
+            "message": "\"instagram-square\" and \"linkedin-landscape\" place their text, image, and mark elements in nearly the same normalized positions and reading order (layout distance 0.075); recompose each format for its shape instead of resizing one composition.",
+            "details": {
+              "formats": ["instagram-square", "linkedin-landscape"],
+              "layoutDistance": 0.0748,
+              "sameReadingOrder": true,
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "formatLayoutDistance": 0.12
+            }
+          }
+        ],
+        "metrics": {
+          "pairs": [
+            {
+              "formats": ["instagram-portrait", "instagram-square"],
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "unmatchedElementIds": [],
+              "layoutDistance": 0.0228,
+              "sameReadingOrder": true,
+              "notRecomposed": true
+            },
+            {
+              "formats": ["instagram-portrait", "linkedin-landscape"],
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "unmatchedElementIds": [],
+              "layoutDistance": 0.0688,
+              "sameReadingOrder": true,
+              "notRecomposed": true
+            },
+            {
+              "formats": ["instagram-square", "linkedin-landscape"],
+              "sharedElementIds": ["brand-mark", "headline", "campaign-image"],
+              "unmatchedElementIds": [],
+              "layoutDistance": 0.0748,
+              "sameReadingOrder": true,
+              "notRecomposed": true
+            }
+          ]
+        }
+      }
+    }
+  },
   "reviews": [
     {
       "design": "designs/announcement-a.json",
       "template": "product-announcement@1.1.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -195,7 +315,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1200,
@@ -300,7 +423,50 @@
             "usageCount": 3,
             "elementIds": ["announcement-accent", "eyebrow", "cta"]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "eyebrow",
+              "role": "text",
+              "bounds": {
+                "x": 0.0712,
+                "y": 0.1319,
+                "width": 0.2536,
+                "height": 0.0306
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0718,
+                "y": 0.2377,
+                "width": 0.4521,
+                "height": 0.1899
+              }
+            },
+            {
+              "elementId": "subtitle",
+              "role": "text",
+              "bounds": {
+                "x": 0.0705,
+                "y": 0.4788,
+                "width": 0.3823,
+                "height": 0.0381
+              }
+            },
+            {
+              "elementId": "cta",
+              "role": "text",
+              "bounds": {
+                "x": 0.0712,
+                "y": 0.8512,
+                "width": 0.1921,
+                "height": 0.0259
+              }
+            }
+          ]
         }
       },
       "desktopFindings": []
@@ -310,7 +476,7 @@
       "template": "product-announcement@1.1.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -322,7 +488,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1200,
@@ -427,7 +596,50 @@
             "usageCount": 3,
             "elementIds": ["announcement-accent", "eyebrow", "cta"]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "eyebrow",
+              "role": "text",
+              "bounds": {
+                "x": 0.0712,
+                "y": 0.1319,
+                "width": 0.2536,
+                "height": 0.0306
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0718,
+                "y": 0.2377,
+                "width": 0.6646,
+                "height": 0.1899
+              }
+            },
+            {
+              "elementId": "subtitle",
+              "role": "text",
+              "bounds": {
+                "x": 0.0705,
+                "y": 0.4784,
+                "width": 0.4554,
+                "height": 0.0387
+              }
+            },
+            {
+              "elementId": "cta",
+              "role": "text",
+              "bounds": {
+                "x": 0.0712,
+                "y": 0.8512,
+                "width": 0.2325,
+                "height": 0.0259
+              }
+            }
+          ]
         }
       },
       "desktopFindings": []
@@ -437,7 +649,7 @@
       "template": "article-cover@1.1.0",
       "format": "youtube-thumbnail",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -449,7 +661,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1280,
@@ -549,7 +764,40 @@
             "usageCount": 2,
             "elementIds": ["article-accent", "eyebrow"]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "eyebrow",
+              "role": "text",
+              "bounds": {
+                "x": 0.071,
+                "y": 0.4193,
+                "width": 0.1598,
+                "height": 0.0208
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0711,
+                "y": 0.5031,
+                "width": 0.4634,
+                "height": 0.1708
+              }
+            },
+            {
+              "elementId": "byline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0704,
+                "y": 0.8786,
+                "width": 0.2066,
+                "height": 0.0187
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [
@@ -563,7 +811,7 @@
       "template": "image-led-campaign@1.0.1",
       "format": "instagram-portrait",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -575,7 +823,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -596,6 +847,52 @@
               "markMinimumContrast": 3,
               "markMinimumSize": 24
             }
+          },
+          {
+            "code": "CRAFT_PRODUCT_COLOR_DIMMED",
+            "severity": "advisory",
+            "message": "Image \"campaign-image\" loses its own color in the render: 3 of 3 dominant colors are dimmed (hue 240–270° keeps 51% of its chroma, lightness -0.129); protect the product: put contrast treatment only behind the copy, move the copy to a quiet area, or lighten the treatment.",
+            "elementId": "campaign-image",
+            "details": {
+              "dimmedColors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4442,
+                  "sourceLightness": 0.5236,
+                  "renderedLightness": 0.3026,
+                  "sourceChroma": 0.1122,
+                  "renderedChroma": 0.058,
+                  "chromaRetention": 0.5171,
+                  "lightnessChange": -0.2209,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4318,
+                  "sourceLightness": 0.703,
+                  "renderedLightness": 0.3926,
+                  "sourceChroma": 0.1078,
+                  "renderedChroma": 0.0555,
+                  "chromaRetention": 0.515,
+                  "lightnessChange": -0.3104,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0421,
+                  "sourceLightness": 0.3368,
+                  "renderedLightness": 0.2074,
+                  "sourceChroma": 0.109,
+                  "renderedChroma": 0.0554,
+                  "chromaRetention": 0.5081,
+                  "lightnessChange": -0.1294,
+                  "dimmed": true
+                }
+              ],
+              "sampleCount": 8933,
+              "imageChromaRetention": 0.75,
+              "imageLightnessDrop": 0.1
+            }
           }
         ],
         "metrics": {
@@ -627,17 +924,94 @@
               "medianContrast": 1.4258,
               "displayedSize": 20.3333
             }
+          ],
+          "images": [
+            {
+              "elementId": "campaign-image",
+              "sampleCount": 8933,
+              "chromaticSampleCount": 8329,
+              "colors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4442,
+                  "sourceLightness": 0.5236,
+                  "renderedLightness": 0.3026,
+                  "sourceChroma": 0.1122,
+                  "renderedChroma": 0.058,
+                  "chromaRetention": 0.5171,
+                  "lightnessChange": -0.2209,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4318,
+                  "sourceLightness": 0.703,
+                  "renderedLightness": 0.3926,
+                  "sourceChroma": 0.1078,
+                  "renderedChroma": 0.0555,
+                  "chromaRetention": 0.515,
+                  "lightnessChange": -0.3104,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0421,
+                  "sourceLightness": 0.3368,
+                  "renderedLightness": 0.2074,
+                  "sourceChroma": 0.109,
+                  "renderedChroma": 0.0554,
+                  "chromaRetention": 0.5081,
+                  "lightnessChange": -0.1294,
+                  "dimmed": true
+                }
+              ]
+            }
+          ],
+          "layout": [
+            {
+              "elementId": "brand-mark",
+              "role": "mark",
+              "bounds": {
+                "x": 0.07,
+                "y": 0.08,
+                "width": 0.0648,
+                "height": 0.0519
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0727,
+                "y": 0.1889,
+                "width": 0.241,
+                "height": 0.1138
+              }
+            },
+            {
+              "elementId": "campaign-image",
+              "role": "image",
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            }
           ]
         }
       },
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/campaign-instagram-square.json",
       "template": "image-led-campaign@1.0.1",
       "format": "instagram-square",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -649,7 +1023,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -669,6 +1046,52 @@
               "displayWidth": 360,
               "markMinimumContrast": 3,
               "markMinimumSize": 24
+            }
+          },
+          {
+            "code": "CRAFT_PRODUCT_COLOR_DIMMED",
+            "severity": "advisory",
+            "message": "Image \"campaign-image\" loses its own color in the render: 3 of 3 dominant colors are dimmed (hue 240–270° keeps 51% of its chroma, lightness -0.132); protect the product: put contrast treatment only behind the copy, move the copy to a quiet area, or lighten the treatment.",
+            "elementId": "campaign-image",
+            "details": {
+              "dimmedColors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4667,
+                  "sourceLightness": 0.5269,
+                  "renderedLightness": 0.3045,
+                  "sourceChroma": 0.1136,
+                  "renderedChroma": 0.0588,
+                  "chromaRetention": 0.5174,
+                  "lightnessChange": -0.2225,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4367,
+                  "sourceLightness": 0.7026,
+                  "renderedLightness": 0.3926,
+                  "sourceChroma": 0.11,
+                  "renderedChroma": 0.0567,
+                  "chromaRetention": 0.5152,
+                  "lightnessChange": -0.3101,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0332,
+                  "sourceLightness": 0.3402,
+                  "renderedLightness": 0.2085,
+                  "sourceChroma": 0.1081,
+                  "renderedChroma": 0.0551,
+                  "chromaRetention": 0.51,
+                  "lightnessChange": -0.1317,
+                  "dimmed": true
+                }
+              ],
+              "sampleCount": 8876,
+              "imageChromaRetention": 0.75,
+              "imageLightnessDrop": 0.1
             }
           }
         ],
@@ -701,17 +1124,94 @@
               "medianContrast": 1.3891,
               "displayedSize": 20.3333
             }
+          ],
+          "images": [
+            {
+              "elementId": "campaign-image",
+              "sampleCount": 8876,
+              "chromaticSampleCount": 8421,
+              "colors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4667,
+                  "sourceLightness": 0.5269,
+                  "renderedLightness": 0.3045,
+                  "sourceChroma": 0.1136,
+                  "renderedChroma": 0.0588,
+                  "chromaRetention": 0.5174,
+                  "lightnessChange": -0.2225,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4367,
+                  "sourceLightness": 0.7026,
+                  "renderedLightness": 0.3926,
+                  "sourceChroma": 0.11,
+                  "renderedChroma": 0.0567,
+                  "chromaRetention": 0.5152,
+                  "lightnessChange": -0.3101,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0332,
+                  "sourceLightness": 0.3402,
+                  "renderedLightness": 0.2085,
+                  "sourceChroma": 0.1081,
+                  "renderedChroma": 0.0551,
+                  "chromaRetention": 0.51,
+                  "lightnessChange": -0.1317,
+                  "dimmed": true
+                }
+              ]
+            }
+          ],
+          "layout": [
+            {
+              "elementId": "brand-mark",
+              "role": "mark",
+              "bounds": {
+                "x": 0.07,
+                "y": 0.08,
+                "width": 0.0648,
+                "height": 0.0648
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0727,
+                "y": 0.2161,
+                "width": 0.241,
+                "height": 0.1422
+              }
+            },
+            {
+              "elementId": "campaign-image",
+              "role": "image",
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            }
           ]
         }
       },
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/campaign-linkedin-landscape.json",
       "template": "image-led-campaign@1.0.1",
       "format": "linkedin-landscape",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -723,7 +1223,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1200,
@@ -743,6 +1246,52 @@
               "displayWidth": 360,
               "markMinimumContrast": 3,
               "markMinimumSize": 24
+            }
+          },
+          {
+            "code": "CRAFT_PRODUCT_COLOR_DIMMED",
+            "severity": "advisory",
+            "message": "Image \"campaign-image\" loses its own color in the render: 3 of 3 dominant colors are dimmed (hue 240–270° keeps 51% of its chroma, lightness -0.132); protect the product: put contrast treatment only behind the copy, move the copy to a quiet area, or lighten the treatment.",
+            "elementId": "campaign-image",
+            "details": {
+              "dimmedColors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4754,
+                  "sourceLightness": 0.4986,
+                  "renderedLightness": 0.2892,
+                  "sourceChroma": 0.1172,
+                  "renderedChroma": 0.061,
+                  "chromaRetention": 0.5203,
+                  "lightnessChange": -0.2093,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4416,
+                  "sourceLightness": 0.7018,
+                  "renderedLightness": 0.3918,
+                  "sourceChroma": 0.1134,
+                  "renderedChroma": 0.0585,
+                  "chromaRetention": 0.5158,
+                  "lightnessChange": -0.3101,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0272,
+                  "sourceLightness": 0.3451,
+                  "renderedLightness": 0.2129,
+                  "sourceChroma": 0.1087,
+                  "renderedChroma": 0.0554,
+                  "chromaRetention": 0.5092,
+                  "lightnessChange": -0.1322,
+                  "dimmed": true
+                }
+              ],
+              "sampleCount": 8936,
+              "imageChromaRetention": 0.75,
+              "imageLightnessDrop": 0.1
             }
           }
         ],
@@ -775,17 +1324,94 @@
               "medianContrast": 1.088,
               "displayedSize": 10.5
             }
+          ],
+          "images": [
+            {
+              "elementId": "campaign-image",
+              "sampleCount": 8936,
+              "chromaticSampleCount": 8530,
+              "colors": [
+                {
+                  "hueRange": [30, 60],
+                  "share": 0.4754,
+                  "sourceLightness": 0.4986,
+                  "renderedLightness": 0.2892,
+                  "sourceChroma": 0.1172,
+                  "renderedChroma": 0.061,
+                  "chromaRetention": 0.5203,
+                  "lightnessChange": -0.2093,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [60, 90],
+                  "share": 0.4416,
+                  "sourceLightness": 0.7018,
+                  "renderedLightness": 0.3918,
+                  "sourceChroma": 0.1134,
+                  "renderedChroma": 0.0585,
+                  "chromaRetention": 0.5158,
+                  "lightnessChange": -0.3101,
+                  "dimmed": true
+                },
+                {
+                  "hueRange": [240, 270],
+                  "share": 0.0272,
+                  "sourceLightness": 0.3451,
+                  "renderedLightness": 0.2129,
+                  "sourceChroma": 0.1087,
+                  "renderedChroma": 0.0554,
+                  "chromaRetention": 0.5092,
+                  "lightnessChange": -0.1322,
+                  "dimmed": true
+                }
+              ]
+            }
+          ],
+          "layout": [
+            {
+              "elementId": "brand-mark",
+              "role": "mark",
+              "bounds": {
+                "x": 0.07,
+                "y": 0.08,
+                "width": 0.0339,
+                "height": 0.0648
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.072,
+                "y": 0.2123,
+                "width": 0.3852,
+                "height": 0.0652
+              }
+            },
+            {
+              "elementId": "campaign-image",
+              "role": "image",
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            }
           ]
         }
       },
-      "desktopFindings": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"]
+      "desktopFindings": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ]
     },
     {
       "design": "designs/carousel-01.json",
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -797,7 +1423,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -941,7 +1570,60 @@
               "cta-marker"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7517,
+                "y": 0.0926,
+                "width": 0.0741,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "eyebrow",
+              "role": "text",
+              "bounds": {
+                "x": 0.1271,
+                "y": 0.0935,
+                "width": 0.4102,
+                "height": 0.0157
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.1265,
+                "y": 0.1908,
+                "width": 0.6009,
+                "height": 0.2197
+              }
+            },
+            {
+              "elementId": "cta",
+              "role": "text",
+              "bounds": {
+                "x": 0.1545,
+                "y": 0.5369,
+                "width": 0.4833,
+                "height": 0.0161
+              }
+            },
+            {
+              "elementId": "footer",
+              "role": "text",
+              "bounds": {
+                "x": 0.1265,
+                "y": 0.8861,
+                "width": 0.4113,
+                "height": 0.0151
+              }
+            }
+          ]
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE (canvas)"]
@@ -951,7 +1633,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -963,7 +1645,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1092,7 +1777,40 @@
               "slide-number-background"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7494,
+                "y": 0.0926,
+                "width": 0.0787,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.1282,
+                "y": 0.176,
+                "width": 0.429,
+                "height": 0.0888
+              }
+            },
+            {
+              "elementId": "subtitle",
+              "role": "text",
+              "bounds": {
+                "x": 0.1281,
+                "y": 0.2949,
+                "width": 0.3972,
+                "height": 0.0221
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [
@@ -1105,7 +1823,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1117,7 +1835,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1259,7 +1980,60 @@
               "placement-count-value"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7492,
+                "y": 0.0926,
+                "width": 0.079,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.1276,
+                "y": 0.1764,
+                "width": 0.5056,
+                "height": 0.0984
+              }
+            },
+            {
+              "elementId": "placement-count-value",
+              "role": "text",
+              "bounds": {
+                "x": 0.1312,
+                "y": 0.3136,
+                "width": 0.1784,
+                "height": 0.0789
+              }
+            },
+            {
+              "elementId": "placement-count-label",
+              "role": "text",
+              "bounds": {
+                "x": 0.1269,
+                "y": 0.4118,
+                "width": 0.2937,
+                "height": 0.0208
+              }
+            },
+            {
+              "elementId": "placement-count-trend",
+              "role": "text",
+              "bounds": {
+                "x": 0.1258,
+                "y": 0.592,
+                "width": 0.18,
+                "height": 0.0143
+              }
+            }
+          ]
         }
       },
       "desktopFindings": ["CRAFT_ACCENT_OVERUSE (canvas)"]
@@ -1269,7 +2043,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1281,7 +2055,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1410,7 +2187,40 @@
               "slide-number-background"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7488,
+                "y": 0.0926,
+                "width": 0.0797,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.2565,
+                "y": 0.1742,
+                "width": 0.5228,
+                "height": 0.0906
+              }
+            },
+            {
+              "elementId": "subtitle",
+              "role": "text",
+              "bounds": {
+                "x": 0.2556,
+                "y": 0.2942,
+                "width": 0.4024,
+                "height": 0.051
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [
@@ -1423,7 +2233,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1435,7 +2245,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1564,7 +2377,40 @@
               "slide-number-background"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7495,
+                "y": 0.0926,
+                "width": 0.0785,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.2562,
+                "y": 0.1764,
+                "width": 0.4812,
+                "height": 0.0884
+              }
+            },
+            {
+              "elementId": "subtitle",
+              "role": "text",
+              "bounds": {
+                "x": 0.2565,
+                "y": 0.2941,
+                "width": 0.4939,
+                "height": 0.0522
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [
@@ -1577,7 +2423,7 @@
       "template": "tiktok-carousel-slide@1.0.4",
       "format": "tiktok-photo-carousel",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1589,7 +2435,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1728,7 +2577,50 @@
               "cta-marker"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "slide-number",
+              "role": "text",
+              "bounds": {
+                "x": 0.7491,
+                "y": 0.0926,
+                "width": 0.0791,
+                "height": 0.0151
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.1309,
+                "y": 0.1818,
+                "width": 0.5374,
+                "height": 0.0523
+              }
+            },
+            {
+              "elementId": "cta",
+              "role": "text",
+              "bounds": {
+                "x": 0.1552,
+                "y": 0.5272,
+                "width": 0.3691,
+                "height": 0.0161
+              }
+            },
+            {
+              "elementId": "footer",
+              "role": "text",
+              "bounds": {
+                "x": 0.1273,
+                "y": 0.8861,
+                "width": 0.3192,
+                "height": 0.0151
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [
@@ -1741,7 +2633,7 @@
       "template": "quote-card@1.1.0",
       "format": "instagram-portrait",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1753,7 +2645,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1834,7 +2729,30 @@
             "usageCount": 1,
             "elementIds": ["quote-accent"]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "quote",
+              "role": "text",
+              "bounds": {
+                "x": 0.2006,
+                "y": 0.2914,
+                "width": 0.5977,
+                "height": 0.1027
+              }
+            },
+            {
+              "elementId": "attribution",
+              "role": "text",
+              "bounds": {
+                "x": 0.3705,
+                "y": 0.7643,
+                "width": 0.2593,
+                "height": 0.0128
+              }
+            }
+          ]
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
@@ -1844,7 +2762,7 @@
       "template": "statistic-card@1.1.0",
       "format": "instagram-square",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1856,7 +2774,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1080,
@@ -1949,7 +2870,50 @@
             "usageCount": 2,
             "elementIds": ["statistic-accent", "placement-count-value"]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0718,
+                "y": 0.089,
+                "width": 0.6046,
+                "height": 0.0366
+              }
+            },
+            {
+              "elementId": "placement-count-value",
+              "role": "text",
+              "bounds": {
+                "x": 0.0765,
+                "y": 0.4201,
+                "width": 0.2066,
+                "height": 0.1217
+              }
+            },
+            {
+              "elementId": "placement-count-label",
+              "role": "text",
+              "bounds": {
+                "x": 0.0715,
+                "y": 0.5645,
+                "width": 0.3316,
+                "height": 0.0313
+              }
+            },
+            {
+              "elementId": "placement-count-trend",
+              "role": "text",
+              "bounds": {
+                "x": 0.0702,
+                "y": 0.8828,
+                "width": 0.1619,
+                "height": 0.0173
+              }
+            }
+          ]
         }
       },
       "desktopFindings": ["CRAFT_DEAD_SPACE brand-surface"]
@@ -1959,7 +2923,7 @@
       "template": "scene-kernel",
       "format": "1200x675",
       "review": {
-        "policyVersion": "1.1.0",
+        "policyVersion": "1.2.0",
         "thresholds": {
           "displayWidth": 360,
           "minimumXHeight": 5.5,
@@ -1971,7 +2935,10 @@
           "accentAreaFraction": 0.08,
           "accentUsageCount": 5,
           "markMinimumContrast": 3,
-          "markMinimumSize": 24
+          "markMinimumSize": 24,
+          "imageChromaRetention": 0.75,
+          "imageLightnessDrop": 0.1,
+          "formatLayoutDistance": 0.12
         },
         "canvas": {
           "width": 1200,
@@ -2428,7 +3395,190 @@
               "rail-finish"
             ]
           },
-          "marks": []
+          "marks": [],
+          "images": [],
+          "layout": [
+            {
+              "elementId": "series-label",
+              "role": "text",
+              "bounds": {
+                "x": 0.8346,
+                "y": 0.0766,
+                "width": 0.118,
+                "height": 0.0168
+              }
+            },
+            {
+              "elementId": "brand-wordmark",
+              "role": "text",
+              "bounds": {
+                "x": 0.0785,
+                "y": 0.0758,
+                "width": 0.087,
+                "height": 0.0199
+              }
+            },
+            {
+              "elementId": "headline",
+              "role": "text",
+              "bounds": {
+                "x": 0.0503,
+                "y": 0.1663,
+                "width": 0.5688,
+                "height": 0.0962
+              }
+            },
+            {
+              "elementId": "deck",
+              "role": "text",
+              "bounds": {
+                "x": 0.0498,
+                "y": 0.2802,
+                "width": 0.4185,
+                "height": 0.029
+              }
+            },
+            {
+              "elementId": "shape-index",
+              "role": "text",
+              "bounds": {
+                "x": 0.0655,
+                "y": 0.4055,
+                "width": 0.0594,
+                "height": 0.0168
+              }
+            },
+            {
+              "elementId": "dry-index",
+              "role": "text",
+              "bounds": {
+                "x": 0.298,
+                "y": 0.4055,
+                "width": 0.0578,
+                "height": 0.0168
+              }
+            },
+            {
+              "elementId": "fire-index",
+              "role": "text",
+              "bounds": {
+                "x": 0.5305,
+                "y": 0.4055,
+                "width": 0.104,
+                "height": 0.0168
+              }
+            },
+            {
+              "elementId": "finish-index",
+              "role": "text",
+              "bounds": {
+                "x": 0.763,
+                "y": 0.4055,
+                "width": 0.0638,
+                "height": 0.0168
+              }
+            },
+            {
+              "elementId": "fire-title",
+              "role": "text",
+              "bounds": {
+                "x": 0.5308,
+                "y": 0.4519,
+                "width": 0.0433,
+                "height": 0.0346
+              }
+            },
+            {
+              "elementId": "finish-title",
+              "role": "text",
+              "bounds": {
+                "x": 0.7633,
+                "y": 0.4519,
+                "width": 0.0702,
+                "height": 0.0346
+              }
+            },
+            {
+              "elementId": "shape-title",
+              "role": "text",
+              "bounds": {
+                "x": 0.0652,
+                "y": 0.4532,
+                "width": 0.0751,
+                "height": 0.0418
+              }
+            },
+            {
+              "elementId": "dry-title",
+              "role": "text",
+              "bounds": {
+                "x": 0.2983,
+                "y": 0.4537,
+                "width": 0.0416,
+                "height": 0.0416
+              }
+            },
+            {
+              "elementId": "dry-body",
+              "role": "text",
+              "bounds": {
+                "x": 0.297,
+                "y": 0.7133,
+                "width": 0.1639,
+                "height": 0.0494
+              }
+            },
+            {
+              "elementId": "fire-body",
+              "role": "text",
+              "bounds": {
+                "x": 0.5299,
+                "y": 0.7139,
+                "width": 0.1694,
+                "height": 0.0488
+              }
+            },
+            {
+              "elementId": "shape-body",
+              "role": "text",
+              "bounds": {
+                "x": 0.0648,
+                "y": 0.7133,
+                "width": 0.1723,
+                "height": 0.0533
+              }
+            },
+            {
+              "elementId": "finish-body",
+              "role": "text",
+              "bounds": {
+                "x": 0.7618,
+                "y": 0.7133,
+                "width": 0.1543,
+                "height": 0.0542
+              }
+            },
+            {
+              "elementId": "footer-left",
+              "role": "text",
+              "bounds": {
+                "x": 0.0473,
+                "y": 0.9489,
+                "width": 0.1568,
+                "height": 0.0155
+              }
+            },
+            {
+              "elementId": "footer-right",
+              "role": "text",
+              "bounds": {
+                "x": 0.6952,
+                "y": 0.9489,
+                "width": 0.2577,
+                "height": 0.0155
+              }
+            }
+          ]
         }
       },
       "desktopFindings": [

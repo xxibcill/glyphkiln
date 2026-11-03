@@ -1,5 +1,7 @@
 import { GlyphkilnError, type Bounds, type Dimensions } from "../domain/types.js";
+import { reviewImageColors, type CraftImageMetric } from "./color.js";
 import { normalizeHexColor, parseHexColor } from "./geometry.js";
+import { describeLayout, type CraftLayoutElement } from "./layout.js";
 import type { CraftElement, CraftModel, CraftRaster } from "./model.js";
 import {
   CRAFT_BACKGROUND_AREA,
@@ -74,6 +76,10 @@ export type CraftReview = {
       elementIds: string[];
     };
     marks: CraftMarkMetric[];
+    /** Dominant source colors of each photograph, rendered versus source. */
+    images: CraftImageMetric[];
+    /** Normalized text, image, and mark layout in reading order. */
+    layout: CraftLayoutElement[];
   };
 };
 
@@ -129,14 +135,54 @@ export function analyzeCraft(
   const canvasEmptyBand = reviewCanvasSpace(model, content, thresholds, findings);
   const accent = reviewAccent(model, content, thresholds, findings);
   const marks = reviewMarks(model, thresholds, findings);
+  const images = reviewProductColor(model, thresholds, findings);
+  const layout = describeLayout(model);
 
   return {
     policyVersion: CRAFT_REVIEW_POLICY_VERSION,
     thresholds,
     canvas: { ...model.canvas },
     findings,
-    metrics: { text, dominance, containers, canvasEmptyBand, accent, marks },
+    metrics: {
+      text,
+      dominance,
+      containers,
+      canvasEmptyBand,
+      accent,
+      marks,
+      images,
+      layout,
+    },
   };
+}
+
+function reviewProductColor(
+  model: CraftModel,
+  thresholds: CraftReviewThresholds,
+  findings: CraftFinding[],
+): CraftImageMetric[] {
+  const results = reviewImageColors(model, thresholds);
+  for (const { metric, dimmed } of results) {
+    if (dimmed.length === 0) continue;
+    const worst = [...dimmed].sort(
+      (left, right) =>
+        left.chromaRetention - right.chromaRetention ||
+        left.lightnessChange - right.lightnessChange,
+    )[0]!;
+    findings.push({
+      code: "CRAFT_PRODUCT_COLOR_DIMMED",
+      severity: "advisory",
+      message: `Image "${metric.elementId}" loses its own color in the render: ${dimmed.length} of ${metric.colors.length} dominant colors are dimmed (hue ${worst.hueRange[0]}–${worst.hueRange[1]}° keeps ${Math.round(worst.chromaRetention * 100)}% of its chroma, lightness ${worst.lightnessChange >= 0 ? "+" : ""}${round(worst.lightnessChange, 3)}); protect the product: put contrast treatment only behind the copy, move the copy to a quiet area, or lighten the treatment.`,
+      elementId: metric.elementId,
+      details: {
+        dimmedColors: dimmed,
+        sampleCount: metric.sampleCount,
+        imageChromaRetention: thresholds.imageChromaRetention,
+        imageLightnessDrop: thresholds.imageLightnessDrop,
+      },
+    });
+  }
+  return results.map((result) => result.metric);
 }
 
 function reviewTextSize(

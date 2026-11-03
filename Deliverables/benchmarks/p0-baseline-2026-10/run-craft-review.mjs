@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 
 import prettier from "prettier";
 
-import { reviewGraphicCraft } from "../../../packages/glyphkiln-core/dist/index.js";
+import {
+  CRAFT_REVIEW_POLICY_VERSION,
+  reviewFormatSet,
+  reviewGraphicCraft,
+} from "../../../packages/glyphkiln-core/dist/index.js";
 import { reviewSceneCraft } from "../../../packages/glyphkiln-core/dist/scene/index.js";
 import { createQualificationEmitter } from "../../../scripts/qualification-output.mjs";
 
@@ -77,6 +81,13 @@ reviews.push({
   ).findings.map(findingLabel),
 });
 
+// Set-level review: the three campaign formats are one design.
+const formatSet = reviewFormatSet(
+  reviews
+    .filter(({ design }) => design.startsWith("designs/campaign-"))
+    .map(({ format, review }) => ({ format, review })),
+);
+
 const summary = reviews.map(({ design, review, desktopFindings }) => ({
   design,
   findings: review.findings.map(findingLabel),
@@ -86,10 +97,18 @@ const summary = reviews.map(({ design, review, desktopFindings }) => ({
 const json = await prettier.format(
   JSON.stringify(
     {
-      purpose:
-        "Advisory craft heuristics (policy craft-review 1.0.0) applied to the Kilnform stress-test designs. Findings are review prompts, not quality verdicts or audience results.",
+      purpose: `Advisory craft heuristics (policy craft-review ${CRAFT_REVIEW_POLICY_VERSION}) applied to the Kilnform stress-test designs. Findings are review prompts, not quality verdicts or audience results.`,
       displayWidths: { primary: 360, desktopSensitivity: 600 },
       summary,
+      formatSets: {
+        campaign: {
+          findings: formatSet.findings.map(
+            (finding) =>
+              `${finding.code} ${finding.details.formats.join(" / ")} (${finding.details.layoutDistance})`,
+          ),
+          review: formatSet,
+        },
+      },
       reviews,
     },
     null,
@@ -98,6 +117,7 @@ const json = await prettier.format(
   { parser: "json" },
 );
 await emit(resolve(OUT, "craft-review.json"), json);
+console.log(`campaign format set → ${formatSet.findings.length}`);
 for (const item of summary) {
   console.log(
     `${item.design}: 360 px → ${item.findings.length}, 600 px → ${item.desktopFindings.length}`,

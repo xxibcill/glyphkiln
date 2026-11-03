@@ -33,6 +33,16 @@ export {
   CRAFT_REVIEW_POLICY_VERSION,
 } from "../craft/policy.js";
 export { reviewSceneCraft } from "../craft/scene.js";
+export { reviewFormatSet } from "../craft/layout.js";
+export type {
+  CraftFormatPairMetric,
+  CraftFormatSetEntry,
+  CraftFormatSetFinding,
+  CraftFormatSetReview,
+  CraftLayoutElement,
+  CraftLayoutRole,
+} from "../craft/layout.js";
+export type { CraftImageColorMetric, CraftImageMetric } from "../craft/color.js";
 export type {
   CraftContainerMetric,
   CraftEmptyBand,

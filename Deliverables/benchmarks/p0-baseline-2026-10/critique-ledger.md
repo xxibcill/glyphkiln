@@ -189,7 +189,28 @@ What this baseline shows about the advisory checks themselves:
   yet its main defects (unrecomposed formats, lost mark, dimmed product color)
   were outside what the four checks measured. Policy 1.1.0 adds a mark
   visibility check, which now flags all three formats (contrast 1.1–1.4:1).
-  Product-color protection and a recomposition check are still needed.
+  Policy 1.2.0 (open-work item B7) adds the two missing checks, and both now
+  fire on this campaign:
+  - `CRAFT_PRODUCT_COLOR_DIMMED` (CA-3) flags all three formats. Against the
+    source asset at the same positions, every dominant hue keeps about 51% of
+    its OKLab chroma (threshold 0.75) and loses 0.21–0.31 lightness
+    (threshold 0.1); the lamp's cobalt (240–270°, 3–4% of samples) is among
+    them. The P1 versions (treatment `none`) keep over 99% and do not fire.
+    The check cannot tell which hue is the product: it fired because the
+    scrim dims every dominant hue, not because it found the lamp. A local
+    scrim that spares the lamp but darkens much of the wall could still be
+    flagged through the wall's hues; read `dimmedColors` before acting.
+  - `CRAFT_FORMATS_NOT_RECOMPOSED` (CA-1), from the set-level
+    `reviewFormatSet`, flags all three format pairs at layout distance
+    0.02–0.08 (threshold 0.12) with identical reading order. The P1
+    recomposition's pairs sit at 0.21–0.38 and do not fire. The margin is
+    real but measured on one design; the distance ignores which element is
+    dominant, so a set that keeps positions but changes hierarchy would
+    still be flagged.
+
+  Both thresholds are starting values set from this one campaign, not from a
+  wider calibration set.
+
 - **Defensible disagreement:** the process diagram's accent finding (PD-3) is
   a consistent role, not overuse. The usage count already merges same-size
   repeats; consistent multi-size roles still trigger it. Keep the check

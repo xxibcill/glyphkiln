@@ -139,17 +139,28 @@ Passing every quality check does not make a graphic well designed.
 `reviewGraphicCraft(document, { assets, fonts })` renders the same scene and
 pixels as `renderGraphic`, writes nothing, and returns advisory findings for
 text that is too small at a declared display width (default 360 px), weak scale
-contrast, container and canvas dead space, accent overuse, and brand-mark
-visibility against its actual ground. Findings never
-block rendering and never enter manifests or fingerprints. `reviewSceneCraft`
-from `@glyphkiln/core/scene` reviews Scene Kernel documents the same way. See
-the [quality policy](../../docs/quality-policy.md#advisory-craft-review).
+contrast, container and canvas dead space, accent overuse, brand-mark
+visibility against its actual ground, and photographs whose dominant colors
+(such as the product's) are dimmed or washed out by a treatment, measured
+against the source asset pixels. Findings never block rendering and never enter
+manifests or fingerprints. `reviewSceneCraft` from `@glyphkiln/core/scene`
+reviews Scene Kernel documents the same way. `reviewFormatSet` compares the
+reviews of one design delivered in several formats and flags pairs whose
+normalized layouts are near-identical: one composition resized instead of
+recomposed. Policy `craft-review 1.2.0`; see the
+[quality policy](../../docs/quality-policy.md#advisory-craft-review).
 
 ```ts
 const review = await reviewGraphicCraft(document, {
   thresholds: { displayWidth: 360 },
 });
 for (const finding of review.findings) console.log(finding.code, finding.message);
+
+const set = reviewFormatSet([
+  { format: "instagram-square", review: squareReview },
+  { format: "linkedin-landscape", review: landscapeReview },
+]);
+for (const finding of set.findings) console.log(finding.code, finding.message);
 ```
 
 ### Expert Scene Kernel

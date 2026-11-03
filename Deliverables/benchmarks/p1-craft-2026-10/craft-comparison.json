@@ -1,5 +1,5 @@
 {
-  "purpose": "P1 craft repairs on three Kilnform graphics. Advisory craft-review findings before and after (policy 1.1.0); not audience or expert-comparison evidence.",
+  "purpose": "P1 craft repairs on three Kilnform graphics. Advisory craft-review findings before and after (policy 1.2.0); not audience or expert-comparison evidence.",
   "summary": [
     {
       "design": "announcement-b",
@@ -47,7 +47,10 @@
       "before": "image-led-campaign@1.0.1",
       "after": "image-led-campaign@1.1.1",
       "qualityIssues": [],
-      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftBefore": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
       "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
       "outputSha256": {}
     },
@@ -56,7 +59,10 @@
       "before": "image-led-campaign@1.0.1",
       "after": "image-led-campaign@1.1.1",
       "qualityIssues": [],
-      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftBefore": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
       "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
       "outputSha256": {}
     },
@@ -65,7 +71,10 @@
       "before": "image-led-campaign@1.0.1",
       "after": "image-led-campaign@1.1.1",
       "qualityIssues": [],
-      "craftBefore": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
+      "craftBefore": [
+        "CRAFT_MARK_LOW_VISIBILITY brand-mark",
+        "CRAFT_PRODUCT_COLOR_DIMMED campaign-image"
+      ],
       "craftAfter": ["CRAFT_MARK_LOW_VISIBILITY brand-mark"],
       "outputSha256": {}
     },
@@ -168,5 +177,51 @@
       ],
       "outputSha256": {}
     }
-  ]
+  ],
+  "campaignFormatSet": {
+    "before": {
+      "findings": [
+        "CRAFT_FORMATS_NOT_RECOMPOSED linkedin-landscape / instagram-square (0.0748)",
+        "CRAFT_FORMATS_NOT_RECOMPOSED linkedin-landscape / instagram-portrait (0.0688)",
+        "CRAFT_FORMATS_NOT_RECOMPOSED instagram-square / instagram-portrait (0.0228)"
+      ],
+      "pairs": [
+        {
+          "formats": ["linkedin-landscape", "instagram-square"],
+          "layoutDistance": 0.0748,
+          "sameReadingOrder": true
+        },
+        {
+          "formats": ["linkedin-landscape", "instagram-portrait"],
+          "layoutDistance": 0.0688,
+          "sameReadingOrder": true
+        },
+        {
+          "formats": ["instagram-square", "instagram-portrait"],
+          "layoutDistance": 0.0228,
+          "sameReadingOrder": true
+        }
+      ]
+    },
+    "after": {
+      "findings": [],
+      "pairs": [
+        {
+          "formats": ["linkedin-landscape", "instagram-square"],
+          "layoutDistance": 0.2098,
+          "sameReadingOrder": false
+        },
+        {
+          "formats": ["linkedin-landscape", "instagram-portrait"],
+          "layoutDistance": 0.3828,
+          "sameReadingOrder": true
+        },
+        {
+          "formats": ["instagram-square", "instagram-portrait"],
+          "layoutDistance": 0.3644,
+          "sameReadingOrder": false
+        }
+      ]
+    }
+  }
 }
