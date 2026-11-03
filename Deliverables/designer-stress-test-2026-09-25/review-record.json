@@ -1,0 +1,1712 @@
+{
+  "version": "1.0.0",
+  "brief": "Fictional Kilnform Second Firing designer day",
+  "timestamp": "2026-09-25T00:00:00.000Z",
+  "approvalState": "awaiting-human-visual-review",
+  "assetSources": {
+    "image": "packages/glyphkiln-core/examples/assets/kilnform-lamp-campaign.png",
+    "logo": "packages/glyphkiln-core/examples/assets/kilnform-mark.png",
+    "note": "Existing fictional project assets reused for this workflow stress test."
+  },
+  "deliveryProfile": {
+    "id": "tiktok-organic-photo",
+    "label": "TikTok Photo Mode · organic",
+    "platform": "tiktok",
+    "publishingPath": "organic",
+    "compatibleFormats": ["tiktok-photo-carousel"],
+    "slideCount": {
+      "value": { "minimum": 1, "maximum": 35 },
+      "evidence": "platform-requirement",
+      "sourceIds": ["tiktok-making-a-post"],
+      "note": "Glyphkiln still treats two or more slides as a carousel sequence; there is no universal optimal count."
+    },
+    "acceptedImageMediaTypes": {
+      "value": ["image/jpeg", "image/png"],
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "TikTok's native help does not publish an exact file-type contract; verify the target device picker."
+    },
+    "aspectRatio": {
+      "value": { "sameAcrossSequence": false },
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "3:4 is a Glyphkiln working canvas, not an official organic Photo Mode requirement."
+    },
+    "raster": {
+      "value": { "targetWidth": 1080 },
+      "evidence": "glyphkiln-advisory",
+      "sourceIds": ["glyphkiln-carousel-validation"],
+      "note": "1080 px is a Glyphkiln working target, not a universal native Photo Mode requirement."
+    },
+    "accessibility": {
+      "value": { "creatorAltText": true, "maximumAltTextCharacters": 300 },
+      "evidence": "platform-capability",
+      "sourceIds": ["tiktok-accessibility"],
+      "note": "Supply alt text for every meaningful image in the sequence."
+    },
+    "surfaceOverlay": {
+      "version": "2026-08-18",
+      "evidence": "glyphkiln-advisory",
+      "insets": { "top": 0.08, "right": 0.18, "bottom": 0.2, "left": 0.06 },
+      "note": "No stable first-party organic Photo Mode safe zone is published; verify against captured live UI."
+    },
+    "authoringNotes": [
+      "Do not import Smart Order, 9:16, or 3/7–9 slide advice from the paid-ad path.",
+      "Proof the advisory overlay against current device captures before publishing."
+    ]
+  },
+  "cases": [
+    {
+      "id": "announcement-a",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/announcement-a.json",
+      "format": "linkedin-landscape",
+      "template": { "id": "product-announcement", "version": "1.1.1" },
+      "qualityIssues": [
+        {
+          "code": "ORPHAN_LINE",
+          "severity": "warning",
+          "message": "The final line is isolated or disproportionately short.",
+          "layerId": "headline",
+          "details": {
+            "affectedLine": "returns.",
+            "lineNumber": 2,
+            "phrase": "returns.",
+            "previousLine": "The Studio Lamp",
+            "measuredLineWidths": [546.898, 263.712],
+            "previousLineWidth": 546.898,
+            "finalLineWidth": 263.712,
+            "finalLineToPreviousLineWidthRatio": 0.482,
+            "isolatedWord": true,
+            "disproportionatelyShort": false,
+            "segmentationPolicy": "whitespace",
+            "segmentationPolicyVersion": "whitespace@1.0.0",
+            "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+            "typographyAlgorithmVersion": "2.0.1"
+          }
+        }
+      ],
+      "evidence": {
+        "safeArea": {
+          "x": 84.00000000000001,
+          "y": 50.160000000000004,
+          "width": 1031.9999999999998,
+          "height": 526.6800000000001
+        },
+        "text": [
+          {
+            "layerId": "eyebrow",
+            "fontSize": 22,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 78.16,
+              "width": 306.82783202110795,
+              "height": 22
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.94
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 66,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 136.16,
+              "width": 546.8982384326365,
+              "height": 134.64000000000001
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 23.83
+          },
+          {
+            "layerId": "subtitle",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 294.8,
+              "width": 461.3525390625,
+              "height": 32
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "cta",
+            "fontSize": 21,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 528.84,
+              "width": 234.0335329564235,
+              "height": 21
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.58
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/announcement-a.svg",
+          "sha256": "6cdf27db490e890cb711bee59f8a620cfa7a36f7fc2903d16dd45100d25ab8d1",
+          "fingerprint": "2effb2709567660d6ed2b2590987be2586ceb5c494e9f2e69c7056b9b028831d",
+          "byteSize": 63363
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/announcement-a.png",
+          "sha256": "92c999e5dd161c0149219eb53b8bb34d8fd25007f1273e00198e0f510360ddeb",
+          "fingerprint": "a7d5e78dddcc24111f45da1e9e34af8581756fa820fae8dd965a2fa72e2563ac",
+          "byteSize": 44720
+        }
+      }
+    },
+    {
+      "id": "announcement-b",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/announcement-b.json",
+      "format": "linkedin-landscape",
+      "template": { "id": "product-announcement", "version": "1.1.1" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 84.00000000000001,
+          "y": 50.160000000000004,
+          "width": 1031.9999999999998,
+          "height": 526.6800000000001
+        },
+        "text": [
+          {
+            "layerId": "eyebrow",
+            "fontSize": 22,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 78.16,
+              "width": 306.82783202110795,
+              "height": 22
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.94
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 66,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 136.16,
+              "width": 801.7824305767472,
+              "height": 134.64000000000001
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 23.83
+          },
+          {
+            "layerId": "subtitle",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 294.8,
+              "width": 549.0234375,
+              "height": 32
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "cta",
+            "fontSize": 21,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 528.84,
+              "width": 282.4580079147664,
+              "height": 21
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.58
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/announcement-b.svg",
+          "sha256": "cd6fb4cf3edd66e322e785b3cc0e8493f2bc92a70c081776b63f6ec5c4d7dc0e",
+          "fingerprint": "3d046ddc5c80aaae6be4a5c2bd51908e660e50be6272ef83e35e710057674b64",
+          "byteSize": 79229
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/announcement-b.png",
+          "sha256": "c8f5a3817582866d682e90e4c1e323f30f2ef90af5899007abf3f4f181bae293",
+          "fingerprint": "403d52c3da18a1c44980f045e486af85d52a8c45867e8513bc49c0a7291eb3ae",
+          "byteSize": 52996
+        }
+      }
+    },
+    {
+      "id": "statistic",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/statistic.json",
+      "format": "instagram-square",
+      "template": { "id": "statistic-card", "version": "1.1.0" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 86.4,
+          "width": 928.7999999999998,
+          "height": 907.2
+        },
+        "text": [
+          {
+            "layerId": "headline",
+            "fontSize": 42,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 86.4,
+              "width": 656.5015629299137,
+              "height": 45.36
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 15.17
+          },
+          {
+            "layerId": "placement-count-value",
+            "fontSize": 176,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 412.99199999999996,
+              "width": 237.31181435001528,
+              "height": 167.2
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 63.56
+          },
+          {
+            "layerId": "placement-count-label",
+            "fontSize": 35,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 602.192,
+              "width": 360.5782534401701,
+              "height": 41.3
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 12.64
+          },
+          {
+            "layerId": "placement-count-trend",
+            "fontSize": 20,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 948.6,
+              "width": 175.40860602780742,
+              "height": 20
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.22
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/statistic.svg",
+          "sha256": "3c133e82b7fcc20782328f80699fd0e02e53d924b696f46e896afeaed92970ff",
+          "fingerprint": "4ebb8486bbbad3bea363fc6cfb944e518c8920290d5fa1591a29e29a7c5844a3",
+          "byteSize": 50123
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/statistic.png",
+          "sha256": "594cc55c48c2a05ae816d6f2386c4d82c78421be69cc04bb08c50194e2884c30",
+          "fingerprint": "e0dcba081de28df04252ac5a360302613ae8e8771cc97ea8990d479ceadec4bb",
+          "byteSize": 33419
+        }
+      }
+    },
+    {
+      "id": "quote",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/quote.json",
+      "format": "instagram-portrait",
+      "template": { "id": "quote-card", "version": "1.1.0" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 108,
+          "width": 928.7999999999998,
+          "height": 1134
+        },
+        "text": [
+          {
+            "layerId": "quote",
+            "fontSize": 66,
+            "overflow": false,
+            "bounds": {
+              "x": 212.48331026751555,
+              "y": 380.15999999999997,
+              "width": 655.0333794649688,
+              "height": 149.16
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 23.83
+          },
+          {
+            "layerId": "attribution",
+            "fontSize": 23,
+            "overflow": false,
+            "bounds": {
+              "x": 398.4505786512768,
+              "y": 1026.54,
+              "width": 283.0988426974462,
+              "height": 23
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 8.31
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/quote.svg",
+          "sha256": "717b38b1f66bfd44ef19679402f2d751e37357a5f11a92b888264b0068e54010",
+          "fingerprint": "25af9b6ae4bcdc37d7d4281e3653040bc9f106d40605446f51d076184250ddad",
+          "byteSize": 81598
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/quote.png",
+          "sha256": "0c26580944c6384ebe89689dc1dbb69c760300ff7f538695b211e44f108bdcb0",
+          "fingerprint": "a17f6299fef3fb28fd1b24c976dc2c3a996725af48d96eb6168221b1e55ce0fc",
+          "byteSize": 83087
+        }
+      }
+    },
+    {
+      "id": "article-cover",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/article-cover.json",
+      "format": "youtube-thumbnail",
+      "template": { "id": "article-cover", "version": "1.1.0" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 89.60000000000001,
+          "y": 57.6,
+          "width": 1100.7999999999997,
+          "height": 604.8000000000001
+        },
+        "text": [
+          {
+            "layerId": "eyebrow",
+            "fontSize": 20,
+            "overflow": false,
+            "bounds": {
+              "x": 89.60000000000001,
+              "y": 297.28000000000003,
+              "width": 206.55549651462567,
+              "height": 20
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.22
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 62,
+            "overflow": false,
+            "bounds": {
+              "x": 89.60000000000001,
+              "y": 347.28000000000003,
+              "width": 596.6853550789593,
+              "height": 128.96
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 22.39
+          },
+          {
+            "layerId": "byline",
+            "fontSize": 18,
+            "overflow": false,
+            "bounds": {
+              "x": 89.60000000000001,
+              "y": 628.4000000000001,
+              "width": 265.86647735400135,
+              "height": 18
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 6.5
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/article-cover.svg",
+          "sha256": "0651d2cd9e80315ed37d80d24a67fd9f308a04998dc17cb97e9410b751b5d86b",
+          "fingerprint": "84b313d2567f5747d9634b54eafa2d0433a6666ddd9b40b70ad8cbdbb0ad3746",
+          "byteSize": 71995
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/article-cover.png",
+          "sha256": "52f1d5e70edfb236e554a929e4f72d4822c09d302f672be1f6571953502b4cf9",
+          "fingerprint": "bd27fcd156236b3cbce958e9d5b7fc0d06d648536a92a87716c293c5f87451d3",
+          "byteSize": 60246
+        }
+      }
+    },
+    {
+      "id": "campaign-linkedin-landscape",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/campaign-linkedin-landscape.json",
+      "format": "linkedin-landscape",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 84.00000000000001,
+          "y": 50.160000000000004,
+          "width": 1031.9999999999998,
+          "height": 526.6800000000001
+        },
+        "text": [
+          {
+            "layerId": "headline",
+            "fontSize": 41.800000000000004,
+            "overflow": false,
+            "bounds": {
+              "x": 84.00000000000001,
+              "y": 124.47111111111113,
+              "width": 468.1091523652064,
+              "height": 38.456
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 15.09
+          }
+        ],
+        "crops": [
+          {
+            "layerId": "campaign-image",
+            "assetId": "kilnform-lamp-campaign",
+            "treatment": "dark-scrim",
+            "focalPoint": { "x": 0.68, "y": 0.48 },
+            "policyVersion": "focal-cover-v1",
+            "destinationBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1200,
+              "height": 627
+            },
+            "sourceBounds": {
+              "x": 0,
+              "y": 90.24000000000001,
+              "width": 1536,
+              "height": 802.56
+            },
+            "renderedBounds": {
+              "x": 0,
+              "y": -70.5,
+              "width": 1200,
+              "height": 800
+            }
+          }
+        ],
+        "contrast": [
+          {
+            "layerId": "headline",
+            "policyVersion": "composited-srgb-grid-5x5-v1",
+            "foreground": "#FFF6E7",
+            "minimumRequired": 4.5,
+            "minimumRatio": 7.404706463415382,
+            "maximumRatio": 13.438888708288806,
+            "samples": [
+              {
+                "canvasPoint": { "x": 130.811, "y": 128.317 },
+                "sourcePixel": { "x": 167, "y": 254 },
+                "background": "#624223",
+                "ratio": 8.432690762143796
+              },
+              {
+                "canvasPoint": { "x": 224.433, "y": 128.317 },
+                "sourcePixel": { "x": 287, "y": 254 },
+                "background": "#674C2B",
+                "ratio": 7.404706463415382
+              },
+              {
+                "canvasPoint": { "x": 318.055, "y": 128.317 },
+                "sourcePixel": { "x": 407, "y": 254 },
+                "background": "#40240D",
+                "ratio": 13.269707857302082
+              },
+              {
+                "canvasPoint": { "x": 411.676, "y": 128.317 },
+                "sourcePixel": { "x": 526, "y": 254 },
+                "background": "#462B12",
+                "ratio": 12.131150443441516
+              },
+              {
+                "canvasPoint": { "x": 505.298, "y": 128.317 },
+                "sourcePixel": { "x": 646, "y": 254 },
+                "background": "#41250E",
+                "ratio": 13.09607137577693
+              },
+              {
+                "canvasPoint": { "x": 130.811, "y": 136.008 },
+                "sourcePixel": { "x": 167, "y": 264 },
+                "background": "#5E3D1C",
+                "ratio": 9.067767631705733
+              },
+              {
+                "canvasPoint": { "x": 224.433, "y": 136.008 },
+                "sourcePixel": { "x": 287, "y": 264 },
+                "background": "#61421E",
+                "ratio": 8.493309527654974
+              },
+              {
+                "canvasPoint": { "x": 318.055, "y": 136.008 },
+                "sourcePixel": { "x": 407, "y": 264 },
+                "background": "#42230B",
+                "ratio": 13.263101369994917
+              },
+              {
+                "canvasPoint": { "x": 411.676, "y": 136.008 },
+                "sourcePixel": { "x": 526, "y": 264 },
+                "background": "#472C12",
+                "ratio": 11.96646141825319
+              },
+              {
+                "canvasPoint": { "x": 505.298, "y": 136.008 },
+                "sourcePixel": { "x": 646, "y": 264 },
+                "background": "#45280F",
+                "ratio": 12.52878612483452
+              },
+              {
+                "canvasPoint": { "x": 130.811, "y": 143.699 },
+                "sourcePixel": { "x": 167, "y": 274 },
+                "background": "#553412",
+                "ratio": 10.385067530649803
+              },
+              {
+                "canvasPoint": { "x": 224.433, "y": 143.699 },
+                "sourcePixel": { "x": 287, "y": 274 },
+                "background": "#5E3F1F",
+                "ratio": 8.876597380114603
+              },
+              {
+                "canvasPoint": { "x": 318.055, "y": 143.699 },
+                "sourcePixel": { "x": 407, "y": 274 },
+                "background": "#492B0F",
+                "ratio": 11.97512137777742
+              },
+              {
+                "canvasPoint": { "x": 411.676, "y": 143.699 },
+                "sourcePixel": { "x": 526, "y": 274 },
+                "background": "#462A12",
+                "ratio": 12.24004257940421
+              },
+              {
+                "canvasPoint": { "x": 505.298, "y": 143.699 },
+                "sourcePixel": { "x": 646, "y": 274 },
+                "background": "#42260E",
+                "ratio": 12.92749286524196
+              },
+              {
+                "canvasPoint": { "x": 130.811, "y": 151.39 },
+                "sourcePixel": { "x": 167, "y": 284 },
+                "background": "#593819",
+                "ratio": 9.772234474077441
+              },
+              {
+                "canvasPoint": { "x": 224.433, "y": 151.39 },
+                "sourcePixel": { "x": 287, "y": 284 },
+                "background": "#5F4121",
+                "ratio": 8.649519080546552
+              },
+              {
+                "canvasPoint": { "x": 318.055, "y": 151.39 },
+                "sourcePixel": { "x": 407, "y": 284 },
+                "background": "#513112",
+                "ratio": 10.894894817926167
+              },
+              {
+                "canvasPoint": { "x": 411.676, "y": 151.39 },
+                "sourcePixel": { "x": 526, "y": 284 },
+                "background": "#452911",
+                "ratio": 12.410867387416198
+              },
+              {
+                "canvasPoint": { "x": 505.298, "y": 151.39 },
+                "sourcePixel": { "x": 646, "y": 284 },
+                "background": "#40240D",
+                "ratio": 13.269707857302082
+              },
+              {
+                "canvasPoint": { "x": 130.811, "y": 159.082 },
+                "sourcePixel": { "x": 167, "y": 293 },
+                "background": "#583515",
+                "ratio": 10.123047929499318
+              },
+              {
+                "canvasPoint": { "x": 224.433, "y": 159.082 },
+                "sourcePixel": { "x": 287, "y": 293 },
+                "background": "#604223",
+                "ratio": 8.513226777491417
+              },
+              {
+                "canvasPoint": { "x": 318.055, "y": 159.082 },
+                "sourcePixel": { "x": 407, "y": 293 },
+                "background": "#634625",
+                "ratio": 8.050034799003486
+              },
+              {
+                "canvasPoint": { "x": 411.676, "y": 159.082 },
+                "sourcePixel": { "x": 526, "y": 293 },
+                "background": "#42260E",
+                "ratio": 12.92749286524196
+              },
+              {
+                "canvasPoint": { "x": 505.298, "y": 159.082 },
+                "sourcePixel": { "x": 646, "y": 293 },
+                "background": "#3F230D",
+                "ratio": 13.438888708288806
+              }
+            ]
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-linkedin-landscape.svg",
+          "sha256": "4a6020dd3602ceb487a17f65ae3608005d847ff860892f67cf624e800e3d329d",
+          "fingerprint": "6b16f52b8d92e681ec71a20269ce66067dbcc2e891726dc11ed17a733d2e5737",
+          "byteSize": 4021078
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-linkedin-landscape.png",
+          "sha256": "fc60bb56e5c3994860264b2640133011bb2d9ba190f12d643a084891ea990c05",
+          "fingerprint": "f235cc491355aa162a92ec7a0a0bd3b1b67bafa1cc89157f9f30255b049aceb1",
+          "byteSize": 1278363
+        }
+      }
+    },
+    {
+      "id": "campaign-instagram-square",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/campaign-instagram-square.json",
+      "format": "instagram-square",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 86.4,
+          "width": 928.7999999999998,
+          "height": 907.2
+        },
+        "text": [
+          {
+            "layerId": "headline",
+            "fontSize": 82,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 214.4,
+              "width": 266.0503421455409,
+              "height": 150.88
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 29.61
+          }
+        ],
+        "crops": [
+          {
+            "layerId": "campaign-image",
+            "assetId": "kilnform-lamp-campaign",
+            "treatment": "dark-scrim",
+            "focalPoint": { "x": 0.52, "y": 0.5 },
+            "policyVersion": "focal-cover-v1",
+            "destinationBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1080,
+              "height": 1080
+            },
+            "sourceBounds": {
+              "x": 286.72,
+              "y": 0,
+              "width": 1024,
+              "height": 1024
+            },
+            "renderedBounds": {
+              "x": -302.40000000000003,
+              "y": 0,
+              "width": 1620,
+              "height": 1080
+            }
+          }
+        ],
+        "contrast": [
+          {
+            "layerId": "headline",
+            "policyVersion": "composited-srgb-grid-5x5-v1",
+            "foreground": "#FFF6E7",
+            "minimumRequired": 4.5,
+            "minimumRatio": 7.708127074523617,
+            "maximumRatio": 13.398142129070731,
+            "samples": [
+              {
+                "canvasPoint": { "x": 102.205, "y": 229.488 },
+                "sourcePixel": { "x": 383, "y": 217 },
+                "background": "#40250E",
+                "ratio": 13.155578798738818
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 229.488 },
+                "sourcePixel": { "x": 434, "y": 217 },
+                "background": "#40250D",
+                "ratio": 13.160259246034583
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 229.488 },
+                "sourcePixel": { "x": 484, "y": 217 },
+                "background": "#44280F",
+                "ratio": 12.587179832269722
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 229.488 },
+                "sourcePixel": { "x": 534, "y": 217 },
+                "background": "#44280D",
+                "ratio": 12.595971816744969
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 229.488 },
+                "sourcePixel": { "x": 585, "y": 217 },
+                "background": "#46270D",
+                "ratio": 12.585285933460037
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 259.664 },
+                "sourcePixel": { "x": 383, "y": 246 },
+                "background": "#3E240B",
+                "ratio": 13.398142129070731
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 259.664 },
+                "sourcePixel": { "x": 434, "y": 246 },
+                "background": "#422710",
+                "ratio": 12.8082788181411
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 259.664 },
+                "sourcePixel": { "x": 484, "y": 246 },
+                "background": "#482C12",
+                "ratio": 11.910979393406695
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 259.664 },
+                "sourcePixel": { "x": 534, "y": 246 },
+                "background": "#44280F",
+                "ratio": 12.587179832269722
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 259.664 },
+                "sourcePixel": { "x": 585, "y": 246 },
+                "background": "#472B11",
+                "ratio": 12.079829473322176
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 289.84 },
+                "sourcePixel": { "x": 383, "y": 274 },
+                "background": "#4D2D0F",
+                "ratio": 11.537350522584974
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 289.84 },
+                "sourcePixel": { "x": 434, "y": 274 },
+                "background": "#482C11",
+                "ratio": 11.915618909958077
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 289.84 },
+                "sourcePixel": { "x": 484, "y": 274 },
+                "background": "#43280F",
+                "ratio": 12.645118349088248
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 289.84 },
+                "sourcePixel": { "x": 534, "y": 274 },
+                "background": "#462B13",
+                "ratio": 12.126126795221143
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 289.84 },
+                "sourcePixel": { "x": 585, "y": 274 },
+                "background": "#482D13",
+                "ratio": 11.797985220316269
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 320.016 },
+                "sourcePixel": { "x": 383, "y": 303 },
+                "background": "#634524",
+                "ratio": 8.137161796979274
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 320.016 },
+                "sourcePixel": { "x": 434, "y": 303 },
+                "background": "#5F4324",
+                "ratio": 8.461736955375132
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 320.016 },
+                "sourcePixel": { "x": 484, "y": 303 },
+                "background": "#4D2F14",
+                "ratio": 11.307870217146471
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 320.016 },
+                "sourcePixel": { "x": 534, "y": 303 },
+                "background": "#452911",
+                "ratio": 12.410867387416198
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 320.016 },
+                "sourcePixel": { "x": 585, "y": 303 },
+                "background": "#452910",
+                "ratio": 12.415682238521123
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 350.192 },
+                "sourcePixel": { "x": 383, "y": 332 },
+                "background": "#624424",
+                "ratio": 8.259290304850344
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 350.192 },
+                "sourcePixel": { "x": 434, "y": 332 },
+                "background": "#65492B",
+                "ratio": 7.708127074523617
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 350.192 },
+                "sourcePixel": { "x": 484, "y": 332 },
+                "background": "#5C3E1F",
+                "ratio": 9.05228106676008
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 350.192 },
+                "sourcePixel": { "x": 534, "y": 332 },
+                "background": "#4F3014",
+                "ratio": 11.09602905739859
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 350.192 },
+                "sourcePixel": { "x": 585, "y": 332 },
+                "background": "#482C12",
+                "ratio": 11.910979393406695
+              }
+            ]
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-instagram-square.svg",
+          "sha256": "86086d449dad22f1be689a9109b3e8055f27e88618913b92f38417f3deb0eff5",
+          "fingerprint": "8eb943b8eb9b862b37d744984c4a1c58353a487d585dd6e1a55dc6bdf92db536",
+          "byteSize": 4014999
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-instagram-square.png",
+          "sha256": "e167cb0d57199d26357d3c14ec854b770f30670d9fa9e7b83b279aa80e40f0c2",
+          "fingerprint": "3b8d969dab8da526749c6a115d0705637f157aea5d96fe0fb18648333b6e51af",
+          "byteSize": 1823169
+        }
+      }
+    },
+    {
+      "id": "campaign-instagram-portrait",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/campaign-instagram-portrait.json",
+      "format": "instagram-portrait",
+      "template": { "id": "image-led-campaign", "version": "1.0.1" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 108,
+          "width": 928.7999999999998,
+          "height": 1134
+        },
+        "text": [
+          {
+            "layerId": "headline",
+            "fontSize": 82,
+            "overflow": false,
+            "bounds": {
+              "x": 75.60000000000001,
+              "y": 236,
+              "width": 266.0503421455409,
+              "height": 150.88
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 29.61
+          }
+        ],
+        "crops": [
+          {
+            "layerId": "campaign-image",
+            "assetId": "kilnform-lamp-campaign",
+            "treatment": "dark-scrim",
+            "focalPoint": { "x": 0.58, "y": 0.48 },
+            "policyVersion": "focal-cover-v1",
+            "destinationBounds": {
+              "x": 0,
+              "y": 0,
+              "width": 1080,
+              "height": 1350
+            },
+            "sourceBounds": {
+              "x": 481.27999999999986,
+              "y": 0,
+              "width": 819.2,
+              "height": 1024
+            },
+            "renderedBounds": {
+              "x": -634.4999999999998,
+              "y": 0,
+              "width": 2025,
+              "height": 1350
+            }
+          }
+        ],
+        "contrast": [
+          {
+            "layerId": "headline",
+            "policyVersion": "composited-srgb-grid-5x5-v1",
+            "foreground": "#FFF6E7",
+            "minimumRequired": 4.5,
+            "minimumRatio": 11.692652530889188,
+            "maximumRatio": 13.724908546753356,
+            "samples": [
+              {
+                "canvasPoint": { "x": 102.205, "y": 251.088 },
+                "sourcePixel": { "x": 558, "y": 190 },
+                "background": "#462A10",
+                "ratio": 12.249628984939333
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 251.088 },
+                "sourcePixel": { "x": 599, "y": 190 },
+                "background": "#46290E",
+                "ratio": 12.366804682900524
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 251.088 },
+                "sourcePixel": { "x": 639, "y": 190 },
+                "background": "#44270F",
+                "ratio": 12.69575776696002
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 251.088 },
+                "sourcePixel": { "x": 679, "y": 190 },
+                "background": "#45270E",
+                "ratio": 12.64089418816554
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 251.088 },
+                "sourcePixel": { "x": 720, "y": 190 },
+                "background": "#40240C",
+                "ratio": 13.274229372055007
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 281.264 },
+                "sourcePixel": { "x": 558, "y": 213 },
+                "background": "#462A0F",
+                "ratio": 12.25410574040328
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 281.264 },
+                "sourcePixel": { "x": 599, "y": 213 },
+                "background": "#43260E",
+                "ratio": 12.867976481157852
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 281.264 },
+                "sourcePixel": { "x": 639, "y": 213 },
+                "background": "#43250D",
+                "ratio": 12.980086033103262
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 281.264 },
+                "sourcePixel": { "x": 679, "y": 213 },
+                "background": "#492C12",
+                "ratio": 11.855111780655463
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 281.264 },
+                "sourcePixel": { "x": 720, "y": 213 },
+                "background": "#44270D",
+                "ratio": 12.704702140134334
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 311.44 },
+                "sourcePixel": { "x": 558, "y": 236 },
+                "background": "#482C11",
+                "ratio": 11.915618909958077
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 311.44 },
+                "sourcePixel": { "x": 599, "y": 236 },
+                "background": "#4A2D12",
+                "ratio": 11.692652530889188
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 311.44 },
+                "sourcePixel": { "x": 639, "y": 236 },
+                "background": "#492B10",
+                "ratio": 11.970846107401337
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 311.44 },
+                "sourcePixel": { "x": 679, "y": 236 },
+                "background": "#46280F",
+                "ratio": 12.469952486321358
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 311.44 },
+                "sourcePixel": { "x": 720, "y": 236 },
+                "background": "#44280F",
+                "ratio": 12.587179832269722
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 341.616 },
+                "sourcePixel": { "x": 558, "y": 259 },
+                "background": "#43270E",
+                "ratio": 12.759327457274699
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 341.616 },
+                "sourcePixel": { "x": 599, "y": 259 },
+                "background": "#482C14",
+                "ratio": 11.901087883883463
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 341.616 },
+                "sourcePixel": { "x": 639, "y": 259 },
+                "background": "#41250E",
+                "ratio": 13.09607137577693
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 341.616 },
+                "sourcePixel": { "x": 679, "y": 259 },
+                "background": "#3E210B",
+                "ratio": 13.724908546753356
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 341.616 },
+                "sourcePixel": { "x": 720, "y": 259 },
+                "background": "#42250C",
+                "ratio": 13.045013158897687
+              },
+              {
+                "canvasPoint": { "x": 102.205, "y": 371.792 },
+                "sourcePixel": { "x": 558, "y": 282 },
+                "background": "#482C12",
+                "ratio": 11.910979393406695
+              },
+              {
+                "canvasPoint": { "x": 155.415, "y": 371.792 },
+                "sourcePixel": { "x": 599, "y": 282 },
+                "background": "#492C13",
+                "ratio": 11.850314107677038
+              },
+              {
+                "canvasPoint": { "x": 208.625, "y": 371.792 },
+                "sourcePixel": { "x": 639, "y": 282 },
+                "background": "#442810",
+                "ratio": 12.582456454439933
+              },
+              {
+                "canvasPoint": { "x": 261.835, "y": 371.792 },
+                "sourcePixel": { "x": 679, "y": 282 },
+                "background": "#42240C",
+                "ratio": 13.15254542075658
+              },
+              {
+                "canvasPoint": { "x": 315.045, "y": 371.792 },
+                "sourcePixel": { "x": 720, "y": 282 },
+                "background": "#45290F",
+                "ratio": 12.420281211221772
+              }
+            ]
+          }
+        ]
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-instagram-portrait.svg",
+          "sha256": "005460995f2ecefd4a06895ae15a59b5f265de28fd9a70f05a33542eb65a6ae9",
+          "fingerprint": "9528f54affb0aea646c5c4693f02e17c692a152114e9adb0cf8770cae3c840f2",
+          "byteSize": 4014995
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/campaign-instagram-portrait.png",
+          "sha256": "a20ae280cf035108b6ca9fc676168b2c5b4b5a1e1e42d1612d413ddea0e5f42a",
+          "fingerprint": "b6b765487d534ce089f380f9ed5f20fa86fde5decf7fee190ac7b281900a3f55",
+          "byteSize": 2192130
+        }
+      }
+    },
+    {
+      "id": "carousel-01",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-01.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "eyebrow",
+            "fontSize": 26,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 129.2,
+              "width": 445.72789286595855,
+              "height": 26
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.39
+          },
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 810.6585114735753,
+              "y": 128.2,
+              "width": 82.28297705284918,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 102,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 251.2,
+              "width": 653.1415200283224,
+              "height": 330.48
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 36.83
+          },
+          {
+            "layerId": "cta",
+            "fontSize": 30,
+            "overflow": false,
+            "bounds": {
+              "x": 165.60000000000002,
+              "y": 766.2,
+              "width": 526.1235462477887,
+              "height": 30
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 10.83
+          },
+          {
+            "layerId": "footer",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 1270.8,
+              "width": 446.5135645931873,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-01.svg",
+          "sha256": "ac4d83cf84e7c801e37c93762ea7bba222c39f6bad8d3d83a3e7e23013a32b87",
+          "fingerprint": "596792de52621a35e271fa231b868d922cd3b408bd3a118c17fc2747b056b9b4",
+          "byteSize": 62622
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-01.png",
+          "sha256": "93f796b67b9bcf1f6922a6710bacf6da173424cf972be524ce7ae50d29ef0dff",
+          "fingerprint": "34c985b01c84d51d86fb707b6f58404409e2fb2916e4afc064b1f184d4b4ec53",
+          "byteSize": 64659
+        }
+      }
+    },
+    {
+      "id": "carousel-02",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-02.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 808.1787756821377,
+              "y": 128.2,
+              "width": 87.24244863572446,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 70,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 237.2,
+              "width": 472.0006824315304,
+              "height": 151.20000000000002
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 25.28
+          },
+          {
+            "layerId": "subtitle",
+            "fontSize": 34,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 416.4,
+              "width": 434.4758192754424,
+              "height": 40.8
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 12.28
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-02.svg",
+          "sha256": "65a2ca78a0c65c22f9d0dde8bddd1e79fde1a99efd99075f7e75a4aa13a73f33",
+          "fingerprint": "69fd8ceab295e1d6895e6734ad47f501900cb07996d377d210f5289600fe0d91",
+          "byteSize": 37509
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-02.png",
+          "sha256": "534334a6583f6692994480b3b7892244ba2ea35aa8da7f51295f8d321da95901",
+          "fingerprint": "d3dc2b0d21337ef4d9313b5588732c594bdf1d77f4cdbda9c4ec97efd15e08a2",
+          "byteSize": 35946
+        }
+      }
+    },
+    {
+      "id": "carousel-03",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-03.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 807.9822415845338,
+              "y": 128.2,
+              "width": 87.63551683093232,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 70,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 237.2,
+              "width": 554.1395363876069,
+              "height": 151.20000000000002
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 25.28
+          },
+          {
+            "layerId": "placement-count-value",
+            "fontSize": 152,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 416.4,
+              "width": 204.95111239319502,
+              "height": 152
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 54.89
+          },
+          {
+            "layerId": "placement-count-label",
+            "fontSize": 31,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 586.4,
+              "width": 319.36931018986496,
+              "height": 37.199999999999996
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 11.19
+          },
+          {
+            "layerId": "placement-count-trend",
+            "fontSize": 22,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 847.2,
+              "width": 194.99568051971022,
+              "height": 22
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 7.94
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-03.svg",
+          "sha256": "beb543eb4d6c8fe7099c6805b1066d0746b6ae45bc466644764ed78a88fad252",
+          "fingerprint": "73e4e98171f634cfdd86fb21d0fac1fc93ccbb792157ecfe78c9adfaec77a44c",
+          "byteSize": 103631
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-03.png",
+          "sha256": "13d50c4ce27aa08d20359601d77f6b59f2ddf793926dd50bcc2ab1cc59017845",
+          "fingerprint": "fff7df0efdc944d8bf9fde988e0ce39ada3fb5b7efed406eb3c174db7da36e07",
+          "byteSize": 131631
+        }
+      }
+    },
+    {
+      "id": "carousel-04",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-04.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 807.5952783957491,
+              "y": 128.2,
+              "width": 88.40944320850159,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 70,
+            "overflow": false,
+            "bounds": {
+              "x": 274.24,
+              "y": 237.2,
+              "width": 573.259791253433,
+              "height": 151.20000000000002
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 25.28
+          },
+          {
+            "layerId": "subtitle",
+            "fontSize": 34,
+            "overflow": false,
+            "bounds": {
+              "x": 274.24,
+              "y": 416.4,
+              "width": 439.0462035946559,
+              "height": 81.6
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 12.28
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-04.svg",
+          "sha256": "91b6e98e0be0ca3dc11d19f6cd4f3cb6abc0449bb8290aed14d61e954685e290",
+          "fingerprint": "477c84cb96d3b7b0a86d2784880658f5d707201d11f220b8a07c306aebf6c23b",
+          "byteSize": 65954
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-04.png",
+          "sha256": "96c4ad8cfb5f7ad8279aca3a44ecb5c884fa885e83ff71cd437876893d013bc5",
+          "fingerprint": "98491ebe5ffb89dd4da3969d95399abf787b4696cefa1ad62f4d35a36f332eee",
+          "byteSize": 71630
+        }
+      }
+    },
+    {
+      "id": "carousel-05",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-05.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 808.2742336527699,
+              "y": 128.2,
+              "width": 87.05153269446002,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 70,
+            "overflow": false,
+            "bounds": {
+              "x": 274.24,
+              "y": 237.2,
+              "width": 528.055119607301,
+              "height": 151.20000000000002
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 25.28
+          },
+          {
+            "layerId": "subtitle",
+            "fontSize": 34,
+            "overflow": false,
+            "bounds": {
+              "x": 274.24,
+              "y": 416.4,
+              "width": 538.908459349729,
+              "height": 84.32
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 12.28
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-05.svg",
+          "sha256": "e240db0faf922fc5d22dba595ccf7d99b3ea3e854348edd36c137e336b272a05",
+          "fingerprint": "22f80ff39a7e4f5d623ae204bb2f6db0e97a0901e7f945d7e6ced24b62ccb8f8",
+          "byteSize": 94087
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-05.png",
+          "sha256": "cef07a7c4fbccb4be64af4b1a41b8148d96237155f51e4605c86ab0e97a0a0e1",
+          "fingerprint": "2887e58bf803bce68feba32d54e91842111f6f77576326af1ba8fc28c0dbc4c7",
+          "byteSize": 100542
+        }
+      }
+    },
+    {
+      "id": "carousel-06",
+      "documentPath": "Deliverables/designer-stress-test-2026-09-25/designs/carousel-06.json",
+      "format": "tiktok-photo-carousel",
+      "template": { "id": "tiktok-carousel-slide", "version": "1.0.4" },
+      "qualityIssues": [],
+      "evidence": {
+        "safeArea": {
+          "x": 75.60000000000001,
+          "y": 115.2,
+          "width": 853.1999999999999,
+          "height": 1209.6
+        },
+        "text": [
+          {
+            "layerId": "slide-number",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 807.9286525086345,
+              "y": 128.2,
+              "width": 87.7426949827308,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          },
+          {
+            "layerId": "headline",
+            "fontSize": 102,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 237.2,
+              "width": 594.7962967510299,
+              "height": 110.16000000000001
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 36.83
+          },
+          {
+            "layerId": "cta",
+            "fontSize": 30,
+            "overflow": false,
+            "bounds": {
+              "x": 165.60000000000002,
+              "y": 752.2,
+              "width": 403.51143987823775,
+              "height": 30
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 10.83
+          },
+          {
+            "layerId": "footer",
+            "fontSize": 25,
+            "overflow": false,
+            "bounds": {
+              "x": 135.60000000000002,
+              "y": 1270.8,
+              "width": 347.8504196506904,
+              "height": 25
+            },
+            "inSafeArea": true,
+            "deliveredAt390Px": 9.03
+          }
+        ],
+        "crops": [],
+        "contrast": []
+      },
+      "outputs": {
+        "svg": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-06.svg",
+          "sha256": "b7322de1ab57c33ac4e6dc578b01110fc35710bc6f39ffea5713360738485c20",
+          "fingerprint": "b3b9af27a4b4b22290520fda2d20f6b11d29b5b1fbb28dd1ab738bb49e8cc88c",
+          "byteSize": 33354
+        },
+        "png": {
+          "path": "Deliverables/designer-stress-test-2026-09-25/outputs/carousel-06.png",
+          "sha256": "bb3c5da646a54c76c988149dd80f0634c6e01611a44acfc32731e842a8bf9773",
+          "fingerprint": "ee388acc5dfdb8f97fe7a0d52a1b347fd779f88bb0f645b8c920cee2da21331d",
+          "byteSize": 42017
+        }
+      }
+    }
+  ],
+  "carousel": {
+    "review": {
+      "version": "1.2.0",
+      "deliveryProfileId": "tiktok-organic-photo",
+      "success": true,
+      "issues": [
+        {
+          "code": "COMPOSITION_RHYTHM_REVIEW",
+          "severity": "warning",
+          "message": "Every slide uses the same composition variant; review visual rhythm without weakening brand continuity."
+        }
+      ]
+    },
+    "sidecarPath": "Deliverables/designer-stress-test-2026-09-25/carousel/delivery-sidecar.json",
+    "altText": [
+      {
+        "ordinal": 0,
+        "narrativeRole": "hook",
+        "altText": "Slide 1 of 6, hook. Dark Kilnform editorial card. Headline: One lamp. Three places to pause. Action: SWIPE FOR THE THREE CORNERS →"
+      },
+      {
+        "ordinal": 1,
+        "narrativeRole": "context",
+        "altText": "Slide 2 of 6, context. Light Kilnform editorial card. Headline: Choose the moment first. Name the pause you need."
+      },
+      {
+        "ordinal": 2,
+        "narrativeRole": "evidence",
+        "altText": "Slide 3 of 6, evidence. Dark Kilnform editorial card. Headline: Three corners.\nOne warm glow. Three placement ideas: desk, bedside, and entry."
+      },
+      {
+        "ordinal": 3,
+        "narrativeRole": "explanation",
+        "altText": "Slide 4 of 6, explanation. Light Kilnform editorial card. Headline: Give the shade room to breathe. Set it beside the task.\nLeave space for the shade."
+      },
+      {
+        "ordinal": 4,
+        "narrativeRole": "recap",
+        "altText": "Slide 5 of 6, recap. Dark Kilnform editorial card. Headline: Keep the lamp.\nShift the mood. Desk for focus. Bedside for calm. Entry for a soft welcome."
+      },
+      {
+        "ordinal": 5,
+        "narrativeRole": "action",
+        "altText": "Slide 6 of 6, action. Light Kilnform editorial card. Headline: Make room. Action: MEET THE STUDIO LAMP →"
+      }
+    ]
+  }
+}

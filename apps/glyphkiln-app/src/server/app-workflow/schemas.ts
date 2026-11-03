@@ -353,7 +353,46 @@ const RequestRevisionExportSchema = z
   })
   .strict();
 
+const CreateStaticAdCampaignSchema = z
+  .object({
+    type: z.literal("campaign.static-ads.create"),
+    workspaceId: identifier,
+    name: designName,
+    brief: campaignBrief,
+    campaignSeed: z.string().trim().min(1).max(256),
+    brandSnapshotId: identifier,
+    drafts: z
+      .array(
+        ManualDraftSchema.extend({
+          templateId: z.enum([
+            "product-announcement",
+            "benefit-proof",
+            "testimonial-evidence",
+            "comparison",
+            "problem-solution",
+            "offer-urgency",
+          ]),
+          format: z.enum([
+            "instagram-square",
+            "instagram-portrait",
+            "instagram-story",
+            "linkedin-landscape",
+          ]),
+        }),
+      )
+      .min(1)
+      .max(24)
+      .refine(
+        (drafts) =>
+          new Set(drafts.map((draft) => `${draft.templateId}:${draft.format}`)).size ===
+          drafts.length,
+        "Choose each family and size once.",
+      ),
+  })
+  .strict();
+
 export const AppCommandSchema = z.discriminatedUnion("type", [
+  CreateStaticAdCampaignSchema,
   BootstrapRegisterSchema,
   InvitationRegisterSchema,
   LoginSchema,
@@ -441,6 +480,7 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
   z
     .object({
       type: z.literal("campaign.handoff"),
+      approvedOnly: z.boolean().optional(),
       workspaceId: identifier,
       campaignId: identifier,
       directionId: identifier,

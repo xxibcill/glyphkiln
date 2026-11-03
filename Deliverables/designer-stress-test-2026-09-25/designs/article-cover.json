@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.4.0",
+  "id": "designer-day-article-cover",
+  "template": { "id": "article-cover", "version": "1.1.0" },
+  "format": "youtube-thumbnail",
+  "seed": "designer-day-second-firing-article-cover-v1",
+  "mode": "dark",
+  "brand": {
+    "snapshotId": "brand-kilnform-second-firing-2026-09",
+    "version": "1.0.0",
+    "name": "Kilnform",
+    "palette": {
+      "primary": "#0D3B9C",
+      "secondary": "#C85F27",
+      "accent": "#F3C879",
+      "neutrals": ["#15100D", "#FFF6E7", "#A77B5A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF6E7",
+        "surface": "#F3E4CC",
+        "text": "#15100D",
+        "mutedText": "#5E4637"
+      },
+      "dark": {
+        "background": "#15100D",
+        "surface": "#2B211C",
+        "text": "#FFF6E7",
+        "mutedText": "#F3E4CC"
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": [
+      "layered-waves",
+      "recursive-subdivision",
+      "topographic-contours",
+      "flow-field"
+    ],
+    "safeArea": { "top": 0.08, "right": 0.07, "bottom": 0.08, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai-composition"],
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Inter",
+          "weight": 800,
+          "lineHeight": 0.92,
+          "tracking": -0.03
+        },
+        "body": {
+          "family": "Inter",
+          "weight": 400,
+          "lineHeight": 1.25,
+          "tracking": 0
+        },
+        "label": {
+          "family": "Inter",
+          "weight": 700,
+          "lineHeight": 1,
+          "tracking": 0.08
+        }
+      }
+    }
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "metadata": {
+    "brief": "fictional-kilnform-second-firing",
+    "task": "editorial-story-cover",
+    "revision": "final",
+    "factualBasis": "Fictional client brief; no external performance claims."
+  },
+  "layers": [
+    { "id": "background", "visible": true, "type": "background" },
+    {
+      "id": "flow",
+      "visible": true,
+      "type": "procedural-decoration",
+      "style": "flow-field",
+      "intensity": 0.42,
+      "density": 0.52,
+      "complexity": 0.58,
+      "contrast": 0.29,
+      "quietRegion": { "x": 0.04, "y": 0.34, "width": 0.78, "height": 0.58 }
+    },
+    {
+      "id": "eyebrow",
+      "visible": true,
+      "type": "eyebrow",
+      "text": "KILNFORM JOURNAL"
+    },
+    {
+      "id": "headline",
+      "visible": true,
+      "type": "headline",
+      "text": "Where a small lamp changes the room"
+    },
+    {
+      "id": "byline",
+      "visible": true,
+      "type": "attribution",
+      "text": "A STUDIO GUIDE · 4 MIN READ"
+    }
+  ]
+}

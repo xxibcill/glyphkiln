@@ -30,7 +30,7 @@ import {
   type DeliverySource,
 } from "../delivery/index.js";
 
-export const CAROUSEL_SEQUENCE_VERSION = "1.2.0" as const;
+export const CAROUSEL_SEQUENCE_VERSION = "1.4.0" as const;
 export const CAROUSEL_DELIVERY_SIDECAR_VERSION = "1.2.0" as const;
 
 declare const CAROUSEL_SEQUENCE_KEY_BRAND: unique symbol;
@@ -338,7 +338,16 @@ function reviewCompositionVariant(
   const declaredVariant = member.compositionVariants.find(
     ({ id }) => id === slide.compositionVariantId,
   );
-  if (declaredVariant !== undefined) return member.compositionVariants[0].id;
+  if (declaredVariant !== undefined) {
+    const variant = member.compositionVariants[0].id;
+    if (!["1.1.0", "1.1.1"].includes(slide.document.template.version)) return variant;
+    if (slide.document.template.id === "image-led-campaign") return `${variant}:split`;
+    return slide.document.layers.some(
+      (layer) => layer.visible && layer.type === "image",
+    )
+      ? `${variant}:image`
+      : variant;
+  }
 
   issues.push(
     error(

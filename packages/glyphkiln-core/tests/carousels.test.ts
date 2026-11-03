@@ -195,7 +195,7 @@ describe("carousel sequence review and sidecars", () => {
     const sequence = await organicSequence();
     const review = reviewCarouselSequence(sequence);
 
-    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.2.0");
+    expect(CAROUSEL_SEQUENCE_VERSION).toBe("1.4.0");
     expect(CAROUSEL_NARRATIVE_ROLE_IDS).toEqual([
       "hook",
       "context",

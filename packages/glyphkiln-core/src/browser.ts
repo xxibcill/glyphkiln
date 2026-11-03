@@ -105,3 +105,16 @@ export {
   readArrayLength as readInertArrayLength,
   readExactDataRecord as readExactInertDataRecord,
 } from "./authoring/inert-data.js";
+
+export {
+  STATIC_AD_PLACEMENT_VERSION,
+  STATIC_AD_FORMATS,
+  STATIC_AD_TEMPLATE_IDS,
+  isStaticAdFormat,
+  reviewStaticAdPlacement,
+} from "./campaigns/static-ad-placement.js";
+export type {
+  StaticAdFormat,
+  StaticAdTemplateId,
+  StaticAdPlacementReview,
+} from "./campaigns/static-ad-placement.js";

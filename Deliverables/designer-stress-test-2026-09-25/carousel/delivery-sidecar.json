@@ -1,0 +1,171 @@
+{
+  "version": "1.2.0",
+  "deliveryProfile": {
+    "id": "tiktok-organic-photo",
+    "metadataVersion": "1.0.0",
+    "profile": {
+      "id": "tiktok-organic-photo",
+      "label": "TikTok Photo Mode · organic",
+      "platform": "tiktok",
+      "publishingPath": "organic",
+      "compatibleFormats": ["tiktok-photo-carousel"],
+      "slideCount": {
+        "value": { "minimum": 1, "maximum": 35 },
+        "evidence": "platform-requirement",
+        "sourceIds": ["tiktok-making-a-post"],
+        "note": "Glyphkiln still treats two or more slides as a carousel sequence; there is no universal optimal count."
+      },
+      "acceptedImageMediaTypes": {
+        "value": ["image/jpeg", "image/png"],
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "TikTok's native help does not publish an exact file-type contract; verify the target device picker."
+      },
+      "aspectRatio": {
+        "value": { "sameAcrossSequence": false },
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "3:4 is a Glyphkiln working canvas, not an official organic Photo Mode requirement."
+      },
+      "raster": {
+        "value": { "targetWidth": 1080 },
+        "evidence": "glyphkiln-advisory",
+        "sourceIds": ["glyphkiln-carousel-validation"],
+        "note": "1080 px is a Glyphkiln working target, not a universal native Photo Mode requirement."
+      },
+      "accessibility": {
+        "value": { "creatorAltText": true, "maximumAltTextCharacters": 300 },
+        "evidence": "platform-capability",
+        "sourceIds": ["tiktok-accessibility"],
+        "note": "Supply alt text for every meaningful image in the sequence."
+      },
+      "surfaceOverlay": {
+        "version": "2026-08-18",
+        "evidence": "glyphkiln-advisory",
+        "insets": { "top": 0.08, "right": 0.18, "bottom": 0.2, "left": 0.06 },
+        "note": "No stable first-party organic Photo Mode safe zone is published; verify against captured live UI."
+      },
+      "authoringNotes": [
+        "Do not import Smart Order, 9:16, or 3/7–9 slide advice from the paid-ad path.",
+        "Proof the advisory overlay against current device captures before publishing."
+      ]
+    },
+    "sources": [
+      {
+        "id": "glyphkiln-carousel-validation",
+        "publisher": "Glyphkiln",
+        "title": "Carousel design research validation",
+        "url": "https://github.com/xxibcill/glyphkiln/blob/main/docs/research/carousel-design-validation-2026-08-18.md",
+        "retrievedAt": "2026-08-18"
+      },
+      {
+        "id": "tiktok-accessibility",
+        "publisher": "TikTok",
+        "title": "Accessibility for your videos",
+        "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/accessibility",
+        "retrievedAt": "2026-08-18"
+      },
+      {
+        "id": "tiktok-making-a-post",
+        "publisher": "TikTok",
+        "title": "Making a post",
+        "url": "https://support.tiktok.com/en/using-tiktok/creating-videos/making-a-post",
+        "retrievedAt": "2026-08-18"
+      }
+    ]
+  },
+  "slides": [
+    {
+      "documentId": "designer-day-carousel-01",
+      "ordinal": 0,
+      "narrativeRole": "hook",
+      "altText": "Slide 1 of 6, hook. Dark Kilnform editorial card. Headline: One lamp. Three places to pause. Action: SWIPE FOR THE THREE CORNERS →",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "01 / 06" },
+        { "layerId": "eyebrow", "text": "KILNFORM / THE PLACEMENT EDIT" },
+        { "layerId": "headline", "text": "One lamp. Three places to pause." },
+        { "layerId": "cta", "text": "SWIPE FOR THE THREE CORNERS →" },
+        { "layerId": "footer", "text": "THE STUDIO LAMP / SECOND FIRING" }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": []
+    },
+    {
+      "documentId": "designer-day-carousel-02",
+      "ordinal": 1,
+      "narrativeRole": "context",
+      "altText": "Slide 2 of 6, context. Light Kilnform editorial card. Headline: Choose the moment first. Name the pause you need.",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "02 / 06" },
+        { "layerId": "headline", "text": "Choose the moment first." },
+        { "layerId": "subtitle", "text": "Name the pause you need." }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": []
+    },
+    {
+      "documentId": "designer-day-carousel-03",
+      "ordinal": 2,
+      "narrativeRole": "evidence",
+      "altText": "Slide 3 of 6, evidence. Dark Kilnform editorial card. Headline: Three corners.\nOne warm glow. Three placement ideas: desk, bedside, and entry.",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "03 / 06" },
+        { "layerId": "headline", "text": "Three corners.\nOne warm glow." },
+        {
+          "layerId": "placement-count",
+          "text": "03 · desk · bedside · entry · three places to try"
+        }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": [
+        { "label": "Fictional Kilnform client brief: three placement concepts" }
+      ]
+    },
+    {
+      "documentId": "designer-day-carousel-04",
+      "ordinal": 3,
+      "narrativeRole": "explanation",
+      "altText": "Slide 4 of 6, explanation. Light Kilnform editorial card. Headline: Give the shade room to breathe. Set it beside the task.\nLeave space for the shade.",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "04 / 06" },
+        { "layerId": "headline", "text": "Give the shade room to breathe." },
+        {
+          "layerId": "subtitle",
+          "text": "Set it beside the task.\nLeave space for the shade."
+        }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": []
+    },
+    {
+      "documentId": "designer-day-carousel-05",
+      "ordinal": 4,
+      "narrativeRole": "recap",
+      "altText": "Slide 5 of 6, recap. Dark Kilnform editorial card. Headline: Keep the lamp.\nShift the mood. Desk for focus. Bedside for calm. Entry for a soft welcome.",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "05 / 06" },
+        { "layerId": "headline", "text": "Keep the lamp.\nShift the mood." },
+        {
+          "layerId": "subtitle",
+          "text": "Desk for focus. Bedside for calm. Entry for a soft welcome."
+        }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": []
+    },
+    {
+      "documentId": "designer-day-carousel-06",
+      "ordinal": 5,
+      "narrativeRole": "action",
+      "altText": "Slide 6 of 6, action. Light Kilnform editorial card. Headline: Make room. Action: MEET THE STUDIO LAMP →",
+      "readingOrder": [
+        { "layerId": "slide-number", "text": "06 / 06" },
+        { "layerId": "headline", "text": "Make room." },
+        { "layerId": "cta", "text": "MEET THE STUDIO LAMP →" },
+        { "layerId": "footer", "text": "KILNFORM / SECOND FIRING" }
+      ],
+      "visualDescriptions": [],
+      "sourceNotes": []
+    }
+  ]
+}

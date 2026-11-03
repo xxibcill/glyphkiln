@@ -97,13 +97,15 @@ describe("design document schema", () => {
   });
 
   it("keeps legacy schemas readable while versioning new rendering controls", async () => {
-    expect(DESIGN_DOCUMENT_VERSION).toBe("1.4.0");
+    expect(DESIGN_DOCUMENT_VERSION).toBe("1.6.0");
     expect(SUPPORTED_DESIGN_DOCUMENT_VERSIONS).toEqual([
       "1.0.0",
       "1.1.0",
       "1.2.0",
       "1.3.0",
       "1.4.0",
+      "1.5.0",
+      "1.6.0",
     ]);
 
     const legacy = await loadExample("product-announcement");
@@ -303,7 +305,14 @@ describe("design document schema", () => {
       const schemaVersion =
         name === "tiktok-carousel-slide"
           ? "1.3.0"
-          : name === "image-led-campaign"
+          : [
+                "image-led-campaign",
+                "benefit-proof",
+                "testimonial-evidence",
+                "comparison",
+                "problem-solution",
+                "offer-urgency",
+              ].includes(name)
             ? DESIGN_DOCUMENT_VERSION
             : "1.0.0";
       expect(

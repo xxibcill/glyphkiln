@@ -9,6 +9,7 @@ import type {
   TextBoundsEvidence,
 } from "@glyphkiln/core";
 import {
+  AUTHORING_TEMPLATE_REGISTRY,
   RENDER_EVIDENCE_VERSION,
   canonicalJson,
   createRenderFingerprintPayload,
@@ -229,6 +230,11 @@ function inspectTrustedManifest(
   const template = catalog.templates.find(
     (candidate) => candidate.id === response.document.template.id,
   );
+  const exactTemplate = Object.values(AUTHORING_TEMPLATE_REGISTRY).find(
+    (candidate) =>
+      candidate.template.id === response.document.template.id &&
+      candidate.template.version === response.document.template.version,
+  );
   const selectedProceduralLayer = response.document.layers.find(
     (layer) => layer.type === "procedural-decoration" && layer.visible,
   );
@@ -266,7 +272,9 @@ function inspectTrustedManifest(
     template === undefined ||
     (proceduralLayer !== undefined && proceduralStyle === undefined) ||
     response.document.schemaVersion !== catalog.schemaVersion ||
-    response.document.template.version !== template.version ||
+    exactTemplate === undefined ||
+    !exactTemplate.compatibleFormats.includes(response.document.format) ||
+    !exactTemplate.compatibleSchemaVersions.includes(response.document.schemaVersion) ||
     manifest.manifestVersion !== catalog.manifestVersion ||
     manifest.renderer.name !== catalog.renderer.name ||
     manifest.renderer.version !== catalog.renderer.version ||

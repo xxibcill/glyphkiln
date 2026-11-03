@@ -1,9 +1,11 @@
-export const DESIGN_DOCUMENT_VERSION = "1.4.0" as const;
+export const DESIGN_DOCUMENT_VERSION = "1.6.0" as const;
 export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
   "1.0.0",
   "1.1.0",
   "1.2.0",
   "1.3.0",
+  "1.4.0",
+  "1.5.0",
   DESIGN_DOCUMENT_VERSION,
 ] as const);
 export const MANIFEST_VERSION = "1.2.0" as const;

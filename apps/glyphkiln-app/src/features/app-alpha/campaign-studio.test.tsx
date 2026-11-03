@@ -221,7 +221,7 @@ describe("CampaignStudio", () => {
       directionKey: "editorial-a",
       sequenceKey: createCarouselSequenceKey("launch-carousel"),
       review: {
-        version: "1.2.0",
+        version: "1.4.0",
         deliveryProfileId: "instagram-native-carousel",
         success: true,
         issues: [],
@@ -830,7 +830,7 @@ function campaignCanvasSeedFixture(
     campaignId: CAMPAIGN.id,
     directionId: "direction-1",
     canvasKey: "hero-landscape",
-    template: { id: "image-led-campaign" as const, version: "1.0.1" },
+    template: { id: "image-led-campaign" as const, version: "1.1.1" },
     format,
     compositionVariantId: "focal-editorial" as const,
     seedDerivationVersion: "sha256/canonical-scope-v1",

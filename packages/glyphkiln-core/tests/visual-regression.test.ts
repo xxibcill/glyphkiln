@@ -8,6 +8,34 @@ import { renderGraphic, sha256, type DesignDocument } from "../src/index.js";
 import { loadExampleAssets } from "./helpers.js";
 
 const baselines = [
+  "testimonial-evidence-square",
+  "testimonial-evidence-portrait",
+  "testimonial-evidence-story",
+  "testimonial-evidence-landscape",
+  "comparison-square",
+  "comparison-portrait",
+  "comparison-story",
+  "comparison-landscape",
+  "problem-solution-square",
+  "problem-solution-portrait",
+  "problem-solution-story",
+  "problem-solution-landscape",
+  "offer-urgency-square",
+  "offer-urgency-portrait",
+  "offer-urgency-story",
+  "offer-urgency-landscape",
+
+  "benefit-proof-square",
+  "benefit-proof-portrait",
+  "benefit-proof-story",
+  "benefit-proof-landscape",
+  "benefit-proof-software",
+  "benefit-proof-travel",
+
+  "product-offer-square",
+  "product-offer-portrait",
+  "product-offer-story",
+  "product-offer-landscape",
   "product-announcement",
   "statistic-card",
   "quote-card",
@@ -16,6 +44,17 @@ const baselines = [
   "image-led-campaign",
   "image-led-campaign-square",
   "image-led-campaign-portrait",
+  "split-editorial-landscape",
+  "split-editorial-square",
+  "split-editorial-portrait",
+  "image-carousel",
+  "image-carousel-metric",
+  "split-editorial-landscape-balanced",
+  "split-editorial-square-balanced",
+  "split-editorial-portrait-balanced",
+  "image-carousel-balanced",
+  "image-carousel-metric-balanced",
+  "type-carousel-balanced",
 ] as const;
 
 describe("reviewed visual baselines", () => {

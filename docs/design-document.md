@@ -1,7 +1,9 @@
 # Design-document specification
 
 `DesignDocument` is strict, JSON-compatible, and currently versioned at
-`1.4.0`. Schemas `1.0.0`, `1.1.0`, `1.2.0`, and `1.3.0` remain readable. The organic
+`1.6.0`. Schemas `1.0.0`–`1.5.0` remain readable. The
+[`benefit-list` layer](benefit-proof-template.md) contains one to three ordered
+title/description items for `benefit-proof@1.0.0`. The organic
 TikTok photo-carousel format requires `1.3.0`; preserved 9:16 carousel documents
 remain valid in `1.1.0` and newer. Unknown properties are rejected at
 every structural object. The Zod schema provides TypeScript
@@ -57,14 +59,14 @@ adds normalized image `focalPoint` and the closed `none`, `dark-scrim`, and
 
 Templates explicitly declare which semantic layers they implement:
 
-| Template                | Accepted visible layers                                                                                           |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `product-announcement`  | `background`, `procedural-decoration`, `eyebrow` or `badge`, `headline`, `subtitle`, `cta`, `product-screenshot`  |
-| `statistic-card`        | `background`, `procedural-decoration`, `headline`, `statistic`                                                    |
-| `quote-card`            | `background`, `procedural-decoration`, `headline`, `attribution`                                                  |
-| `article-cover`         | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                       |
-| `tiktok-carousel-slide` | `background`, `procedural-decoration`, `badge`, `eyebrow`, `headline`, `subtitle` or `statistic`, `cta`, `footer` |
-| `image-led-campaign`    | `background`, `image`, `logo`, `eyebrow`, `headline`, `subtitle`, `cta`                                           |
+| Template                | Accepted visible layers                                                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `product-announcement`  | `background`, `procedural-decoration`, `eyebrow`, `badge`, `headline`, `subtitle`, `cta`, `product-screenshot`, `logo`, `footer` (1.2.0) |
+| `statistic-card`        | `background`, `procedural-decoration`, `headline`, `statistic`                                                                           |
+| `quote-card`            | `background`, `procedural-decoration`, `headline`, `attribution`                                                                         |
+| `article-cover`         | `background`, `procedural-decoration`, `eyebrow`, `headline`, `attribution`                                                              |
+| `tiktok-carousel-slide` | `background`, `procedural-decoration`, `badge`, `eyebrow`, `headline`, `subtitle` or `statistic`, `cta`, `footer`                        |
+| `image-led-campaign`    | `background`, `image`, `logo`, `eyebrow`, `headline`, `subtitle`, `cta`                                                                  |
 
 A template accepts at most one visible layer of each type. Unsupported,
 duplicate, or mutually exclusive visible layers are error-level quality issues
@@ -92,3 +94,10 @@ Standard JSON Schema cannot express uniqueness by an object property portably.
 `DESIGN_DOCUMENT_RUNTIME_REFINEMENTS` publishes the exact uniqueness and quiet
 region sum rules that `validateDesignDocument` applies after draft 2020-12
 validation.
+
+Product announcement 1.2.0 permits eyebrow and badge together and requires contain
+fitting for product images and logos. Version 1.1.1 retains its original mutually
+exclusive eyebrow/badge contract and does not support logo or footer. See the
+[product-and-offer guide](product-offer-template.md).
+
+Schema 1.6.0 adds the four remaining static-ad IDs and strict `comparison-table` and `problem-solution` layers. See [field contracts](static-ad-starter-set.md). The 1.5.0 branch remains closed and unchanged.

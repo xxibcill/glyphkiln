@@ -1,4 +1,4 @@
-import { canonicalJson } from "@glyphkiln/core/browser";
+import { canonicalJson, STATIC_AD_TEMPLATE_IDS } from "@glyphkiln/core/browser";
 
 import type {
   CampaignCanvas,
@@ -33,6 +33,7 @@ export type CampaignCanvasSeedPlan = {
 export function campaignCompositionVariant(
   templateId: CampaignCanvasSeedInput["templateId"],
 ): CampaignCanvasSeedInput["compositionVariantId"] {
+  if (STATIC_AD_TEMPLATE_IDS.some((id) => id === templateId)) return "static-ad";
   return templateId === "tiktok-carousel-slide"
     ? "organic-photo-editorial"
     : "focal-editorial";

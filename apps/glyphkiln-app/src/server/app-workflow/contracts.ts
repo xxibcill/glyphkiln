@@ -128,6 +128,15 @@ export type AppCommand =
       changeNote?: string;
     }
   | {
+      type: "campaign.static-ads.create";
+      workspaceId: string;
+      name: string;
+      brief: string;
+      campaignSeed: string;
+      brandSnapshotId: string;
+      drafts: ManualDraft[];
+    }
+  | {
       type: "campaign.create";
       workspaceId: string;
       name: string;
@@ -258,6 +267,7 @@ export type AppQuery =
     }
   | {
       type: "campaign.handoff";
+      approvedOnly?: boolean;
       workspaceId: string;
       campaignId: string;
       directionId: string;

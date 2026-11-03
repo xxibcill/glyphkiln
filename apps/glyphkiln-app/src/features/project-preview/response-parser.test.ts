@@ -3,7 +3,11 @@ import { createHash } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createDevelopmentFont, IMAGE_CONTRAST_POLICY_VERSION } from "@glyphkiln/core";
+import {
+  createDevelopmentFont,
+  hashCanonical,
+  IMAGE_CONTRAST_POLICY_VERSION,
+} from "@glyphkiln/core";
 
 import { createPreviewDesign } from "@/test/preview-design";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
@@ -27,20 +31,37 @@ describe("parsePreviewResponse", () => {
     vi.unstubAllGlobals();
   });
 
-  it("accepts a complete render response", async () => {
-    const result = await createProjectPreview(createPreviewDesign(), {
-      render: async (document, options) => {
-        const { renderGraphic } = await import("@glyphkiln/core");
-        return renderGraphic(document, options);
-      },
-      now: () => FIXED_NOW,
-    });
+  it.each(["1.1.1", "1.2.0"])(
+    "accepts a complete product proof at exact version %s",
+    async (version) => {
+      const document = createPreviewDesign();
+      document.template.version = version;
+      const result = await createProjectPreview(document, {
+        render: async (document, options) => {
+          const { renderGraphic } = await import("@glyphkiln/core");
+          return renderGraphic(document, options);
+        },
+        now: () => FIXED_NOW,
+      });
 
-    expect(parsePreviewResponse(result.body, result.status)).toEqual(result.body);
-    if (!result.body.ok) throw new Error("Expected a rendered preview.");
-    await expect(
-      verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
-    ).resolves.toBeNull();
+      expect(parsePreviewResponse(result.body, result.status)).toEqual(result.body);
+      if (!result.body.ok) throw new Error("Expected a rendered preview.");
+      await expect(
+        verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
+      ).resolves.toBeNull();
+    },
+  );
+
+  it("rejects an unregistered exact version even when document and manifests agree", async () => {
+    const proof = await renderSuccess();
+    proof.document.template.version = "9.9.9";
+    for (const output of proof.outputs) {
+      output.manifest.template.version = "9.9.9";
+      output.manifest.designDocumentHash = hashCanonical(proof.document);
+    }
+    const failure = await verifyPreviewIntegrity(proof, CATALOG, proof.document);
+    expect(failure).toMatchObject({ code: "PREVIEW_INTEGRITY_FAILED" });
+    expect(failure?.detail).toContain("trusted Core catalog");
   });
 
   it("accepts complete proof bytes or metadata and rejects mixed or oversized proofs", async () => {

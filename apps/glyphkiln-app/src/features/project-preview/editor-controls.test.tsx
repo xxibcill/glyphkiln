@@ -1,3 +1,4 @@
+import { STATIC_AD_TEMPLATE_IDS, STATIC_AD_FIELDS } from "./static-ad-copy";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -25,6 +26,112 @@ const FAILURE: PreviewFailure = {
 };
 
 describe("EditorControls", () => {
+  it("connects structured copy overflow to its editable field", () => {
+    const catalog = createPreviewCatalog();
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "problem-solution";
+    const response: PreviewFailure = {
+      ok: false,
+      status: 422,
+      title: "Overflow",
+      code: "QUALITY_VALIDATION_FAILED",
+      detail: "Shorten copy",
+      qualityIssues: [
+        {
+          code: "TEXT_OVERFLOW",
+          severity: "error",
+          layerId: "problem-solution-1-body",
+          message: "Shorten the solution explanation.",
+        },
+      ],
+    };
+    const markup = renderToStaticMarkup(
+      <EditorControls
+        catalog={catalog}
+        state={state}
+        response={response}
+        isRendering={false}
+        hasUnrenderedEdits={false}
+        validationIsStale={false}
+        onStateChange={() => undefined}
+        onRender={() => undefined}
+      />,
+    );
+    const field = markup
+      .match(/<textarea\b[^>]*>/gu)
+      ?.find((item) => item.includes('id="problem-solution-solution"'));
+    expect(field).toContain('aria-invalid="true"');
+    expect(markup).toContain("Shorten the solution explanation.");
+  });
+
+  it.each(STATIC_AD_TEMPLATE_IDS)(
+    "exposes the semantic fields and resources for %s",
+    (id) => {
+      const catalog = createPreviewCatalog();
+      const state = createInitialPreviewForm(catalog);
+      state.composition.templateId = id;
+      const markup = renderToStaticMarkup(
+        <EditorControls
+          catalog={catalog}
+          state={state}
+          resources={[]}
+          response={null}
+          isRendering={false}
+          hasUnrenderedEdits={true}
+          validationIsStale={false}
+          onStateChange={() => undefined}
+          onRender={() => undefined}
+        />,
+      );
+      for (const field of STATIC_AD_FIELDS[id])
+        expect(markup).toContain(field.label.replaceAll("&", "&amp;"));
+      expect(markup).toContain("Brand logo");
+      expect(markup).not.toContain('id="campaign-focal-x"');
+      if (id === "testimonial-evidence") expect(markup).toContain("Customer portrait");
+      if (id === "comparison") {
+        expect(markup).toContain("Add criterion");
+        expect(markup).not.toContain("Criterion 4");
+      }
+      if (id === "comparison" || id === "problem-solution")
+        expect(markup).not.toContain('id="campaign-image-resource"');
+    },
+  );
+
+  it("exposes bounded benefit fields, source copy and contained product controls", () => {
+    const catalog = createPreviewCatalog();
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "benefit-proof";
+    const markup = renderToStaticMarkup(
+      <EditorControls
+        catalog={catalog}
+        state={state}
+        resources={[]}
+        response={null}
+        isRendering={false}
+        hasUnrenderedEdits={true}
+        validationIsStale={false}
+        onStateChange={() => undefined}
+        onRender={() => undefined}
+      />,
+    );
+    expect(markup).toContain("Benefit headline");
+    expect(markup).toContain("Benefit 3 explanation");
+    expect(markup).not.toContain("Benefit 4");
+    expect(markup).toContain("Source or qualification");
+    expect(markup).toMatch(/<button[^>]*disabled=""[^>]*>Add benefit/);
+    expect(markup).toContain("Product image");
+    expect(markup).not.toContain('id="campaign-focal-x"');
+  });
+  it("offers product, price, terms, and contained-image controls without crop settings", () => {
+    const markup = renderControls(false);
+    expect(markup).toContain("Offer or price");
+    expect(markup).toContain("Offer terms");
+    expect(markup).toContain("Product image");
+    expect(markup).toContain("Brand logo");
+    expect(markup).not.toContain('id="campaign-focal-x"');
+    expect(markup).not.toContain('id="campaign-treatment"');
+  });
+
   it("associates layer quality errors with their active copy control", () => {
     const markup = renderControls(false);
 
@@ -91,8 +198,8 @@ describe("EditorControls", () => {
     expect(tiktokMarkup).not.toContain("Quiet-region geometry");
 
     const productMarkup = renderControls(false);
-    expect(productMarkup).toContain('id="procedural-style"');
-    expect(productMarkup).toContain('id="intensity"');
+    expect(productMarkup).toContain('id="campaign-image-resource"');
+    expect(productMarkup).not.toContain('id="intensity"');
   });
 
   it("associates synthetic metric quality issues with their editor fields", () => {
@@ -111,6 +218,30 @@ describe("EditorControls", () => {
     const markup = renderTiktokControls("metric", metricFailure);
     expect(markup).toContain("The metric value is too long.");
     expect(markup).toContain('aria-describedby="tiktok-statistic-value-error"');
+  });
+
+  it("offers optional carousel photography without a logo requirement", () => {
+    const catalog = createPreviewCatalog({ resourceBacked: true });
+    const state = createInitialPreviewForm(catalog);
+    state.composition.templateId = "tiktok-carousel-slide";
+    state.composition.formatId = "tiktok-photo-carousel";
+    const markup = renderToStaticMarkup(
+      <EditorControls
+        catalog={catalog}
+        state={state}
+        resources={[]}
+        response={null}
+        isRendering={false}
+        hasUnrenderedEdits={false}
+        validationIsStale={false}
+        onStateChange={() => undefined}
+        onRender={() => undefined}
+      />,
+    );
+    expect(markup).toContain('id="campaign-image-resource"');
+    expect(markup).toContain("Optional: choose a photograph");
+    expect(markup).toContain('id="campaign-focal-x"');
+    expect(markup).not.toContain('id="campaign-logo-resource"');
   });
 
   it("exposes immutable image, logo, focal, treatment, and font controls", () => {

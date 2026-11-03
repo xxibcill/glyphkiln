@@ -1,5 +1,13 @@
 # Versioning policy
 
+DesignDocument `1.5.0` adds `benefit-proof` and a bounded `benefit-list` layer
+with one to three title/description items. Schemas `1.0.0`–`1.4.0` retain their
+original accepted shapes. `benefit-proof@1.0.0` owns the new composition;
+authoring metadata `1.6.0` publishes its collection fields. Existing template,
+renderer, procedural and manifest versions remain unchanged. New factory/App
+drafts now default to `1.6.0`; persisted documents retain their pinned versions.
+See [the template contract and proofs](benefit-proof-template.md).
+
 The npm package follows semantic versioning. Before package `1.0.0`, minor
 versions may contain public-API changes, but changesets and release notes must
 state them explicitly.
@@ -167,3 +175,34 @@ fingerprints, SVG, PNG render output, or legacy validation behavior. The first
 implementation pins `@kittl/little-cms@1.0.3`, Glyphkiln raw-WASM adapter `v1`,
 pngjs `7.0.0`, and jpeg-js `0.4.4`; it supports embedded RGB and grayscale ICC
 profiles and rejects CMYK/other spaces with a stable error.
+
+## Reference-led editorial templates
+
+`image-led-campaign@1.1.0` adds separated image and copy regions, with columns
+for landscape/square and a stacked portrait. `tiktok-carousel-slide@1.1.0`
+adds optional focal imagery and separate captions/actions. Its image-free path
+preserves the exact `1.0.4` pixels. Both versions retain older exact versions.
+No renderer, schema, manifest, or procedural version changes are needed.
+
+Authoring and campaign-family metadata `1.3.0` select these versions for new
+manual work and retain historical family members for exact seed derivation.
+Carousel sequence review `1.3.0` recognizes image/type alternation from visible
+content and distinguishes the new split campaign from historical overlays.
+Delivery sidecars remain `1.2.0`. See [the research mapping](reference-led-refinement.md).
+
+Template versions `image-led-campaign@1.1.1` and
+`tiktok-carousel-slide@1.1.1` refine the reviewed image proportions and
+landscape/portrait type scale. The image-free carousel now shares the image
+slide's header and action geometry. Exact `1.1.0` behavior remains registered.
+Authoring, campaign-family metadata, and carousel sequence review advance to
+`1.4.0`; new drafts select `1.1.1`. No shared renderer, schema, procedural,
+manifest, sidecar, or database version changes accompany these compositions.
+
+`product-announcement@1.2.0` owns the product-and-offer static-ad composition:
+contained imagery, optional logo and offer terms, simultaneous eyebrow/badge,
+filled CTA, landscape columns and stacked square/portrait geometry. Exact
+`1.1.1` remains registered. Authoring metadata advances to `1.5.0` and new
+manual product drafts select `1.2.0`. Shared renderer, design schema, manifest,
+procedural algorithms, campaign-family metadata, and database stay unchanged.
+
+The completed [static-ad starter set](static-ad-starter-set.md) introduces four new templates at 1.0.0, DesignDocument 1.6.0 and authoring metadata 1.7.0. Existing template pixels and shared renderer/manifest versions remain unchanged.

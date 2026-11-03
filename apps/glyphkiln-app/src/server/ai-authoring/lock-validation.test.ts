@@ -19,6 +19,92 @@ import {
 } from "./index";
 
 describe("server-owned authoring lock validation", () => {
+  it("locks comparison labels, ordered values and row count", () => {
+    const base = {
+      ...createPreviewDesign(),
+      schemaVersion: "1.6.0",
+      template: { id: "comparison", version: "1.0.0" },
+      layers: [
+        { id: "headline", type: "headline", visible: true, text: "Two options" },
+        { id: "footer", type: "footer", visible: true, text: "Supplied source" },
+        {
+          id: "comparison",
+          type: "comparison-table",
+          visible: true,
+          leftLabel: "First",
+          rightLabel: "Second",
+          rows: [{ label: "Criterion", left: "A", right: "B" }],
+        },
+      ],
+    };
+    const candidate = structuredClone(base);
+    const table = candidate.layers.find((layer) => layer.type === "comparison-table");
+    if (!table?.rows) throw new Error("Missing comparison");
+    table.rows = [{ label: "Criterion", left: "C", right: "D" }];
+    expect(validateAuthoringLocks(base, candidate, ["copy"]).success).toBe(false);
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(true);
+    table.rows.push({ label: "Extra", left: "A", right: "B" });
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(
+      false,
+    );
+  });
+  it("locks problem and solution copy independently of composition", () => {
+    const base = {
+      ...createPreviewDesign(),
+      schemaVersion: "1.6.0",
+      template: { id: "problem-solution", version: "1.0.0" },
+      layers: [
+        { id: "headline", type: "headline", visible: true, text: "A better process" },
+        {
+          id: "panels",
+          type: "problem-solution",
+          visible: true,
+          problemTitle: "Old",
+          problem: "Rework",
+          solutionTitle: "New",
+          solution: "Pinned inputs",
+        },
+      ],
+    };
+    const candidate = structuredClone(base);
+    const panels = candidate.layers.find((layer) => layer.type === "problem-solution");
+    if (!panels) throw new Error("Missing panels");
+    panels.solution = "Changed solution";
+    expect(validateAuthoringLocks(base, candidate, ["copy"]).success).toBe(false);
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(true);
+  });
+
+  it("locks benefit item copy and item count without blocking unlocked copy edits", () => {
+    const base = {
+      ...createPreviewDesign(),
+      schemaVersion: "1.5.0",
+      template: { id: "benefit-proof", version: "1.0.0" },
+      layers: [
+        { id: "headline", type: "headline", visible: true, text: "Useful by design." },
+        {
+          id: "benefits",
+          type: "benefit-list",
+          visible: true,
+          items: [{ title: "One feature", description: "A supplied explanation." }],
+        },
+      ],
+    };
+    const candidate = structuredClone(base);
+    const benefits = candidate.layers.find((layer) => layer.type === "benefit-list");
+    if (!benefits?.items) throw new Error("Missing benefits.");
+    benefits.items = [
+      { title: "Changed feature", description: "A supplied explanation." },
+    ];
+    expect(validateAuthoringLocks(base, candidate, ["copy"]).success).toBe(false);
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(true);
+    benefits.items.push({
+      title: "Extra feature",
+      description: "Extra detail.",
+    });
+    expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(
+      false,
+    );
+  });
   it("accepts normalized locked choices while ignoring revision identity and metadata", () => {
     const base = authoringDocument();
     const candidate = structuredClone(base);

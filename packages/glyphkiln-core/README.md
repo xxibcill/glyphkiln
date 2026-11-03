@@ -33,7 +33,7 @@ bounded `keepTogether` phrase list for author-controlled grouping.
 
 Supported templates:
 
-- `product-announcement@1.1.1`
+- `product-announcement@1.2.0` (product and offer static ads; exact `1.1.1` retained)
 - `statistic-card@1.1.0`
 - `quote-card@1.1.0`
 - `article-cover@1.1.0`
@@ -379,3 +379,28 @@ Glyphkiln Core is licensed under Apache-2.0. See
 [`THIRD_PARTY_LICENSES.json`](THIRD_PARTY_LICENSES.json). Unicode 17.0.0 data
 used by text-layout diagnostics retains the Unicode License v3 in
 `vendor/unicode/LICENSE.txt`.
+
+### Reference-led editorial layouts
+
+Select `image-led-campaign@1.1.1` for separate image/copy regions (columns in
+landscape and square, stacked in portrait). Select
+`tiktok-carousel-slide@1.1.1` with an optional `image` layer for a product-led
+organic carousel. Both use existing schema `1.4.0` image fields: `fit: "cover"`,
+normalized `focalPoint`, a closed `treatment`, and descriptive `alt` text.
+Image and typography carousel slides share header and action alignment. Older
+exact template versions remain available, including the `1.1.0` image-free
+carousel that preserves `1.0.4` pixels. See the repository's
+[reference mapping and review](../../docs/reference-led-refinement.md).
+
+### Benefit / feature proof
+
+`benefit-proof@1.0.0` uses DesignDocument `1.5.0` for one headline and a strict
+`benefit-list` of one to three title/description items, with optional contained
+product/logo, action and source. Square, portrait, story and landscape proofs
+and the App authoring contract are documented in
+[the template guide](../../docs/benefit-proof-template.md). Earlier schema and
+template versions retain their existing output.
+
+### Complete static-ad starter set
+
+The four additional templates `testimonial-evidence`, `comparison`, `problem-solution` and `offer-urgency` join Product + Offer and Benefit / Feature Proof. Each new template is version 1.0.0 and requires DesignDocument 1.6.0. See the [contracts and proof gallery](../../docs/static-ad-starter-set.md) and corresponding examples.

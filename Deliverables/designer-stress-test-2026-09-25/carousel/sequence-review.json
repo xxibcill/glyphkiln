@@ -1,0 +1,12 @@
+{
+  "version": "1.2.0",
+  "deliveryProfileId": "tiktok-organic-photo",
+  "success": true,
+  "issues": [
+    {
+      "code": "COMPOSITION_RHYTHM_REVIEW",
+      "severity": "warning",
+      "message": "Every slide uses the same composition variant; review visual rhythm without weakening brand continuity."
+    }
+  ]
+}

@@ -1,3 +1,9 @@
+import {
+  isStaticAdTemplateId,
+  STATIC_AD_FIELDS,
+  type StaticAdCopy,
+  type StaticAdTemplateId,
+} from "./static-ad-copy";
 import { useEffect, useRef } from "react";
 import type { ChangeEvent, ReactNode, RefObject, SyntheticEvent } from "react";
 
@@ -97,6 +103,12 @@ export function EditorControls({
     template?.supportedFormats.includes(format.id),
   );
   const isTiktokCarousel = state.composition.templateId === "tiktok-carousel-slide";
+  const isStaticAd = isStaticAdTemplateId(state.composition.templateId);
+  const hasContainedProduct =
+    state.composition.templateId === "testimonial-evidence" ||
+    state.composition.templateId === "offer-urgency" ||
+    state.composition.templateId === "product-announcement" ||
+    state.composition.templateId === "benefit-proof";
   const isImageLedCampaign = state.composition.templateId === "image-led-campaign";
   const rasterResources =
     resources?.filter(
@@ -161,14 +173,18 @@ export function EditorControls({
   }
 
   function updateAssetRole(
-    role: "imageAssetId" | "logoAssetId",
+    role: "imageAssetId" | "logoAssetId" | "portraitAssetId",
     resourceId: string,
   ): void {
     const imageAssetId =
       role === "imageAssetId" ? resourceId : (state.resources.imageAssetId ?? "");
     const logoAssetId =
       role === "logoAssetId" ? resourceId : (state.resources.logoAssetId ?? "");
-    const assetIds = [...new Set([imageAssetId, logoAssetId].filter(Boolean))];
+    const portraitAssetId =
+      role === "portraitAssetId" ? resourceId : (state.resources.portraitAssetId ?? "");
+    const assetIds = [
+      ...new Set([imageAssetId, logoAssetId, portraitAssetId].filter(Boolean)),
+    ];
     const resourcesWithoutRoles = resourceSelectionWithoutAssetRoles(state.resources);
     onStateChange({
       ...state,
@@ -177,6 +193,7 @@ export function EditorControls({
         assetIds,
         ...(imageAssetId === "" ? {} : { imageAssetId }),
         ...(logoAssetId === "" ? {} : { logoAssetId }),
+        ...(portraitAssetId === "" ? {} : { portraitAssetId }),
       },
     });
   }
@@ -550,7 +567,7 @@ export function EditorControls({
           )}
         </section>
 
-        {isTiktokCarousel ? (
+        {isTiktokCarousel && resources === undefined ? (
           <section className="form-section" aria-labelledby="typography-policy-title">
             <SectionHeading
               number="04"
@@ -572,7 +589,10 @@ export function EditorControls({
               </p>
             </div>
           </section>
-        ) : isImageLedCampaign ? (
+        ) : isImageLedCampaign ||
+          isTiktokCarousel ||
+          hasContainedProduct ||
+          isStaticAd ? (
           <section className="form-section" aria-labelledby="campaign-assets-title">
             <SectionHeading
               number="04"
@@ -581,90 +601,145 @@ export function EditorControls({
               note="Immutable admissions"
             />
             <div className="field-stack">
-              <FieldShell
-                id="campaign-image-resource"
-                label="Campaign image"
-                hint="Rendered full bleed with the focal point and treatment below."
-              >
-                <select
-                  id="campaign-image-resource"
-                  required
-                  value={state.resources.imageAssetId ?? ""}
-                  onChange={(event) => {
-                    updateAssetRole("imageAssetId", event.currentTarget.value);
-                  }}
-                >
-                  <option value="">Select an admitted image</option>
-                  {rasterResources.map((resource) => (
-                    <option key={resource.id} value={resource.id}>
-                      {rasterResourceLabel(resource)}
-                    </option>
-                  ))}
-                </select>
-              </FieldShell>
-              <FieldShell
-                id="campaign-image-alt"
-                label="Campaign image alt text"
-                hint="Describe the meaningful subject and context for this slide; do not repeat the caption."
-              >
-                <input
-                  id="campaign-image-alt"
-                  required
-                  maxLength={500}
-                  value={state.resources.imageAlt ?? ""}
-                  onChange={(event) => {
-                    onStateChange({
-                      ...state,
-                      resources: {
-                        ...state.resources,
-                        imageAlt: event.currentTarget.value,
-                      },
-                    });
-                  }}
-                />
-              </FieldShell>
-              <FieldShell
-                id="campaign-logo-resource"
-                label="Brand logo"
-                hint="Placed inside the safe area with contain fit."
-              >
-                <select
-                  id="campaign-logo-resource"
-                  required
-                  value={state.resources.logoAssetId ?? ""}
-                  onChange={(event) => {
-                    updateAssetRole("logoAssetId", event.currentTarget.value);
-                  }}
-                >
-                  <option value="">Select an admitted logo</option>
-                  {rasterResources.map((resource) => (
-                    <option key={resource.id} value={resource.id}>
-                      {rasterResourceLabel(resource)}
-                    </option>
-                  ))}
-                </select>
-              </FieldShell>
-              <FieldShell
-                id="campaign-logo-alt"
-                label="Brand mark alt text"
-                hint="Name the brand mark only when it contributes meaning to the exported slide."
-              >
-                <input
-                  id="campaign-logo-alt"
-                  required
-                  maxLength={500}
-                  value={state.resources.logoAlt ?? ""}
-                  onChange={(event) => {
-                    onStateChange({
-                      ...state,
-                      resources: {
-                        ...state.resources,
-                        logoAlt: event.currentTarget.value,
-                      },
-                    });
-                  }}
-                />
-              </FieldShell>
+              {isImageLedCampaign || isTiktokCarousel || hasContainedProduct ? (
+                <>
+                  <FieldShell
+                    id="campaign-image-resource"
+                    label={hasContainedProduct ? "Product image" : "Campaign image"}
+                    hint={
+                      isTiktokCarousel
+                        ? "Optional: choose a photograph for an image slide, or leave empty for typography."
+                        : hasContainedProduct
+                          ? "Optional: use a tightly framed product image. The complete image remains visible."
+                          : "Image and copy occupy separate regions; review the focal crop below."
+                    }
+                  >
+                    <select
+                      id="campaign-image-resource"
+                      required={isImageLedCampaign}
+                      value={state.resources.imageAssetId ?? ""}
+                      onChange={(event) => {
+                        updateAssetRole("imageAssetId", event.currentTarget.value);
+                      }}
+                    >
+                      <option value="">Select an admitted image</option>
+                      {rasterResources.map((resource) => (
+                        <option key={resource.id} value={resource.id}>
+                          {rasterResourceLabel(resource)}
+                        </option>
+                      ))}
+                    </select>
+                  </FieldShell>
+                  <FieldShell
+                    id="campaign-image-alt"
+                    label="Campaign image alt text"
+                    hint="Describe the meaningful subject and context for this slide; do not repeat the caption."
+                  >
+                    <input
+                      id="campaign-image-alt"
+                      required={
+                        isImageLedCampaign || state.resources.imageAssetId !== undefined
+                      }
+                      maxLength={500}
+                      value={state.resources.imageAlt ?? ""}
+                      onChange={(event) => {
+                        onStateChange({
+                          ...state,
+                          resources: {
+                            ...state.resources,
+                            imageAlt: event.currentTarget.value,
+                          },
+                        });
+                      }}
+                    />
+                  </FieldShell>
+                </>
+              ) : null}
+              {state.composition.templateId === "testimonial-evidence" ? (
+                <>
+                  <FieldShell
+                    id="testimonial-portrait"
+                    label="Customer portrait"
+                    hint="Optional admitted portrait of the attributed speaker."
+                  >
+                    <select
+                      id="testimonial-portrait"
+                      value={state.resources.portraitAssetId ?? ""}
+                      onChange={(event) => {
+                        updateAssetRole("portraitAssetId", event.currentTarget.value);
+                      }}
+                    >
+                      <option value="">No portrait</option>
+                      {rasterResources.map((resource) => (
+                        <option key={resource.id} value={resource.id}>
+                          {rasterResourceLabel(resource)}
+                        </option>
+                      ))}
+                    </select>
+                  </FieldShell>
+                  <TextField
+                    id="testimonial-portrait-alt"
+                    label="Portrait alt text"
+                    value={state.resources.portraitAlt ?? ""}
+                    required={state.resources.portraitAssetId !== undefined}
+                    maxLength={500}
+                    onChange={(portraitAlt) => {
+                      onStateChange({
+                        ...state,
+                        resources: { ...state.resources, portraitAlt },
+                      });
+                    }}
+                  />
+                </>
+              ) : null}
+              {isImageLedCampaign || hasContainedProduct || isStaticAd ? (
+                <>
+                  <FieldShell
+                    id="campaign-logo-resource"
+                    label="Brand logo"
+                    hint="Placed inside the safe area with contain fit."
+                  >
+                    <select
+                      id="campaign-logo-resource"
+                      required={isImageLedCampaign}
+                      value={state.resources.logoAssetId ?? ""}
+                      onChange={(event) => {
+                        updateAssetRole("logoAssetId", event.currentTarget.value);
+                      }}
+                    >
+                      <option value="">Select an admitted logo</option>
+                      {rasterResources.map((resource) => (
+                        <option key={resource.id} value={resource.id}>
+                          {rasterResourceLabel(resource)}
+                        </option>
+                      ))}
+                    </select>
+                  </FieldShell>
+                  <FieldShell
+                    id="campaign-logo-alt"
+                    label="Brand mark alt text"
+                    hint="Name the brand mark only when it contributes meaning to the exported slide."
+                  >
+                    <input
+                      id="campaign-logo-alt"
+                      required={
+                        isImageLedCampaign || state.resources.logoAssetId !== undefined
+                      }
+                      maxLength={500}
+                      value={state.resources.logoAlt ?? ""}
+                      onChange={(event) => {
+                        onStateChange({
+                          ...state,
+                          resources: {
+                            ...state.resources,
+                            logoAlt: event.currentTarget.value,
+                          },
+                        });
+                      }}
+                    />
+                  </FieldShell>
+                </>
+              ) : null}
 
               {rasterResources.length === 0 ? (
                 <p className="field-hint">
@@ -677,57 +752,61 @@ export function EditorControls({
                 </p>
               ) : null}
 
-              <div className="field-pair">
-                <RangeField
-                  id="campaign-focal-x"
-                  label="Focal point · horizontal"
-                  value={state.composition.imageFocalPoint.x}
-                  step={0.01}
-                  onChange={(x) => {
-                    updateComposition({
-                      imageFocalPoint: {
-                        ...state.composition.imageFocalPoint,
-                        x,
-                      },
-                    });
-                  }}
-                />
-                <RangeField
-                  id="campaign-focal-y"
-                  label="Focal point · vertical"
-                  value={state.composition.imageFocalPoint.y}
-                  step={0.01}
-                  onChange={(y) => {
-                    updateComposition({
-                      imageFocalPoint: {
-                        ...state.composition.imageFocalPoint,
-                        y,
-                      },
-                    });
-                  }}
-                />
-              </div>
+              {!hasContainedProduct && !isStaticAd ? (
+                <>
+                  <div className="field-pair">
+                    <RangeField
+                      id="campaign-focal-x"
+                      label="Focal point · horizontal"
+                      value={state.composition.imageFocalPoint.x}
+                      step={0.01}
+                      onChange={(x) => {
+                        updateComposition({
+                          imageFocalPoint: {
+                            ...state.composition.imageFocalPoint,
+                            x,
+                          },
+                        });
+                      }}
+                    />
+                    <RangeField
+                      id="campaign-focal-y"
+                      label="Focal point · vertical"
+                      value={state.composition.imageFocalPoint.y}
+                      step={0.01}
+                      onChange={(y) => {
+                        updateComposition({
+                          imageFocalPoint: {
+                            ...state.composition.imageFocalPoint,
+                            y,
+                          },
+                        });
+                      }}
+                    />
+                  </div>
 
-              <FieldShell
-                id="campaign-treatment"
-                label="Image treatment"
-                hint="Closed renderer-owned treatments only."
-              >
-                <select
-                  id="campaign-treatment"
-                  value={state.composition.imageTreatment}
-                  onChange={(event) => {
-                    updateComposition({
-                      imageTreatment: event.currentTarget
-                        .value as CompositionFormState["imageTreatment"],
-                    });
-                  }}
-                >
-                  <option value="none">None</option>
-                  <option value="dark-scrim">Dark scrim</option>
-                  <option value="light-scrim">Light scrim</option>
-                </select>
-              </FieldShell>
+                  <FieldShell
+                    id="campaign-treatment"
+                    label="Image treatment"
+                    hint="Closed renderer-owned treatments only."
+                  >
+                    <select
+                      id="campaign-treatment"
+                      value={state.composition.imageTreatment}
+                      onChange={(event) => {
+                        updateComposition({
+                          imageTreatment: event.currentTarget
+                            .value as CompositionFormState["imageTreatment"],
+                        });
+                      }}
+                    >
+                      <option value="none">None</option>
+                      <option value="dark-scrim">Dark scrim</option>
+                      <option value="light-scrim">Light scrim</option>
+                    </select>
+                  </FieldShell>
+                </>
+              ) : null}
 
               <fieldset className="resource-font-fieldset">
                 <legend>Additional immutable font faces</legend>
@@ -909,7 +988,29 @@ function TemplateCopyFields({
   updateCopy: (update: Partial<CopyFormState>) => void;
 }) {
   const templateId = state.composition.templateId;
+  if (isStaticAdTemplateId(templateId))
+    return (
+      <StaticAdFields
+        id={templateId}
+        copy={state.copy.staticAds[templateId]}
+        failure={failure}
+        onChange={(copy) => {
+          updateCopy({ staticAds: { ...state.copy.staticAds, [templateId]: copy } });
+        }}
+      />
+    );
   switch (templateId) {
+    case "benefit-proof": {
+      return (
+        <BenefitProofFields
+          copy={state.copy.benefitProof}
+          failure={failure}
+          onChange={(benefitProof) => {
+            updateCopy({ benefitProof });
+          }}
+        />
+      );
+    }
     case "product-announcement": {
       const copy = state.copy.productAnnouncement;
       const update = (next: Partial<CopyFormState["productAnnouncement"]>): void => {
@@ -926,6 +1027,27 @@ function TemplateCopyFields({
             }}
             maxLength={2_000}
             error={copyIssueMessage(failure, "eyebrow", "text", copy.eyebrow)}
+          />
+          <TextField
+            id="product-offer"
+            label="Offer or price"
+            value={copy.badge ?? ""}
+            onChange={(badge) => {
+              update({ badge });
+            }}
+            maxLength={80}
+            error={copyIssueMessage(failure, "offer", "text", copy.badge ?? "")}
+          />
+          <TextAreaField
+            id="product-terms"
+            label="Offer terms"
+            value={copy.footer ?? ""}
+            onChange={(footer) => {
+              update({ footer });
+            }}
+            maxLength={2_000}
+            rows={2}
+            error={copyIssueMessage(failure, "footer", "text", copy.footer ?? "")}
           />
           <TextAreaField
             id="product-headline"
@@ -1329,13 +1451,16 @@ function resourceSelectionWithoutAssetRoles(
   resources: PreviewFormState["resources"],
 ): Pick<
   PreviewFormState["resources"],
-  "assetIds" | "fontIds" | "imageAlt" | "logoAlt"
+  "assetIds" | "fontIds" | "imageAlt" | "logoAlt" | "portraitAlt"
 > {
   return {
     assetIds: [...resources.assetIds],
     fontIds: [...resources.fontIds],
     ...(resources.imageAlt === undefined ? {} : { imageAlt: resources.imageAlt }),
     ...(resources.logoAlt === undefined ? {} : { logoAlt: resources.logoAlt }),
+    ...(resources.portraitAlt === undefined
+      ? {}
+      : { portraitAlt: resources.portraitAlt }),
   };
 }
 
@@ -1620,4 +1745,246 @@ function structuredFieldLayerIds(
 function shortHash(hash: string): string {
   if (hash.length <= 16) return hash;
   return `${hash.slice(0, 8)}…${hash.slice(-8)}`;
+}
+
+function BenefitProofFields({
+  copy,
+  failure,
+  onChange,
+}: {
+  copy: CopyFormState["benefitProof"];
+  failure: PreviewFailure | null;
+  onChange: (copy: CopyFormState["benefitProof"]) => void;
+}) {
+  const update = (next: Partial<CopyFormState["benefitProof"]>) => {
+    onChange({ ...copy, ...next });
+  };
+  const updateItem = (
+    index: number,
+    next: Partial<CopyFormState["benefitProof"]["items"][number]>,
+  ) => {
+    update({
+      items: copy.items.map((item, position) =>
+        position === index ? { ...item, ...next } : item,
+      ),
+    });
+  };
+  return (
+    <div className="field-stack">
+      <TextField
+        id="benefit-eyebrow"
+        label="Eyebrow"
+        value={copy.eyebrow}
+        onChange={(eyebrow) => {
+          update({ eyebrow });
+        }}
+        maxLength={2000}
+      />
+      <TextAreaField
+        id="benefit-headline"
+        label="Benefit headline"
+        value={copy.headline}
+        onChange={(headline) => {
+          update({ headline });
+        }}
+        required
+        maxLength={2000}
+        rows={3}
+        error={copyIssueMessage(failure, "headline", "text", copy.headline)}
+      />
+      <p className="field-hint">
+        Add one to three supplied facts that support the headline.
+      </p>
+      {copy.items.map((item, index) => (
+        <fieldset key={index} className="field-stack">
+          <legend>Benefit {index + 1}</legend>
+          <TextField
+            id={`benefit-${String(index)}-title`}
+            label={`Benefit ${String(index + 1)} title`}
+            value={item.title}
+            onChange={(title) => {
+              updateItem(index, { title });
+            }}
+            required
+            maxLength={80}
+            error={copyIssueMessage(
+              failure,
+              `benefits-${String(index)}-title`,
+              "text",
+              item.title,
+            )}
+          />
+          <TextAreaField
+            id={`benefit-${String(index)}-description`}
+            label={`Benefit ${String(index + 1)} explanation`}
+            value={item.description}
+            onChange={(description) => {
+              updateItem(index, { description });
+            }}
+            maxLength={180}
+            rows={2}
+            error={copyIssueMessage(
+              failure,
+              `benefits-${String(index)}-description`,
+              "text",
+              item.description,
+            )}
+          />
+          <button
+            type="button"
+            disabled={copy.items.length <= 1}
+            onClick={() => {
+              update({ items: copy.items.filter((_, position) => position !== index) });
+            }}
+          >
+            Remove benefit {index + 1}
+          </button>
+        </fieldset>
+      ))}
+      <button
+        type="button"
+        disabled={copy.items.length >= 3}
+        onClick={() => {
+          update({ items: [...copy.items, { title: "", description: "" }] });
+        }}
+      >
+        Add benefit
+      </button>
+      <TextField
+        id="benefit-cta"
+        label="Call to action"
+        value={copy.cta}
+        onChange={(cta) => {
+          update({ cta });
+        }}
+        maxLength={2000}
+        error={copyIssueMessage(failure, "cta", "text", copy.cta)}
+      />
+      <TextAreaField
+        id="benefit-source"
+        label="Source or qualification"
+        value={copy.footer}
+        onChange={(footer) => {
+          update({ footer });
+        }}
+        maxLength={2000}
+        rows={2}
+        error={copyIssueMessage(failure, "footer", "text", copy.footer)}
+      />
+    </div>
+  );
+}
+
+function StaticAdFields({
+  id,
+  copy,
+  failure,
+  onChange,
+}: {
+  id: StaticAdTemplateId;
+  copy: StaticAdCopy;
+  failure: PreviewFailure | null;
+  onChange: (copy: StaticAdCopy) => void;
+}) {
+  return (
+    <div className="field-stack">
+      <p className="field-hint">
+        Use supplied claims, attribution and terms. Starter content is illustrative.
+      </p>
+      {STATIC_AD_FIELDS[id].map((field) => (
+        <TextAreaField
+          key={field.key}
+          id={`${id}-${field.key}`}
+          label={field.label}
+          value={copy[field.key]}
+          required={field.required}
+          maxLength={field.maximum}
+          rows={field.key === "headline" ? 3 : 2}
+          error={staticAdIssueMessage(failure, field.key, copy[field.key])}
+          onChange={(value) => {
+            onChange({ ...copy, [field.key]: value });
+          }}
+        />
+      ))}
+      {id === "comparison" ? (
+        <>
+          {copy.rows.map((row, index) => (
+            <fieldset key={index} className="field-stack">
+              <legend>Criterion {index + 1}</legend>
+              {(["label", "left", "right"] as const).map((key) => (
+                <TextField
+                  key={key}
+                  id={`comparison-${String(index)}-${key}`}
+                  label={`${key === "label" ? "Criterion" : key === "left" ? "First option" : "Second option"} ${String(index + 1)}`}
+                  value={row[key]}
+                  required
+                  maxLength={key === "label" ? 60 : 100}
+                  error={copyIssueMessage(
+                    failure,
+                    `comparison-${String(index)}-${key}`,
+                    key,
+                    row[key],
+                  )}
+                  onChange={(value) => {
+                    onChange({
+                      ...copy,
+                      rows: copy.rows.map((item, position) =>
+                        position === index ? { ...item, [key]: value } : item,
+                      ),
+                    });
+                  }}
+                />
+              ))}
+              <button
+                type="button"
+                disabled={copy.rows.length <= 1}
+                onClick={() => {
+                  onChange({
+                    ...copy,
+                    rows: copy.rows.filter((_, position) => position !== index),
+                  });
+                }}
+              >
+                Remove criterion {index + 1}
+              </button>
+            </fieldset>
+          ))}
+          <button
+            type="button"
+            disabled={copy.rows.length >= 3}
+            onClick={() => {
+              onChange({
+                ...copy,
+                rows: [...copy.rows, { label: "", left: "", right: "" }],
+              });
+            }}
+          >
+            Add criterion
+          </button>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function staticAdIssueMessage(
+  failure: PreviewFailure | null,
+  key: Exclude<keyof StaticAdCopy, "rows">,
+  value: string,
+): string | undefined {
+  const structuredIds: Partial<Record<Exclude<keyof StaticAdCopy, "rows">, string>> = {
+    leftLabel: "comparison-leftLabel",
+    rightLabel: "comparison-rightLabel",
+    problemTitle: "problem-solution-0-title",
+    problem: "problem-solution-0-body",
+    solutionTitle: "problem-solution-1-title",
+    solution: "problem-solution-1-body",
+  };
+  const layerId = structuredIds[key];
+  return copyIssueMessage(
+    failure,
+    layerId ?? key,
+    layerId === undefined ? "text" : key,
+    value,
+  );
 }

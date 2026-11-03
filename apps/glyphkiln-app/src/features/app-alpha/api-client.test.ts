@@ -614,7 +614,7 @@ describe("App Alpha API client", () => {
       directionKey: "editorial-a",
       sequenceKey: "launch-carousel",
       review: {
-        version: "1.2.0",
+        version: "1.4.0",
         deliveryProfileId: "instagram-native-carousel",
         success: true,
         issues: [],

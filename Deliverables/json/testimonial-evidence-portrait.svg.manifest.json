@@ -1,0 +1,61 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_64b84aa41ad46b160afba9e8",
+  "renderFingerprint": "64b84aa41ad46b160afba9e89b2095f25986aee9723fedcee99d6f406e67ff60",
+  "designDocumentId": "testimonial-evidence-portrait",
+  "designDocumentHash": "2e5fbfa3052a8569d1feb20cf3495d3723544fb0742d0f5249a0ccda4efd2055",
+  "seed": "kilnform-light-01",
+  "template": { "id": "testimonial-evidence", "version": "1.0.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "kilnform-lamp-campaign",
+      "sha256": "42930ab31255277669c7aea6da1c25b27ddc61891d29ca8298adcc4b65d13368",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform lamp campaign fixture",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "output": {
+    "format": "svg",
+    "sha256": "7cf4b3b63726ced3e4c0e99b7f07c3657c28cebedd7f5a39c0353daf27f22532",
+    "byteSize": 4099821
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

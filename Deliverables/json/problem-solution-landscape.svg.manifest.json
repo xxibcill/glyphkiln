@@ -1,0 +1,74 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_cb701e3ee4b7bc6ee4eb3512",
+  "renderFingerprint": "cb701e3ee4b7bc6ee4eb35128ab5cc34658bbcef0c7be3e56b73145c4e742c1d",
+  "designDocumentId": "problem-solution-landscape",
+  "designDocumentHash": "ca643770bf1227fc2c128f487a99c2e111f33b3dc48c61a12fff2a6ac6318b7d",
+  "seed": "kilnform-light-01",
+  "template": { "id": "problem-solution", "version": "1.0.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1200, "height": 627 },
+  "output": {
+    "format": "svg",
+    "sha256": "b952df7ae4d7294a9123320ae7a0a473a8efab143af3f5eba87fbb73cd982c32",
+    "byteSize": 175088
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "problem-solution-0-body",
+      "details": {
+        "affectedLine": "hand.",
+        "lineNumber": 2,
+        "phrase": "hand.",
+        "previousLine": "Copy drifts as each export is assembled by",
+        "measuredLineWidths": [448.143, 58.169],
+        "previousLineWidth": 448.143,
+        "finalLineWidth": 58.169,
+        "finalLineToPreviousLineWidthRatio": 0.13,
+        "isolatedWord": true,
+        "disproportionatelyShort": true,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.1"
+      }
+    }
+  ],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}
