@@ -247,5 +247,5 @@ stay exact, and no reproduction record changes. The exported
 `RENDERER_VERSION` and `MANIFEST_VERSION` name the newest identities, and
 `LEGACY_RENDERER_VERSION` and `LEGACY_MANIFEST_VERSION` name the retained
 ones. Authoring metadata `1.9.0` publishes the three versions and lists
-`1.8.0` as compatible with existing templates. App defaults are unchanged.
+`1.8.0` as compatible with existing templates. App template choices are unchanged; new App drafts follow `DESIGN_DOCUMENT_VERSION` and are created as `1.8.0`, as they moved to `1.7.0` with B2, on the same legacy template versions and pixels.
 See [Typography M1](typography-m1.md).

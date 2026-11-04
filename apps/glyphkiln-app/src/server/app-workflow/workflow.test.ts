@@ -3493,7 +3493,7 @@ describe("AppWorkflow", () => {
           "design-revision",
         );
         expect(reopened.document.layers).toEqual(layers);
-        expect(reopened.document.schemaVersion).toBe("1.7.0");
+        expect(reopened.document.schemaVersion).toBe("1.8.0");
         expect(reopened.document.template).toEqual({
           id: templateId,
           version: "1.0.0",
@@ -3599,7 +3599,7 @@ describe("AppWorkflow", () => {
         }),
         "design-revision",
       );
-      expect(reopened.document.schemaVersion).toBe("1.7.0");
+      expect(reopened.document.schemaVersion).toBe("1.8.0");
       expect(reopened.document.template).toEqual({
         id: "benefit-proof",
         version: "1.0.0",

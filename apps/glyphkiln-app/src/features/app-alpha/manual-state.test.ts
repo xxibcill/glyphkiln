@@ -76,7 +76,7 @@ describe("manual App Alpha state", () => {
       logoAlt: "Brand",
     };
     const document = buildPreviewDocument(state, catalog);
-    expect(document.schemaVersion).toBe("1.7.0");
+    expect(document.schemaVersion).toBe("1.8.0");
     expect(document.template).toEqual({ id: "benefit-proof", version: "1.0.0" });
     const reopened = formFromStoredDocument(document, catalog);
     expect(reopened.copy.benefitProof).toEqual(state.copy.benefitProof);
