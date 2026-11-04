@@ -6,6 +6,15 @@ This product includes software developed by Glyphkiln contributors.
 The bundled Inter variable font is Copyright 2020 The Inter Project Authors and
 is distributed under SIL Open Font License 1.1 in assets/fonts/OFL.txt.
 
+The bundled font library under assets/fonts/<family>/ contains twelve families
+from github.com/google/fonts (ofl/, commit
+2fe1e8c6b137fb13041a7cfca6fdcd8a910ea4dc): IBM Plex Sans Thai, Noto Sans Thai,
+Sarabun, Kanit, Trirong, Noto Serif Thai, IBM Plex Sans, Schibsted Grotesk,
+Barlow Condensed, Instrument Serif, Source Serif 4 and IBM Plex Mono. Each
+remains the copyright of its authors (see each family's OFL.txt) and is
+distributed under SIL Open Font License 1.1 in that family's directory. File
+hashes are recorded in assets/fonts/catalog.json.
+
 Text-layout diagnostics include data derived from the Unicode Character
 Database 17.0.0, Copyright © 1991-2025 Unicode, Inc. Unicode data is distributed
 under the Unicode License v3 in vendor/unicode/LICENSE.txt.

@@ -10,6 +10,7 @@ import {
   type ResolvedAsset,
   type ResolvedFont,
 } from "../domain/types.js";
+import { bundledFontFile } from "../fonts/bundled.js";
 import { DEVELOPMENT_FONT_SHA256 } from "../fonts/index.js";
 import { validateSceneDocument, type SceneDocument } from "../scene/index.js";
 import { RENDER_RESOURCE_LIMITS } from "../resources/index.js";
@@ -329,7 +330,8 @@ function assertFontDeclarations(
   for (const declaration of declarations) {
     if (
       bundledIdentities.has(fontDeclarationIdentity(declaration)) ||
-      isDevelopmentFontDeclaration(declaration)
+      isDevelopmentFontDeclaration(declaration) ||
+      isPackagedFontDeclaration(declaration)
     ) {
       continue;
     }
@@ -695,6 +697,12 @@ function assetDeclarationMismatches(
     mismatches.push("origin");
   }
   return mismatches;
+}
+
+/** A bundled OFL face Core ships, declared with its exact pinned hash. */
+function isPackagedFontDeclaration(declaration: FontDeclaration): boolean {
+  const file = bundledFontFile(declaration.family, declaration.weight, declaration.style);
+  return file !== undefined && declaration.sha256 === file.sha256;
 }
 
 function isDevelopmentFontDeclaration(declaration: FontDeclaration): boolean {

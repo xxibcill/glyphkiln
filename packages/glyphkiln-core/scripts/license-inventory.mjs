@@ -1,5 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 
+import { verifyBundledFonts } from "./bundled-fonts.mjs";
+
 const packageRoot = new URL("../", import.meta.url);
 const repositoryRoot = new URL("../../", packageRoot);
 const lock = JSON.parse(
@@ -70,6 +72,11 @@ const inventory = {
 };
 const rendered = `${JSON.stringify(inventory, null, 2)}\n`;
 const outputUrl = new URL("THIRD_PARTY_LICENSES.json", packageRoot);
+
+const fonts = await verifyBundledFonts({ write: process.argv.includes("--write") });
+process.stdout.write(
+  `Verified ${fonts.files} bundled OFL font files in ${fonts.families} families.\n`,
+);
 
 if (process.argv.includes("--write")) {
   await writeFile(outputUrl, rendered, "utf8");

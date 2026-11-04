@@ -3,7 +3,7 @@
 **Researched 4 November 2026 by Claude (Opus 5.5) for owner decision D3 in the
 [open-work plan](../../plans/open-work-plan.md). Status: the six-family
 [starter bundle](#recommended-starter-bundle) was approved by the owner on
-4 November 2026. The fonts are not bundled yet; that is the next B2 task.**
+4 November 2026 and bundled in Core on 4 November 2026 (`packages/glyphkiln-core/assets/fonts/`, see [Font loading](../../fonts.md)).**
 
 ![Specimen rendered by Glyphkiln Core](specimen.png)
 
@@ -134,5 +134,5 @@ researched separately.
 | `NotoSerifThai[wdth,wght].ttf`      | `34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53` |
 | `Chonburi-Regular.ttf`              | `aa0dac4df08af10785ba1dc10121492227f8e4288f0a23d11dd1d1f5a7f6ebfa` |
 
-Other weights were checked from the same commit; record their hashes when they
-are admitted.
+Every admitted file, with its hash, is recorded in
+`packages/glyphkiln-core/assets/fonts/catalog.json`.

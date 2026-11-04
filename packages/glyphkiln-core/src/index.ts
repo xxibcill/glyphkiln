@@ -204,6 +204,15 @@ export {
   FontRegistry,
   createDevelopmentFont,
 } from "./fonts/index.js";
+export {
+  BUNDLED_FONT_FAMILIES,
+  BUNDLED_FONT_FILES,
+  BUNDLED_FONT_SOURCE,
+  bundledFontFile,
+  resolveBundledFont,
+  type BundledFontFamily,
+  type BundledFontFile,
+} from "./fonts/bundled.js";
 export { AssetRegistry } from "./assets/index.js";
 export {
   COLOR_NORMALIZATION_IMPLEMENTATION,
