@@ -20,6 +20,7 @@
 | [0016](0016-explicit-color-normalization.md)                 | Explicit canonical sRGB raster normalization  |
 | [0017](0017-campaign-workflow-product-gate.md)               | Fail-closed campaign workflow dark launch     |
 | [0018](0018-expert-scene-kernel.md)                          | Public expert Scene Kernel                    |
+| [0019](0019-harfbuzz-shaper-qualification.md)                | HarfBuzz behind the Shaper (proposed)         |
 
 ADRs are immutable after acceptance. Superseding decisions add a new ADR and
 link back to the old one.
