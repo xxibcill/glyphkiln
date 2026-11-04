@@ -1,0 +1,156 @@
+{
+  "id": "C-EMPH",
+  "description": "B2 emphasis runs (emphasis-runs@1.0.0). Paint-only runs (accent, muted) should keep the unstyled glyph positions (T07); today each run is shaped separately, so kerning across a run boundary is lost. Set at 48 px, width 900 px.",
+  "fontSize": 48,
+  "width": 900,
+  "faces": {
+    "latn": {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal"
+    },
+    "thai": {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal"
+    }
+  },
+  "entries": [
+    {
+      "id": "emph-latin-strong",
+      "text": "Save 50% this weekend only",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "50%",
+          "style": "strong"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-accent-kern",
+      "text": "AVAWAY Travel",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "AVAWAY",
+          "style": "accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-boundary-kern",
+      "text": "WAVE Yacht",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "Yacht",
+          "style": "accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-muted",
+      "text": "New plan, same price",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "same price",
+          "style": "muted"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-quote-kern",
+      "text": "“You,” said Tom.",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "You",
+          "style": "accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-period-kern",
+      "text": "Made by Glyphkiln. Truly.",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "Truly",
+          "style": "muted"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-two",
+      "text": "Fast setup and exact output",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "Fast",
+          "style": "strong"
+        },
+        {
+          "phrase": "exact",
+          "style": "accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-latin-strong-accent",
+      "text": "Only today: 2× points",
+      "face": "latn",
+      "spans": [
+        {
+          "phrase": "2× points",
+          "style": "strong-accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-thai-strong",
+      "text": "ลดสูงสุด 25% วันนี้เท่านั้น",
+      "face": "thai",
+      "spans": [
+        {
+          "phrase": "25%",
+          "style": "strong"
+        }
+      ]
+    },
+    {
+      "id": "emph-thai-inside-word",
+      "text": "โปรโมชั่นพิเศษสำหรับสมาชิก",
+      "face": "thai",
+      "spans": [
+        {
+          "phrase": "พิเศษ",
+          "style": "accent"
+        }
+      ]
+    },
+    {
+      "id": "emph-thai-mark-boundary",
+      "text": "น้ำใจที่ดี",
+      "face": "thai",
+      "spans": [
+        {
+          "phrase": "ใจ",
+          "style": "strong"
+        }
+      ]
+    },
+    {
+      "id": "emph-mix",
+      "text": "ใช้ AI ช่วยออกแบบ",
+      "face": "thai",
+      "spans": [
+        {
+          "phrase": "AI",
+          "style": "strong"
+        }
+      ]
+    }
+  ]
+}

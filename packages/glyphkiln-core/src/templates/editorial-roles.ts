@@ -27,6 +27,7 @@ import {
   type ResolvedColorRoles,
   type TypesetOptions,
 } from "./typeset.js";
+import { layoutText } from "../typography/layout-text.js";
 import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 
 /**
@@ -127,23 +128,32 @@ function predictedCoverage(
 ): number {
   const fitted = measureTypesetText(context, canvas, layer, box, options);
   const setting = fitted.setting!;
-  const outlines = context.fonts.outlineText({
-    lines: fitted.lines,
-    family:
-      layer.fontFamily ??
-      options.family ??
-      context.document.brand.typography.headlineFamily,
-    weight: layer.fontWeight ?? options.weight,
-    style: "normal",
-    fontSize: fitted.fontSize,
-    lineHeight: setting.lineHeight,
-    x: box.x,
-    y: box.y,
+  // Pre-M0 behaviour, kept exactly: the prediction sets the fitted lines in
+  // the base face at the fitted size, without OpenType features or emphasis.
+  const layout = layoutText({
+    text: fitted.lines.join(" "),
+    registry: context.fonts,
+    face: {
+      family:
+        layer.fontFamily ??
+        options.family ??
+        context.document.brand.typography.headlineFamily,
+      weight: layer.fontWeight ?? options.weight,
+      style: "normal",
+    },
+    box: { x: box.x, y: box.y, width: 0, height: 0 },
+    layerId: layer.id,
+    sizing: { mode: "fixed", fontSize: fitted.fontSize, lines: fitted.lines },
+    setting: {
+      kind: "absolute",
+      lineHeight: setting.lineHeight,
+      letterSpacing: setting.letterSpacingEm * fitted.fontSize,
+    },
     align: "left",
-    letterSpacing: setting.letterSpacingEm * fitted.fontSize,
+    detail: "glyphs",
   });
   return accentCoverage(
-    outlines.map((data) => ({ kind: "path" as const, data })),
+    layout.lines.map((line) => ({ kind: "path" as const, data: line.set!.outline })),
     canvas.scene.dimensions,
   );
 }

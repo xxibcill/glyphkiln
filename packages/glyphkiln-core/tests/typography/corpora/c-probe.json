@@ -1,0 +1,89 @@
+{
+  "id": "C-PROBE",
+  "description": "Regression fixtures for the §3.1 probe defects and Static Ads T04. M0 snapshots the current (defective) output; each fix milestone flips its expectation.",
+  "fontSize": 32,
+  "faces": {
+    "latn": {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal"
+    },
+    "thai": {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal"
+    }
+  },
+  "entries": [
+    {
+      "id": "probe-latin-first-thai",
+      "defect": "one-script-per-line",
+      "text": "AI ที่ป้ญู",
+      "face": "thai",
+      "note": "§3.1: the run is latn; uni0E48.small, uni0E49.narrow and uni0E0D.less are not chosen"
+    },
+    {
+      "id": "probe-thai-only",
+      "defect": "one-script-per-line",
+      "text": "ที่ป้ญู",
+      "face": "thai",
+      "note": "§3.1 control: Thai-only line is shaped correctly"
+    },
+    {
+      "id": "probe-tracking-marks",
+      "defect": "tracking-per-glyph",
+      "text": "ที่ป้ญู น้ำ",
+      "face": "thai",
+      "tracking": 0.1,
+      "note": "§3.1: tracking after every glyph moves marks off their bases"
+    },
+    {
+      "id": "probe-nbsp",
+      "defect": "nbsp-breaks",
+      "text": "Run 100 km",
+      "face": "latn",
+      "width": 110,
+      "note": "§3.1: /\\s+/ folds NBSP into a break"
+    },
+    {
+      "id": "probe-budoux-bangkok",
+      "defect": "budoux-in-syllable",
+      "text": "กรุงเทพมหานคร",
+      "face": "thai",
+      "gold": [4, 7, 10],
+      "note": "§3.1: BudouX-th 0.7.0 gives กรุงเทพม | หาน | คร; gold syllable/word boundaries are กรุง|เทพ|มหา|นคร"
+    },
+    {
+      "id": "probe-budoux-promotion",
+      "defect": "budoux-in-syllable",
+      "text": "โปรโมชั่นพิเศษ",
+      "face": "thai",
+      "gold": [3, 9],
+      "note": "§3.1: a dictionary broke โปรโมชั่น; gold boundaries โปร|โมชั่น|พิเศษ"
+    },
+    {
+      "id": "probe-static-ads-t04-mai-yamok",
+      "defect": "thai-line-edge",
+      "text": "เด็กๆ ชอบมาก ลดราคาพิเศษ 499 บาท",
+      "face": "thai",
+      "width": 100,
+      "note": "Static Ads T04 (reconstructed from the plan's description; the brief text is not in this repository): at 100 px a line starts with ๆ and 499 | บาท splits"
+    },
+    {
+      "id": "probe-static-ads-t04-amount-unit",
+      "defect": "thai-line-edge",
+      "text": "ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน",
+      "face": "thai",
+      "width": 180,
+      "note": "Static Ads T04: 499 | บาท splits at 180 px"
+    },
+    {
+      "id": "probe-thai-offer-mai-yamok",
+      "defect": "thai-line-edge",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ",
+      "face": "thai",
+      "width": 90,
+      "note": "The Thai scene fixture's headline: at 90 px ๆ starts the last line"
+    }
+  ]
+}

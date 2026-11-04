@@ -1,13 +1,18 @@
 import { readFileSync } from "node:fs";
 
-import * as fontkit from "fontkit";
-import type { Font, GlyphRun, PathCommand } from "fontkit";
-
 import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedFont } from "../domain/types.js";
 import { assertFontResources } from "../resources/index.js";
 import type { FontDeclaration } from "../schema/index.js";
 import { fontReferenceKey } from "./key.js";
+import {
+  fontkitShaper,
+  type OutlineCommand,
+  type ShapedRun,
+  type ShapeRequest,
+  type Shaper,
+  type ShaperFace,
+} from "./shaper.js";
 
 const DEVELOPMENT_FONT_PATH = new URL(
   "../../assets/fonts/Inter-Variable.ttf",
@@ -15,6 +20,60 @@ const DEVELOPMENT_FONT_PATH = new URL(
 );
 /** Closed OpenType feature map: a tag switched on (true) or off (false). */
 export type OpenTypeFeatureMap = Readonly<Record<string, boolean>>;
+
+/** A glyph placed on the canvas, in px. Internal layout evidence. */
+export type PositionedGlyph = {
+  id: number;
+  /** UTF-16 offset of the glyph's first code point in the shaped run text. */
+  cluster: number;
+  codePointCount: number;
+  /** Glyph origin (pen position plus offset). */
+  x: number;
+  y: number;
+  /** Advance applied after the glyph, including letter spacing. */
+  advance: number;
+};
+
+/** One line set by FontRegistry.setLines: its path and glyph evidence. */
+export type SetLine = {
+  path: string;
+  x: number;
+  baseline: number;
+  width: number;
+  glyphs: PositionedGlyph[];
+};
+
+/** One styled segment set by FontRegistry.setSegments. */
+export type SetSegment = {
+  path: string;
+  x: number;
+  width: number;
+  glyphs: PositionedGlyph[];
+};
+
+export type SetLinesInput = {
+  lines: readonly string[];
+  family: string;
+  weight: number;
+  style: ResolvedFont["style"];
+  fontSize: number;
+  lineHeight: number;
+  x: number;
+  y: number;
+  align: "left" | "center" | "right";
+  letterSpacing?: number;
+  features?: OpenTypeFeatureMap;
+};
+
+export type SetSegmentsInput = {
+  segments: readonly OutlineSegment[];
+  family: string;
+  fontSize: number;
+  x: number;
+  baseline: number;
+  letterSpacing?: number;
+  features?: OpenTypeFeatureMap;
+};
 
 /** One styled run of a line laid out by outlineSegments. */
 export type OutlineSegment = {
@@ -28,7 +87,8 @@ export const DEVELOPMENT_FONT_SHA256 =
 
 export class FontRegistry {
   readonly #fonts = new Map<string, ResolvedFont>();
-  readonly #faces = new Map<string, Font>();
+  readonly #faces = new Map<string, ShaperFace>();
+  readonly #shaper: Shaper = fontkitShaper;
 
   public constructor(fonts: readonly ResolvedFont[] = []) {
     assertFontResources(fonts);
@@ -75,10 +135,9 @@ export class FontRegistry {
     letterSpacing = 0,
     features?: OpenTypeFeatureMap,
   ): number {
-    const face = this.#getFace(family, weight, style);
-    const run = layoutRun(face, text, features);
+    const run = this.shape(text, family, weight, style, features);
     return (
-      (run.advanceWidth / face.unitsPerEm) * fontSize +
+      (run.advanceWidth / run.unitsPerEm) * fontSize +
       Math.max(0, run.glyphs.length - 1) * letterSpacing
     );
   }
@@ -93,29 +152,55 @@ export class FontRegistry {
     const missing = new Set<number>();
     for (const character of text) {
       const codePoint = character.codePointAt(0)!;
-      if (!face.hasGlyphForCodePoint(codePoint)) missing.add(codePoint);
+      if (!this.#shaper.hasGlyphForCodePoint(face, codePoint)) missing.add(codePoint);
     }
     return Array.from(missing);
   }
 
-  public outlineText(input: {
-    lines: readonly string[];
-    family: string;
-    weight: number;
-    style: ResolvedFont["style"];
-    fontSize: number;
-    lineHeight: number;
-    x: number;
-    y: number;
-    align: "left" | "center" | "right";
-    letterSpacing?: number;
-    features?: OpenTypeFeatureMap;
-  }): string[] {
+  /** Identity of the shaper behind this registry. @internal */
+  public get shaperId(): string {
+    return this.#shaper.id;
+  }
+
+  /**
+   * Shape one run with an exact registered face. Without a script or language
+   * this is the legacy fontkit call, byte for byte.
+   * @internal Used by layoutText and the typography harness; not a stable API.
+   */
+  public shape(
+    text: string,
+    family: string,
+    weight: number,
+    style: ResolvedFont["style"],
+    features?: OpenTypeFeatureMap,
+    options: Omit<ShapeRequest, "text" | "features"> = {},
+  ): ShapedRun {
+    const face = this.#getFace(family, weight, style);
+    return this.#shaper.shape(face, {
+      ...options,
+      text,
+      ...(features === undefined ? {} : { features }),
+    });
+  }
+
+  public outlineText(input: SetLinesInput): string[] {
+    return this.setLines(input).map((line) => line.path);
+  }
+
+  /**
+   * Set whole lines on shared baselines: paths plus glyph evidence.
+   * @internal Used by layoutText; not a stable API.
+   */
+  public setLines(input: SetLinesInput): SetLine[] {
     const face = this.#getFace(input.family, input.weight, input.style);
-    const scale = input.fontSize / face.unitsPerEm;
-    const firstBaseline = input.y + face.ascent * scale;
+    const metrics = this.#shaper.metrics(face);
+    const scale = input.fontSize / metrics.unitsPerEm;
+    const firstBaseline = input.y + metrics.ascent * scale;
     return input.lines.map((line, lineIndex) => {
-      const run = layoutRun(face, line, input.features);
+      const run = this.#shaper.shape(face, {
+        text: line,
+        ...(input.features === undefined ? {} : { features: input.features }),
+      });
       const lineWidth =
         run.advanceWidth * scale +
         Math.max(0, run.glyphs.length - 1) * (input.letterSpacing ?? 0);
@@ -126,7 +211,21 @@ export class FontRegistry {
             ? input.x - lineWidth
             : input.x;
       const baseline = firstBaseline + lineIndex * input.fontSize * input.lineHeight;
-      return outlineRun(run, lineX, baseline, scale, input.letterSpacing ?? 0);
+      const set = this.#outlineRun(
+        face,
+        run,
+        lineX,
+        baseline,
+        scale,
+        input.letterSpacing ?? 0,
+      );
+      return {
+        path: set.path,
+        x: lineX,
+        baseline,
+        width: lineWidth,
+        glyphs: set.glyphs,
+      };
     });
   }
 
@@ -135,34 +234,50 @@ export class FontRegistry {
    * shared baseline. Letter spacing also separates adjacent runs. Returns one
    * path per run and the total advance width.
    */
-  public outlineSegments(input: {
-    segments: readonly OutlineSegment[];
-    family: string;
-    fontSize: number;
-    x: number;
-    baseline: number;
-    letterSpacing?: number;
-    features?: OpenTypeFeatureMap;
-  }): { paths: string[]; width: number } {
+  public outlineSegments(input: SetSegmentsInput): { paths: string[]; width: number } {
+    const set = this.setSegments(input);
+    return { paths: set.segments.map((segment) => segment.path), width: set.width };
+  }
+
+  /**
+   * outlineSegments with glyph evidence per segment.
+   * @internal Used by layoutText; not a stable API.
+   */
+  public setSegments(input: SetSegmentsInput): {
+    segments: SetSegment[];
+    width: number;
+  } {
     const letterSpacing = input.letterSpacing ?? 0;
-    const paths: string[] = [];
+    const segments: SetSegment[] = [];
     let penX = input.x;
     for (const [index, segment] of input.segments.entries()) {
       if (index > 0) penX += letterSpacing;
       const face = this.#getFace(input.family, segment.weight, segment.style);
-      const scale = input.fontSize / face.unitsPerEm;
-      const run = layoutRun(face, segment.text, input.features);
-      paths.push(outlineRun(run, penX, input.baseline, scale, letterSpacing));
-      penX +=
+      const scale = input.fontSize / this.#shaper.metrics(face).unitsPerEm;
+      const run = this.#shaper.shape(face, {
+        text: segment.text,
+        ...(input.features === undefined ? {} : { features: input.features }),
+      });
+      const set = this.#outlineRun(
+        face,
+        run,
+        penX,
+        input.baseline,
+        scale,
+        letterSpacing,
+      );
+      const width =
         run.advanceWidth * scale + Math.max(0, run.glyphs.length - 1) * letterSpacing;
+      segments.push({ path: set.path, x: penX, width, glyphs: set.glyphs });
+      penX += width;
     }
-    return { paths, width: penX - input.x };
+    return { segments, width: penX - input.x };
   }
 
   /** Em-relative ascent of an exact registered face. */
   public ascent(family: string, weight: number, style: ResolvedFont["style"]): number {
-    const face = this.#getFace(family, weight, style);
-    return face.ascent / face.unitsPerEm;
+    const metrics = this.#shaper.metrics(this.#getFace(family, weight, style));
+    return metrics.ascent / metrics.unitsPerEm;
   }
 
   /** Whether an exact registered face declares an OpenType feature tag. */
@@ -172,7 +287,9 @@ export class FontRegistry {
     style: ResolvedFont["style"],
     tag: string,
   ): boolean {
-    return this.#getFace(family, weight, style).availableFeatures.includes(tag);
+    return this.#shaper
+      .availableFeatures(this.#getFace(family, weight, style))
+      .includes(tag);
   }
 
   /** Whether a face is registered for this exact family, weight, and style. */
@@ -186,10 +303,10 @@ export class FontRegistry {
     weight: number,
     style: ResolvedFont["style"],
   ): { xHeight: number; capHeight: number } {
-    const face = this.#getFace(family, weight, style);
+    const metrics = this.#shaper.metrics(this.#getFace(family, weight, style));
     return {
-      xHeight: face.xHeight / face.unitsPerEm,
-      capHeight: face.capHeight / face.unitsPerEm,
+      xHeight: metrics.xHeight / metrics.unitsPerEm,
+      capHeight: metrics.capHeight / metrics.unitsPerEm,
     };
   }
 
@@ -197,24 +314,73 @@ export class FontRegistry {
     return [...this.#fonts.values()];
   }
 
-  #getFace(family: string, weight: number, style: ResolvedFont["style"]): Font {
+  #getFace(family: string, weight: number, style: ResolvedFont["style"]): ShaperFace {
     const key = fontReferenceKey(family, weight, style);
     const font = this.get(family, weight, style);
     let face = this.#faces.get(key);
     if (face !== undefined) return face;
-    const created = fontkit.create(Buffer.from(font.bytes));
-    if (!("layout" in created)) {
-      throw new GlyphkilnError(
-        `Font "${font.family}" resolved to a collection instead of a face.`,
-        "FONT_COLLECTION_UNSUPPORTED",
-      );
+    let created: ShaperFace;
+    try {
+      created = this.#shaper.loadFace(font.bytes);
+    } catch (error) {
+      if (
+        error instanceof GlyphkilnError &&
+        error.code === "FONT_COLLECTION_UNSUPPORTED"
+      ) {
+        throw new GlyphkilnError(
+          `Font "${font.family}" resolved to a collection instead of a face.`,
+          "FONT_COLLECTION_UNSUPPORTED",
+        );
+      }
+      throw error;
     }
+    // Only the weight axis is set today (plan §3.2); every other axis stays at
+    // its default until the M1 font model.
     face =
-      created.variationAxes["wght"] === undefined
+      this.#shaper.variationAxes(created)["wght"] === undefined
         ? created
-        : created.getVariation({ wght: weight });
+        : this.#shaper.instantiate(created, { wght: weight });
     this.#faces.set(key, face);
     return face;
+  }
+
+  #outlineRun(
+    face: ShaperFace,
+    run: ShapedRun,
+    startX: number,
+    baseline: number,
+    scale: number,
+    letterSpacing: number,
+  ): { path: string; glyphs: PositionedGlyph[] } {
+    const paths: string[] = [];
+    const glyphs: PositionedGlyph[] = [];
+    let penX = startX;
+    let penY = baseline;
+    for (const glyph of run.glyphs) {
+      const outline = this.#shaper.glyphOutline(face, glyph.id);
+      if (outline.color) {
+        throw new GlyphkilnError(
+          `Color glyph "${outline.name}" cannot be represented by the portable SVG outliner.`,
+          "COLOR_GLYPH_UNSUPPORTED",
+          { glyphId: glyph.id, glyphName: outline.name },
+        );
+      }
+      const originX = penX + glyph.xOffset * scale;
+      const originY = penY - glyph.yOffset * scale;
+      paths.push(serializePath(outline.commands, scale, originX, originY));
+      const advance = glyph.xAdvance * scale + letterSpacing;
+      glyphs.push({
+        id: glyph.id,
+        cluster: glyph.cluster,
+        codePointCount: glyph.codePointCount,
+        x: originX,
+        y: originY,
+        advance,
+      });
+      penX += advance;
+      penY -= glyph.yAdvance * scale;
+    }
+    return { path: paths.join(" "), glyphs };
   }
 
   #addAlias(font: ResolvedFont, weight: number): void {
@@ -250,51 +416,8 @@ export class FontRegistry {
   }
 }
 
-/**
- * Shape a run. Without explicit features this is fontkit's default layout, so
- * every pre-1.7.0 path stays byte-identical. fontkit mutates the feature object
- * it receives, so each call gets a fresh copy.
- */
-function layoutRun(face: Font, text: string, features?: OpenTypeFeatureMap): GlyphRun {
-  if (features === undefined) return face.layout(text);
-  return face.layout(text, { ...features });
-}
-
-function outlineRun(
-  run: GlyphRun,
-  startX: number,
-  baseline: number,
-  scale: number,
-  letterSpacing: number,
-): string {
-  const paths: string[] = [];
-  let penX = startX;
-  let penY = baseline;
-  for (const [index, glyph] of run.glyphs.entries()) {
-    if (glyph.layers !== undefined && glyph.layers.length > 0) {
-      throw new GlyphkilnError(
-        `Color glyph "${glyph.name}" cannot be represented by the portable SVG outliner.`,
-        "COLOR_GLYPH_UNSUPPORTED",
-        { glyphId: glyph.id, glyphName: glyph.name },
-      );
-    }
-    const position = run.positions[index]!;
-    paths.push(
-      serializePath(
-        glyph.path.commands,
-        scale,
-        penX + position.xOffset * scale,
-        penY - position.yOffset * scale,
-      ),
-    );
-    penX += position.xAdvance * scale + letterSpacing;
-    penY -= position.yAdvance * scale;
-  }
-  return paths.join(" ");
-}
-
 function serializePath(
-  commands: readonly PathCommand[],
+  commands: readonly OutlineCommand[],
   scale: number,
   offsetX: number,
   offsetY: number,

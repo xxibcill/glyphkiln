@@ -6,18 +6,17 @@ import type {
   TextEmphasisSpan,
 } from "../schema/index.js";
 import type { PathElement, TextElement } from "../renderer/scene.js";
-import { fitText, type FittedText, type TextMeasurer } from "../typography/index.js";
+import type { FittedText } from "../typography/index.js";
+import {
+  layoutText,
+  missingGlyphIssue,
+  type TextLayout,
+} from "../typography/layout-text.js";
 import {
   requestedOpenTypeFeatures,
   resolveOpenTypeFeatures,
 } from "../typography/opentype.js";
-import {
-  createEmphasisMeasurer,
-  createFeatureMeasurer,
-  emphasisFace,
-  normalizePhrase,
-  outlineRichLines,
-} from "../typography/rich-text.js";
+import { emphasisFace, normalizePhrase } from "../typography/rich-text.js";
 import { sizeSetting, type SizeSettingRole } from "../typography/size-setting.js";
 import { accentCoverage, type AccentShape } from "./accent-budget.js";
 import type { TemplateCanvas, TextLayer } from "./shared.js";
@@ -94,9 +93,8 @@ type Prepared = {
   family: string;
   weight: number;
   spans: TextEmphasisSpan[];
-  features: ReturnType<typeof resolveOpenTypeFeatures>;
-  measurer: TextMeasurer;
   issues: QualityIssue[];
+  layout: TextLayout;
   fitted: FittedText;
 };
 
@@ -106,6 +104,7 @@ function prepare(
   layer: TextLayer,
   box: Bounds,
   options: TypesetOptions,
+  detail: "measure" | "glyphs",
 ): Prepared {
   const family =
     layer.fontFamily ??
@@ -155,12 +154,6 @@ function prepare(
       },
     });
   }
-  const measurer =
-    spans.length > 0
-      ? createEmphasisMeasurer(context.fonts, spans, features)
-      : features === undefined
-        ? context.fonts
-        : createFeatureMeasurer(context.fonts, features);
   const keepTogether = [
     ...new Set([
       ...("keepTogether" in layer ? (layer.keepTogether ?? []) : []),
@@ -171,25 +164,37 @@ function prepare(
     canvas.scene.dimensions.width,
     canvas.scene.dimensions.height,
   );
-  const fitted = fitText({
+  const layout = layoutText({
     text: layer.text,
-    registry: measurer,
-    style: { family, weight, style: "normal", lineHeight: 1 },
+    registry: context.fonts,
+    face: { family, weight, style: "normal" },
     box,
-    preferredFontSize: layer.fontSize ?? options.preferredFontSize,
-    minimumFontSize: options.minimumFontSize,
-    maximumLines: Math.min(
-      layer.maxLines ?? options.maximumLines,
-      options.maximumLines,
-    ),
     layerId: layer.id,
-    ...(keepTogether.length === 0 ? {} : { keepTogether }),
-    settingAtSize: (fontSize) => {
-      const setting = sizeSetting(options.role, fontSize, shortSide);
-      return { lineHeight: setting.lineHeight, letterSpacingEm: setting.tracking };
+    sizing: {
+      mode: "fit",
+      preferredFontSize: layer.fontSize ?? options.preferredFontSize,
+      minimumFontSize: options.minimumFontSize,
+      maximumLines: Math.min(
+        layer.maxLines ?? options.maximumLines,
+        options.maximumLines,
+      ),
+      ...(keepTogether.length === 0 ? {} : { keepTogether }),
     },
+    setting: {
+      kind: "at-size",
+      atSize: (fontSize) => {
+        const setting = sizeSetting(options.role, fontSize, shortSide);
+        return { lineHeight: setting.lineHeight, letterSpacingEm: setting.tracking };
+      },
+    },
+    align: layer.align ?? options.align ?? "left",
+    ...(features === undefined ? {} : { features }),
+    ...(spans.length === 0 ? {} : { emphasis: spans }),
+    detail,
+    renderedLineLimit: options.maximumLines,
+    coverage: "rendered-lines",
   });
-  return { family, weight, spans, features, measurer, issues, fitted };
+  return { family, weight, spans, issues, layout, fitted: layout.fitted! };
 }
 
 /** Fit exactly as addTypesetText does, without adding anything to the scene. */
@@ -200,7 +205,7 @@ export function measureTypesetText(
   box: Bounds,
   options: TypesetOptions,
 ): FittedText {
-  return prepare(context, canvas, layer, box, options).fitted;
+  return prepare(context, canvas, layer, box, options, "measure").fitted;
 }
 
 export function addTypesetText(
@@ -210,50 +215,26 @@ export function addTypesetText(
   box: Bounds,
   options: TypesetOptions,
 ): TypesetText {
-  const prepared = prepare(context, canvas, layer, box, options);
-  const { family, weight, fitted } = prepared;
-  const setting = fitted.setting!;
-  const lineHeight = setting.lineHeight;
-  const letterSpacing = setting.letterSpacingEm * fitted.fontSize;
+  const prepared = prepare(context, canvas, layer, box, options, "glyphs");
+  const { family, weight, fitted, layout } = prepared;
+  const lineHeight = layout.lineHeight;
+  const letterSpacing = layout.letterSpacing!;
   const align = layer.align ?? options.align ?? "left";
-  const x =
-    align === "center"
-      ? box.x + box.width / 2
-      : align === "right"
-        ? box.x + box.width
-        : box.x;
-  const bounds = {
-    ...fitted.bounds,
-    x:
-      align === "center"
-        ? box.x + (box.width - fitted.width) / 2
-        : align === "right"
-          ? box.x + box.width - fitted.width
-          : box.x,
-  };
+  const x = layout.anchor.x;
+  const bounds = layout.bounds;
   const fill = layer.color ?? options.color;
-  const lines = fitted.lines.slice(0, options.maximumLines);
+  const lines = layout.lines.map((line) => line.text);
   canvas.qualityIssues.push(...prepared.issues);
-  const missing = context.fonts.missingCodePoints(
-    lines.join(""),
-    family,
-    weight,
-    "normal",
-  );
-  if (missing.length > 0) {
-    canvas.qualityIssues.push({
-      code: "MISSING_GLYPH",
-      severity: "error",
-      message: `Font "${family}" does not cover all text in layer "${layer.id}".`,
-      layerId: layer.id,
-      details: {
-        codePoints: missing.map(
-          (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
-        ),
-      },
-    });
+  if (layout.missingCodePoints.length > 0) {
+    canvas.qualityIssues.push(
+      missingGlyphIssue(
+        layer.id,
+        `Font "${family}" does not cover all text in layer "${layer.id}".`,
+        layout.missingCodePoints,
+      ),
+    );
   }
-  canvas.qualityIssues.push(...fitted.issues);
+  canvas.qualityIssues.push(...layout.issues);
   const safe = safeAreaIssue(canvas.safeArea, bounds, layer.id);
   if (safe !== undefined) canvas.qualityIssues.push(safe);
   if (options.checkContrast !== false) {
@@ -261,43 +242,12 @@ export function addTypesetText(
     if (contrast !== undefined) canvas.qualityIssues.push(contrast);
   }
 
-  const featureInput =
-    prepared.features === undefined ? {} : { features: prepared.features };
-  let outlines: string[];
+  const outlines = layout.lines.map((line) => line.set!.outline);
   const emphasis: PathElement[] = [];
-  if (prepared.spans.length === 0) {
-    outlines = context.fonts.outlineText({
-      lines,
-      family,
-      weight,
-      style: "normal",
-      fontSize: fitted.fontSize,
-      lineHeight,
-      x,
-      y: box.y,
-      align,
-      letterSpacing,
-      ...featureInput,
-    });
-  } else {
-    const rich = outlineRichLines({
-      registry: context.fonts,
-      lines,
-      spans: prepared.spans,
-      family,
-      weight,
-      fontSize: fitted.fontSize,
-      lineHeight,
-      x,
-      y: box.y,
-      align,
-      letterSpacing,
-      ...featureInput,
-    });
-    outlines = rich.map((line) => line.base);
+  if (prepared.spans.length > 0) {
     const checkedColors = new Set<string>();
-    for (const [lineIndex, line] of rich.entries()) {
-      for (const [runIndex, run] of line.emphasis.entries()) {
+    for (const [lineIndex, line] of layout.lines.entries()) {
+      for (const [runIndex, run] of line.set!.emphasis.entries()) {
         const runFill =
           run.style === "accent" || run.style === "strong-accent"
             ? options.palette.accent

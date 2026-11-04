@@ -1,0 +1,920 @@
+{
+  "id": "C-PARA",
+  "description": "100 Latin and 50 Thai paragraphs, each composed deterministically (index arithmetic) from a 30-sentence Latin pool and a 20-sentence Thai pool, measured at 3 widths in px at 32 px type. Latin in Inter, Thai in Noto Sans Thai.",
+  "fontSize": 32,
+  "lineHeight": 1.25,
+  "faces": {
+    "latn": {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal"
+    },
+    "thai": {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal"
+    }
+  },
+  "entries": [
+    {
+      "id": "para-lat-001",
+      "script": "latn",
+      "text": "Good typography is invisible until it is missing. The greedy method fills each line as full as it can and moves on. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-002",
+      "script": "latn",
+      "text": "Ragged right setting should still have a gentle, even edge. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-003",
+      "script": "latn",
+      "text": "Bring a friend, bring a bag, and bring your appetite. Call us on weekdays between 09:00 and 18:00.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-004",
+      "script": "latn",
+      "text": "Seats fill quickly, so register before Friday. Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-005",
+      "script": "latn",
+      "text": "Small changes in spacing add up to a large change in reading comfort. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-006",
+      "script": "latn",
+      "text": "Short final lines draw the eye and break the shape of the text block. Small changes in spacing add up to a large change in reading comfort.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-007",
+      "script": "latn",
+      "text": "The weekend market opens at nine and closes when the last stall sells out. Upload your brand fonts once and every template uses them automatically. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-008",
+      "script": "latn",
+      "text": "The workshop covers grids, hierarchy, colour and type pairing. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-009",
+      "script": "latn",
+      "text": "Prices include VAT and standard delivery within the country. Every line in a paragraph should carry roughly the same amount of grey.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-010",
+      "script": "latn",
+      "text": "The greedy method fills each line as full as it can and moves on. The weekend market opens at nine and closes when the last stall sells out. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-011",
+      "script": "latn",
+      "text": "Export exact PNG and SVG files that match the approved review byte for byte. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-012",
+      "script": "latn",
+      "text": "Free returns within thirty days, no questions asked. A total-fit method considers the whole paragraph before it commits to any break.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-013",
+      "script": "latn",
+      "text": "Results vary; individual outcomes depend on many factors. Tickets are limited to two per person while stocks last. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-014",
+      "script": "latn",
+      "text": "Every line in a paragraph should carry roughly the same amount of grey. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-015",
+      "script": "latn",
+      "text": "Our new plan includes unlimited projects, priority support and a shared library. Ragged right setting should still have a gentle, even edge.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-016",
+      "script": "latn",
+      "text": "Tickets are limited to two per person while stocks last. Read the full terms before you decide. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-017",
+      "script": "latn",
+      "text": "Extraordinarily long words like internationalization test narrow measures. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-018",
+      "script": "latn",
+      "text": "When in doubt, set it smaller and give it more room. Export exact PNG and SVG files that match the approved review byte for byte.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-019",
+      "script": "latn",
+      "text": "Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Seats fill quickly, so register before Friday. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-020",
+      "script": "latn",
+      "text": "Fresh bread, local honey and seasonal fruit are on every table. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-021",
+      "script": "latn",
+      "text": "Participants leave with a printed booklet and a digital starter kit. Fresh bread, local honey and seasonal fruit are on every table.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-022",
+      "script": "latn",
+      "text": "Join 12,480 readers who get the weekly design letter. Results vary; individual outcomes depend on many factors. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-023",
+      "script": "latn",
+      "text": "A total-fit method considers the whole paragraph before it commits to any break. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-024",
+      "script": "latn",
+      "text": "Campaigns stay consistent across Instagram, TikTok and display formats. Members receive early access to every new collection.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-025",
+      "script": "latn",
+      "text": "Read the full terms before you decide. Join 12,480 readers who get the weekly design letter. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-026",
+      "script": "latn",
+      "text": "Call us on weekdays between 09:00 and 18:00. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-027",
+      "script": "latn",
+      "text": "Designers adjust spacing by eye, but a composer must measure it. The workshop covers grids, hierarchy, colour and type pairing.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-028",
+      "script": "latn",
+      "text": "Upload your brand fonts once and every template uses them automatically. Good typography is invisible until it is missing. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-029",
+      "script": "latn",
+      "text": "Members receive early access to every new collection. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-030",
+      "script": "latn",
+      "text": "Telecommunications infrastructure modernization continues nationwide. Extraordinarily long words like internationalization test narrow measures.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-031",
+      "script": "latn",
+      "text": "Good typography is invisible until it is missing. The greedy method fills each line as full as it can and moves on. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-032",
+      "script": "latn",
+      "text": "Ragged right setting should still have a gentle, even edge. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-033",
+      "script": "latn",
+      "text": "Bring a friend, bring a bag, and bring your appetite. Call us on weekdays between 09:00 and 18:00.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-034",
+      "script": "latn",
+      "text": "Seats fill quickly, so register before Friday. Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-035",
+      "script": "latn",
+      "text": "Small changes in spacing add up to a large change in reading comfort. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-036",
+      "script": "latn",
+      "text": "Short final lines draw the eye and break the shape of the text block. Small changes in spacing add up to a large change in reading comfort.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-037",
+      "script": "latn",
+      "text": "The weekend market opens at nine and closes when the last stall sells out. Upload your brand fonts once and every template uses them automatically. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-038",
+      "script": "latn",
+      "text": "The workshop covers grids, hierarchy, colour and type pairing. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-039",
+      "script": "latn",
+      "text": "Prices include VAT and standard delivery within the country. Every line in a paragraph should carry roughly the same amount of grey.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-040",
+      "script": "latn",
+      "text": "The greedy method fills each line as full as it can and moves on. The weekend market opens at nine and closes when the last stall sells out. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-041",
+      "script": "latn",
+      "text": "Export exact PNG and SVG files that match the approved review byte for byte. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-042",
+      "script": "latn",
+      "text": "Free returns within thirty days, no questions asked. A total-fit method considers the whole paragraph before it commits to any break.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-043",
+      "script": "latn",
+      "text": "Results vary; individual outcomes depend on many factors. Tickets are limited to two per person while stocks last. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-044",
+      "script": "latn",
+      "text": "Every line in a paragraph should carry roughly the same amount of grey. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-045",
+      "script": "latn",
+      "text": "Our new plan includes unlimited projects, priority support and a shared library. Ragged right setting should still have a gentle, even edge.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-046",
+      "script": "latn",
+      "text": "Tickets are limited to two per person while stocks last. Read the full terms before you decide. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-047",
+      "script": "latn",
+      "text": "Extraordinarily long words like internationalization test narrow measures. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-048",
+      "script": "latn",
+      "text": "When in doubt, set it smaller and give it more room. Export exact PNG and SVG files that match the approved review byte for byte.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-049",
+      "script": "latn",
+      "text": "Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Seats fill quickly, so register before Friday. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-050",
+      "script": "latn",
+      "text": "Fresh bread, local honey and seasonal fruit are on every table. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-051",
+      "script": "latn",
+      "text": "Participants leave with a printed booklet and a digital starter kit. Fresh bread, local honey and seasonal fruit are on every table.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-052",
+      "script": "latn",
+      "text": "Join 12,480 readers who get the weekly design letter. Results vary; individual outcomes depend on many factors. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-053",
+      "script": "latn",
+      "text": "A total-fit method considers the whole paragraph before it commits to any break. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-054",
+      "script": "latn",
+      "text": "Campaigns stay consistent across Instagram, TikTok and display formats. Members receive early access to every new collection.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-055",
+      "script": "latn",
+      "text": "Read the full terms before you decide. Join 12,480 readers who get the weekly design letter. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-056",
+      "script": "latn",
+      "text": "Call us on weekdays between 09:00 and 18:00. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-057",
+      "script": "latn",
+      "text": "Designers adjust spacing by eye, but a composer must measure it. The workshop covers grids, hierarchy, colour and type pairing.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-058",
+      "script": "latn",
+      "text": "Upload your brand fonts once and every template uses them automatically. Good typography is invisible until it is missing. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-059",
+      "script": "latn",
+      "text": "Members receive early access to every new collection. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-060",
+      "script": "latn",
+      "text": "Telecommunications infrastructure modernization continues nationwide. Extraordinarily long words like internationalization test narrow measures.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-061",
+      "script": "latn",
+      "text": "Good typography is invisible until it is missing. The greedy method fills each line as full as it can and moves on. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-062",
+      "script": "latn",
+      "text": "Ragged right setting should still have a gentle, even edge. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-063",
+      "script": "latn",
+      "text": "Bring a friend, bring a bag, and bring your appetite. Call us on weekdays between 09:00 and 18:00.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-064",
+      "script": "latn",
+      "text": "Seats fill quickly, so register before Friday. Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-065",
+      "script": "latn",
+      "text": "Small changes in spacing add up to a large change in reading comfort. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-066",
+      "script": "latn",
+      "text": "Short final lines draw the eye and break the shape of the text block. Small changes in spacing add up to a large change in reading comfort.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-067",
+      "script": "latn",
+      "text": "The weekend market opens at nine and closes when the last stall sells out. Upload your brand fonts once and every template uses them automatically. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-068",
+      "script": "latn",
+      "text": "The workshop covers grids, hierarchy, colour and type pairing. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-069",
+      "script": "latn",
+      "text": "Prices include VAT and standard delivery within the country. Every line in a paragraph should carry roughly the same amount of grey.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-070",
+      "script": "latn",
+      "text": "The greedy method fills each line as full as it can and moves on. The weekend market opens at nine and closes when the last stall sells out. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-071",
+      "script": "latn",
+      "text": "Export exact PNG and SVG files that match the approved review byte for byte. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-072",
+      "script": "latn",
+      "text": "Free returns within thirty days, no questions asked. A total-fit method considers the whole paragraph before it commits to any break.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-073",
+      "script": "latn",
+      "text": "Results vary; individual outcomes depend on many factors. Tickets are limited to two per person while stocks last. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-074",
+      "script": "latn",
+      "text": "Every line in a paragraph should carry roughly the same amount of grey. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-075",
+      "script": "latn",
+      "text": "Our new plan includes unlimited projects, priority support and a shared library. Ragged right setting should still have a gentle, even edge.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-076",
+      "script": "latn",
+      "text": "Tickets are limited to two per person while stocks last. Read the full terms before you decide. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-077",
+      "script": "latn",
+      "text": "Extraordinarily long words like internationalization test narrow measures. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-078",
+      "script": "latn",
+      "text": "When in doubt, set it smaller and give it more room. Export exact PNG and SVG files that match the approved review byte for byte.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-079",
+      "script": "latn",
+      "text": "Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Seats fill quickly, so register before Friday. When in doubt, set it smaller and give it more room.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-080",
+      "script": "latn",
+      "text": "Fresh bread, local honey and seasonal fruit are on every table. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-081",
+      "script": "latn",
+      "text": "Participants leave with a printed booklet and a digital starter kit. Fresh bread, local honey and seasonal fruit are on every table.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-082",
+      "script": "latn",
+      "text": "Join 12,480 readers who get the weekly design letter. Results vary; individual outcomes depend on many factors. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-083",
+      "script": "latn",
+      "text": "A total-fit method considers the whole paragraph before it commits to any break. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-084",
+      "script": "latn",
+      "text": "Campaigns stay consistent across Instagram, TikTok and display formats. Members receive early access to every new collection.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-085",
+      "script": "latn",
+      "text": "Read the full terms before you decide. Join 12,480 readers who get the weekly design letter. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-086",
+      "script": "latn",
+      "text": "Call us on weekdays between 09:00 and 18:00. Our new plan includes unlimited projects, priority support and a shared library.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-087",
+      "script": "latn",
+      "text": "Designers adjust spacing by eye, but a composer must measure it. The workshop covers grids, hierarchy, colour and type pairing.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-088",
+      "script": "latn",
+      "text": "Upload your brand fonts once and every template uses them automatically. Good typography is invisible until it is missing. Prices include VAT and standard delivery within the country.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-089",
+      "script": "latn",
+      "text": "Members receive early access to every new collection. Campaigns stay consistent across Instagram, TikTok and display formats.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-090",
+      "script": "latn",
+      "text": "Telecommunications infrastructure modernization continues nationwide. Extraordinarily long words like internationalization test narrow measures.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-091",
+      "script": "latn",
+      "text": "Good typography is invisible until it is missing. The greedy method fills each line as full as it can and moves on. Short final lines draw the eye and break the shape of the text block.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-092",
+      "script": "latn",
+      "text": "Ragged right setting should still have a gentle, even edge. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-093",
+      "script": "latn",
+      "text": "Bring a friend, bring a bag, and bring your appetite. Call us on weekdays between 09:00 and 18:00.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-094",
+      "script": "latn",
+      "text": "Seats fill quickly, so register before Friday. Hyphenation helps narrow columns, but too many hyphens in a row look nervous. Bring a friend, bring a bag, and bring your appetite.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-095",
+      "script": "latn",
+      "text": "Small changes in spacing add up to a large change in reading comfort. Free returns within thirty days, no questions asked.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-096",
+      "script": "latn",
+      "text": "Short final lines draw the eye and break the shape of the text block. Small changes in spacing add up to a large change in reading comfort.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-097",
+      "script": "latn",
+      "text": "The weekend market opens at nine and closes when the last stall sells out. Upload your brand fonts once and every template uses them automatically. Telecommunications infrastructure modernization continues nationwide.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-098",
+      "script": "latn",
+      "text": "The workshop covers grids, hierarchy, colour and type pairing. Participants leave with a printed booklet and a digital starter kit.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-099",
+      "script": "latn",
+      "text": "Prices include VAT and standard delivery within the country. Every line in a paragraph should carry roughly the same amount of grey.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-lat-100",
+      "script": "latn",
+      "text": "The greedy method fills each line as full as it can and moves on. The weekend market opens at nine and closes when the last stall sells out. Designers adjust spacing by eye, but a composer must measure it.",
+      "widths": [260, 380, 560]
+    },
+    {
+      "id": "para-th-001",
+      "script": "thai",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ จัดส่งฟรีทั่วประเทศเมื่อสั่งซื้อครบห้าร้อยบาท ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-002",
+      "script": "thai",
+      "text": "เงื่อนไขเป็นไปตามที่บริษัทกำหนด นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-003",
+      "script": "thai",
+      "text": "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย เรียนรู้การออกแบบจากผู้เชี่ยวชาญตัวจริง โปรโมชั่นพิเศษนี้มีเวลาจำกัด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-004",
+      "script": "thai",
+      "text": "นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ เงื่อนไขเป็นไปตามที่บริษัทกำหนด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-005",
+      "script": "thai",
+      "text": "ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน การจัดบรรทัดที่ดีช่วยให้อ่านได้ง่ายขึ้น นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-006",
+      "script": "thai",
+      "text": "เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-007",
+      "script": "thai",
+      "text": "ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-008",
+      "script": "thai",
+      "text": "สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์ ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-009",
+      "script": "thai",
+      "text": "อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-010",
+      "script": "thai",
+      "text": "โปรโมชั่นพิเศษนี้มีเวลาจำกัด ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-011",
+      "script": "thai",
+      "text": "การจัดบรรทัดที่ดีช่วยให้อ่านได้ง่ายขึ้น ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-012",
+      "script": "thai",
+      "text": "ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-013",
+      "script": "thai",
+      "text": "เรียนรู้การออกแบบจากผู้เชี่ยวชาญตัวจริง กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-014",
+      "script": "thai",
+      "text": "ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-015",
+      "script": "thai",
+      "text": "จัดส่งฟรีทั่วประเทศเมื่อสั่งซื้อครบห้าร้อยบาท วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-016",
+      "script": "thai",
+      "text": "ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น โปรโมชั่นพิเศษนี้มีเวลาจำกัด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-017",
+      "script": "thai",
+      "text": "ผลิตภัณฑ์ทุกชิ้นผ่านการตรวจสอบคุณภาพอย่างละเอียด บริการลูกค้าตลอดยี่สิบสี่ชั่วโมง สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-018",
+      "script": "thai",
+      "text": "ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-019",
+      "script": "thai",
+      "text": "บริการลูกค้าตลอดยี่สิบสี่ชั่วโมง ผลิตภัณฑ์ทุกชิ้นผ่านการตรวจสอบคุณภาพอย่างละเอียด เงื่อนไขเป็นไปตามที่บริษัทกำหนด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-020",
+      "script": "thai",
+      "text": "พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์ เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-021",
+      "script": "thai",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ จัดส่งฟรีทั่วประเทศเมื่อสั่งซื้อครบห้าร้อยบาท ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-022",
+      "script": "thai",
+      "text": "เงื่อนไขเป็นไปตามที่บริษัทกำหนด นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-023",
+      "script": "thai",
+      "text": "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย เรียนรู้การออกแบบจากผู้เชี่ยวชาญตัวจริง โปรโมชั่นพิเศษนี้มีเวลาจำกัด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-024",
+      "script": "thai",
+      "text": "นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ เงื่อนไขเป็นไปตามที่บริษัทกำหนด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-025",
+      "script": "thai",
+      "text": "ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน การจัดบรรทัดที่ดีช่วยให้อ่านได้ง่ายขึ้น นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-026",
+      "script": "thai",
+      "text": "เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-027",
+      "script": "thai",
+      "text": "ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-028",
+      "script": "thai",
+      "text": "สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์ ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-029",
+      "script": "thai",
+      "text": "อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-030",
+      "script": "thai",
+      "text": "โปรโมชั่นพิเศษนี้มีเวลาจำกัด ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-031",
+      "script": "thai",
+      "text": "การจัดบรรทัดที่ดีช่วยให้อ่านได้ง่ายขึ้น ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-032",
+      "script": "thai",
+      "text": "ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-033",
+      "script": "thai",
+      "text": "เรียนรู้การออกแบบจากผู้เชี่ยวชาญตัวจริง กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-034",
+      "script": "thai",
+      "text": "ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-035",
+      "script": "thai",
+      "text": "จัดส่งฟรีทั่วประเทศเมื่อสั่งซื้อครบห้าร้อยบาท วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ ความสุขเล็กๆ เริ่มต้นได้ที่บ้าน",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-036",
+      "script": "thai",
+      "text": "ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น โปรโมชั่นพิเศษนี้มีเวลาจำกัด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-037",
+      "script": "thai",
+      "text": "ผลิตภัณฑ์ทุกชิ้นผ่านการตรวจสอบคุณภาพอย่างละเอียด บริการลูกค้าตลอดยี่สิบสี่ชั่วโมง สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-038",
+      "script": "thai",
+      "text": "ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-039",
+      "script": "thai",
+      "text": "บริการลูกค้าตลอดยี่สิบสี่ชั่วโมง ผลิตภัณฑ์ทุกชิ้นผ่านการตรวจสอบคุณภาพอย่างละเอียด เงื่อนไขเป็นไปตามที่บริษัทกำหนด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-040",
+      "script": "thai",
+      "text": "พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์ เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-041",
+      "script": "thai",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ จัดส่งฟรีทั่วประเทศเมื่อสั่งซื้อครบห้าร้อยบาท ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-042",
+      "script": "thai",
+      "text": "เงื่อนไขเป็นไปตามที่บริษัทกำหนด นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-043",
+      "script": "thai",
+      "text": "กรุงเทพมหานครเป็นเมืองหลวงของประเทศไทย เรียนรู้การออกแบบจากผู้เชี่ยวชาญตัวจริง โปรโมชั่นพิเศษนี้มีเวลาจำกัด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-044",
+      "script": "thai",
+      "text": "นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ เงื่อนไขเป็นไปตามที่บริษัทกำหนด",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-045",
+      "script": "thai",
+      "text": "ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน การจัดบรรทัดที่ดีช่วยให้อ่านได้ง่ายขึ้น นักออกแบบเลือกตัวอักษรให้เหมาะกับข้อความ",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-046",
+      "script": "thai",
+      "text": "เด็กๆ และผู้ใหญ่สนุกได้ทั้งครอบครัว พิพิธภัณฑ์เปิดให้เข้าชมฟรีทุกวันอาทิตย์",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-047",
+      "script": "thai",
+      "text": "ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-048",
+      "script": "thai",
+      "text": "สมัครสมาชิกวันนี้รับส่วนลดทันทีสิบเปอร์เซ็นต์ ภาษาไทยไม่เว้นวรรคระหว่างคำจึงต้องตัดคำอย่างระมัดระวัง",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-049",
+      "script": "thai",
+      "text": "อ่านรายละเอียดก่อนตัดสินใจทุกครั้ง ขอบคุณที่ไว้วางใจให้เราดูแลแบรนด์ของคุณ ลดสูงสุด 25% เฉพาะสัปดาห์นี้เท่านั้น",
+      "widths": [240, 360, 520]
+    },
+    {
+      "id": "para-th-050",
+      "script": "thai",
+      "text": "โปรโมชั่นพิเศษนี้มีเวลาจำกัด ร้านเปิดทุกวันตั้งแต่เก้าโมงเช้าถึงหกโมงเย็น",
+      "widths": [240, 360, 520]
+    }
+  ]
+}
