@@ -23,7 +23,9 @@ import {
 import { outlineRichLines } from "../src/typography/rich-text.js";
 
 const thaiBytes = new Uint8Array(
-  readFileSync(new URL("../fixtures/scene-thai/font/NotoSansThai.ttf", import.meta.url)),
+  readFileSync(
+    new URL("../fixtures/scene-thai/font/NotoSansThai.ttf", import.meta.url),
+  ),
 );
 const interBytes = new Uint8Array(
   readFileSync(new URL("../assets/fonts/Inter-Variable.ttf", import.meta.url)),
@@ -42,8 +44,13 @@ function registry(): FontRegistry {
 
 function glyphNames(text: string, script?: string): string[] {
   const face = fontkitShaper.loadFace(thaiBytes);
-  const run = fontkitShaper.shape(face, { text, ...(script === undefined ? {} : { script }) });
-  return run.glyphs.map((glyph) => fontkitShaper.glyphOutline(face, glyph.id).name ?? "");
+  const run = fontkitShaper.shape(face, {
+    text,
+    ...(script === undefined ? {} : { script }),
+  });
+  return run.glyphs.map(
+    (glyph) => fontkitShaper.glyphOutline(face, glyph.id).name ?? "",
+  );
 }
 
 describe("fontkit shaper", () => {
@@ -61,7 +68,9 @@ describe("fontkit shaper", () => {
     const face = fontkitShaper.loadFace(thaiBytes);
     const run = fontkitShaper.shape(face, { text: "น้ำ" });
     expect(run.glyphs.map((glyph) => glyph.cluster)).toEqual([0, 1, 2, 2]);
-    expect(run.glyphs.reduce((total, glyph) => total + glyph.codePointCount, 0)).toBe(3);
+    expect(run.glyphs.reduce((total, glyph) => total + glyph.codePointCount, 0)).toBe(
+      3,
+    );
     const latin = fontkitShaper.shape(fontkitShaper.loadFace(interBytes), {
       text: "A😀B",
     });
@@ -71,7 +80,10 @@ describe("fontkit shaper", () => {
   it("applies explicit features on top of the defaults", () => {
     const face = fontkitShaper.loadFace(interBytes);
     const kerned = fontkitShaper.shape(face, { text: "AV" });
-    const unkerned = fontkitShaper.shape(face, { text: "AV", features: { kern: false } });
+    const unkerned = fontkitShaper.shape(face, {
+      text: "AV",
+      features: { kern: false },
+    });
     expect(kerned.advanceWidth).toBeLessThan(unkerned.advanceWidth);
     expect(fontkitShaper.availableFeatures(face)).toContain("kern");
     expect(fontkitShaper.hasGlyphForCodePoint(face, 0x41)).toBe(true);
@@ -80,11 +92,19 @@ describe("fontkit shaper", () => {
 
   it("instances variation coordinates and reports metrics and axes", () => {
     const base = fontkitShaper.loadFace(interBytes);
-    expect(fontkitShaper.variationAxes(base)["wght"]).toMatchObject({ min: 100, max: 900 });
+    expect(fontkitShaper.variationAxes(base)["wght"]).toMatchObject({
+      min: 100,
+      max: 900,
+    });
     const bold = fontkitShaper.instantiate(base, { wght: 700 });
     const regular = fontkitShaper.shape(base, { text: "Glyph" }).advanceWidth;
-    expect(fontkitShaper.shape(bold, { text: "Glyph" }).advanceWidth).toBeGreaterThan(regular);
-    expect(fontkitShaper.metrics(base)).toMatchObject({ unitsPerEm: 2048, ascent: 1984 });
+    expect(fontkitShaper.shape(bold, { text: "Glyph" }).advanceWidth).toBeGreaterThan(
+      regular,
+    );
+    expect(fontkitShaper.metrics(base)).toMatchObject({
+      unitsPerEm: 2048,
+      ascent: 1984,
+    });
   });
 
   it("rejects unsupported directions and faces from another shaper", () => {
@@ -167,7 +187,12 @@ describe("layoutText", () => {
       face: { family: "Noto Sans Thai", weight: 400, style: "normal" },
       box,
       layerId: "headline",
-      sizing: { mode: "fit", preferredFontSize: 72, minimumFontSize: 24, maximumLines: 3 },
+      sizing: {
+        mode: "fit",
+        preferredFontSize: 72,
+        minimumFontSize: 24,
+        maximumLines: 3,
+      },
       setting: { kind: "em", lineHeight: 1.2, letterSpacingEm: -0.01 },
       align: "right",
       detail: "glyphs",
@@ -177,7 +202,12 @@ describe("layoutText", () => {
     const fitted = fitText({
       text: "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ",
       registry: fonts,
-      style: { family: "Noto Sans Thai", weight: 400, style: "normal", lineHeight: 1.2 },
+      style: {
+        family: "Noto Sans Thai",
+        weight: 400,
+        style: "normal",
+        lineHeight: 1.2,
+      },
       box,
       preferredFontSize: 72,
       minimumFontSize: 24,
@@ -262,9 +292,9 @@ describe("layoutText", () => {
       align: "left" as const,
       detail: "glyphs" as const,
     };
-    expect(layoutText({ ...request, coverage: "source-text" }).missingCodePoints).toEqual([
-      0x0e44, 0x0e17, 0x0e22,
-    ]);
+    expect(
+      layoutText({ ...request, coverage: "source-text" }).missingCodePoints,
+    ).toEqual([0x0e44, 0x0e17, 0x0e22]);
     expect(
       layoutText({
         ...request,
@@ -311,7 +341,12 @@ describe("layoutText", () => {
       face: { family: "Inter", weight: 400, style: "normal" },
       box,
       layerId: "headline",
-      sizing: { mode: "fit", preferredFontSize: 64, minimumFontSize: 24, maximumLines: 2 },
+      sizing: {
+        mode: "fit",
+        preferredFontSize: 64,
+        minimumFontSize: 24,
+        maximumLines: 2,
+      },
       setting: { kind: "at-size", atSize },
       align: "left",
       detail: "measure",
@@ -334,7 +369,12 @@ describe("layoutText", () => {
       face: { family: "Inter", weight: 400, style: "normal" },
       box: { x: 0, y: 0, width: 900, height: 200 },
       layerId: "headline",
-      sizing: { mode: "fit", preferredFontSize: 48, minimumFontSize: 48, maximumLines: 2 },
+      sizing: {
+        mode: "fit",
+        preferredFontSize: 48,
+        minimumFontSize: 48,
+        maximumLines: 2,
+      },
       setting: { kind: "em", lineHeight: 1.1 },
       align: "center",
       features: { kern: true },
@@ -416,12 +456,18 @@ describe("typography quality metrics", () => {
     expect(lineBreakOffsets("Run 100 km", ["Run 100", "km"])).toEqual([8]);
     expect(lineBreakOffsets("abc", ["abc", "zzz"])).toEqual([]);
     expect(breaksInsideGraphemeClusters("ที่", [1, 3])).toEqual([1]);
-    expect(thaiBreakFindings("เด็กๆ ไป", [4])).toEqual([{ offset: 4, kind: "line-edge" }]);
+    expect(thaiBreakFindings("เด็กๆ ไป", [4])).toEqual([
+      { offset: 4, kind: "line-edge" },
+    ]);
     expect(thaiBreakFindings("เกม", [1])).toEqual([
       { offset: 1, kind: "after-leading-vowel" },
     ]);
-    expect(thaiBreakFindings("กา", [1])).toEqual([{ offset: 1, kind: "before-dependent" }]);
-    expect(thaiBreakFindings("ที่", [1])).toEqual([{ offset: 1, kind: "inside-cluster" }]);
+    expect(thaiBreakFindings("กา", [1])).toEqual([
+      { offset: 1, kind: "before-dependent" },
+    ]);
+    expect(thaiBreakFindings("ที่", [1])).toEqual([
+      { offset: 1, kind: "inside-cluster" },
+    ]);
     expect(thaiBreakFindings("กรุงเทพ", [4])).toEqual([]);
     expect(breaksOutsideGold([8, 11], [4, 7, 10])).toEqual([8, 11]);
   });
@@ -475,6 +521,8 @@ describe("typography quality metrics", () => {
   });
 
   it("uses GlyphkilnError for shaping failures", () => {
-    expect(new GlyphkilnError("x", "SHAPING_DIRECTION_UNSUPPORTED")).toBeInstanceOf(Error);
+    expect(new GlyphkilnError("x", "SHAPING_DIRECTION_UNSUPPORTED")).toBeInstanceOf(
+      Error,
+    );
   });
 });
