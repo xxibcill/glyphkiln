@@ -1,7 +1,8 @@
 # Typography engine plan: from correct wrapping to professional typesetting
 
 **Drafted 4 November 2026 by Claude (Opus 5.5) for the project owner. Status:
-proposed. Nothing in this plan is approved or started.**
+in progress. M0 is complete (ADR 0019 accepted 4 November 2026); M1 is
+next.**
 
 This plan stages the upgrade of Core's text engine to the level of the software
 professional designers use (Adobe InDesign and Illustrator, Figma). It turns
@@ -227,11 +228,13 @@ touch different files.
     harfbuzzjs 1.6.4 as a devDependency.
   - The baseline report is in
     [`docs/research/typography-m0-baseline/`](../research/typography-m0-baseline/README.md).
-  - [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md) is **proposed**
-    and awaits the owner. Finding: script itemization, not the shaper, fixes
+  - [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md) was **accepted**
+    by the owner on 4 November 2026. Finding: script itemization, not the shaper, fixes
     the one-script defect. HarfBuzz adds Thai reordering, instances that match
     fontTools, and about 4× faster shaping.
-  - The exit gate's remaining item is the owner accepting the ADR.
+  - The exit gate is met: baselines are byte-identical, the metrics report is
+    committed, and ADR 0019 is accepted. The full gate and both determinism
+    digests also pass on macOS arm64.
 
 ### M1 — Font model: variable axes, optical size, per-script mixing, correctness fixes
 
@@ -455,7 +458,10 @@ The required starting point.
    correct every render under a renderer bump? Recommended: new template versions
    now, plus a documented advisory on old versions that use tracking with Thai.
 2. **HarfBuzz adoption.** Is about 1.3 MB of wasm and a renderer identity change
-   acceptable if ADR 0019's evidence supports it?
+   acceptable if ADR 0019's evidence supports it? **Answered 4 November
+   2026:** yes. The owner accepted
+   [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md); the measured
+   runtime cost is about 530 KB of wasm and JS.
 3. **Thai gold corpus.** Which source and licence for G-TH: an existing licensed
    corpus, or annotating the workspace's own Thai campaign copy?
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures

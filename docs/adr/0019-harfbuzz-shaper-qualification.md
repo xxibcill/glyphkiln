@@ -1,8 +1,9 @@
 # ADR 0019: Qualify HarfBuzz behind the Shaper interface
 
-Status: proposed
+Status: accepted
 
-Proposed 4 November 2026 at the end of typography milestone M0
+Proposed 4 November 2026 at the end of typography milestone M0 and **accepted by
+the owner on 4 November 2026**, including plan question Q2 (the runtime size)
 ([plan](../plans/typography-engine-plan.md) §4, §5 M0 item 6). The owner accepts
 or rejects it. Nothing in this ADR changes pixels; it decides which shaper new
 typography policies use from M1.
@@ -157,7 +158,7 @@ fontkit omits. The shipped wasm (`harfbuzz.wasm`, SHA-256
 444 KB, and the JS wrapper is 85 KB. The 1.3 MB package size includes an
 unused `harfbuzz-subset.wasm`.
 
-## Decision (proposed)
+## Decision (accepted 4 November 2026)
 
 1. **Adopt harfbuzzjs as the shaper and outline source for new typography
    policies, starting in M1.** Build M1b (script runs, cluster tracking) and
@@ -175,8 +176,8 @@ unused `harfbuzz-subset.wasm`.
    - a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
      than fontkit, on CI;
    - the open `seven`→`eight` kerning difference explained;
-   - the owner's answer to plan question Q2: adding about 530 KB of runtime
-     wasm and JS to `@glyphkiln/core`.
+   - ~~the owner's answer to plan question Q2~~ — the owner accepted about
+     530 KB of runtime wasm and JS on 4 November 2026.
 
 ## Consequences
 
