@@ -83,7 +83,9 @@ export class Argon2idPasswordHasher implements PasswordHasher {
       return await argon2Hash(Buffer.from(password, "utf8"), {
         // @node-rs/argon2 declares ambient const enums that isolated modules
         // cannot access by name. These are Argon2id and version 0x13.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Ambient const enum value for Argon2id.
         algorithm: 2,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Ambient const enum value for version 0x13.
         version: 1,
         memoryCost: ARGON2ID_PASSWORD_PROFILE.memoryCostKiB,
         timeCost: ARGON2ID_PASSWORD_PROFILE.timeCost,
