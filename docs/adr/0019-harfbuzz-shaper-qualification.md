@@ -108,9 +108,10 @@ renderer identity change under a new policy, never under an existing one.
 
 HarfBuzz shaping and outlines for all 314 corpus lines were byte-identical in
 two fresh processes (digest
-`4eda4aa2ea56ec98bb3eaf634e1ae828180c788551c043063e9e5af496ae442d`). This was
-measured on Linux x64 with Node 22.23.4 only. macOS and Node 24 were not
-available in this environment.
+`4eda4aa2ea56ec98bb3eaf634e1ae828180c788551c043063e9e5af496ae442d`). The digest
+is the same on Node 22.23.4 and Node 24.22.1, both on Linux x64. The fontkit
+harness output was also identical across fresh processes and both Node
+versions (`3727cdac…`). macOS was not available in this environment.
 
 ### Cost
 
@@ -160,7 +161,8 @@ unused `harfbuzz-subset.wasm`.
    for byte. `FontRegistry` chooses the shaper per policy. No existing render
    changes.
 3. **Conditions before the first HarfBuzz policy ships:**
-   - fresh-process byte equality on macOS, and on Node 24 as well as Node 22;
+   - fresh-process byte equality on macOS (Linux on Node 22 and 24 is already
+     shown);
    - a per-face outline cache, so warm outline cost is at most 2× fontkit's;
    - a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
      than fontkit, on CI;
