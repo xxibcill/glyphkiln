@@ -1,8 +1,9 @@
 # Free Latin fonts for Glyphkiln
 
 **Researched 4 November 2026 by Claude (Opus 5.5) for owner decision D3 in the
-[open-work plan](../../plans/open-work-plan.md). Status: shortlist and
-recommendation awaiting the owner's choice; nothing is bundled yet.**
+[open-work plan](../../plans/open-work-plan.md). Status: the six-family
+[Latin starter set](#recommended-latin-starter-set) was approved by the owner on
+4 November 2026. The fonts are not bundled yet.**
 
 This complements the approved [Thai + Latin set](../thai-latin-fonts-2026-11/README.md)
 (IBM Plex Sans Thai, Noto Sans Thai, Sarabun, Kanit, Trirong, Noto Serif
@@ -105,9 +106,10 @@ serif and mono in English, and sans, display and serif in Thai.
 Grotesque, and use IBM Plex Sans's width axis and Noto Sans Thai's condensed
 widths.
 
-## Decision needed
+## Decision
 
-Approve the six-family Latin set above, or name changes.
+Approved by the owner on 4 November 2026: IBM Plex Sans, Schibsted Grotesk,
+Barlow Condensed, Instrument Serif, Source Serif 4 and IBM Plex Mono.
 
 ## Files checked (SHA-256)
 
