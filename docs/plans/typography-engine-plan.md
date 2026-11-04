@@ -1,8 +1,9 @@
 # Typography engine plan: from correct wrapping to professional typesetting
 
 **Drafted 4 November 2026 by Claude (Opus 5.5) for the project owner. Status:
-in progress. M0 is complete (ADR 0019 accepted 4 November 2026); M1 is
-next.**
+in progress. M0 is complete (ADR 0019 accepted 4 November 2026). M1 is
+implemented on branch `claude/typography-m1` (draft PR), with the new
+baselines awaiting the owner's review.**
 
 This plan stages the upgrade of Core's text engine to the level of the software
 professional designers use (Adobe InDesign and Illustrator, Figma). It turns
@@ -272,6 +273,37 @@ The required starting point.
 - **Tests.** Oracle shaping on C-MIX; instancer comparison; opsz mapping table;
   cluster integrity; tracking invariance on C-TH; visual baselines for every
   approved family at three sizes.
+- **Progress (4 November 2026, branch `claude/typography-m1`, draft PR).**
+  The fonts are bundled (B2's remaining task) and M1a, M1b and M1c are
+  implemented on HarfBuzz, as ADR 0019 decided. See
+  [Typography M1](../typography-m1.md).
+  - **Fonts.** The twelve approved families are bundled: 101 files, each with
+    its OFL text and SHA-256 checked by `licenses:verify`.
+  - **Engine.** harfbuzzjs is a runtime dependency used only by the new
+    policies, with the shaper identity and wasm hash in the policy. The ADR's
+    remaining conditions are met: outline cache, CI budgets, and the
+    `seven`→`eight` explanation.
+  - **Versions.** Design schema 1.8.0, Scene 1.1.0, manifest 1.3.0, Scene
+    manifest 1.1.0 and renderer 0.6.0. `quote-card@1.4.0`,
+    `statistic-card@1.4.0` and `image-led-campaign@1.3.0` opt in. Q1 and Q6
+    use the plan's recommendations, provisionally.
+  - **Legacy.** Legacy renders keep renderer 0.5.0 and manifest 1.2.0, so
+    pre-1.8.0 documents, older template versions and Scene 1.0.0 are
+    byte-identical, including manifests and fingerprints.
+  - **Exit gate.**
+    - T01, T03, T04, T05, T06, T08 and T27 have passing tests.
+    - Brief A and the Kilnform quote render with no findings under six
+      provisional Thai–Latin pairings.
+    - Baselines exist for every approved family at three sizes.
+    - The reviewer step is open: see the
+      [review sheet](../research/typography-m1-baselines/README.md).
+  - **Metrics.** [Before/after](../research/typography-m1-metrics/README.md):
+    one-script lines 84/200 → 0/200, marks moved under tracking 246/246 →
+    0/246, instancing error ≤ 0.005/1000 em.
+  - **Left open.**
+    - `size-setting@2.0.0` (plan §8) is not done.
+    - The editorial-fill quote mark stays on fontkit.
+    - Itemization uses `Scripts.txt` only, not `ScriptExtensions.txt`.
 
 ### M2 — Shaper switch (conditional on ADR 0019)
 

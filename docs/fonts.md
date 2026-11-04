@@ -101,8 +101,15 @@ ADR 0005's statement that Core did not report glyph coverage records the
 original decision state. Glyph coverage shipped before `v0.2.0`; the accepted
 ADR remains unchanged as historical evidence.
 
+## M1 font model
+
+New template versions and Scene `1.1.0` shape and outline with HarfBuzz and
+set every `fvar` axis, named instances, automatic optical size, fallback stacks
+and per-script faces. See [Typography M1](typography-m1.md). The registry still
+verifies every face by its SHA-256 first.
+
 Current limitations: normal Inter variable is the default face, font fallback
-stacks are not supported, explicit OpenType feature selection is limited to the
+stacks exist only on the M1 typography, explicit OpenType feature selection is limited to the
 closed DesignDocument 1.7.0 settings in
 [type and color craft controls](type-and-color-craft.md),
 and color/bitmap glyphs are rejected by the portable SVG outliner. Bidi and

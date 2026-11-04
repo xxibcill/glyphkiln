@@ -73,6 +73,19 @@ deterministically. It does not find attachment points or route around obstacles
 in v1. Documents do not supply callbacks, routers, selectors, or executable path
 logic.
 
+## `SceneDocument 1.1.0`
+
+Version `1.1.0` keeps the `1.0.0` vocabulary and adds the M1 font model to
+text `font` objects: `axes`, `namedInstance`, `opticalSizing`, `opsz`, an
+ordered `fallback` stack and `scriptFaces` (`latn`, `thai`), each with a
+`scale` and `baselineShift`. Every face a stack names must be declared at the
+element's weight and style. All `1.1.0` text is set on the M1 typography
+(HarfBuzz, script runs, cluster tracking) under renderer `0.6.0`, and its
+results carry Scene manifest `1.1.0`, which records font identity v2.
+`1.0.0` documents keep the legacy path and their exact bytes, and they
+reject the new fields with `SCENE_FIELD_REQUIRES_VERSION`. See
+[Typography M1](typography-m1.md).
+
 ## Text modes
 
 Scene text is live input data but Core owns its complete visual layout: coverage
