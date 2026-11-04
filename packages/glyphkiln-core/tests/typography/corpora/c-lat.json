@@ -1,0 +1,243 @@
+{
+  "id": "C-LAT",
+  "description": "Latin display and body lines: kerning pairs, ligature candidates, figures, punctuation, diacritics. Set in Inter.",
+  "face": {
+    "family": "Inter",
+    "weight": 400,
+    "style": "normal"
+  },
+  "entries": [
+    {
+      "id": "lat-001",
+      "text": "Office AVAWAY Type"
+    },
+    {
+      "id": "lat-002",
+      "text": "Typography for a new season"
+    },
+    {
+      "id": "lat-003",
+      "text": "WAVE Yacht Tour"
+    },
+    {
+      "id": "lat-004",
+      "text": "Ta Te To Tu Ty Va Ve Vo Wa We Yo"
+    },
+    {
+      "id": "lat-005",
+      "text": "LT LY P. F. T, V, W."
+    },
+    {
+      "id": "lat-006",
+      "text": "“Quoted,” she said — ‘single’ too."
+    },
+    {
+      "id": "lat-007",
+      "text": "Final offer: 50% off"
+    },
+    {
+      "id": "lat-008",
+      "text": "$1,299.00 / month"
+    },
+    {
+      "id": "lat-009",
+      "text": "Call +1 (415) 555-0100"
+    },
+    {
+      "id": "lat-010",
+      "text": "Rated 4.9/5 by 12,480 readers"
+    },
+    {
+      "id": "lat-011",
+      "text": "Save 3× faster in 2026"
+    },
+    {
+      "id": "lat-012",
+      "text": "Open 09:00–18:00, Mon–Fri"
+    },
+    {
+      "id": "lat-013",
+      "text": "fi fl ff ffi ffl"
+    },
+    {
+      "id": "lat-014",
+      "text": "Affinity of efficient offices"
+    },
+    {
+      "id": "lat-015",
+      "text": "HAMBURGEFONSTIV"
+    },
+    {
+      "id": "lat-016",
+      "text": "hamburgefonstiv"
+    },
+    {
+      "id": "lat-017",
+      "text": "0123456789"
+    },
+    {
+      "id": "lat-018",
+      "text": "1/2 3/4 7/8"
+    },
+    {
+      "id": "lat-019",
+      "text": "No. 1 in Q3 2026"
+    },
+    {
+      "id": "lat-020",
+      "text": "e-mail, co-op, re-entry"
+    },
+    {
+      "id": "lat-021",
+      "text": "state-of-the-art design"
+    },
+    {
+      "id": "lat-022",
+      "text": "100 km in 3 h 20 min"
+    },
+    {
+      "id": "lat-023",
+      "text": "Price: €49 (incl. VAT)"
+    },
+    {
+      "id": "lat-024",
+      "text": "It's a well-known fact."
+    },
+    {
+      "id": "lat-025",
+      "text": "Glyphkiln renders exact bytes"
+    },
+    {
+      "id": "lat-026",
+      "text": "Small caps & Case-Sensitive (FORMS)"
+    },
+    {
+      "id": "lat-027",
+      "text": "AT&T, H&M, M&S"
+    },
+    {
+      "id": "lat-028",
+      "text": "www.example.com/offer?id=42"
+    },
+    {
+      "id": "lat-029",
+      "text": "#1 choice — 2× value!"
+    },
+    {
+      "id": "lat-030",
+      "text": "Lorem ipsum dolor sit amet"
+    },
+    {
+      "id": "lat-031",
+      "text": "The quick brown fox jumps over the lazy dog."
+    },
+    {
+      "id": "lat-032",
+      "text": "Sphinx of black quartz, judge my vow."
+    },
+    {
+      "id": "lat-033",
+      "text": "Pack my box with five dozen liquor jugs."
+    },
+    {
+      "id": "lat-034",
+      "text": "A wizard’s job is to vex chumps quickly in fog."
+    },
+    {
+      "id": "lat-035",
+      "text": "Waltz, bad nymph, for quick jigs vex."
+    },
+    {
+      "id": "lat-036",
+      "text": "Brief: launch week, 5 posts, 3 formats"
+    },
+    {
+      "id": "lat-037",
+      "text": "Built for teams who ship every day"
+    },
+    {
+      "id": "lat-038",
+      "text": "Your weekend, upgraded"
+    },
+    {
+      "id": "lat-039",
+      "text": "Don’t miss it."
+    },
+    {
+      "id": "lat-040",
+      "text": "Ready? Set. Go!"
+    },
+    {
+      "id": "lat-041",
+      "text": "(Parentheses) [brackets] {braces}"
+    },
+    {
+      "id": "lat-042",
+      "text": "Ellipsis… and en–dash, em—dash"
+    },
+    {
+      "id": "lat-043",
+      "text": "Naïve café résumé façade"
+    },
+    {
+      "id": "lat-044",
+      "text": "Øresund Ærø Åland"
+    },
+    {
+      "id": "lat-045",
+      "text": "Straße größer Maßstab"
+    },
+    {
+      "id": "lat-046",
+      "text": "İstanbul ılık"
+    },
+    {
+      "id": "lat-047",
+      "text": "ŁÓDŹ Żółć Ślęża"
+    },
+    {
+      "id": "lat-048",
+      "text": "ĂÂÎȘȚ română"
+    },
+    {
+      "id": "lat-049",
+      "text": "Ünïcödé dîâcrîtics"
+    },
+    {
+      "id": "lat-050",
+      "text": "Ō Ū Ē Ā macrons"
+    },
+    {
+      "id": "lat-051",
+      "text": "Kerning: AV AW AY Av Aw Ay"
+    },
+    {
+      "id": "lat-052",
+      "text": "Kerning: To Tr Tu Tw Ty Ya Ye Yo"
+    },
+    {
+      "id": "lat-053",
+      "text": "LIMITED EDITION"
+    },
+    {
+      "id": "lat-054",
+      "text": "New • Improved • Faster"
+    },
+    {
+      "id": "lat-055",
+      "text": "©2026 Glyphkiln™ ®"
+    },
+    {
+      "id": "lat-056",
+      "text": "5°C – 25°C"
+    },
+    {
+      "id": "lat-057",
+      "text": "x² + y² = z²"
+    },
+    {
+      "id": "lat-058",
+      "text": "H₂O CO₂"
+    }
+  ]
+}
