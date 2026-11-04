@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 
 import { DEVELOPMENT_FONT_SHA256, sha256 } from "../src/index.js";
 import {
-  SCENE_DOCUMENT_VERSION,
+  LEGACY_SCENE_DOCUMENT_VERSION,
   SCENE_KERNEL_VERSION,
-  SCENE_RENDER_MANIFEST_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   renderScene,
   validateSceneDocument,
   verifySceneReproduction,
@@ -53,11 +53,11 @@ describe("Scene Kernel v1", () => {
     ]);
 
     expect(svgOutput.manifest).toMatchObject({
-      manifestVersion: SCENE_RENDER_MANIFEST_VERSION,
+      manifestVersion: LEGACY_SCENE_RENDER_MANIFEST_VERSION,
       sceneKernelVersion: SCENE_KERNEL_VERSION,
       input: {
         kind: "scene",
-        sceneVersion: SCENE_DOCUMENT_VERSION,
+        sceneVersion: LEGACY_SCENE_DOCUMENT_VERSION,
         sceneId: document.id,
       },
       accessibility: {
@@ -234,7 +234,7 @@ describe("Scene Kernel v1", () => {
       bytes: imageBytes,
     };
     const document = {
-      schemaVersion: SCENE_DOCUMENT_VERSION,
+      schemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
       id: "repeated-raster-scene",
       seed: "repeated-raster-scene-v1",
       dimensions: { width: 320, height: 180 },
@@ -560,7 +560,7 @@ describe("Scene Kernel v1", () => {
 
 function createSceneDocument(): SceneDocument {
   return {
-    schemaVersion: SCENE_DOCUMENT_VERSION,
+    schemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
     id: "scene-kernel-smoke",
     seed: "scene-kernel-smoke-v1",
     dimensions: { width: 320, height: 180 },

@@ -232,6 +232,7 @@ export function missingGlyphIssue(
   layerId: string,
   message: string,
   codePoints: readonly number[],
+  stack?: readonly string[],
 ): QualityIssue {
   return {
     code: "MISSING_GLYPH",
@@ -242,6 +243,7 @@ export function missingGlyphIssue(
       codePoints: codePoints.map(
         (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
       ),
+      ...(stack === undefined ? {} : { stackTried: [...stack] }),
     },
   };
 }

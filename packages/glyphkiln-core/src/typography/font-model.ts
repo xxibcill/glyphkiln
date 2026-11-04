@@ -46,9 +46,9 @@ export type ScriptFaceTag = "latn" | "thai";
 export type FontFaceSpec = {
   family: string;
   /** Size factor against the element's font size; `auto` uses script matching. */
-  scale?: number | "auto";
+  scale?: number | "auto" | undefined;
   /** Baseline shift in em (positive raises); `auto` is 0. */
-  baselineShift?: number | "auto";
+  baselineShift?: number | "auto" | undefined;
 };
 
 export type FontModel = {
@@ -62,7 +62,7 @@ export type FontModel = {
   /** Ordered fallback faces after the primary family. */
   fallback?: readonly FontFaceSpec[];
   /** Faces that take every cluster of one script before the stack is tried. */
-  scriptFaces?: Readonly<Partial<Record<ScriptFaceTag, FontFaceSpec>>>;
+  scriptFaces?: Readonly<Partial<Record<ScriptFaceTag, FontFaceSpec | undefined>>>;
 };
 
 export type AxisRange = { min: number; default: number; max: number };

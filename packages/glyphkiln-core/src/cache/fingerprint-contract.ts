@@ -1,5 +1,9 @@
 import type { OutputFormat } from "../domain/types.js";
-import { RENDERER_NAME, RENDERER_VERSION } from "../domain/types.js";
+import {
+  LEGACY_RENDERER_VERSION,
+  RENDERER_NAME,
+  type RendererVersion,
+} from "../domain/types.js";
 import type { DesignDocument } from "../schema/index.js";
 import { getFormatDimensions } from "../formats/index.js";
 import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
@@ -27,6 +31,12 @@ export type RenderFingerprintFont = {
   weight: number;
   style: string;
   sha256: string;
+  /** Font identity v2 (renderer 0.6.0): variation coordinates and matching. */
+  coordinates?: Readonly<Record<string, number>>;
+  namedInstance?: string;
+  role?: string;
+  scale?: number;
+  baselineShift?: number;
 };
 
 type RenderFingerprintBaseInput = {
@@ -35,6 +45,8 @@ type RenderFingerprintBaseInput = {
   assetHashes: readonly string[];
   proceduralAlgorithmVersions: Readonly<Record<string, string>>;
   rendererConfiguration?: Readonly<Record<string, unknown>>;
+  /** Defaults to the legacy renderer, whose payload is unchanged. */
+  rendererVersion?: RendererVersion;
 };
 
 export type RenderFingerprintInput = RenderFingerprintBaseInput &
@@ -61,7 +73,7 @@ export function createRenderFingerprintPayload(input: RenderFingerprintInput) {
     template: input.document.template,
     renderer: {
       name: RENDERER_NAME,
-      version: RENDERER_VERSION,
+      version: input.rendererVersion ?? LEGACY_RENDERER_VERSION,
     },
     proceduralAlgorithmVersions: input.proceduralAlgorithmVersions,
     assetHashes: [...input.assetHashes].sort(),

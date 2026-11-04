@@ -12,7 +12,7 @@ import {
   validateSceneDocument,
 } from "../src/scene/schema.js";
 import {
-  SCENE_DOCUMENT_VERSION,
+  LEGACY_SCENE_DOCUMENT_VERSION,
   type SceneDocument,
   type SceneElement,
 } from "../src/scene/types.js";
@@ -27,7 +27,7 @@ describe("SceneDocument v1 schema", () => {
 
     expect(validation.success).toBe(true);
     if (!validation.success) return;
-    expect(validation.data.schemaVersion).toBe(SCENE_DOCUMENT_VERSION);
+    expect(validation.data.schemaVersion).toBe(LEGACY_SCENE_DOCUMENT_VERSION);
     const group = validation.data.elements[0];
     expect(group?.type).toBe("group");
     if (group?.type !== "group") return;
@@ -52,7 +52,7 @@ describe("SceneDocument v1 schema", () => {
 
     expect(schema["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema["$comment"]).toContain("SCENE_DOCUMENT_RUNTIME_REFINEMENTS");
-    expect(JSON.stringify(schema)).toContain(SCENE_DOCUMENT_VERSION);
+    expect(JSON.stringify(schema)).toContain(LEGACY_SCENE_DOCUMENT_VERSION);
     expect(SCENE_DOCUMENT_RUNTIME_REFINEMENTS.map(({ code }) => code)).toEqual(
       expect.arrayContaining([
         "UNIQUE_SCENE_ELEMENT_IDS",
@@ -613,7 +613,7 @@ function problemCodes(input: unknown): string[] {
 
 function validScene(): SceneDocument {
   return {
-    schemaVersion: SCENE_DOCUMENT_VERSION,
+    schemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
     id: "scene-token-generation",
     seed: "scene-schema-test",
     dimensions: { width: 1_800, height: 1_100 },

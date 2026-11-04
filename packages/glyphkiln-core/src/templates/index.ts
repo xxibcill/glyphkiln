@@ -35,6 +35,11 @@ import { tiktokCarouselSlideTemplate } from "./tiktok-carousel-slide.js";
 import { tiktokCarouselSlideV1_0_1Template } from "./tiktok-carousel-slide-v1-0-1.js";
 import { tiktokCarouselSlideV1_0_3Template } from "./tiktok-carousel-slide-v1-0-3.js";
 import { tiktokCarouselSlideV1_0_4Template } from "./tiktok-carousel-slide-v1-0-4.js";
+import {
+  imageLedCampaignM1Template,
+  quoteCardM1Template,
+  statisticCardM1Template,
+} from "./typography-m1.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -68,11 +73,13 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     statisticCardTemplate,
     statisticCardHeroTemplate,
     statisticCardRolesTemplate,
+    statisticCardM1Template,
   ]),
   "quote-card": Object.freeze([
     quoteCardTemplate,
     quoteCardTypographicTemplate,
     quoteCardRolesTemplate,
+    quoteCardM1Template,
   ]),
   "article-cover": Object.freeze([articleCoverTemplate]),
   "tiktok-carousel-slide": Object.freeze([
@@ -89,6 +96,7 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     splitEditorialCampaignTemplate,
     balancedEditorialCampaignTemplate,
     imageLedCampaignLocalTemplate,
+    imageLedCampaignM1Template,
   ]),
 });
 
@@ -217,6 +225,16 @@ function checkTemplateCapabilities(
     if ("emphasis" in layer && layer.emphasis !== undefined) {
       if (!(capabilities.textEmphasis ?? []).some((type) => type === layer.type)) {
         unsupported(layer.id, layer.type, "emphasis");
+      }
+    }
+    if (
+      ("axes" in layer && layer.axes !== undefined) ||
+      ("namedInstance" in layer && layer.namedInstance !== undefined) ||
+      ("opticalSizing" in layer && layer.opticalSizing !== undefined) ||
+      ("opsz" in layer && layer.opsz !== undefined)
+    ) {
+      if (!(capabilities.fontModel ?? []).some((type) => type === layer.type)) {
+        unsupported(layer.id, layer.type, "fontModel");
       }
     }
     if ("openType" in layer && layer.openType !== undefined) {

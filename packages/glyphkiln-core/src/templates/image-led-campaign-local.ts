@@ -121,7 +121,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
     const accentEmphasis = hasAccentEmphasis(headline) || hasAccentEmphasis(subtitle);
     const roleSet = typographyRoles(context);
     const textOptions = (
-      role: BrandTypographyRole | undefined,
+      roleName: "display" | "body" | "label",
       fallback: { family: string; weight: number },
       sizes: Pick<
         TypesetOptions,
@@ -131,8 +131,9 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
       color: string,
     ): TypesetOptions => ({
       ...sizes,
-      family: role?.family ?? fallback.family,
-      weight: role?.weight ?? fallback.weight,
+      family: roleSet[roleName]?.family ?? fallback.family,
+      weight: roleSet[roleName]?.weight ?? fallback.weight,
+      fontRole: roleName,
       role: setting,
       color,
       palette: { accent: roles.accent, muted: roles.text },
@@ -190,7 +191,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
         eyebrow,
         { x: column.x, y: cursor, width: column.width, height: 42 * unit },
         textOptions(
-          roleSet.label,
+          "label",
           { family: typography.bodyFamily, weight: 700 },
           { preferredFontSize: 22 * unit, minimumFontSize: 14, maximumLines: 1 },
           "label",
@@ -215,7 +216,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
         headline,
         headlineBox,
         textOptions(
-          roleSet.display,
+          "display",
           { family: typography.headlineFamily, weight: 800 },
           {
             preferredFontSize: (landscape ? 140 : 150) * unit,
@@ -244,7 +245,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
           subtitle,
           subtitleBox,
           textOptions(
-            roleSet.body,
+            "body",
             { family: typography.bodyFamily, weight: 400 },
             { preferredFontSize: 30 * unit, minimumFontSize: 17, maximumLines: 3 },
             "text",
@@ -263,7 +264,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
           height: 38 * unit,
         },
         textOptions(
-          roleSet.label,
+          "label",
           { family: typography.bodyFamily, weight: 700 },
           { preferredFontSize: 22 * unit, minimumFontSize: 14, maximumLines: 1 },
           "label",

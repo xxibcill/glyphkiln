@@ -1,3 +1,4 @@
+import type { UsedFace } from "../typography/typesetter.js";
 import type { Bounds, Dimensions } from "../domain/types.js";
 import { flattenElements } from "../scene/flatten.js";
 
@@ -95,6 +96,13 @@ export type TextElement = BaseElement & {
   bounds: Bounds;
   outlines: string[];
   textMode?: "outline" | "outline-with-selectable-text" | undefined;
+  /**
+   * Faces the M1 typesetter actually drew with (font identity v2). Provenance
+   * only; never serialized into SVG.
+   */
+  faces?: readonly UsedFace[] | undefined;
+  /** Families the M1 typesetter tried for this element, in order. */
+  fontStack?: readonly string[] | undefined;
 };
 
 export type ImageElement = BaseElement & {

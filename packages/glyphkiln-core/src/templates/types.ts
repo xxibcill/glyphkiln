@@ -10,7 +10,15 @@ export type TemplateRenderContext = {
   document: DesignDocument;
   assets: AssetRegistry;
   fonts: FontRegistry;
+  /**
+   * The template version's typography engine. `m1` (HarfBuzz, script runs,
+   * cluster tracking, font model) is opted into by new exact versions only;
+   * absent means the legacy fontkit path.
+   */
+  typography?: TemplateTypographyEngine;
 };
+
+export type TemplateTypographyEngine = "m1";
 
 export type TemplateRenderResult = {
   scene: Scene;
@@ -30,7 +38,8 @@ export type TemplateDefinition = {
     | "1.1.0"
     | "1.1.1"
     | "1.2.0"
-    | "1.3.0";
+    | "1.3.0"
+    | "1.4.0";
   requiredLayers: readonly DesignLayer["type"][];
   supportedLayers: readonly DesignLayer["type"][];
   mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];
@@ -45,6 +54,8 @@ export type TemplateDefinition = {
    * TEMPLATE_FEATURE_UNSUPPORTED instead of being silently ignored.
    */
   capabilities?: TemplateCapabilities;
+  /** Typography engine this exact version pins (see TemplateRenderContext). */
+  typography?: TemplateTypographyEngine;
   constraints: {
     headlineMaximumLines: number;
     safeAreaBehavior: string;
@@ -59,6 +70,8 @@ export type TemplateTextLayerType =
 export type TemplateCapabilities = {
   textEmphasis?: readonly TemplateTextLayerType[];
   openTypeFeatures?: readonly TemplateTextLayerType[];
+  /** DesignDocument 1.8.0 axes, named instance and optical sizing. */
+  fontModel?: readonly TemplateTextLayerType[];
   localImageTreatments?: boolean;
   subjectRegion?: boolean;
 };

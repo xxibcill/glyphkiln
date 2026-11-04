@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 
 import { contrastRatio, sha256 } from "../src/index.js";
 import {
-  SCENE_DOCUMENT_VERSION,
+  LEGACY_SCENE_DOCUMENT_VERSION,
   SCENE_KERNEL_VERSION,
-  SCENE_RENDER_MANIFEST_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   renderScene,
   validateSceneDocument,
   verifySceneReproduction,
@@ -92,7 +92,7 @@ describe("Direction A Scene Kernel conformance fixture", () => {
     const elementsById = new Map(entries.map((entry) => [entry.element.id, entry]));
 
     expect(document.id).toBe(expectations.sceneId);
-    expect(document.schemaVersion).toBe(SCENE_DOCUMENT_VERSION);
+    expect(document.schemaVersion).toBe(LEGACY_SCENE_DOCUMENT_VERSION);
     expect(document.dimensions).toEqual({
       width: expectations.dimensions.width,
       height: expectations.dimensions.height,
@@ -250,7 +250,7 @@ describe("Direction A Scene Kernel conformance fixture", () => {
     expect(svg.manifest).toEqual(svgManifest);
     expect(png.manifest).toEqual(pngManifest);
     expect(svg.manifest).toMatchObject({
-      manifestVersion: SCENE_RENDER_MANIFEST_VERSION,
+      manifestVersion: LEGACY_SCENE_RENDER_MANIFEST_VERSION,
       sceneKernelVersion: SCENE_KERNEL_VERSION,
       renderer: { version: expectations.versions.rendererVersion },
       accessibility: {
@@ -335,9 +335,9 @@ async function loadFixture(): Promise<{
     ),
   ) as FixtureExpectations;
   expect(expectations.versions).toMatchObject({
-    sceneSchemaVersion: SCENE_DOCUMENT_VERSION,
+    sceneSchemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
     sceneKernelVersion: SCENE_KERNEL_VERSION,
-    sceneManifestVersion: SCENE_RENDER_MANIFEST_VERSION,
+    sceneManifestVersion: LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   });
   return { document: validation.data, expectations };
 }

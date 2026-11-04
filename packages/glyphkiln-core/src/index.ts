@@ -2,11 +2,39 @@ export {
   DESIGN_DOCUMENT_VERSION,
   SUPPORTED_DESIGN_DOCUMENT_VERSIONS,
   MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
   RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   GlyphkilnError,
 } from "./domain/types.js";
+export type { ManifestVersion, RendererVersion } from "./domain/types.js";
+export {
+  HARFBUZZ_SHAPER_ID,
+  HARFBUZZ_SHAPER_IDENTITY,
+  HARFBUZZ_VERSION,
+  HARFBUZZ_WASM_SHA256,
+  HARFBUZZJS_VERSION,
+} from "./fonts/harfbuzz.js";
+export { loadTypographyEngine } from "./typography/engine.js";
+export {
+  FONT_VARIATION_POLICY_VERSION,
+  OPTICAL_SIZE_POLICY,
+  OPTICAL_SIZE_POLICY_VERSION,
+  SCRIPT_MATCHING_POLICY,
+  SCRIPT_MATCHING_POLICY_VERSION,
+  automaticOpticalSize,
+} from "./typography/font-model.js";
+export {
+  SCRIPT_RUNS_POLICY,
+  SCRIPT_RUNS_POLICY_VERSION,
+} from "./typography/script-runs.js";
+export {
+  CLUSTER_TRACKING_POLICY,
+  CLUSTER_TRACKING_POLICY_VERSION,
+  M1_TYPOGRAPHY_POLICY,
+} from "./typography/typesetter.js";
 export type {
   AssetOrigin,
   Bounds,
@@ -305,7 +333,13 @@ export type {
 
 export { inspectDesignDocument } from "./inspect.js";
 export type { DesignInspection } from "./inspect.js";
-export type { RenderManifest } from "./provenance/index.js";
+export type {
+  LegacyRenderManifest,
+  M1RenderManifest,
+  ManifestFontV2,
+  ManifestTextStack,
+  RenderManifest,
+} from "./provenance/index.js";
 export { verifyRenderReproduction } from "./provenance/index.js";
 
 export {

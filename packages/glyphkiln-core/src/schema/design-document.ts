@@ -94,6 +94,71 @@ const currentTypographySchema = legacyTypographySchema
   })
   .strict();
 
+/**
+ * Font model fields introduced by DesignDocument 1.8.0 (typography plan
+ * M1a): registered or custom `fvar` axes, a named instance and optical
+ * sizing. Values are checked against the face's `fvar` at render time.
+ */
+export const FONT_AXIS_TAG_PATTERN = /^(?:wght|wdth|opsz|slnt|ital|[A-Z][A-Z0-9]{3})$/;
+
+export const FontAxesSchema = z
+  .record(
+    z.string().regex(FONT_AXIS_TAG_PATTERN, {
+      message: "Axis tags are wght, wdth, opsz, slnt, ital or a custom uppercase tag.",
+    }),
+    z.number().min(-1000).max(1000),
+  )
+  .refine((axes) => Object.keys(axes).length <= 8, {
+    message: "At most eight axes may be set.",
+  });
+
+const fontVariationFields = {
+  axes: FontAxesSchema.optional(),
+  namedInstance: z.string().min(1).max(64).optional(),
+  opticalSizing: z.enum(["auto", "none"]).optional(),
+  opsz: z.number().min(1).max(1000).optional(),
+};
+
+const fontFamilyName = z.string().min(1).max(120);
+
+/** One face of a fallback stack or a per-script face (M1c). */
+export const FontFaceSpecSchema = z
+  .object({
+    family: fontFamilyName,
+    scale: z.union([z.literal("auto"), z.number().min(0.5).max(2)]).optional(),
+    baselineShift: z
+      .union([z.literal("auto"), z.number().min(-0.5).max(0.5)])
+      .optional(),
+  })
+  .strict();
+
+const typographyRoleV1_8_0Schema = typographyRoleSchema
+  .extend({
+    ...fontVariationFields,
+    fallback: z.array(FontFaceSpecSchema).min(1).max(3).optional(),
+    scriptFaces: z
+      .object({
+        latn: FontFaceSpecSchema.optional(),
+        thai: FontFaceSpecSchema.optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+const typographyV1_8_0Schema = legacyTypographySchema
+  .extend({
+    roles: z
+      .object({
+        display: typographyRoleV1_8_0Schema.optional(),
+        body: typographyRoleV1_8_0Schema.optional(),
+        label: typographyRoleV1_8_0Schema.optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
 const brandSnapshotFields = {
   snapshotId: identifier,
   version: semanticVersion,
@@ -169,6 +234,14 @@ const BrandSnapshotV1_7_0Schema = z
   .object({
     ...brandSnapshotFields,
     typography: currentTypographySchema,
+    colorRoles: BrandColorRolesSchema.optional(),
+  })
+  .strict();
+
+const BrandSnapshotV1_8_0Schema = z
+  .object({
+    ...brandSnapshotFields,
+    typography: typographyV1_8_0Schema,
     colorRoles: BrandColorRolesSchema.optional(),
   })
   .strict();
@@ -272,6 +345,18 @@ function textLayerV1_7_0Schema<T extends string>(type: T) {
       keepTogether: keepTogetherPhrases.optional(),
       emphasis: emphasisSpans.optional(),
       openType: OpenTypeFeatureSettingsSchema.optional(),
+    })
+    .strict();
+}
+
+function textLayerV1_8_0Schema<T extends string>(type: T) {
+  return z
+    .object({
+      ...textLayerFields(type),
+      keepTogether: keepTogetherPhrases.optional(),
+      emphasis: emphasisSpans.optional(),
+      openType: OpenTypeFeatureSettingsSchema.optional(),
+      ...fontVariationFields,
     })
     .strict();
 }
@@ -549,6 +634,28 @@ export const LayerSchema = z.discriminatedUnion("type", [
   problemSolutionLayerSchema,
 ]);
 
+export const LayerV1_8_0Schema = z.discriminatedUnion("type", [
+  backgroundLayerSchema,
+  proceduralDecorationLayerV1_7_0Schema,
+  assetLayerSchema("logo"),
+  assetLayerSchema("product-screenshot"),
+  imageLayerV1_7_0Schema,
+  iconLayerSchema,
+  badgeLayerSchema,
+  shapeLayerSchema,
+  statisticLayerSchema,
+  chartLayerSchema,
+  textLayerV1_8_0Schema("headline"),
+  textLayerV1_8_0Schema("subtitle"),
+  textLayerV1_8_0Schema("eyebrow"),
+  textLayerV1_8_0Schema("cta"),
+  textLayerV1_8_0Schema("footer"),
+  textLayerV1_8_0Schema("attribution"),
+  benefitListLayerSchema,
+  comparisonTableLayerSchema,
+  problemSolutionLayerSchema,
+]);
+
 export const AssetDeclarationSchema = z
   .object({
     id: identifier,
@@ -722,11 +829,18 @@ const DesignDocumentV1_6_0Schema = createVersionedDesignDocumentSchema(
   BrandSnapshotSchema,
 );
 const DesignDocumentV1_7_0Schema = createVersionedDesignDocumentSchema(
-  DESIGN_DOCUMENT_VERSION,
+  "1.7.0",
   TEMPLATE_IDS,
   FORMAT_IDS,
   LayerSchema,
   BrandSnapshotV1_7_0Schema,
+);
+const DesignDocumentV1_8_0Schema = createVersionedDesignDocumentSchema(
+  DESIGN_DOCUMENT_VERSION,
+  TEMPLATE_IDS,
+  FORMAT_IDS,
+  LayerV1_8_0Schema,
+  BrandSnapshotV1_8_0Schema,
 );
 
 export const DesignDocumentSchema = z
@@ -739,6 +853,7 @@ export const DesignDocumentSchema = z
     DesignDocumentV1_5_0Schema,
     DesignDocumentV1_6_0Schema,
     DesignDocumentV1_7_0Schema,
+    DesignDocumentV1_8_0Schema,
   ])
   .superRefine((document, context) => {
     checkUniqueIds(document.layers, "layer", context);
@@ -794,9 +909,13 @@ export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
 export type DesignLayer =
   | z.infer<typeof LegacyLayerSchema>
   | z.infer<typeof LayerV1_2_0Schema>
-  | z.infer<typeof LayerSchema>;
+  | z.infer<typeof LayerSchema>
+  | z.infer<typeof LayerV1_8_0Schema>;
 export type BrandSnapshot = DesignDocument["brand"];
 export type BrandTypographyRole = z.infer<typeof typographyRoleSchema>;
+export type BrandTypographyRoleV1_8_0 = z.infer<typeof typographyRoleV1_8_0Schema>;
+export type FontFaceSpecification = z.infer<typeof FontFaceSpecSchema>;
+export type FontAxes = z.infer<typeof FontAxesSchema>;
 export type FocalPoint = z.infer<typeof FocalPointSchema>;
 export type LegacyImageTreatmentId = (typeof IMAGE_TREATMENT_IDS)[number];
 export type LocalImageTreatmentId = (typeof LOCAL_IMAGE_TREATMENT_IDS)[number];
@@ -824,7 +943,7 @@ export type ValidationResult =
   | { success: false; problems: ValidationProblem[] };
 
 export type CreateDesignDocumentInput = Omit<
-  z.input<typeof DesignDocumentV1_7_0Schema>,
+  z.input<typeof DesignDocumentV1_8_0Schema>,
   "schemaVersion" | "id"
 > & {
   schemaVersion?: typeof DESIGN_DOCUMENT_VERSION;
