@@ -105,6 +105,10 @@ delivered-size readability) is covered by B3 and the craft review in #67.
 | D-7 ICC color-profile control and C2PA signing                                      | not started         | Outside the pure renderer; low priority | RM, KL             |
 | D-8 Feature-frozen `1.0.0`: compatibility and capability tooling                    | not started         | After contracts survive real use        | RM                 |
 
+D-6 is staged in the [typography engine plan](typography-engine-plan.md): font
+fallback stacks in M1, script wrapping models in M3 and hyphenation in M5. That
+plan also supplies the unified layout path D-2 waits for.
+
 ### Track E — App operations, from RM
 
 | Item                                                                                                     | Status      | Trigger                                   |
