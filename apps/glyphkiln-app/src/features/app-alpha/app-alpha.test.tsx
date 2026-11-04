@@ -13,7 +13,11 @@ import {
   LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
 } from "@glyphkiln/core";
-import type { BrandSnapshot, DesignDocument, LegacyRenderManifest } from "@glyphkiln/core";
+import type {
+  BrandSnapshot,
+  DesignDocument,
+  LegacyRenderManifest,
+} from "@glyphkiln/core";
 
 import { createInitialPreviewForm } from "@/features/project-preview/document-builder";
 import type { PreviewSuccess } from "@/features/project-preview/types";
