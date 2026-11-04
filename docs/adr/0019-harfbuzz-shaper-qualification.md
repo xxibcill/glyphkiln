@@ -111,7 +111,15 @@ two fresh processes (digest
 `4eda4aa2ea56ec98bb3eaf634e1ae828180c788551c043063e9e5af496ae442d`). The digest
 is the same on Node 22.23.4 and Node 24.22.1, both on Linux x64. The fontkit
 harness output was also identical across fresh processes and both Node
-versions (`3727cdac…`). macOS was not available in this environment.
+versions (`3727cdac…`).
+
+On 4 November 2026 the owner's Mac reproduced both digests in fresh processes:
+macOS 26.6.2 on Apple Silicon (arm64), Node 24.16.0, npm 10.9.8, from a clean
+`npm ci`. `typography-harfbuzz-spike.mjs --verify` matched the committed
+deterministic report (`4eda4aa2…`), and the harness determinism test matched
+its pinned digest (`3727cdac…`). HarfBuzz output is therefore byte-identical
+across Linux x64 and macOS arm64. The full repository gate also passed there,
+including all 607 Core tests without raised timeouts.
 
 ### Cost
 
@@ -161,8 +169,8 @@ unused `harfbuzz-subset.wasm`.
    for byte. `FontRegistry` chooses the shaper per policy. No existing render
    changes.
 3. **Conditions before the first HarfBuzz policy ships:**
-   - fresh-process byte equality on macOS (Linux on Node 22 and 24 is already
-     shown);
+   - ~~fresh-process byte equality on macOS~~ — met on 4 November 2026 (see
+     Determinism); Linux on Node 22 and 24 was already shown;
    - a per-face outline cache, so warm outline cost is at most 2× fontkit's;
    - a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
      than fontkit, on CI;
