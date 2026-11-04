@@ -212,6 +212,26 @@ touch different files.
 - **Version owners.** None change (no pixel, schema or manifest change).
 - **Tests.** Existing gates; new corpus snapshot tests (glyph-run JSON per
   fixture); a fresh-process determinism test for the harness.
+- **Progress (4 November 2026, branch `claude/typography-m0`, draft PR).**
+  Scope items 1–6 are implemented, and every existing baseline, example and
+  fixture is byte-identical.
+  - `layoutText` (`src/typography/layout-text.ts`) is the only caller of the
+    fitter and setters. It serves templates `measureText`/`addText`, B2's
+    typesetting (which is `src/templates/typeset.ts`, not under
+    `typography/`), the editorial-fill quote mark, the roles coverage predictor
+    and Scene `resolveText`.
+  - `Shaper` (`src/fonts/shaper.ts`) has a fontkit implementation.
+  - Corpora and snapshots are under `tests/typography/`. Metrics live in
+    `src/typography/quality-metrics.ts`. The oracles are a vendored
+    `LineBreakTest.txt` (17.0.0), a fontTools 4.60.1 instancer reference and
+    harfbuzzjs 1.6.4 as a devDependency.
+  - The baseline report is in
+    [`docs/research/typography-m0-baseline/`](../research/typography-m0-baseline/README.md).
+  - [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md) is **proposed**
+    and awaits the owner. Finding: script itemization, not the shaper, fixes
+    the one-script defect. HarfBuzz adds Thai reordering, instances that match
+    fontTools, and about 4× faster shaping.
+  - The exit gate's remaining item is the owner accepting the ADR.
 
 ### M1 — Font model: variable axes, optical size, per-script mixing, correctness fixes
 
