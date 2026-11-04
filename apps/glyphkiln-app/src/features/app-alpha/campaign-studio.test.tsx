@@ -13,13 +13,13 @@ import {
   DELIVERY_SOURCES,
   createCarouselSequenceKey,
   hashCanonical,
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
 } from "@glyphkiln/core";
-import type { RenderManifest } from "@glyphkiln/core";
+import type { LegacyRenderManifest } from "@glyphkiln/core";
 
 import type { CampaignSummary } from "@/server/app-workflow";
 import { constructManualDocument } from "@/server/app-workflow/document-factory";
@@ -992,15 +992,15 @@ function proposalRunWithProof(
 function proposalProofFixture(): PreviewSuccess {
   const document = createPreviewDesign();
   const fingerprint = "a".repeat(64);
-  const baseManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
-    manifestVersion: MANIFEST_VERSION,
+  const baseManifest: Omit<LegacyRenderManifest, "output" | "renderingMethod"> = {
+    manifestVersion: LEGACY_MANIFEST_VERSION,
     renderId: `render_${fingerprint.slice(0, 24)}`,
     renderFingerprint: fingerprint,
     designDocumentId: document.id,
     designDocumentHash: hashCanonical(document),
     seed: document.seed,
     template: { ...document.template },
-    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
     typographyPolicy: TYPOGRAPHY_POLICY,
     proceduralAlgorithmVersions: { "layered-waves": "1.1.0" },
     assets: [],

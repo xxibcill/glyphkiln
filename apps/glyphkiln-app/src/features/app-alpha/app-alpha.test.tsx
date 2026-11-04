@@ -7,13 +7,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   hashCanonical,
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
 } from "@glyphkiln/core";
-import type { BrandSnapshot, DesignDocument, RenderManifest } from "@glyphkiln/core";
+import type { BrandSnapshot, DesignDocument, LegacyRenderManifest } from "@glyphkiln/core";
 
 import { createInitialPreviewForm } from "@/features/project-preview/document-builder";
 import type { PreviewSuccess } from "@/features/project-preview/types";
@@ -659,15 +659,15 @@ function constructDocument(
 
 function renderDocument(document: DesignDocument): PreviewSuccess {
   const fingerprint = "a".repeat(64);
-  const baseManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
-    manifestVersion: MANIFEST_VERSION,
+  const baseManifest: Omit<LegacyRenderManifest, "output" | "renderingMethod"> = {
+    manifestVersion: LEGACY_MANIFEST_VERSION,
     renderId: `render_${fingerprint.slice(0, 24)}`,
     renderFingerprint: fingerprint,
     designDocumentId: document.id,
     designDocumentHash: hashCanonical(document),
     seed: document.seed,
     template: { ...document.template },
-    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
     typographyPolicy: TYPOGRAPHY_POLICY,
     proceduralAlgorithmVersions: {
       "layered-waves":

@@ -5,15 +5,15 @@ import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
   createCarouselDeliverySidecar,
   hashCanonical,
 } from "@glyphkiln/core";
-import type { DesignDocument, RenderManifest } from "@glyphkiln/core";
+import type { DesignDocument, LegacyRenderManifest } from "@glyphkiln/core";
 
 import type { CampaignProposalRunProjection } from "@/server/app-workflow";
 import type { PreviewSuccess } from "@/features/project-preview/types";
@@ -799,15 +799,15 @@ describe("App Alpha API client", () => {
 function carouselReviewProof(document: DesignDocument): PreviewSuccess {
   const documentHash = hashCanonical(document);
   const fingerprint = "a".repeat(64);
-  const sharedManifest: Omit<RenderManifest, "output" | "renderingMethod"> = {
-    manifestVersion: MANIFEST_VERSION,
+  const sharedManifest: Omit<LegacyRenderManifest, "output" | "renderingMethod"> = {
+    manifestVersion: LEGACY_MANIFEST_VERSION,
     renderId: `render_${fingerprint.slice(0, 24)}`,
     renderFingerprint: fingerprint,
     designDocumentId: document.id,
     designDocumentHash: documentHash,
     seed: document.seed,
     template: document.template,
-    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
     typographyPolicy: TYPOGRAPHY_POLICY,
     proceduralAlgorithmVersions: { "layered-waves": "1.1.0" },
     assets: [],

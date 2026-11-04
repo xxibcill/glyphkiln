@@ -128,9 +128,12 @@ async function writeConsumerSources() {
     `import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  BUNDLED_FONT_FILES,
   CANDIDATE_DOCUMENT_VALIDATION_VERSION,
   CAMPAIGN_SEED_DERIVATION_VERSION,
   COLOR_NORMALIZATION_POLICY_VERSION,
+  HARFBUZZ_SHAPER_ID,
+  RENDERER_VERSION,
   TEXT_LAYOUT_DIAGNOSTICS_VERSION,
   analyzeTextLayoutSupport,
   createCampaignCanvasKey,
@@ -165,6 +168,8 @@ import {
   getDesignDocumentJsonSchema,
 } from "@glyphkiln/core/schema";
 import {
+  LEGACY_SCENE_DOCUMENT_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   SCENE_DOCUMENT_VERSION,
   SCENE_EVIDENCE_VERSION,
   SCENE_KERNEL_VERSION,
@@ -325,7 +330,7 @@ assert.ok(direct.outputs[0].bytes.length > 0);
 assert.ok(isolated.outputs[0].bytes.length > 0);
 
 const scene = {
-  schemaVersion: SCENE_DOCUMENT_VERSION,
+  schemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
   id: "packed-consumer-scene",
   seed: "packed-consumer-scene-v1",
   dimensions: { width: 64, height: 64 },
@@ -364,7 +369,7 @@ const packedSceneExpectations = {
 assert.equal(sceneOutput.manifest.sceneKernelVersion, SCENE_KERNEL_VERSION);
 assert.equal(
   sceneOutput.manifest.manifestVersion,
-  SCENE_RENDER_MANIFEST_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
 );
 assert.equal(sceneOutput.bytes.byteLength, packedSceneExpectations.outputByteSize);
 assert.equal(sceneOutput.manifest.input.sceneHash, packedSceneExpectations.sceneHash);
@@ -381,6 +386,66 @@ assert.deepEqual(
     document: scene,
     bytes: sceneOutput.bytes,
     manifest: sceneOutput.manifest,
+  }),
+  [],
+);
+
+// Scene 1.1.0 text on the M1 typography: HarfBuzz and a bundled Thai face
+// must load from the installed package, directly and in the isolated worker.
+const kanit = BUNDLED_FONT_FILES.find(
+  (file) => file.family === "Kanit" && file.style === "normal" && file.weights.includes(700),
+);
+const m1Scene = {
+  schemaVersion: SCENE_DOCUMENT_VERSION,
+  id: "packed-consumer-m1-scene",
+  seed: "packed-consumer-m1-scene",
+  dimensions: { width: 640, height: 320 },
+  title: "Packed M1 scene",
+  description: "Thai and Latin set on the M1 typography from the packed tarball.",
+  backgroundColor: "#FFFFFF",
+  assets: [],
+  fonts: [{ family: "Kanit", weight: 700, style: "normal", sha256: kanit.sha256 }],
+  elements: [
+    {
+      id: "thai",
+      type: "text",
+      text: "ราคา 499 บาท",
+      box: { x: 20, y: 20, width: 600, height: 280 },
+      font: { family: "Kanit", weight: 700, style: "normal" },
+      fit: {
+        preferredFontSize: 64,
+        minimumFontSize: 32,
+        maximumLines: 2,
+        lineHeight: 1.3,
+        align: "left",
+        letterSpacing: 2,
+      },
+      fill: "#17262F",
+      textMode: "outline",
+    },
+  ],
+  readingOrder: ["thai"],
+};
+const m1Render = await renderScene(m1Scene, {
+  formats: ["svg"],
+  creationTimestamp: "2026-11-04T00:00:00.000Z",
+});
+const m1Manifest = m1Render.outputs[0].manifest;
+assert.equal(m1Manifest.manifestVersion, SCENE_RENDER_MANIFEST_VERSION);
+assert.equal(m1Manifest.renderer.version, RENDERER_VERSION);
+assert.equal(m1Manifest.typographyPolicy.m1.shaper.id, HARFBUZZ_SHAPER_ID);
+assert.deepEqual(m1Manifest.fontFaces.map((face) => face.family), ["Kanit"]);
+const m1Isolated = await renderSceneIsolated(m1Scene, {
+  formats: ["svg"],
+  creationTimestamp: "2026-11-04T00:00:00.000Z",
+});
+assert.deepEqual(m1Isolated.outputs[0].bytes, m1Render.outputs[0].bytes);
+assert.equal(m1Isolated.outputs[0].fingerprint, m1Render.outputs[0].fingerprint);
+assert.deepEqual(
+  verifySceneReproduction({
+    document: m1Scene,
+    bytes: m1Render.outputs[0].bytes,
+    manifest: m1Manifest,
   }),
   [],
 );

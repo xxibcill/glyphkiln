@@ -380,7 +380,9 @@ export function kilnformQuote(pairing: Pairing | undefined): DesignDocument {
 function withoutCaseRequest<T extends object>(layer: T, keep: boolean): T {
   if (keep || !("openType" in layer)) return layer;
   const { openType, ...rest } = layer as T & { openType: Record<string, unknown> };
-  const { caseSensitiveForms: _dropped, ...remaining } = openType;
+  const remaining = Object.fromEntries(
+    Object.entries(openType).filter(([key]) => key !== "caseSensitiveForms"),
+  );
   return (Object.keys(remaining).length === 0
     ? rest
     : { ...rest, openType: remaining }) as unknown as T;

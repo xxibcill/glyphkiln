@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createInitialPreviewForm } from "@/features/project-preview/document-builder";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import {
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
   hashCanonical,
 } from "@glyphkiln/core";
@@ -335,14 +335,14 @@ function proofFixture(): PreviewSuccess {
       filename: `proof.${format}`,
       fingerprint: "f".repeat(64),
       manifest: {
-        manifestVersion: MANIFEST_VERSION,
+        manifestVersion: LEGACY_MANIFEST_VERSION,
         renderId: "render-proof",
         renderFingerprint: "f".repeat(64),
         designDocumentId: document.id,
         designDocumentHash: hashCanonical(document),
         seed: document.seed,
         template: document.template,
-        renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+        renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
         typographyPolicy: TYPOGRAPHY_POLICY,
         proceduralAlgorithmVersions: {},
         assets: [],
