@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "m1-specimen-ibm-plex-mono",
+  "seed": "typography-m1",
+  "dimensions": { "width": 1080, "height": 1080 },
+  "title": "IBM Plex Mono specimen",
+  "description": "IBM Plex Mono at 112, 56 and 28 px on the M1 typography.",
+  "backgroundColor": "#F4F0E6",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "IBM Plex Mono",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46"
+    }
+  ],
+  "elements": [
+    {
+      "id": "size-112",
+      "type": "text",
+      "text": "Glyphkiln",
+      "box": { "x": 72, "y": 96, "width": 936, "height": 300 },
+      "font": { "family": "IBM Plex Mono", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 112,
+        "minimumFontSize": 112,
+        "maximumLines": 2,
+        "lineHeight": 1.2,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-56",
+      "type": "text",
+      "text": "Light should give a room",
+      "box": { "x": 72, "y": 460, "width": 936, "height": 220 },
+      "font": { "family": "IBM Plex Mono", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 56,
+        "minimumFontSize": 56,
+        "maximumLines": 2,
+        "lineHeight": 1.3,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-28",
+      "type": "text",
+      "text": "Office AVAWAY 0123456789 — 499 €",
+      "box": { "x": 72, "y": 760, "width": 936, "height": 200 },
+      "font": { "family": "IBM Plex Mono", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 28,
+        "minimumFontSize": 28,
+        "maximumLines": 3,
+        "lineHeight": 1.5,
+        "align": "left",
+        "letterSpacing": 1.4
+      },
+      "fill": "#5B5F60",
+      "textMode": "outline"
+    }
+  ],
+  "readingOrder": ["size-112", "size-56", "size-28"]
+}

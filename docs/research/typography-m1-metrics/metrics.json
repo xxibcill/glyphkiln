@@ -1,0 +1,142 @@
+{
+  "generator": "scripts/typography/m1-metrics.mjs",
+  "before": {
+    "policy": "fontkit@2.0.4",
+    "oneScriptLines": { "lines": 200, "shapedAsOneLatinRun": 84 },
+    "markOffsetInvariance": [
+      {
+        "lines": 56,
+        "linesWithMovedMarks": 52,
+        "marks": 246,
+        "marksMoved": 246,
+        "maximumMarkShiftEm": 0.04,
+        "maximumWidthExcessEm": 0.26,
+        "trackingEm": -0.02
+      },
+      {
+        "lines": 56,
+        "linesWithMovedMarks": 52,
+        "marks": 246,
+        "marksMoved": 246,
+        "maximumMarkShiftEm": 0.1,
+        "maximumWidthExcessEm": 0.65,
+        "trackingEm": 0.05
+      },
+      {
+        "lines": 56,
+        "linesWithMovedMarks": 52,
+        "marks": 246,
+        "marksMoved": 246,
+        "maximumMarkShiftEm": 0.2,
+        "maximumWidthExcessEm": 1.3,
+        "trackingEm": 0.1
+      }
+    ],
+    "instancingError": [
+      {
+        "shaper": "fontkit@2.0.4",
+        "worstPerMilleEm": {
+          "Inter-Variable.ttf": 0.244,
+          "NotoSansThai.ttf": 0.5
+        }
+      },
+      {
+        "shaper": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "worstPerMilleEm": {
+          "Inter-Variable.ttf": 0.005,
+          "NotoSansThai.ttf": 0
+        }
+      }
+    ]
+  },
+  "after": {
+    "policy": "harfbuzzjs@1.6.4/harfbuzz@15.0.0, script-runs@1.0.0, cluster-tracking@1.0.0, font-variation@1.0.0",
+    "oneScriptLines": {
+      "lines": 200,
+      "linesWithThai": 200,
+      "thaiShapedInNonThaiRun": 0
+    },
+    "markOffsetInvariance": [
+      {
+        "trackingEm": -0.02,
+        "marks": 246,
+        "marksMoved": 0,
+        "maximumMarkShiftEm": 0,
+        "maximumWidthExcessEm": 0.1,
+        "maximumWidthExcessVersusCharacterUnitsEm": 0
+      },
+      {
+        "trackingEm": 0.05,
+        "marks": 246,
+        "marksMoved": 0,
+        "maximumMarkShiftEm": 0,
+        "maximumWidthExcessEm": 0.25,
+        "maximumWidthExcessVersusCharacterUnitsEm": 0
+      },
+      {
+        "trackingEm": 0.1,
+        "marks": 246,
+        "marksMoved": 0,
+        "maximumMarkShiftEm": 0,
+        "maximumWidthExcessEm": 0.5,
+        "maximumWidthExcessVersusCharacterUnitsEm": 0
+      }
+    ],
+    "instancingError": [
+      {
+        "file": "IBMPlexSans-Italic[wdth,wght].ttf",
+        "axes": ["wght", "wdth"],
+        "worstPerMilleEm": 0.003,
+        "worstAt": "wght 550"
+      },
+      {
+        "file": "IBMPlexSans[wdth,wght].ttf",
+        "axes": ["wght", "wdth"],
+        "worstPerMilleEm": 0.003,
+        "worstAt": "wght 550"
+      },
+      {
+        "file": "Inter-Variable.ttf",
+        "axes": ["opsz", "wght"],
+        "worstPerMilleEm": 0.005,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "NotoSansThai[wdth,wght].ttf",
+        "axes": ["wght", "wdth"],
+        "worstPerMilleEm": 0,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "NotoSerifThai[wdth,wght].ttf",
+        "axes": ["wght", "wdth"],
+        "worstPerMilleEm": 0.004,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "SchibstedGrotesk-Italic[wght].ttf",
+        "axes": ["wght"],
+        "worstPerMilleEm": 0.004,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "SchibstedGrotesk[wght].ttf",
+        "axes": ["wght"],
+        "worstPerMilleEm": 0.004,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "SourceSerif4-Italic[opsz,wght].ttf",
+        "axes": ["wght", "opsz"],
+        "worstPerMilleEm": 0.003,
+        "worstAt": "wght 650"
+      },
+      {
+        "file": "SourceSerif4[opsz,wght].ttf",
+        "axes": ["wght", "opsz"],
+        "worstPerMilleEm": 0,
+        "worstAt": "wght 650"
+      }
+    ]
+  }
+}

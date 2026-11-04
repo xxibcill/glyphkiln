@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "m1-specimen-trirong",
+  "seed": "typography-m1",
+  "dimensions": { "width": 1080, "height": 1080 },
+  "title": "Trirong specimen",
+  "description": "Trirong at 112, 56 and 28 px on the M1 typography.",
+  "backgroundColor": "#F4F0E6",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Trirong",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05"
+    }
+  ],
+  "elements": [
+    {
+      "id": "size-112",
+      "type": "text",
+      "text": "ให้ชัด AI",
+      "box": { "x": 72, "y": 96, "width": 936, "height": 300 },
+      "font": { "family": "Trirong", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 112,
+        "minimumFontSize": 112,
+        "maximumLines": 2,
+        "lineHeight": 1.2,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-56",
+      "type": "text",
+      "text": "วางแผน AI Pilot 499 บาท",
+      "box": { "x": 72, "y": 460, "width": 936, "height": 220 },
+      "font": { "family": "Trirong", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 56,
+        "minimumFontSize": 56,
+        "maximumLines": 2,
+        "lineHeight": 1.3,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-28",
+      "type": "text",
+      "text": "น้ำ ก่ำ ปู่ ญี่ปุ่น ฝั่ง ฟ้า — Office 2026",
+      "box": { "x": 72, "y": 760, "width": 936, "height": 200 },
+      "font": { "family": "Trirong", "weight": 400, "style": "normal" },
+      "fit": {
+        "preferredFontSize": 28,
+        "minimumFontSize": 28,
+        "maximumLines": 3,
+        "lineHeight": 1.5,
+        "align": "left",
+        "letterSpacing": 1.4
+      },
+      "fill": "#5B5F60",
+      "textMode": "outline"
+    }
+  ],
+  "readingOrder": ["size-112", "size-56", "size-28"]
+}

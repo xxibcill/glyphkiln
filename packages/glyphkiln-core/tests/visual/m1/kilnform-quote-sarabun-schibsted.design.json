@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.8.0",
+  "id": "m1-kilnform-quote-sarabun-schibsted",
+  "template": { "id": "quote-card", "version": "1.4.0" },
+  "format": "instagram-portrait",
+  "seed": "designer-day-second-firing-quote-v1",
+  "mode": "dark",
+  "brand": {
+    "snapshotId": "brand-kilnform-second-firing-2026-09",
+    "version": "1.0.0",
+    "name": "Kilnform",
+    "palette": {
+      "primary": "#0D3B9C",
+      "secondary": "#C85F27",
+      "accent": "#F3C879",
+      "neutrals": ["#15100D", "#FFF6E7", "#A77B5A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF6E7",
+        "surface": "#F3E4CC",
+        "text": "#15100D",
+        "mutedText": "#5E4637"
+      },
+      "dark": {
+        "background": "#15100D",
+        "surface": "#2B211C",
+        "text": "#FFF6E7",
+        "mutedText": "#F3E4CC"
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": [
+      "layered-waves",
+      "recursive-subdivision",
+      "topographic-contours",
+      "flow-field"
+    ],
+    "safeArea": { "top": 0.08, "right": 0.07, "bottom": 0.08, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai-composition"],
+    "typography": {
+      "headlineFamily": "Schibsted Grotesk",
+      "bodyFamily": "Schibsted Grotesk",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Schibsted Grotesk",
+          "weight": 700,
+          "lineHeight": 1.1,
+          "tracking": 0,
+          "fallback": [{ "family": "Sarabun", "scale": "auto" }]
+        },
+        "label": {
+          "family": "Schibsted Grotesk",
+          "weight": 600,
+          "lineHeight": 1.1,
+          "tracking": 0,
+          "fallback": [{ "family": "Sarabun", "scale": "auto" }]
+        }
+      }
+    }
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d"
+    },
+    {
+      "family": "Sarabun",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "d38308ca27d067b9a1b79006337c1f9a66c29aa016d96a9d88d3801da7fa83b9"
+    },
+    {
+      "family": "Sarabun",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "c0bb057d86e4a12097d701ac0953597e315788d47a446f5b63a6604ab21dceba"
+    }
+  ],
+  "metadata": {
+    "brief": "fictional-kilnform-second-firing",
+    "task": "editorial-quote-card",
+    "revision": "final",
+    "factualBasis": "Fictional client brief; no external performance claims."
+  },
+  "layers": [
+    { "id": "background", "visible": true, "type": "background" },
+    {
+      "id": "quote",
+      "visible": true,
+      "type": "headline",
+      "text": "Light should give a room a place to rest.",
+      "emphasis": [{ "phrase": "a place to rest.", "style": "accent" }],
+      "fontWeight": 700
+    },
+    {
+      "id": "attribution",
+      "visible": true,
+      "type": "attribution",
+      "text": "KILNFORM STUDIO NOTE",
+      "openType": { "caseSensitiveForms": true },
+      "fontWeight": 600
+    }
+  ]
+}
