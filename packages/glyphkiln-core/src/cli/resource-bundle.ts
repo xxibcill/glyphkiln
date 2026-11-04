@@ -701,7 +701,11 @@ function assetDeclarationMismatches(
 
 /** A bundled OFL face Core ships, declared with its exact pinned hash. */
 function isPackagedFontDeclaration(declaration: FontDeclaration): boolean {
-  const file = bundledFontFile(declaration.family, declaration.weight, declaration.style);
+  const file = bundledFontFile(
+    declaration.family,
+    declaration.weight,
+    declaration.style,
+  );
   return file !== undefined && declaration.sha256 === file.sha256;
 }
 

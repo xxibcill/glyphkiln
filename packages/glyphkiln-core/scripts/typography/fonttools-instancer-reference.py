@@ -36,6 +36,38 @@ FONTS = {
 }
 OUTPUT = ROOT / "tests/typography/oracles/instancer-reference.json.gz"
 
+# Typography M1 (T03): every variable file of the bundled OFL library, plus
+# Inter. Run with --m1 to write the separate M1 reference; the M0 reference
+# above is unchanged.
+FONTS_DIR = ROOT / "assets/fonts"
+M1_FONTS = {
+    "Inter-Variable.ttf": (FONTS_DIR / "Inter-Variable.ttf", "AaHOgnx&0"),
+    "NotoSansThai[wdth,wght].ttf": (
+        FONTS_DIR / "notosansthai/NotoSansThai[wdth,wght].ttf",
+        "Axกนบปฟมสอ",
+    ),
+    "NotoSerifThai[wdth,wght].ttf": (
+        FONTS_DIR / "notoserifthai/NotoSerifThai[wdth,wght].ttf",
+        "Axกนบปฟมสอ",
+    ),
+    "IBMPlexSans[wdth,wght].ttf": (FONTS_DIR / "ibmplexsans/IBMPlexSans[wdth,wght].ttf", "AaHOgnx&0"),
+    "IBMPlexSans-Italic[wdth,wght].ttf": (
+        FONTS_DIR / "ibmplexsans/IBMPlexSans-Italic[wdth,wght].ttf",
+        "AaHOgnx&0",
+    ),
+    "SchibstedGrotesk[wght].ttf": (FONTS_DIR / "schibstedgrotesk/SchibstedGrotesk[wght].ttf", "AaHOgnx&0"),
+    "SchibstedGrotesk-Italic[wght].ttf": (
+        FONTS_DIR / "schibstedgrotesk/SchibstedGrotesk-Italic[wght].ttf",
+        "AaHOgnx&0",
+    ),
+    "SourceSerif4[opsz,wght].ttf": (FONTS_DIR / "sourceserif4/SourceSerif4[opsz,wght].ttf", "AaHOgnx&0"),
+    "SourceSerif4-Italic[opsz,wght].ttf": (
+        FONTS_DIR / "sourceserif4/SourceSerif4-Italic[opsz,wght].ttf",
+        "AaHOgnx&0",
+    ),
+}
+M1_OUTPUT = ROOT / "tests/typography/oracles/instancer-reference-m1.json.gz"
+
 
 class RecordingQuadPen(BasePen):
     """Records moveTo/lineTo/quadraticCurveTo/bezierCurveTo/closePath like fontkit."""
@@ -88,13 +120,16 @@ def positions(axis):
 
 
 def main():
+    m1 = "--m1" in sys.argv[1:]
+    fonts = M1_FONTS if m1 else FONTS
+    output = M1_OUTPUT if m1 else OUTPUT
     report = {
         "generator": "scripts/typography/fonttools-instancer-reference.py",
         "fontTools": fontTools.version,
         "python": sys.version.split()[0],
         "fonts": {},
     }
-    for file_name, (path, sample) in FONTS.items():
+    for file_name, (path, sample) in fonts.items():
         data = path.read_bytes()
         font = TTFont(path)
         cmap = font.getBestCmap()
@@ -130,10 +165,10 @@ def main():
             "glyphNames": names,
             "rows": rows,
         }
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    output.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(report, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    OUTPUT.write_bytes(gzip.compress(payload.encode("utf-8") + b"\n", 9, mtime=0))
-    print(f"Wrote {OUTPUT.relative_to(ROOT)}")
+    output.write_bytes(gzip.compress(payload.encode("utf-8") + b"\n", 9, mtime=0))
+    print(f"Wrote {output.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

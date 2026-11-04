@@ -33,6 +33,8 @@ export type PositionedGlyph = {
   y: number;
   /** Advance applied after the glyph, including letter spacing. */
   advance: number;
+  /** Family of the face that drew the glyph (M1 typesetter only). */
+  face?: string;
 };
 
 /** One line set by FontRegistry.setLines: its path and glyph evidence. */
