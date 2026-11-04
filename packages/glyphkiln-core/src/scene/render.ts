@@ -177,6 +177,24 @@ export async function renderScene(
   return { document, outputs, qualityIssues: resolved.qualityIssues, evidence };
 }
 
+/**
+ * Resolve a scene exactly as renderScene does before serialization, for
+ * read-only craft review. Blocking text-layout and quality errors still throw.
+ */
+export function prepareSceneForReview(
+  input: unknown,
+  options: Pick<RenderSceneOptions, "assets" | "fonts"> = {},
+): { scene: RenderScene; fonts: FontRegistry; rasterFonts: ResolvedFont[] } {
+  const document = requireSceneDocument(input);
+  blockOnSceneTextLayoutErrors(collectSceneTextLayoutDiagnostics(document.elements));
+  const { resolved, fonts } = resolveSceneResources(document, options);
+  blockOnSceneQualityErrors(resolved.qualityIssues);
+  const rasterFonts = collectManifestFonts(document, resolved.fontKeys, fonts).map(
+    (font) => fonts.get(font.family, font.weight, font.style as "normal" | "italic"),
+  );
+  return { scene: resolved.scene, fonts, rasterFonts };
+}
+
 /** CLI-only review path. Quality errors remain blocked from rendering. */
 export function inspectScene(
   input: unknown,
