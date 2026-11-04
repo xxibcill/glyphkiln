@@ -5,6 +5,7 @@
 Add typography M1 on HarfBuzz (ADR 0019): `harfbuzzjs@1.6.4` / HarfBuzz 15.0.0 becomes a runtime dependency. It is loaded lazily, with its wasm SHA-256 checked, and used only by new policies.
 
 New policies:
+
 - `script-runs@1.0.0`: Unicode 17 script itemization.
 - `cluster-tracking@1.0.0`: tracking between character units, sara am split before sara aa, optional ligatures off under tracking.
 - `font-variation@1.0.0`: every `fvar` axis and named instance.
