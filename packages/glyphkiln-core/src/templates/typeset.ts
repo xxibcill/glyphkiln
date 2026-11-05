@@ -1,3 +1,4 @@
+import { keepTogetherPhrasesOf } from "../schema/design-document.js";
 import type { Bounds, QualityIssue } from "../domain/types.js";
 import { contrastIssue, safeAreaIssue } from "../layout/index.js";
 import type {
@@ -169,7 +170,7 @@ function prepare(
   }
   const keepTogether = [
     ...new Set([
-      ...("keepTogether" in layer ? (layer.keepTogether ?? []) : []),
+      ...("keepTogether" in layer ? keepTogetherPhrasesOf(layer.keepTogether) : []),
       ...spans.map((span) => normalizePhrase(span.phrase)),
     ]),
   ];

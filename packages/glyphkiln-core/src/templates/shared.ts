@@ -1,3 +1,4 @@
+import { keepTogetherPhrasesOf } from "../schema/design-document.js";
 import { assetDataUri } from "../assets/index.js";
 import { calculateFocalCrop } from "../assets/focal-crop.js";
 import { createProceduralBackground } from "../backgrounds/index.js";
@@ -187,7 +188,7 @@ function layoutTemplateText(
         options.maximumLines,
       ),
       ...("keepTogether" in layer && layer.keepTogether !== undefined
-        ? { keepTogether: layer.keepTogether }
+        ? { keepTogether: keepTogetherPhrasesOf(layer.keepTogether) }
         : {}),
     },
     setting: {
