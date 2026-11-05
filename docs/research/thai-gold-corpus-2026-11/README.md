@@ -105,3 +105,11 @@ Decisions for the owner:
 4. Select which campaign copy to use, and confirm it contains nothing that must
    not become public.
 5. Decide whether to contact NECTEC about LST20 for private cross-checks.
+
+## Decision
+
+On 5 November 2026 the owner approved annotating their own copy (decision 1).
+The draft is in
+[`packages/glyphkiln-core/tests/typography/gold/`](../../../packages/glyphkiln-core/tests/typography/gold/README.md).
+Decisions 2–5 are still open: the reader, the scheme, confirming the copy can
+be public, and the NECTEC contact.
