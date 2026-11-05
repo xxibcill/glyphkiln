@@ -65,7 +65,7 @@
     "typography-m1-digest": "npm run build && node scripts/typography-m1-digest.mjs",
     "test:package-consumer": "node scripts/test-package-consumer.mjs",
     "test:coverage": "vitest run --coverage",
-    "test:update-visuals": "GLYPHKILN_UPDATE_VISUALS=1 vitest run tests/visual-regression.test.ts tests/visual-m1.test.ts",
+    "test:update-visuals": "GLYPHKILN_UPDATE_VISUALS=1 vitest run tests/visual-regression.test.ts tests/visual-m1.test.ts tests/visual-m3.test.ts",
     "examples:generate": "node scripts/generate-examples.mjs",
     "examples:verify": "node scripts/generate-examples.mjs --verify",
     "identity:update": "npm run build && node scripts/generate-kilnform-identity.mjs",

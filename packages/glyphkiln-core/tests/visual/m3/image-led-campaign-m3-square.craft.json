@@ -1,0 +1,19 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [
+      "CRAFT_TEXT_SMALL_AT_DELIVERY:eyebrow@360",
+      "CRAFT_TEXT_SMALL_AT_DELIVERY:subtitle@360",
+      "CRAFT_TEXT_SMALL_AT_DELIVERY:cta@360",
+      "CRAFT_MARK_LOW_VISIBILITY:brand-mark@360"
+    ],
+    "text": [
+      { "elementId": "eyebrow", "fontSize": 22, "displayedXHeight": 4 },
+      { "elementId": "headline", "fontSize": 58, "displayedXHeight": 10.55 },
+      { "elementId": "subtitle", "fontSize": 30, "displayedXHeight": 5.46 },
+      { "elementId": "cta", "fontSize": 22, "displayedXHeight": 4 }
+    ]
+  }
+]

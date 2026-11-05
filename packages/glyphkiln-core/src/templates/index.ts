@@ -5,6 +5,7 @@ import {
   offerUrgencyTemplate,
 } from "./static-ad-families.js";
 import { GlyphkilnError, type QualityIssue } from "../domain/types.js";
+import { preferBreakAfterOf } from "../schema/design-document.js";
 import type { DesignDocument, TemplateId } from "../schema/index.js";
 import {
   balancedEditorialCampaignTemplate,
@@ -40,6 +41,11 @@ import {
   quoteCardM1Template,
   statisticCardM1Template,
 } from "./typography-m1.js";
+import {
+  imageLedCampaignM3Template,
+  quoteCardM3Template,
+  statisticCardM3Template,
+} from "./typography-m3.js";
 import type { TemplateDefinition } from "./types.js";
 
 export const TEMPLATE_REGISTRY: Readonly<Record<TemplateId, TemplateDefinition>> =
@@ -74,12 +80,14 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     statisticCardHeroTemplate,
     statisticCardRolesTemplate,
     statisticCardM1Template,
+    statisticCardM3Template,
   ]),
   "quote-card": Object.freeze([
     quoteCardTemplate,
     quoteCardTypographicTemplate,
     quoteCardRolesTemplate,
     quoteCardM1Template,
+    quoteCardM3Template,
   ]),
   "article-cover": Object.freeze([articleCoverTemplate]),
   "tiktok-carousel-slide": Object.freeze([
@@ -97,6 +105,7 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     balancedEditorialCampaignTemplate,
     imageLedCampaignLocalTemplate,
     imageLedCampaignM1Template,
+    imageLedCampaignM3Template,
   ]),
 });
 
@@ -235,6 +244,14 @@ function checkTemplateCapabilities(
     ) {
       if (!(capabilities.fontModel ?? []).some((type) => type === layer.type)) {
         unsupported(layer.id, layer.type, "fontModel");
+      }
+    }
+    if (
+      preferBreakAfterOf("keepTogether" in layer ? layer.keepTogether : undefined)
+        .length > 0
+    ) {
+      if (!(capabilities.preferredBreaks ?? []).some((type) => type === layer.type)) {
+        unsupported(layer.id, layer.type, "preferBreakAfter");
       }
     }
     if ("openType" in layer && layer.openType !== undefined) {

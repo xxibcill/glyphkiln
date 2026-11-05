@@ -6,7 +6,11 @@ import type {
 } from "../fonts/index.js";
 import type { TextEmphasisSpan, TextEmphasisStyleId } from "../schema/index.js";
 import { fitText, type FittedText, type TextMeasurer } from "./index.js";
-import type { SegmentationPolicy, SegmentationPolicyVersion } from "./segmentation.js";
+import type {
+  M3LineBreaking,
+  SegmentationPolicy,
+  SegmentationPolicyVersion,
+} from "./segmentation.js";
 import type { M1Typesetter } from "./typesetter.js";
 import {
   createEmphasisMeasurer,
@@ -43,6 +47,8 @@ export type LayoutTextSizing =
       minimumFontSize: number;
       maximumLines: number;
       keepTogether?: readonly string[];
+      /** M3 line breaking (`typography: "m3"` templates only). */
+      lineBreaking?: M3LineBreaking;
     }
   | {
       /**
@@ -316,6 +322,7 @@ function size(request: LayoutTextRequest, spans: readonly TextEmphasisSpan[]): S
     maximumLines: sizing.maximumLines,
     layerId: request.layerId,
     ...(sizing.keepTogether === undefined ? {} : { keepTogether: sizing.keepTogether }),
+    ...(sizing.lineBreaking === undefined ? {} : { lineBreaking: sizing.lineBreaking }),
     ...(setting.kind === "em" && setting.letterSpacingEm !== undefined
       ? { letterSpacingEm: setting.letterSpacingEm }
       : {}),

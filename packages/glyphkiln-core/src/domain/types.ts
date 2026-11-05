@@ -11,9 +11,12 @@ export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
   DESIGN_DOCUMENT_VERSION,
 ] as const);
 export const MANIFEST_VERSION = "1.3.0" as const;
+/** Manifest version of renders on the M3 typography (`typographyPolicy.m3`). */
+export const M3_MANIFEST_VERSION = "1.4.0" as const;
 /** Manifest version of renders on legacy typography (unchanged bytes). */
 export const LEGACY_MANIFEST_VERSION = "1.2.0" as const;
-export type ManifestVersion = typeof MANIFEST_VERSION | typeof LEGACY_MANIFEST_VERSION;
+export type ManifestVersion =
+  typeof M3_MANIFEST_VERSION | typeof MANIFEST_VERSION | typeof LEGACY_MANIFEST_VERSION;
 export const RENDERER_NAME = "glyphkiln-svg" as const;
 /**
  * Renderer 0.6.0 owns the M1 typography pixels (HarfBuzz, script runs,

@@ -1,0 +1,26 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [],
+    "text": [
+      { "elementId": "headline", "fontSize": 64, "displayedXHeight": 11.65 },
+      {
+        "elementId": "retention-trend",
+        "fontSize": 36,
+        "displayedXHeight": 6.55
+      },
+      {
+        "elementId": "retention-value",
+        "fontSize": 439,
+        "displayedXHeight": 79.88
+      },
+      {
+        "elementId": "retention-label",
+        "fontSize": 51,
+        "displayedXHeight": 9.28
+      }
+    ]
+  }
+]

@@ -1,5 +1,10 @@
-import { keepTogetherPhrasesOf } from "../schema/design-document.js";
+import {
+  keepTogetherPhrasesOf,
+  preferBreakAfterOf,
+} from "../schema/design-document.js";
+import type { M3LineBreaking } from "../typography/segmentation.js";
 import type { Bounds, QualityIssue } from "../domain/types.js";
+import type { DesignDocument } from "../schema/index.js";
 import { contrastIssue, safeAreaIssue } from "../layout/index.js";
 import type {
   BrandColorRoleSet,
@@ -24,7 +29,7 @@ import type { FontModel } from "../typography/font-model.js";
 import type { M1Typesetter } from "../typography/typesetter.js";
 import { accentCoverage, type AccentShape } from "./accent-budget.js";
 import type { TemplateCanvas, TextLayer } from "./shared.js";
-import type { TemplateRenderContext } from "./types.js";
+import { usesM1Engine, type TemplateRenderContext } from "./types.js";
 
 /**
  * Shared typesetting for template versions built on DesignDocument 1.7.0
@@ -117,8 +122,9 @@ function prepare(
   options: TypesetOptions,
   detail: "measure" | "glyphs",
 ): Prepared {
-  const role =
-    context.typography === "m1" ? fontRoleModel(context, options) : undefined;
+  const role = usesM1Engine(context.typography)
+    ? fontRoleModel(context, options)
+    : undefined;
   const family =
     layer.fontFamily ??
     options.family ??
@@ -178,16 +184,15 @@ function prepare(
     canvas.scene.dimensions.width,
     canvas.scene.dimensions.height,
   );
-  const engine =
-    context.typography === "m1"
-      ? createTypesetter({
-          registry: context.fonts,
-          model: fontModelFor(layer, role, family, weight),
-          shortSidePx: shortSide,
-          layerId: layer.id,
-          ...(features === undefined ? {} : { requestedFeatures: features }),
-        })
-      : undefined;
+  const engine = usesM1Engine(context.typography)
+    ? createTypesetter({
+        registry: context.fonts,
+        model: fontModelFor(layer, role, family, weight),
+        shortSidePx: shortSide,
+        layerId: layer.id,
+        ...(features === undefined ? {} : { requestedFeatures: features }),
+      })
+    : undefined;
   const layout = layoutText({
     text: layer.text,
     registry: context.fonts,
@@ -204,6 +209,9 @@ function prepare(
         options.maximumLines,
       ),
       ...(keepTogether.length === 0 ? {} : { keepTogether }),
+      ...(context.typography === "m3"
+        ? { lineBreaking: m3LineBreaking(context, layer) }
+        : {}),
     },
     setting: {
       kind: "at-size",
@@ -221,6 +229,31 @@ function prepare(
   });
   if (engine !== undefined) issues.push(...engine.issues);
   return { engine, family, weight, spans, issues, layout, fitted: layout.fitted! };
+}
+
+/** The document and brand Thai lexicon (DesignDocument 1.8.0), unique. */
+export function documentThaiLexicon(document: DesignDocument): readonly string[] {
+  return [
+    ...new Set([
+      ...("lexicon" in document ? (document.lexicon ?? []) : []),
+      ...("lexicon" in document.brand.typography
+        ? (document.brand.typography.lexicon ?? [])
+        : []),
+    ]),
+  ];
+}
+
+/** The M3 line breaking of a layer: document and brand lexicon, preferred breaks. */
+function m3LineBreaking(
+  context: TemplateRenderContext,
+  layer: TextLayer,
+): M3LineBreaking {
+  return {
+    lexicon: documentThaiLexicon(context.document),
+    preferBreakAfter: preferBreakAfterOf(
+      "keepTogether" in layer ? layer.keepTogether : undefined,
+    ),
+  };
 }
 
 type RoleFontModel = Partial<Omit<FontModel, "weight" | "style">>;

@@ -1,6 +1,7 @@
 import { GlyphkilnError } from "../domain/types.js";
 import { prepareGraphicScene } from "../renderer/index.js";
 import { getTemplate } from "../templates/index.js";
+import { usesM1Engine } from "../templates/types.js";
 import { loadTypographyEngine } from "../typography/engine.js";
 import { validateDesignDocument } from "../schema/index.js";
 import { resolveCraftThresholds, type CraftReview } from "./analyze.js";
@@ -39,7 +40,7 @@ export async function reviewGraphicCraft(
         .filter((layer) => layer.type === "logo" && layer.visible)
         .map((layer) => layer.id),
   );
-  if (getTemplate(document).typography === "m1") await loadTypographyEngine();
+  if (usesM1Engine(getTemplate(document).typography)) await loadTypographyEngine();
   const { templateResult, fonts } = prepareGraphicScene(document, options);
   return reviewSceneKernelCraft(
     templateResult.scene,
