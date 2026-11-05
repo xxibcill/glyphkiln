@@ -78,7 +78,16 @@ async function run() {
   }));
   const prettierOptions = (await prettier.resolveConfig(defaults.outputPath)) ?? {};
   const output = await prettier.format(
-    formatGeneratedModule(checksumRecord.unicodeVersion, checksumRecord.files, tables),
+    formatGeneratedModule(
+      checksumRecord.unicodeVersion,
+      // Only the sources this module reads; other generators own the rest.
+      Object.fromEntries(
+        [...new Set(tableSpecifications.map(({ sourceName }) => sourceName))].map(
+          (sourceName) => [sourceName, checksumRecord.files[sourceName]],
+        ),
+      ),
+      tables,
+    ),
     { ...prettierOptions, parser: "typescript" },
   );
   if (options.verify) {
