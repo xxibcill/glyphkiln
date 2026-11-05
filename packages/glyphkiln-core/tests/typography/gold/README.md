@@ -78,6 +78,12 @@ Look especially at:
   `23 ตุลาคม`). Say which entries are wrong or missing. The owner kept the list
   bounded on 5 November 2026, so the review edits the list rather than
   replacing it with a rule.
+- the **Thai supplement word list** in
+  [`thai-supplement-words.ts`](../../../src/typography/thai-supplement-words.ts):
+  47 words that ICU's `thaidict` lacks and that the hybrid segmenter
+  (`thai-segmentation-hybrid@1.0.0`) keeps whole, such as โปรโมชั่น, คอมเมนต์,
+  รายละเอียด, ผลไม้ and เครื่องมือ. It was drawn up from the segmenter's errors
+  on this draft, so say which entries a careful designer would still break.
 
 Run `npx vitest run tests/typography-gth.test.ts` from `packages/glyphkiln-core`
 after editing.

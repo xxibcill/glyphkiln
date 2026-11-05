@@ -22,5 +22,11 @@ under the Unicode License v3 in vendor/unicode/LICENSE.txt.
 Thai text segmentation includes the BudouX 0.7.0 Thai model and a compatible
 scorer, Copyright 2021 Google LLC, distributed under Apache License 2.0.
 
+Hybrid Thai segmentation includes the Thai word list thaidict.txt from ICU 78.3
+(tag release-78.3), Copyright (C) 2016 and later: Unicode, Inc. and others, and
+Copyright (c) 2006-2015 International Business Machines Corporation, Apple Inc.,
+and others. It is distributed under the Unicode License v3; ICU's license file,
+including its third-party notices, is in vendor/icu/LICENSE.
+
 Production dependency names, pinned versions, and reviewed SPDX license
 identifiers are recorded in THIRD_PARTY_LICENSES.json.
