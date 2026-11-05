@@ -221,8 +221,9 @@ lazily, so legacy renders never load it. See [Typography M1](../typography-m1.md
   committed, explained allowlist
   (`tests/typography-m2-differential.test.ts`). A pinned fresh-process
   digest of M1 shaping and outlines (`npm run typography-m1-digest`) carries
-  the cross-platform check forward; macOS with Node 22 is pending the
-  owner's run ([Typography M2](../typography-m2.md)).
+  the cross-platform check forward. It matches on Linux x64 (Node 22 and 24)
+  and on macOS arm64 (Node 22, the owner's Mac, 5 November 2026)
+  ([Typography M2](../typography-m2.md)).
 - New baselines are needed for every template version that opts in.
 
 ## Alternatives considered

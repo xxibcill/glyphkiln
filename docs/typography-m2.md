@@ -11,13 +11,13 @@ M1 baseline, example and fixture is byte-identical.
 
 ## Exit gate
 
-| Gate item                                                       | Check                                                                                                                                                      | Status                                                           |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Glyph IDs match fontkit wherever fontkit was correct            | `tests/typography-m2-differential.test.ts` against the [allowlist](../packages/glyphkiln-core/tests/typography/differential/allowlist.json), in `npm test` | Met                                                              |
-| The known fontkit defects are fixed                             | Same file, "the known fontkit defects are fixed on M1 and kept on legacy"                                                                                  | Met                                                              |
-| Bytes identical across Linux and macOS, Node 22 and 24          | `npm run typography-m1-digest` (also in `npm test`), plus the M1 visual baselines                                                                          | Linux 22 and 24 met; **macOS + Node 22 pending the owner's run** |
-| Cold start and per-render cost within the ADR's budgets         | `scripts/test-typography-budgets.mjs`, in `npm test`                                                                                                       | Met                                                              |
-| The policy and manifests record the shaper; legacy records none | `tests/typography-m2-identity.test.ts`; both visual suites now pin each committed manifest exactly                                                         | Met                                                              |
+| Gate item                                                       | Check                                                                                                                                                      | Status                                                         |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Glyph IDs match fontkit wherever fontkit was correct            | `tests/typography-m2-differential.test.ts` against the [allowlist](../packages/glyphkiln-core/tests/typography/differential/allowlist.json), in `npm test` | Met                                                            |
+| The known fontkit defects are fixed                             | Same file, "the known fontkit defects are fixed on M1 and kept on legacy"                                                                                  | Met                                                            |
+| Bytes identical across Linux and macOS, Node 22 and 24          | `npm run typography-m1-digest` (also in `npm test`), plus the M1 visual baselines                                                                          | Met: Linux 22 and 24; macOS arm64 22 (owner's Mac, 5 Nov 2026) |
+| Cold start and per-render cost within the ADR's budgets         | `scripts/test-typography-budgets.mjs`, in `npm test`                                                                                                       | Met                                                            |
+| The policy and manifests record the shaper; legacy records none | `tests/typography-m2-identity.test.ts`; both visual suites now pin each committed manifest exactly                                                         | Met                                                            |
 
 ## Differential corpus
 
@@ -79,11 +79,15 @@ Noto Sans Thai stack. It fails unless both processes match the pinned digest.
 | Linux x64   | 22.23.4 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 | Linux x64   | 24.22.1 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 | macOS arm64 | 24.16.0 | not run with this script; the baselines matched in M1              | byte-identical (M1)      |
-| macOS arm64 | 22      | **pending the owner's run**                                        | **pending**              |
+| macOS arm64 | 22.23.1 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 
-To close the last row, run these on the Mac with Node 22 from a clean checkout of this
-branch. The first prints the digest and fails unless it matches the pinned one.
-The second re-checks the 27 M1 baselines.
+The macOS + Node 22 row was run on the owner's Mac on 5 November 2026: macOS
+arm64, Node 22.23.1, npm 10.9.8, from a clean `npm ci` of `a77390a`. The
+digest matched in two fresh processes, the 27 M1 baselines were
+byte-identical, and the full repository gate passed, including
+`test:coverage` with no timeouts. To repeat it, run these from a clean checkout
+of this branch. The first prints the digest and fails unless it matches the
+pinned one. The second re-checks the 27 M1 baselines.
 
 ```bash
 npm ci && npm run typography-m1-digest

@@ -4,7 +4,8 @@
 in progress. M0 is complete (ADR 0019 accepted 4 November 2026). M1 is
 implemented on branch `claude/typography-m1` (draft PR), with the new
 baselines awaiting the owner's review. M2 is closed out on branch
-`claude/typography-m2` (draft PR), pending the owner's macOS + Node 22 run.**
+`claude/typography-m2` (draft PR); its exit gate is met, including macOS +
+Node 22 (5 November 2026). M3 is next.**
 
 This plan stages the upgrade of Core's text engine to the level of the software
 professional designers use (Adobe InDesign and Illustrator, Figma). It turns
@@ -346,8 +347,9 @@ The required starting point.
       wasm, and in every committed manifest: the 27 M1 manifests record it,
       and the legacy ones record none. Both visual suites now pin each
       committed manifest exactly.
-  - **Exit gate.** Met, except that macOS arm64 with Node 22 is **pending
-    the owner's run**. macOS arm64 with Node 24 already matched in M0 and M1.
+  - **Exit gate.** Met. On 5 November 2026 the owner's Mac (macOS arm64,
+    Node 22.23.1) reproduced the M1 digest and all 27 M1 baselines, and passed
+    the full gate. macOS arm64 with Node 24 already matched in M0 and M1.
 
 ### M3 — Break opportunities and Thai segmentation 2.0
 
