@@ -293,7 +293,11 @@ The required starting point.
   - **Exit gate.**
     - T01, T03, T04, T05, T06, T08 and T27 have passing tests.
     - Brief A and the Kilnform quote render with no findings under six
-      provisional Thai–Latin pairings.
+      provisional Thai–Latin pairings. Since 5 November 2026 this includes
+      the advisory craft review at the delivery width, so text must also be
+      large enough to read on a phone (x-height ≥ 5.5 px at 360 px; brief A
+      also at its 400 px view). One finding is accepted for review: the
+      Source Serif 4 attribution at 5.38 px.
     - Baselines exist for every approved family at three sizes.
     - The reviewer step is open: see the
       [review sheet](../research/typography-m1-baselines/README.md).

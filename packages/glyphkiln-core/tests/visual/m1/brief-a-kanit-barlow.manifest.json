@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_61bef68d8555c268f0ba968b",
-  "renderFingerprint": "61bef68d8555c268f0ba968b323c7ab7118a06fc355d68a057ed492a4e6c2f26",
+  "renderId": "scene_79aa4724f39d458c8981400b",
+  "renderFingerprint": "79aa4724f39d458c8981400b532608d822c90bfd62c9c51fdf4f5f5e121a4947",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-brief-a-kanit-barlow",
-    "sceneHash": "0a44b090c998e57cdbfe1e16d83d0e264f9e29086cbc242d3343ad93222d7c25"
+    "sceneHash": "b5f09293e1f5f308e09bfee30993f2ec00d371b4efbcfdf5ca59499dd7e92a51"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -188,8 +188,8 @@
   "dimensions": { "width": 1600, "height": 1600 },
   "output": {
     "format": "png",
-    "sha256": "7b2242a7394ed7a9cadb396b10d2c853d22514c4bfa628fc1c83c1972a8def2d",
-    "byteSize": 79845
+    "sha256": "8def3804ce1e7513683e1a3afd2461052df559bde4c95ae1a9b272ccec907ba0",
+    "byteSize": 84516
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",

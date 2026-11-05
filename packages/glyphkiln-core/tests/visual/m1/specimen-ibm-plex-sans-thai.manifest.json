@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_e20c151bebd85ccfeb6c639c",
-  "renderFingerprint": "e20c151bebd85ccfeb6c639cf87824f429271009a61403e403e5e5608acb8551",
+  "renderId": "scene_5974d37029baf85fe1a6652c",
+  "renderFingerprint": "5974d37029baf85fe1a6652cb1ea9f4701a52c4e2fd2039297189d038dd8fb14",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-ibm-plex-sans-thai",
-    "sceneHash": "25646ef0392f23d960f79172499510f7b0470c48c200d2c70644af83e049e8fb"
+    "sceneHash": "831b01b6b7a9b907ebd09050cb3da1d9368cfe7bfa074cae0bffa9ce96f7531c"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["IBM Plex Sans Thai"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "d7088d7f99792e9f39007691b569a6e87fe86cffd708f6f1c16a678bae6a5541",
-    "byteSize": 27767
+    "sha256": "50a4b813a13a08ba910c617a78f309a72e68fed4ada2a014c1d168daa2bb8f61",
+    "byteSize": 29967
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "IBM Plex Sans Thai specimen",
-    "description": "IBM Plex Sans Thai at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "IBM Plex Sans Thai at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

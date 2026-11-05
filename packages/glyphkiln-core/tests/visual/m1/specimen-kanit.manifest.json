@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_fd6de386a6763f4ded8285f9",
-  "renderFingerprint": "fd6de386a6763f4ded8285f99f126efaea3770f48ca35c20f5a94862e9b8e454",
+  "renderId": "scene_85ea71267395b9e58a332390",
+  "renderFingerprint": "85ea71267395b9e58a3323901dde8898aed5d0f7fbb60dfe5a8907ecce711e38",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-kanit",
-    "sceneHash": "ee6f3c7a8239333dc0376e34cd4718720458309ff1205270ad6e2ae6c745c1e6"
+    "sceneHash": "7714f5bfbb8414a15e27355a9c97daeeaa939ea987daf203e45d2eed1259594d"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Kanit"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "c77217a0576d08b11ce4b38ed9ce73685ad37c5d29711ca8d5eac7e664f541cb",
-    "byteSize": 27042
+    "sha256": "622bf4de9063ba092899188f80bb4549a4a75466c03aae486e549e542c3fc8a7",
+    "byteSize": 28780
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Kanit specimen",
-    "description": "Kanit at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Kanit at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

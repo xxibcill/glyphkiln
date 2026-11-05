@@ -7,8 +7,11 @@ import type { SceneDocument } from "../../../src/scene/index.js";
  * Inputs for the typography M1 visual baselines. Every document is built
  * from this pinned table, so a baseline change is always a source change.
  *
- * - One specimen per bundled family at three sizes (28, 56 and 112 px on a
- *   1080 px canvas), on Scene 1.1.0.
+ * - One specimen per bundled family at three sizes (36, 56 and 112 px on a
+ *   1080 px canvas), on Scene 1.1.0. The smallest line is tracked +0.05 em
+ *   and still reads at the 360 px phone width (x-height ≥ 5.5 px).
+ * - Brief A text is sized for its 400 px delivery view and the 360 px
+ *   phone preview: every element keeps an x-height of at least 5.5 px.
  * - Each provisional Thai–Latin pairing set on benchmark brief A (Scene
  *   1.1.0, 1600 × 1600) and on the Kilnform quote (quote-card@1.4.0).
  * - One baseline for each new M1 template version.
@@ -178,7 +181,7 @@ export function familySpecimen(family: Family): SceneDocument {
     seed: "typography-m1",
     dimensions: { width: 1080, height: 1080 },
     title: `${family.family} specimen`,
-    description: `${family.family} at 112, 56 and 28 px on the M1 typography.`,
+    description: `${family.family} at 112, 56 and 36 px on the M1 typography.`,
     backgroundColor: "#F4F0E6",
     assets: [],
     fonts: [declaration(family.family, family.weight)],
@@ -200,15 +203,15 @@ export function familySpecimen(family: Family): SceneDocument {
         "#242829",
       ),
       text(
-        "size-28",
+        "size-36",
         lines[2]!,
         font,
-        { x: 72, y: 760, width: 936, height: 200 },
-        { size: 28, lines: 3, lineHeight: 1.5, letterSpacing: 1.4 },
+        { x: 72, y: 740, width: 936, height: 240 },
+        { size: 36, lines: 3, lineHeight: 1.5, letterSpacing: 1.8 },
         "#5B5F60",
       ),
     ],
-    readingOrder: ["size-112", "size-56", "size-28"],
+    readingOrder: ["size-112", "size-56", "size-36"],
   };
 }
 
@@ -252,7 +255,7 @@ export function briefA(pairing: Pairing): SceneDocument {
         "แผนผังกระบวนการ + Pilot Brief สำหรับ 1 เวิร์กโฟลว์",
         face(pairing.bodyWeight),
         { x: 120, y: 680, width: 1360, height: 220 },
-        { size: 60, minimum: 36, lines: 2, lineHeight: 1.45 },
+        { size: 60, minimum: 52, lines: 2, lineHeight: 1.45 },
         ink,
       ),
       {
@@ -293,16 +296,16 @@ export function briefA(pairing: Pairing): SceneDocument {
         "caption",
         "ภาพประกอบแนวคิด",
         face(pairing.bodyWeight),
-        { x: 160, y: 1200, width: 900, height: 70 },
-        { size: 30, lines: 1, lineHeight: 1.4 },
+        { x: 160, y: 1196, width: 900, height: 80 },
+        { size: 52, lines: 1, lineHeight: 1.4 },
         "#5B5F60",
       ),
       text(
         "exclusions",
         "ไม่รวมการติดตั้งระบบ • ไม่รับประกันการประหยัด",
         face(pairing.bodyWeight),
-        { x: 120, y: 1350, width: 1360, height: 160 },
-        { size: 48, minimum: 32, lines: 2, lineHeight: 1.45 },
+        { x: 120, y: 1340, width: 1360, height: 180 },
+        { size: 56, minimum: 52, lines: 2, lineHeight: 1.45 },
         "#C85F35",
       ),
     ],

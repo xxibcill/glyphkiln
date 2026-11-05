@@ -73,7 +73,7 @@
       },
       "fit": {
         "preferredFontSize": 60,
-        "minimumFontSize": 36,
+        "minimumFontSize": 52,
         "maximumLines": 2,
         "lineHeight": 1.45,
         "align": "left"
@@ -152,7 +152,7 @@
       "id": "caption",
       "type": "text",
       "text": "ภาพประกอบแนวคิด",
-      "box": { "x": 160, "y": 1200, "width": 900, "height": 70 },
+      "box": { "x": 160, "y": 1196, "width": 900, "height": 80 },
       "font": {
         "family": "IBM Plex Sans Thai",
         "weight": 400,
@@ -162,8 +162,8 @@
         }
       },
       "fit": {
-        "preferredFontSize": 30,
-        "minimumFontSize": 30,
+        "preferredFontSize": 52,
+        "minimumFontSize": 52,
         "maximumLines": 1,
         "lineHeight": 1.4,
         "align": "left"
@@ -175,7 +175,7 @@
       "id": "exclusions",
       "type": "text",
       "text": "ไม่รวมการติดตั้งระบบ • ไม่รับประกันการประหยัด",
-      "box": { "x": 120, "y": 1350, "width": 1360, "height": 160 },
+      "box": { "x": 120, "y": 1340, "width": 1360, "height": 180 },
       "font": {
         "family": "IBM Plex Sans Thai",
         "weight": 400,
@@ -185,8 +185,8 @@
         }
       },
       "fit": {
-        "preferredFontSize": 48,
-        "minimumFontSize": 32,
+        "preferredFontSize": 56,
+        "minimumFontSize": 52,
         "maximumLines": 2,
         "lineHeight": 1.45,
         "align": "left"

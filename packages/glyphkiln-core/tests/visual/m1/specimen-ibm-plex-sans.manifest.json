@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_be29f5815ed35c377977192b",
-  "renderFingerprint": "be29f5815ed35c377977192b58503f419a9deff737aecbd692b5fe5022bf163c",
+  "renderId": "scene_4f794321433c2e3b24dd7e5d",
+  "renderFingerprint": "4f794321433c2e3b24dd7e5df578fca8da25146391a23687d05873d5cb2d4464",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-ibm-plex-sans",
-    "sceneHash": "dee789792d50944193721b6cbb6fc0c3b0d6a2e10436345e00356db884f03cba"
+    "sceneHash": "db227481db1debf591ed0e79e42d15dfd17baae602a01e90b03ecbe66f70d6f9"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["IBM Plex Sans"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "09b8e13cd59b14dbbcbce1d4f92c53c27ff8fed26e132664cdaefeec5f02af24",
-    "byteSize": 30872
+    "sha256": "18d0abbd3b80efcd6b93b15fc35e67e29e6fa9a351ec2b56d9fc727b4dafc7db",
+    "byteSize": 32995
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "IBM Plex Sans specimen",
-    "description": "IBM Plex Sans at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "IBM Plex Sans at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

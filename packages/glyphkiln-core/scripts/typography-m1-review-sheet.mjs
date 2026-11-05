@@ -51,10 +51,23 @@ function describeFaces(manifest) {
     .join("<br>");
 }
 
+function describeCraft(records) {
+  return records
+    .map((record) => {
+      const smallest = Math.min(...record.text.map((text) => text.displayedXHeight));
+      const findings =
+        record.findings.length === 0
+          ? "no findings"
+          : record.findings.map((key) => `\`${key.replace(/@\d+$/, "")}\``).join(", ");
+      return `${record.displayWidth} px: smallest x-height ${smallest.toFixed(2)} px; ${findings}`;
+    })
+    .join("<br>");
+}
+
 const GROUPS = [
   [
     "specimen-",
-    "Family specimens: 112, 56 and 28 px (28 px tracked +1.4 px) on Scene 1.1.0, 1080 × 1080",
+    "Family specimens: 112, 56 and 36 px (36 px tracked +1.8 px, 0.05 em) on Scene 1.1.0, 1080 × 1080",
   ],
   [
     "brief-a-",
@@ -95,14 +108,17 @@ for (const [prefix, title] of GROUPS) {
     } else {
       await writeFile(previewUrl, small);
     }
+    const craft = JSON.parse(
+      await readFile(new URL(`${name}.craft.json`, baselineDirectory), "utf8"),
+    );
     const { width, height } = pngSize(bytes);
     rows.push(
-      `| \`${name}\`<br>${width} × ${height}<br>\`${sha256(bytes).slice(0, 12)}…\` | ${describeFaces(manifest)} | ![${name} at 360 px](previews/${name}.png) | [full size](../../../packages/glyphkiln-core/tests/visual/m1/${name}.png) |`,
+      `| \`${name}\`<br>${width} × ${height}<br>\`${sha256(bytes).slice(0, 12)}…\` | ${describeFaces(manifest)} | ${describeCraft(craft)} | ![${name} at 360 px](previews/${name}.png) | [full size](../../../packages/glyphkiln-core/tests/visual/m1/${name}.png) |`,
     );
   }
   if (rows.length === 0) continue;
   sections.push(
-    `## ${title}\n\n| Baseline | Faces drawn (manifest font identity v2) | 360 px phone preview | Master |\n| --- | --- | --- | --- |\n${rows.join("\n")}\n`,
+    `## ${title}\n\n| Baseline | Faces drawn (manifest font identity v2) | Craft review at delivery width | 360 px phone preview | Master |\n| --- | --- | --- | --- | --- |\n${rows.join("\n")}\n`,
   );
 }
 
@@ -123,13 +139,29 @@ benchmark delivery views.
 What to check, per the plan (§5 M1 exit gate, §6):
 
 - Thai marks sit on their bases, with no collisions or dropped marks (ให้,
-  ก่อน, น้ำ, ปู่, ญี่ปุ่น), including on the tracked 28 px lines.
+  ก่อน, น้ำ, ปู่, ญี่ปุ่น), including on the tracked 36 px lines. Open the
+  master for this: marks are a fraction of the x-height, so the 360 px
+  preview judges reading, not mark placement.
 - Latin and Thai look the same size in each pairing (\`script-matching\` auto
   scale), and the shared baseline holds.
 - Display sizes use the display cut where the face has \`opsz\` (Inter,
   Source Serif 4).
-- Brief A and the Kilnform quote rendered with no quality findings. The test
-  asserts this, but legibility at the delivery view needs a person.
+- Text reads at the delivery view. Every case is craft-reviewed at its
+  delivery width (\`craft-review\` policy, minimum x-height 5.5 px). The test
+  pins the result beside each baseline (\`<name>.craft.json\`) and fails the
+  specimens, brief A and the Kilnform quote on any finding not listed as
+  accepted. Brief A is checked at both the 360 px phone width and its own
+  400 px delivery view. A person still judges legibility; the review only
+  rules out text that is too small.
+- Accepted findings, left visible for review:
+  - specimens are type sheets, not compositions, so their empty canvas bands
+    (\`CRAFT_DEAD_SPACE\`) are expected;
+  - \`quote-card@1.4.0\` sets the attribution at 34 px, and Source Serif 4's
+    small x-height lands at 5.38 px at 360 px in \`kilnform-quote-noto-serif\`,
+    just under the threshold. Changing it is a template decision.
+- \`image-led-campaign-m1-square\` keeps B2's copy sizes, so it inherits B2's
+  small eyebrow, subtitle and CTA and the low-visibility Kilnform mark
+  (decision D7). These are reported, not asserted.
 - The Thai–Latin pairings are provisional choices for the owner to accept or
   change.
 - The Kilnform quote copy is Latin only, so each pairing's Thai fallback is

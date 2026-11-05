@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_d8f62a30b7d5befaebfc1aa7",
-  "renderFingerprint": "d8f62a30b7d5befaebfc1aa7622e8529083e1934c5e52aa6eb57da4678bdf9d7",
+  "renderId": "scene_e98467edd47698ae188fbb5d",
+  "renderFingerprint": "e98467edd47698ae188fbb5dbdf050e5822dd5d8693b47a3748f9f243782d74c",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-instrument-serif",
-    "sceneHash": "c0ba31056649f2969ce7ef4de34e67d63cf510d752f2676b224e5b8590eb2e27"
+    "sceneHash": "ea3e47e89ac957ae0c473afa9cd750b68d70c2b9f0b7c5604227c8fb3959a5a4"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Instrument Serif"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "cd089903a020c3bbf7175b7827d643fd3ad7afb3ac842f92509efaf2b64d546f",
-    "byteSize": 31565
+    "sha256": "b20b8e1b9ed47c66efae5cc535c32a21edcaab70d6b63b66b23f65cacd5119d6",
+    "byteSize": 33397
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Instrument Serif specimen",
-    "description": "Instrument Serif at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Instrument Serif at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

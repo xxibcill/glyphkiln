@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_4bfd5fb6648efb0690320002",
-  "renderFingerprint": "4bfd5fb6648efb06903200026014774b91ea00f67720e4e749cdb2834cf2dc22",
+  "renderId": "scene_782732f62a69438eea75d84d",
+  "renderFingerprint": "782732f62a69438eea75d84dc39f474fe0e52a7bccaec87473fc0dd3e2b622bd",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-trirong",
-    "sceneHash": "5aa25604270d9021783e477edb1dbb6858f72258d0fbedc2cf09a4dc42b73fc0"
+    "sceneHash": "f4ea58b8f90a747b40d16198e1d70a46452bb819b70f10aebe3823dd690bf681"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Trirong"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "a1723f80f621cf0f0b33ae94fa42e690e47adf40c3c15a8b3f42cd8a8b585a95",
-    "byteSize": 33664
+    "sha256": "b8bd1895406dc8ca1a0259f3a20f8f3850099c0ca4eb63856705193a362953e6",
+    "byteSize": 35756
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Trirong specimen",
-    "description": "Trirong at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Trirong at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

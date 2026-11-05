@@ -4,7 +4,7 @@
   "seed": "typography-m1",
   "dimensions": { "width": 1080, "height": 1080 },
   "title": "IBM Plex Sans Thai specimen",
-  "description": "IBM Plex Sans Thai at 112, 56 and 28 px on the M1 typography.",
+  "description": "IBM Plex Sans Thai at 112, 56 and 36 px on the M1 typography.",
   "backgroundColor": "#F4F0E6",
   "assets": [],
   "fonts": [
@@ -57,26 +57,26 @@
       "textMode": "outline"
     },
     {
-      "id": "size-28",
+      "id": "size-36",
       "type": "text",
       "text": "น้ำ ก่ำ ปู่ ญี่ปุ่น ฝั่ง ฟ้า — Office 2026",
-      "box": { "x": 72, "y": 760, "width": 936, "height": 200 },
+      "box": { "x": 72, "y": 740, "width": 936, "height": 240 },
       "font": {
         "family": "IBM Plex Sans Thai",
         "weight": 400,
         "style": "normal"
       },
       "fit": {
-        "preferredFontSize": 28,
-        "minimumFontSize": 28,
+        "preferredFontSize": 36,
+        "minimumFontSize": 36,
         "maximumLines": 3,
         "lineHeight": 1.5,
         "align": "left",
-        "letterSpacing": 1.4
+        "letterSpacing": 1.8
       },
       "fill": "#5B5F60",
       "textMode": "outline"
     }
   ],
-  "readingOrder": ["size-112", "size-56", "size-28"]
+  "readingOrder": ["size-112", "size-56", "size-36"]
 }

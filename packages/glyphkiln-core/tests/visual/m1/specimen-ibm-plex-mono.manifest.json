@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_6f3e5e4f8ca99c0b5393ee34",
-  "renderFingerprint": "6f3e5e4f8ca99c0b5393ee348caa9514d7a4f462551dfae350d1cbfee1292b79",
+  "renderId": "scene_bae40a9314cdca7cc5370247",
+  "renderFingerprint": "bae40a9314cdca7cc5370247430ca232e1e490fa3da5fb253415b2abee2d761c",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-ibm-plex-mono",
-    "sceneHash": "f245fb02ed844f5e24d27cfb3a3d3849c795808636f1476c87c1d1c054925a31"
+    "sceneHash": "34a965bfd73846f79b922edefb310cc0cfd6b603bb6cad5982a4ff9ffc18b7b0"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["IBM Plex Mono"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "7a10e563331ac9542a5a9f8043c117286042228cf6853d2e83ef2a03ba42d53e",
-    "byteSize": 31622
+    "sha256": "8cf1b649e003ffa7b066af0ca383224718e5ba262352d7364286bb046e3e449b",
+    "byteSize": 33559
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "IBM Plex Mono specimen",
-    "description": "IBM Plex Mono at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "IBM Plex Mono at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

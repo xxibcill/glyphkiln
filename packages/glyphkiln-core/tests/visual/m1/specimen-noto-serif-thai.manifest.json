@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_ac37b05cd5c9302495e7edd3",
-  "renderFingerprint": "ac37b05cd5c9302495e7edd3f3867ed97aee5fd3b1e79882b2fee1268ac6b7ff",
+  "renderId": "scene_a89e8db5d9c4f0cc2c578ba9",
+  "renderFingerprint": "a89e8db5d9c4f0cc2c578ba96f28f604afb809b82e8299a92cbe384c2bd5aa8c",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-noto-serif-thai",
-    "sceneHash": "d74eb32e77d61d6bb5910d8736f0276dbbbb7548834d6ee043165f431d7bfc37"
+    "sceneHash": "8b251f68f1f4ccf27317f5953f40057e5977c0f95871bee0b9fd073431e91c3a"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Noto Serif Thai"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "11ca922afcee9eef7bbb44703955dd9bd7319e5d0be27e002e809c0a2649a934",
-    "byteSize": 34224
+    "sha256": "d8a342fb3f804a0a5c5bab19a7fb95ac3f0306c56c1a54c0e719965617721fde",
+    "byteSize": 36301
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Noto Serif Thai specimen",
-    "description": "Noto Serif Thai at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Noto Serif Thai at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

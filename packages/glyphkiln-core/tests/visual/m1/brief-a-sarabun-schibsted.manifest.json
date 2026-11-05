@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_d3bdfd51c3f2057ee69e8902",
-  "renderFingerprint": "d3bdfd51c3f2057ee69e89027c2739679ab67a2c946c84c45f716d2a5ab422d2",
+  "renderId": "scene_6ee2daf15f463bce7802de47",
+  "renderFingerprint": "6ee2daf15f463bce7802de479933de454e2d0c5db12f2626fff86519d6e035ea",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-brief-a-sarabun-schibsted",
-    "sceneHash": "80816691be6f42199302f68747263f6d9acd7173ba13b927d43e3dce13776f9f"
+    "sceneHash": "80741e73135f9867954c8e75e7b6b590730a05b8d6d0c16ffda19636949edf12"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -188,8 +188,8 @@
   "dimensions": { "width": 1600, "height": 1600 },
   "output": {
     "format": "png",
-    "sha256": "67aa01b8026ac70f8d9c4d7ea93817d8e03842dec5e161349bdcf648011fac74",
-    "byteSize": 104161
+    "sha256": "c3a16f2f02261ebe7384080befdc2ad00295163f9f27764d1e1f1c88bba19d94",
+    "byteSize": 110249
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",

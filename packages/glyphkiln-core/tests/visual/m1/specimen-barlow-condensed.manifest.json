@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_d10a2240d86166076fcaced7",
-  "renderFingerprint": "d10a2240d86166076fcaced7113d38f4684dcbaf52ded5ac78eb07b8169f38b0",
+  "renderId": "scene_9312eba3a216ad048a30dc33",
+  "renderFingerprint": "9312eba3a216ad048a30dc33b703c7dcebdd4ba36129404bbc4e685343b543fc",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-barlow-condensed",
-    "sceneHash": "4156dfa64b077f9472cc3b5757515606a0392defd9cdbda17332c57e235c2f70"
+    "sceneHash": "ce0b127c4f30bbb4d29c2cc7dcd60ac86bcc0ff358bbdd1f1d8fca089975f48a"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Barlow Condensed"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "61926160dc417dfd5d305b6041cba2c18371b54dd3175eb243fd5dd57f21320e",
-    "byteSize": 27637
+    "sha256": "93716f7401b617aef02b72fdccd8b5b5e39fe925b4715f9499c1743f671a3bcd",
+    "byteSize": 29281
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Barlow Condensed specimen",
-    "description": "Barlow Condensed at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Barlow Condensed at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

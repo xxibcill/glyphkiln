@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_452df9620e7734d105b26972",
-  "renderFingerprint": "452df9620e7734d105b2697235aec9ec573634db31b70225e6b1c88790b041d4",
+  "renderId": "scene_ad22ba2238814b8083e8e3b6",
+  "renderFingerprint": "ad22ba2238814b8083e8e3b6782dbde99d9fb2a8011891e4b94c8866af71f607",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-sarabun",
-    "sceneHash": "ab9872e5f53f7628f525262c24c83ea3fc61c1208fd973c44954d46356641adc"
+    "sceneHash": "9863ef5a750e07973210fa1bd9280a016d60d4867924b8da0b28bf880f0a5fdd"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Sarabun"],
       "faces": [
         {
@@ -113,16 +113,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "925d767dff6d139aaa65817f436f6d2e3d4eab08d879383155de169b9a1b6d2c",
-    "byteSize": 33199
+    "sha256": "78c333215f4f53fa3b739e04f52c6176dd472495968fa185d2046c9862c98aaa",
+    "byteSize": 35102
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Sarabun specimen",
-    "description": "Sarabun at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Sarabun at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."

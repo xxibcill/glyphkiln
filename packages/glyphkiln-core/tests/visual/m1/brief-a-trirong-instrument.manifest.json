@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_ab534adae34a2da2e4955c06",
-  "renderFingerprint": "ab534adae34a2da2e4955c0600d4cb07df2a61cf0cf1ada3a4da671d43c715eb",
+  "renderId": "scene_9b574f594a25b0790995561a",
+  "renderFingerprint": "9b574f594a25b0790995561a3aae52589574ce992c8a6747c34a26af097853de",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-brief-a-trirong-instrument",
-    "sceneHash": "3e804e3fc474b22a0bc4c3f26d096681e8043d738fef814341b0f01d0862969f"
+    "sceneHash": "7e4a078afe27d93dfd6d25a172d089fe69d844a0593afda688203046e08cafe4"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -154,8 +154,8 @@
   "dimensions": { "width": 1600, "height": 1600 },
   "output": {
     "format": "png",
-    "sha256": "ba7d9423097218a010194175609e9017ece2bb8a50c97108e8c14c9aacee532f",
-    "byteSize": 103017
+    "sha256": "b2d770465803575b09a20597bc81dc363f974233e9a13f899b28a7b831fbb1ed",
+    "byteSize": 107950
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",

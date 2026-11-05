@@ -1,0 +1,26 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [],
+    "text": [
+      { "elementId": "headline", "fontSize": 132, "displayedXHeight": 14.08 },
+      { "elementId": "support", "fontSize": 60, "displayedXHeight": 6.4 },
+      { "elementId": "caption", "fontSize": 52, "displayedXHeight": 5.55 },
+      { "elementId": "exclusions", "fontSize": 56, "displayedXHeight": 5.97 }
+    ]
+  },
+  {
+    "displayWidth": 400,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [],
+    "text": [
+      { "elementId": "headline", "fontSize": 132, "displayedXHeight": 15.64 },
+      { "elementId": "support", "fontSize": 60, "displayedXHeight": 7.11 },
+      { "elementId": "caption", "fontSize": 52, "displayedXHeight": 6.16 },
+      { "elementId": "exclusions", "fontSize": 56, "displayedXHeight": 6.64 }
+    ]
+  }
+]

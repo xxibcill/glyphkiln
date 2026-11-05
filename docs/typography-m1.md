@@ -154,8 +154,10 @@ the v2 face identities (DesignDocument) or the stack faces (Scene), renderer
   and T27: manifest identity, stacks, reproduction, and that legacy keeps its
   identity.
 - `tests/visual-m1.test.ts` holds the exact baselines: every family at three
-  sizes, brief A and the Kilnform quote for each pairing (no findings), and
-  the three new template versions. The
+  sizes, brief A and the Kilnform quote for each pairing (no quality issues,
+  and no craft-review findings at the delivery width except those listed as
+  accepted), and the three new template versions. Each baseline's craft
+  review is pinned beside it in `<name>.craft.json`. The
   [review sheet](research/typography-m1-baselines/README.md) shows them with
   360 px previews. **They are awaiting the owner's review.**
 - [Before/after metrics](research/typography-m1-metrics/README.md).

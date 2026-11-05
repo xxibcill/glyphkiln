@@ -1,12 +1,12 @@
 {
   "manifestVersion": "1.1.0",
-  "renderId": "scene_3418b8974a1c43e8b863ca59",
-  "renderFingerprint": "3418b8974a1c43e8b863ca594e7879ace328095449ab1a3fc8d624e76d037cde",
+  "renderId": "scene_2eaf8f19726d70fe95cb6928",
+  "renderFingerprint": "2eaf8f19726d70fe95cb6928c61362e985a1b3e8db1fbda3c73f13cad314098b",
   "input": {
     "kind": "scene",
     "sceneVersion": "1.1.0",
     "sceneId": "m1-specimen-source-serif-4",
-    "sceneHash": "f8d6966ea0ded4fcd74b7bd9d44124e8e780b6487073f7500747efc87be2e973"
+    "sceneHash": "95672da3871f38c27eff37361021468288e81148aa547d9b368becbedc2543eb"
   },
   "sceneKernelVersion": "1.0.0",
   "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
@@ -87,7 +87,7 @@
       "weight": 400,
       "style": "normal",
       "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
-      "coordinates": { "opsz": 21, "wght": 400 },
+      "coordinates": { "opsz": 27, "wght": 400 },
       "role": "primary",
       "scale": 1,
       "baselineShift": 0,
@@ -120,7 +120,7 @@
       ]
     },
     {
-      "layerId": "size-28",
+      "layerId": "size-36",
       "stack": ["Source Serif 4"],
       "faces": [
         {
@@ -135,16 +135,16 @@
   "dimensions": { "width": 1080, "height": 1080 },
   "output": {
     "format": "png",
-    "sha256": "e313f76b66ba9eeebfa08247737f7bed190f5be6efa1db98312084f36cac56b4",
-    "byteSize": 32040
+    "sha256": "1e9324a22cf6a425b7f870bb63456a7b02f05f55e2ab64d3f777841ff465b0a5",
+    "byteSize": 34082
   },
   "creationTimestamp": "2026-11-04T00:00:00.000Z",
   "renderingMethod": "deterministic-code-rendering/resvg",
   "qualityIssues": [],
   "accessibility": {
     "title": "Source Serif 4 specimen",
-    "description": "Source Serif 4 at 112, 56 and 28 px on the M1 typography.",
-    "readingOrder": ["size-112", "size-56", "size-28"],
+    "description": "Source Serif 4 at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
     "selectableText": false
   },
   "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
