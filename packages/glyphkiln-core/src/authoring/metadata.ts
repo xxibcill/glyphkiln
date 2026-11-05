@@ -7,7 +7,7 @@ import {
   type CarouselCopyAdvisoryRange,
 } from "./carousel-copy-policy.js";
 
-export const AUTHORING_CONTRACT_VERSION = "1.8.0" as const;
+export const AUTHORING_CONTRACT_VERSION = "1.9.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
 export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
@@ -37,11 +37,22 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "quote-card@1.3.0",
   "statistic-card@1.3.0",
   "image-led-campaign@1.2.0",
+  "quote-card@1.4.0",
+  "statistic-card@1.4.0",
+  "image-led-campaign@1.3.0",
 ] as const);
 export type AuthoringTemplateKey = (typeof AUTHORING_TEMPLATE_KEYS)[number];
 
 type DesignSchemaVersion =
-  "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "1.4.0" | "1.5.0" | "1.6.0" | "1.7.0";
+  | "1.0.0"
+  | "1.1.0"
+  | "1.2.0"
+  | "1.3.0"
+  | "1.4.0"
+  | "1.5.0"
+  | "1.6.0"
+  | "1.7.0"
+  | "1.8.0";
 type ContentLayerType = Extract<
   DesignLayer["type"],
   | "eyebrow"
@@ -272,6 +283,7 @@ const allSchemaVersions = Object.freeze([
   "1.5.0",
   "1.6.0",
   "1.7.0",
+  "1.8.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const tiktokSchemaVersions = Object.freeze([
   "1.1.0",
@@ -281,16 +293,27 @@ const tiktokSchemaVersions = Object.freeze([
   "1.5.0",
   "1.6.0",
   "1.7.0",
+  "1.8.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const currentSchemaVersions = Object.freeze([
   "1.4.0",
   "1.5.0",
   "1.6.0",
   "1.7.0",
+  "1.8.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
 const b2SchemaVersions = Object.freeze([
   "1.7.0",
+  "1.8.0",
 ] as const satisfies readonly DesignSchemaVersion[]);
+const m1SchemaVersions = Object.freeze([
+  "1.8.0",
+] as const satisfies readonly DesignSchemaVersion[]);
+const m1AuthoringGuidance = [
+  "Text is set on the M1 typography (renderer 0.6.0): HarfBuzz 15.0.0 per script run, tracking between character units, and every variable axis with automatic optical size (opsz = 0.75 x px at the 1080 px reference).",
+  "Brand typography roles (schema 1.8.0) may add axes, namedInstance, opticalSizing, opsz, an ordered fallback stack and per-script faces (latn, thai) with scale and baselineShift; declare every face the stack names.",
+  "Layers may set axes, namedInstance, opticalSizing and opsz; out-of-range axes and unknown named instances are blocking errors.",
+] as const;
 const b2AuthoringGuidance = [
   "Emphasis phrases (schema 1.7.0) must occur in the text; they are kept on one line and set in a closed style: strong, accent, strong-accent, italic (needs a declared italic face), or muted.",
   "Strong emphasis uses the base weight plus 200 (at least 700, at most 900); declare that face.",
@@ -505,7 +528,7 @@ function imageCarouselContract(
   });
 }
 
-const authoringTemplateRegistry = {
+const baseAuthoringTemplateRegistry = {
   "testimonial-evidence@1.0.0": templateContract({
     key: "testimonial-evidence@1.0.0",
     template: { id: "testimonial-evidence", version: "1.0.0" },
@@ -1358,9 +1381,46 @@ const authoringTemplateRegistry = {
       ...b2AuthoringGuidance,
     ],
   }),
+} as const satisfies Record<
+  Exclude<AuthoringTemplateKey, M1TemplateKey>,
+  AuthoringTemplateContract
+>;
+
+type M1TemplateKey =
+  "quote-card@1.4.0" | "statistic-card@1.4.0" | "image-led-campaign@1.3.0";
+
+const authoringTemplateRegistryWithM1 = {
+  ...baseAuthoringTemplateRegistry,
+  "quote-card@1.4.0": m1Contract("quote-card@1.3.0", "quote-card@1.4.0", "1.4.0"),
+  "statistic-card@1.4.0": m1Contract(
+    "statistic-card@1.3.0",
+    "statistic-card@1.4.0",
+    "1.4.0",
+  ),
+  "image-led-campaign@1.3.0": m1Contract(
+    "image-led-campaign@1.2.0",
+    "image-led-campaign@1.3.0",
+    "1.3.0",
+  ),
 } as const satisfies Record<AuthoringTemplateKey, AuthoringTemplateContract>;
 
-export const AUTHORING_TEMPLATE_REGISTRY = deepFreeze(authoringTemplateRegistry);
+/** An M1 version: its B2 base's contract on schema 1.8.0 and the M1 type. */
+function m1Contract(
+  baseKey: "quote-card@1.3.0" | "statistic-card@1.3.0" | "image-led-campaign@1.2.0",
+  key: AuthoringTemplateKey,
+  version: "1.3.0" | "1.4.0",
+): AuthoringTemplateContract {
+  const base = baseAuthoringTemplateRegistry[baseKey];
+  return {
+    ...base,
+    key,
+    template: { id: base.template.id, version },
+    compatibleSchemaVersions: m1SchemaVersions,
+    authoringGuidance: [...base.authoringGuidance, ...m1AuthoringGuidance],
+  };
+}
+
+export const AUTHORING_TEMPLATE_REGISTRY = deepFreeze(authoringTemplateRegistryWithM1);
 
 function issue(
   code: AuthoringIssueCode,

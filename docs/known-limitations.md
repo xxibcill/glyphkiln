@@ -12,9 +12,15 @@
   undesirable boundary for specialized names, novel compounds, abbreviations,
   or malformed copy. Schema `1.2.0` authors can protect literal phrases with
   `keepTogether`. Other scripts without spaces do not yet have bundled models.
-- Inter normal variable is the only bundled development font. Additional font
-  bytes work through the SDK and the validated local CLI resource-bundle
-  adapter.
+- Inter normal variable is the default font. Core also bundles twelve approved
+  OFL families ([Font loading](fonts.md)). Other font bytes work through the
+  SDK and the validated local CLI resource-bundle adapter.
+- Font fallback stacks, per-script faces, all variable axes and automatic
+  optical size exist only on the M1 typography: `quote-card@1.4.0`,
+  `statistic-card@1.4.0`, `image-led-campaign@1.3.0` and Scene `1.1.0`
+  ([Typography M1](typography-m1.md)). Older template versions keep
+  per-glyph tracking, which moves Thai marks under nonzero tracking, and
+  shape each line as one script.
 - Asset inputs are PNG/JPEG only. Core fully decodes bounded pixels but does not
   replace an upload malware scanner or normalize color profiles/metadata.
 - `DesignDocument` remains semantic and coordinate-free. Scene Kernel is an

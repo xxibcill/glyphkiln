@@ -1,0 +1,876 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": {
+    "repository": "https://github.com/google/fonts",
+    "commit": "2fe1e8c6b137fb13041a7cfca6fdcd8a910ea4dc",
+    "path": "ofl/"
+  },
+  "approval": "Owner decision D3, 4 November 2026 (docs/research/thai-latin-fonts-2026-11, docs/research/latin-fonts-2026-11)",
+  "families": [
+    {
+      "family": "IBM Plex Sans Thai",
+      "directory": "ibmplexsansthai",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "ibmplexsansthai/OFL.txt",
+      "licenseSha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "copyright": "Copyright 2019 IBM Corp. All rights reserved.",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-Thin.ttf",
+          "style": "normal",
+          "sha256": "65f2cd4ed6f23048622bba1a1062c05c2ff80e603d202fdccf303cf3d5d085e5",
+          "bytes": 120904,
+          "weights": [100]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "b1ba0c97d959657832c1a0929c274e4d4d8128ca2c52d24c6835cf87fb4a5a04",
+          "bytes": 119896,
+          "weights": [200]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-Light.ttf",
+          "style": "normal",
+          "sha256": "b8e2da56ec11f1965af59a7119ee0b9b78773a9c9a89ae049b4975c9197b5c8d",
+          "bytes": 118380,
+          "weights": [300]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-Regular.ttf",
+          "style": "normal",
+          "sha256": "eee061d1bac39be40f9bb94498898cd1894f5d3d9a2f0ee6cbd48a6bd03d052b",
+          "bytes": 116004,
+          "weights": [400]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-Medium.ttf",
+          "style": "normal",
+          "sha256": "46ba1b7365cc2c583914f23914cce46e836a72662e34f6e3029b15aaa10b792e",
+          "bytes": 116304,
+          "weights": [500]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "9d7526a0c8dfad63c49815d0cce9eea1026f018468b81c579997e953620a67d3",
+          "bytes": 116484,
+          "weights": [600]
+        },
+        {
+          "file": "ibmplexsansthai/IBMPlexSansThai-Bold.ttf",
+          "style": "normal",
+          "sha256": "f88fbe0a3717c93deddf4b13e50a05c9adcd38f58d675d9d5d0b869961851667",
+          "bytes": 116552,
+          "weights": [700]
+        }
+      ]
+    },
+    {
+      "family": "Noto Sans Thai",
+      "directory": "notosansthai",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "notosansthai/OFL.txt",
+      "licenseSha256": "2e98fd23a52d253db8612cd5942c8f2ff4111b21d2367050fdca91d8ccc374a0",
+      "copyright": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/thai)",
+      "variationAxes": {
+        "wdth": [62.5, 100.0],
+        "wght": [100.0, 900.0]
+      },
+      "files": [
+        {
+          "file": "notosansthai/NotoSansThai[wdth,wght].ttf",
+          "style": "normal",
+          "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8",
+          "bytes": 218652,
+          "weights": [100, 200, 300, 400, 500, 600, 700, 800, 900]
+        }
+      ]
+    },
+    {
+      "family": "Sarabun",
+      "directory": "sarabun",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "sarabun/OFL.txt",
+      "licenseSha256": "b26cae1321380296ba8311b632a397d5eac11b47197f9d0aa0b9310f1531ad60",
+      "copyright": "Copyright 2018 The Sarabun Project Authors (https://github.com/cadsondemak/Sarabun)",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "sarabun/Sarabun-Thin.ttf",
+          "style": "normal",
+          "sha256": "fa55eab332e998acb4bb64c43d9bd1cef791d88d5d15d63570f43741688d7057",
+          "bytes": 90588,
+          "weights": [100]
+        },
+        {
+          "file": "sarabun/Sarabun-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "8aa9fba8885554545c7bce3f1db5efd914c74c0ce8ae58e9e4cb477b5824fe9d",
+          "bytes": 90484,
+          "weights": [200]
+        },
+        {
+          "file": "sarabun/Sarabun-Light.ttf",
+          "style": "normal",
+          "sha256": "9efd75e5ebb6d7755cca3faa5906c77a4bbd39c9aac0ed23bf7f4ba33b02f688",
+          "bytes": 90440,
+          "weights": [300]
+        },
+        {
+          "file": "sarabun/Sarabun-Regular.ttf",
+          "style": "normal",
+          "sha256": "226d4f368fbc0457990ddef2692679badfd2c1a4e89e5ac4d43c10ba7743b2f1",
+          "bytes": 90220,
+          "weights": [400]
+        },
+        {
+          "file": "sarabun/Sarabun-Medium.ttf",
+          "style": "normal",
+          "sha256": "cc7c3016daab3321674fdf6e2ef59850dc0c07503de1cbdb8b90fe8080ada2b4",
+          "bytes": 90292,
+          "weights": [500]
+        },
+        {
+          "file": "sarabun/Sarabun-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "c0bb057d86e4a12097d701ac0953597e315788d47a446f5b63a6604ab21dceba",
+          "bytes": 90200,
+          "weights": [600]
+        },
+        {
+          "file": "sarabun/Sarabun-Bold.ttf",
+          "style": "normal",
+          "sha256": "d38308ca27d067b9a1b79006337c1f9a66c29aa016d96a9d88d3801da7fa83b9",
+          "bytes": 89804,
+          "weights": [700]
+        },
+        {
+          "file": "sarabun/Sarabun-ExtraBold.ttf",
+          "style": "normal",
+          "sha256": "1f4ba0daad63c802d825885341bd7f1f054306a669ea2b183f2b20ee65a0a043",
+          "bytes": 89884,
+          "weights": [800]
+        },
+        {
+          "file": "sarabun/Sarabun-ThinItalic.ttf",
+          "style": "italic",
+          "sha256": "c520d004674d257f4e539926c04ec9b77cbab2239aaa2b468df9693a369bb884",
+          "bytes": 93616,
+          "weights": [100]
+        },
+        {
+          "file": "sarabun/Sarabun-ExtraLightItalic.ttf",
+          "style": "italic",
+          "sha256": "c2da92eae4674589bfb7ec04ecb5041c0bbe7768adf65fdddcfc1c9af3bbbb2f",
+          "bytes": 93612,
+          "weights": [200]
+        },
+        {
+          "file": "sarabun/Sarabun-LightItalic.ttf",
+          "style": "italic",
+          "sha256": "50c12a64ff7fb67fa7ca525c2ed2def9660c97c3ca443acea622e35beee97c33",
+          "bytes": 93296,
+          "weights": [300]
+        },
+        {
+          "file": "sarabun/Sarabun-Italic.ttf",
+          "style": "italic",
+          "sha256": "595a968e97a8b8179a6bde2d74d4f91b11475dcfb6cf270037d76d8ed71160ea",
+          "bytes": 93248,
+          "weights": [400]
+        },
+        {
+          "file": "sarabun/Sarabun-MediumItalic.ttf",
+          "style": "italic",
+          "sha256": "263e6bb51d80c228c201a0770e6100181115119fdca7968445d44d2fb94ab009",
+          "bytes": 93428,
+          "weights": [500]
+        },
+        {
+          "file": "sarabun/Sarabun-SemiBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "982bd56d4683c60e7e4c9cd84bfafae7b700c4b514d9655b8810bb7478063e5c",
+          "bytes": 93352,
+          "weights": [600]
+        },
+        {
+          "file": "sarabun/Sarabun-BoldItalic.ttf",
+          "style": "italic",
+          "sha256": "5ef1b930f9a3afed5ec83374b5617cad3a89d91a8fc5e372dc028c2aa2950f8d",
+          "bytes": 92948,
+          "weights": [700]
+        },
+        {
+          "file": "sarabun/Sarabun-ExtraBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "4b699f0ae018a58df04bd2a2a7c37d71c29c5359cb9df48abc70210ba2564ef9",
+          "bytes": 92820,
+          "weights": [800]
+        }
+      ]
+    },
+    {
+      "family": "Kanit",
+      "directory": "kanit",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "kanit/OFL.txt",
+      "licenseSha256": "eb998cc5a685b240cdb46a0b5747e70334c8c57bbd7b1f6b044d75719358df67",
+      "copyright": "Copyright 2020 The Kanit Project Authors (https://github.com/cadsondemak/kanit)",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "kanit/Kanit-Thin.ttf",
+          "style": "normal",
+          "sha256": "740d8a4d92ddae394d13a3caea845c048b6d62b58f9fb92ed4ac0118ed38c083",
+          "bytes": 160460,
+          "weights": [100]
+        },
+        {
+          "file": "kanit/Kanit-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "f90e440b41170f2f75f2930d3273dbe9ed7a5ac49f7dbdc375ba5f8d2e224745",
+          "bytes": 164140,
+          "weights": [200]
+        },
+        {
+          "file": "kanit/Kanit-Light.ttf",
+          "style": "normal",
+          "sha256": "7c04b0be6011782fcc4c032f4033ef6f6ba1fef99b135ba1ee68b800c53017ec",
+          "bytes": 171384,
+          "weights": [300]
+        },
+        {
+          "file": "kanit/Kanit-Regular.ttf",
+          "style": "normal",
+          "sha256": "27170c049660b2f962d3ed28441fd20f4c743503ca031fec9c2b4542d6c52736",
+          "bytes": 173148,
+          "weights": [400]
+        },
+        {
+          "file": "kanit/Kanit-Medium.ttf",
+          "style": "normal",
+          "sha256": "50a237034244026a7c63fe55e24e0b4298babe363cde043e032075b764c545a2",
+          "bytes": 174628,
+          "weights": [500]
+        },
+        {
+          "file": "kanit/Kanit-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "67e64baf1a7e6e076435518ff0e6bf25c4d74b98143cd1a2688db906c0abce11",
+          "bytes": 174796,
+          "weights": [600]
+        },
+        {
+          "file": "kanit/Kanit-Bold.ttf",
+          "style": "normal",
+          "sha256": "5dec5b080dab13de9d2295437c0ff3ec05c9e75587dfc31358c005eb4efa5e70",
+          "bytes": 176136,
+          "weights": [700]
+        },
+        {
+          "file": "kanit/Kanit-ExtraBold.ttf",
+          "style": "normal",
+          "sha256": "70082870d1f5bb6ae9faa708572b2c36de3c076caae187edae753f709d0de984",
+          "bytes": 177836,
+          "weights": [800]
+        },
+        {
+          "file": "kanit/Kanit-Black.ttf",
+          "style": "normal",
+          "sha256": "5d290c2cc9926764bd782aa6abc47a8f55bd64641d0afb56e115ee522698ee7e",
+          "bytes": 176856,
+          "weights": [900]
+        },
+        {
+          "file": "kanit/Kanit-ThinItalic.ttf",
+          "style": "italic",
+          "sha256": "6f61a638ba025b495fbf23a05f96af31ae3e9ca710506da123e3d63abdcf7d40",
+          "bytes": 165048,
+          "weights": [100]
+        },
+        {
+          "file": "kanit/Kanit-ExtraLightItalic.ttf",
+          "style": "italic",
+          "sha256": "e62305565471f6ef1139581e2afbcd0b108fc2a8b140052cd06ec2852aad9cf9",
+          "bytes": 168260,
+          "weights": [200]
+        },
+        {
+          "file": "kanit/Kanit-LightItalic.ttf",
+          "style": "italic",
+          "sha256": "e5cd0a7ce9ce65b7be59287320d247b7627b0a437a6a3bd1174440ceed4af1c6",
+          "bytes": 174936,
+          "weights": [300]
+        },
+        {
+          "file": "kanit/Kanit-Italic.ttf",
+          "style": "italic",
+          "sha256": "7cbe69393a7bf948dd49e575369344a907f06b0182e7a618c033c67208abb27d",
+          "bytes": 175160,
+          "weights": [400]
+        },
+        {
+          "file": "kanit/Kanit-MediumItalic.ttf",
+          "style": "italic",
+          "sha256": "266a8044e599ce2feef7dffa8e3ce7648c94927daba20c4838629054633cf8c4",
+          "bytes": 175444,
+          "weights": [500]
+        },
+        {
+          "file": "kanit/Kanit-SemiBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "df1f635f3022306a7f61ed03cdc1a90364f31e19454bd287cffe45f98ca805d0",
+          "bytes": 175508,
+          "weights": [600]
+        },
+        {
+          "file": "kanit/Kanit-BoldItalic.ttf",
+          "style": "italic",
+          "sha256": "194d26ba90b782465bd4653cc5a1cdf7a9bed7b9e271df4f6fb41b5dba359d78",
+          "bytes": 183656,
+          "weights": [700]
+        },
+        {
+          "file": "kanit/Kanit-ExtraBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "e874a96de66b5340174ddf9c621593280a21e9adb8e07bb1587112de274acad5",
+          "bytes": 188372,
+          "weights": [800]
+        },
+        {
+          "file": "kanit/Kanit-BlackItalic.ttf",
+          "style": "italic",
+          "sha256": "7fe3f1d87e33e165eae2d664e42a31faf542d24e431a2e7da36f4e4eee5f8529",
+          "bytes": 185464,
+          "weights": [900]
+        }
+      ]
+    },
+    {
+      "family": "Trirong",
+      "directory": "trirong",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "trirong/OFL.txt",
+      "licenseSha256": "1d08c63944e639bbfe8a1b81e3c6a63836806c126b3573b9cda0db83fd27ffe9",
+      "copyright": "Copyright (c) 2015, Cadson Demak (info@cadsondemak.com)",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "trirong/Trirong-Thin.ttf",
+          "style": "normal",
+          "sha256": "c45158916cd678d789f27bf956b04aa8f7d185bfcb0e2c644d3efd0bc1bea613",
+          "bytes": 193856,
+          "weights": [100]
+        },
+        {
+          "file": "trirong/Trirong-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "b8795c42c38837fcb9b265ea467cc49974c113f64933f34c092e3e19a56ac947",
+          "bytes": 194128,
+          "weights": [200]
+        },
+        {
+          "file": "trirong/Trirong-Light.ttf",
+          "style": "normal",
+          "sha256": "4302056ccc54744ae2d9b80f34b6377c6858cb95cd534ce2531fb13a4a780793",
+          "bytes": 202376,
+          "weights": [300]
+        },
+        {
+          "file": "trirong/Trirong-Regular.ttf",
+          "style": "normal",
+          "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05",
+          "bytes": 197960,
+          "weights": [400]
+        },
+        {
+          "file": "trirong/Trirong-Medium.ttf",
+          "style": "normal",
+          "sha256": "7d9baefbf837849e8767f8649f19dd6eb9ef83d5f63baca0268efdc566e2fe03",
+          "bytes": 196460,
+          "weights": [500]
+        },
+        {
+          "file": "trirong/Trirong-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "4e8cb898fb7992db7ec9d5bc2c46f265d76dd61938ecdbcdcddd937384f501b2",
+          "bytes": 184500,
+          "weights": [600]
+        },
+        {
+          "file": "trirong/Trirong-Bold.ttf",
+          "style": "normal",
+          "sha256": "5f763f2ab302d0d81f8e0435db073bfb50a447d52dc1a060594f3dc3420ba8ae",
+          "bytes": 201896,
+          "weights": [700]
+        },
+        {
+          "file": "trirong/Trirong-ExtraBold.ttf",
+          "style": "normal",
+          "sha256": "f63665b55d81823643de251a242f296c3165de839ae377eaf7b5d1849808fa48",
+          "bytes": 205724,
+          "weights": [800]
+        },
+        {
+          "file": "trirong/Trirong-Black.ttf",
+          "style": "normal",
+          "sha256": "56bead49f2bb6975660de599a4a4920a26cd2a3272c52004fa63145eea7e9210",
+          "bytes": 204788,
+          "weights": [900]
+        },
+        {
+          "file": "trirong/Trirong-ThinItalic.ttf",
+          "style": "italic",
+          "sha256": "64124db72dc25a153c096b0fc03810a976b2918681674fa604dc9bb5583c2c14",
+          "bytes": 215896,
+          "weights": [100]
+        },
+        {
+          "file": "trirong/Trirong-ExtraLightItalic.ttf",
+          "style": "italic",
+          "sha256": "67c0c3d74a01d2586f680aeacc528a5e0620fb244832ee32ec767c13a00fea99",
+          "bytes": 214568,
+          "weights": [200]
+        },
+        {
+          "file": "trirong/Trirong-LightItalic.ttf",
+          "style": "italic",
+          "sha256": "001e8ad176b4e565573d6bf6a354a1875ecc89b7dd442fe38119dca4952b9216",
+          "bytes": 225544,
+          "weights": [300]
+        },
+        {
+          "file": "trirong/Trirong-Italic.ttf",
+          "style": "italic",
+          "sha256": "c705d591725d650ad241c4bed032e553c13756849f4c68aa2a5426a006eb67a6",
+          "bytes": 204696,
+          "weights": [400]
+        },
+        {
+          "file": "trirong/Trirong-MediumItalic.ttf",
+          "style": "italic",
+          "sha256": "5f7b430504320c4a7d3f9079f1f863d7bc195d60b918ba5dd41860036c377d6a",
+          "bytes": 212388,
+          "weights": [500]
+        },
+        {
+          "file": "trirong/Trirong-SemiBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "f6380bdd5a89d62d45cb2fee8b7c3cc922acbfc673b3d12a982253c43e20f353",
+          "bytes": 201824,
+          "weights": [600]
+        },
+        {
+          "file": "trirong/Trirong-BoldItalic.ttf",
+          "style": "italic",
+          "sha256": "42ee8cb33788730a02e0168f159b372e5f07513829bfa5415f7998932ca37676",
+          "bytes": 226188,
+          "weights": [700]
+        },
+        {
+          "file": "trirong/Trirong-ExtraBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "042c70fcc2c30f7f9292390d145102b5dbe58bab2cdecbe6bb2e718a66d0e2ad",
+          "bytes": 231236,
+          "weights": [800]
+        },
+        {
+          "file": "trirong/Trirong-BlackItalic.ttf",
+          "style": "italic",
+          "sha256": "be60e1e694cd13b196e603a793e2c95e3dfb6741ec1767fcaa99d5222c93d23a",
+          "bytes": 232164,
+          "weights": [900]
+        }
+      ]
+    },
+    {
+      "family": "Noto Serif Thai",
+      "directory": "notoserifthai",
+      "scripts": ["latn", "thai"],
+      "license": "OFL-1.1",
+      "licenseFile": "notoserifthai/OFL.txt",
+      "licenseSha256": "2e98fd23a52d253db8612cd5942c8f2ff4111b21d2367050fdca91d8ccc374a0",
+      "copyright": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/thai)",
+      "variationAxes": {
+        "wdth": [62.5, 100.0],
+        "wght": [100.0, 900.0]
+      },
+      "files": [
+        {
+          "file": "notoserifthai/NotoSerifThai[wdth,wght].ttf",
+          "style": "normal",
+          "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53",
+          "bytes": 292188,
+          "weights": [100, 200, 300, 400, 500, 600, 700, 800, 900]
+        }
+      ]
+    },
+    {
+      "family": "IBM Plex Sans",
+      "directory": "ibmplexsans",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "ibmplexsans/OFL.txt",
+      "licenseSha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "copyright": "Copyright 2019 IBM Corp. All rights reserved.",
+      "variationAxes": {
+        "wdth": [75.0, 100.0],
+        "wght": [100.0, 700.0]
+      },
+      "files": [
+        {
+          "file": "ibmplexsans/IBMPlexSans[wdth,wght].ttf",
+          "style": "normal",
+          "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3",
+          "bytes": 537244,
+          "weights": [100, 200, 300, 400, 500, 600, 700]
+        },
+        {
+          "file": "ibmplexsans/IBMPlexSans-Italic[wdth,wght].ttf",
+          "style": "italic",
+          "sha256": "0b94c5e981993764db32bf9c610ecc60cbd34ad77ec2f10ba03c64ab75124d8e",
+          "bytes": 599624,
+          "weights": [100, 200, 300, 400, 500, 600, 700]
+        }
+      ]
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "directory": "schibstedgrotesk",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "schibstedgrotesk/OFL.txt",
+      "licenseSha256": "3b4f3063b6ac7c1e403e2c4a5e8ef3a58190ff83ed7b15af66511858699139ce",
+      "copyright": "Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk)",
+      "variationAxes": {
+        "wght": [400.0, 900.0]
+      },
+      "files": [
+        {
+          "file": "schibstedgrotesk/SchibstedGrotesk[wght].ttf",
+          "style": "normal",
+          "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d",
+          "bytes": 176068,
+          "weights": [400, 500, 600, 700, 800, 900]
+        },
+        {
+          "file": "schibstedgrotesk/SchibstedGrotesk-Italic[wght].ttf",
+          "style": "italic",
+          "sha256": "b49fedb6f3a2ff9b43e13351888641505dc8e5f300941e597eecbc3f52ba357b",
+          "bytes": 181440,
+          "weights": [400, 500, 600, 700, 800, 900]
+        }
+      ]
+    },
+    {
+      "family": "Barlow Condensed",
+      "directory": "barlowcondensed",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "barlowcondensed/OFL.txt",
+      "licenseSha256": "186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f",
+      "copyright": "Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "barlowcondensed/BarlowCondensed-Thin.ttf",
+          "style": "normal",
+          "sha256": "68afe339b8503a9d74b2c3b5b0c521ea5333461f29aeaf7c680141482114d85a",
+          "bytes": 100364,
+          "weights": [100]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "19e3c4a81dc7fcee8c38ab6be3819fcc45d3f3822f011ac7b4bd550e6502b80f",
+          "bytes": 101172,
+          "weights": [200]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Light.ttf",
+          "style": "normal",
+          "sha256": "2c37e1e6b5feb71d38a42e6180d2e2f4ca1aad22cfecbd017430f3863deba67d",
+          "bytes": 101996,
+          "weights": [300]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Regular.ttf",
+          "style": "normal",
+          "sha256": "583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996",
+          "bytes": 102480,
+          "weights": [400]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Medium.ttf",
+          "style": "normal",
+          "sha256": "262bd143292ce479ee0cd09a42b47ab173fca8e9c6eb5ed0b5c8a845bc371d17",
+          "bytes": 103360,
+          "weights": [500]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "7b619d14bc2327509a9ef32b0890f709626f7ecc9ff61191c2a4314c5499d2d9",
+          "bytes": 109428,
+          "weights": [600]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Bold.ttf",
+          "style": "normal",
+          "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+          "bytes": 109912,
+          "weights": [700]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-ExtraBold.ttf",
+          "style": "normal",
+          "sha256": "724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260",
+          "bytes": 110296,
+          "weights": [800]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Black.ttf",
+          "style": "normal",
+          "sha256": "e74b750df582c608f35db467b711b2b60d2217618e85e60b72b42dfd00446cab",
+          "bytes": 110828,
+          "weights": [900]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-ThinItalic.ttf",
+          "style": "italic",
+          "sha256": "5b0ff874e3ae64e2b3dc2c761d8ba2eb3eae324d269441f6de0062e8fbff0b8e",
+          "bytes": 107076,
+          "weights": [100]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-ExtraLightItalic.ttf",
+          "style": "italic",
+          "sha256": "a58c17c59c226eb0ef411b73696f79374d170f2708acc6d72d8db8c07f333286",
+          "bytes": 107832,
+          "weights": [200]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-LightItalic.ttf",
+          "style": "italic",
+          "sha256": "14aabc4936c54a3aae666abccbc4be612e4a33501c9483f7e4ebb249359d0171",
+          "bytes": 108540,
+          "weights": [300]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-Italic.ttf",
+          "style": "italic",
+          "sha256": "063615da0a64f318397de2afac330dfbfbbf4cdb562a9987cb72bfdcbd37ba7c",
+          "bytes": 109856,
+          "weights": [400]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-MediumItalic.ttf",
+          "style": "italic",
+          "sha256": "e036488bfe3ea1e9f39f006b1237c2931e7cfea7d9ecdccdf17507a5986f73d9",
+          "bytes": 110340,
+          "weights": [500]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-SemiBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "dc83cbbb7545a117ab9e4c10ed07d35eef6f563b77621a1d357f25a3194987d1",
+          "bytes": 112272,
+          "weights": [600]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-BoldItalic.ttf",
+          "style": "italic",
+          "sha256": "d8694f65cd70c3e5e600ead37657aab0adb5f63b275d0c1f6f4a7046de222145",
+          "bytes": 112196,
+          "weights": [700]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-ExtraBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "331783dae9ec0c398f4d32c9fd5a56d4c602caa0c1628c2b9cbfe93f48eb68c9",
+          "bytes": 113004,
+          "weights": [800]
+        },
+        {
+          "file": "barlowcondensed/BarlowCondensed-BlackItalic.ttf",
+          "style": "italic",
+          "sha256": "e1ed5d7e50c6a4498454d40509ce2362384a2c7870df3418fdbd010f81dffad3",
+          "bytes": 112592,
+          "weights": [900]
+        }
+      ]
+    },
+    {
+      "family": "Instrument Serif",
+      "directory": "instrumentserif",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "instrumentserif/OFL.txt",
+      "licenseSha256": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "copyright": "Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "instrumentserif/InstrumentSerif-Regular.ttf",
+          "style": "normal",
+          "sha256": "498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88",
+          "bytes": 70012,
+          "weights": [400]
+        },
+        {
+          "file": "instrumentserif/InstrumentSerif-Italic.ttf",
+          "style": "italic",
+          "sha256": "08939b8bdf534afec24ae0ef5e03f948940cd9a8fe08e7fecbad040e62327385",
+          "bytes": 71592,
+          "weights": [400]
+        }
+      ]
+    },
+    {
+      "family": "Source Serif 4",
+      "directory": "sourceserif4",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "sourceserif4/OFL.txt",
+      "licenseSha256": "5f94c3fd3a23131a417ab5a0c8452de57e70c3cfb9f604d88241f7065ebf9fd9",
+      "copyright": "© 2014 - 2021 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name ‘Source’.",
+      "variationAxes": {
+        "opsz": [8.0, 60.0],
+        "wght": [200.0, 900.0]
+      },
+      "files": [
+        {
+          "file": "sourceserif4/SourceSerif4[opsz,wght].ttf",
+          "style": "normal",
+          "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+          "bytes": 1209508,
+          "weights": [200, 300, 400, 500, 600, 700, 800, 900]
+        },
+        {
+          "file": "sourceserif4/SourceSerif4-Italic[opsz,wght].ttf",
+          "style": "italic",
+          "sha256": "15fbc7e4679489a501998c3669272637a6646388ef7e4bd77eebb5bf967a1f42",
+          "bytes": 855432,
+          "weights": [200, 300, 400, 500, 600, 700, 800, 900]
+        }
+      ]
+    },
+    {
+      "family": "IBM Plex Mono",
+      "directory": "ibmplexmono",
+      "scripts": ["latn"],
+      "license": "OFL-1.1",
+      "licenseFile": "ibmplexmono/OFL.txt",
+      "licenseSha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "copyright": "Copyright 2017 IBM Corp. All rights reserved.",
+      "variationAxes": {},
+      "files": [
+        {
+          "file": "ibmplexmono/IBMPlexMono-Thin.ttf",
+          "style": "normal",
+          "sha256": "c44c820c14b4f1b818344e5f5dc189cee98b1d5e56b4e80055496c228f3cc7ea",
+          "bytes": 137900,
+          "weights": [100]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-ExtraLight.ttf",
+          "style": "normal",
+          "sha256": "826b765bd5173b97d521053330a66277edc224f8cc5f1e0035df1d995d5f003c",
+          "bytes": 135980,
+          "weights": [200]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-Light.ttf",
+          "style": "normal",
+          "sha256": "780bcf65509d72a35ec114b57bcbe220dc6b77d8ea2e9b25e294be3c570c5025",
+          "bytes": 135216,
+          "weights": [300]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-Regular.ttf",
+          "style": "normal",
+          "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+          "bytes": 135580,
+          "weights": [400]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-Medium.ttf",
+          "style": "normal",
+          "sha256": "a9b4c49bb299e05b5f6c481e7fb5e78943d2793249a0c8874ab574a2d1ea6755",
+          "bytes": 136704,
+          "weights": [500]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-SemiBold.ttf",
+          "style": "normal",
+          "sha256": "d3c38e55c78f5b0f28009fddba4834ec503278936a5986032424c9bd2d23aa46",
+          "bytes": 140216,
+          "weights": [600]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-Bold.ttf",
+          "style": "normal",
+          "sha256": "ac27abd6450a64dd94467580a02fe6235156d5b92f2926ebbc8e7489df64e0be",
+          "bytes": 137784,
+          "weights": [700]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-ThinItalic.ttf",
+          "style": "italic",
+          "sha256": "3782f01f12b444c62be712676646c552fc23443e8fd02d5b5619c6c4b975516d",
+          "bytes": 146100,
+          "weights": [100]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-ExtraLightItalic.ttf",
+          "style": "italic",
+          "sha256": "8ae22766094bd04c2808a3c9dec812dcf061786c26ebd25eea211ae685eb2c39",
+          "bytes": 144672,
+          "weights": [200]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-LightItalic.ttf",
+          "style": "italic",
+          "sha256": "2bb4dd18abb03cb8a0a1ae69a0a10b194e02027b817c7b13126ef4724a7f5c73",
+          "bytes": 143432,
+          "weights": [300]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-Italic.ttf",
+          "style": "italic",
+          "sha256": "3362fc791b0652193328b862c1c5f23a789bc7288b1617fa63302f88689a2a34",
+          "bytes": 143920,
+          "weights": [400]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-MediumItalic.ttf",
+          "style": "italic",
+          "sha256": "de6e0f805a15a2a1538be5d1074741298a07ffcba6fa1f4cd93983ff73155a7d",
+          "bytes": 144004,
+          "weights": [500]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-SemiBoldItalic.ttf",
+          "style": "italic",
+          "sha256": "391ef0e273eb52571eccaab6a6dbddeec48e1d282cb7bf153043512b797ed6f0",
+          "bytes": 147368,
+          "weights": [600]
+        },
+        {
+          "file": "ibmplexmono/IBMPlexMono-BoldItalic.ttf",
+          "style": "italic",
+          "sha256": "af4e05a761e98c1adf064c48a6352c9bec1a6ad70982cd2a544149323391f98e",
+          "bytes": 144512,
+          "weights": [700]
+        }
+      ]
+    }
+  ]
+}

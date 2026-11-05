@@ -1,0 +1,204 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_0712c009b8c5c26fdd3c241e",
+  "renderFingerprint": "0712c009b8c5c26fdd3c241e53aa8959a3d1a66e4a4cdcb9507a169239bff615",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-brief-a-plex",
+    "sceneHash": "40e0c7796d16b0b3860a7eba08ca7ce3d1df1669f3488a0f8845b125a38aa752"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "IBM Plex Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "f88fbe0a3717c93deddf4b13e50a05c9adcd38f58d675d9d5d0b869961851667"
+    },
+    {
+      "family": "IBM Plex Sans",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3"
+    },
+    {
+      "family": "IBM Plex Sans Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "eee061d1bac39be40f9bb94498898cd1894f5d3d9a2f0ee6cbd48a6bd03d052b"
+    },
+    {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "IBM Plex Sans Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "f88fbe0a3717c93deddf4b13e50a05c9adcd38f58d675d9d5d0b869961851667",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "IBM Plex Sans",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3",
+      "coordinates": { "wdth": 100, "wght": 700 },
+      "role": "script:latn",
+      "scale": 1.055,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "IBM Plex Sans Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "eee061d1bac39be40f9bb94498898cd1894f5d3d9a2f0ee6cbd48a6bd03d052b",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3",
+      "coordinates": { "wdth": 100, "wght": 400 },
+      "role": "script:latn",
+      "scale": 1.058,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "headline",
+      "stack": ["IBM Plex Sans", "IBM Plex Sans Thai"],
+      "faces": [
+        {
+          "family": "IBM Plex Sans Thai",
+          "weight": 700,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "IBM Plex Sans",
+          "weight": 700,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "support",
+      "stack": ["IBM Plex Sans", "IBM Plex Sans Thai"],
+      "faces": [
+        {
+          "family": "IBM Plex Sans Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "IBM Plex Sans",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "caption",
+      "stack": ["IBM Plex Sans", "IBM Plex Sans Thai"],
+      "faces": [
+        {
+          "family": "IBM Plex Sans Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "exclusions",
+      "stack": ["IBM Plex Sans", "IBM Plex Sans Thai"],
+      "faces": [
+        {
+          "family": "IBM Plex Sans Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1600, "height": 1600 },
+  "output": {
+    "format": "png",
+    "sha256": "29334bd641aa4bcf299783c2576eeecc86deb052f90f0cb40c2a79c88b091239",
+    "byteSize": 89825
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Thai planning-service cover",
+    "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+    "readingOrder": ["headline", "support", "caption", "exclusions"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

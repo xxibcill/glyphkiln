@@ -6,12 +6,12 @@ import {
   DEVELOPMENT_FONT_SHA256,
   FORMAT_IDS,
   FORMAT_REGISTRY,
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PROCEDURAL_ALGORITHM_VERSIONS,
   PROCEDURAL_STYLE_IDS,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   RENDER_CONFIGURATION,
   TEMPLATE_REGISTRY,
 } from "@glyphkiln/core";
@@ -79,11 +79,11 @@ describe("createPreviewCatalog", () => {
   it("reports the exact Core schema, package, renderer, font, and product claim", () => {
     expect(createPreviewCatalog()).toMatchObject({
       schemaVersion: DESIGN_DOCUMENT_VERSION,
-      manifestVersion: MANIFEST_VERSION,
+      manifestVersion: LEGACY_MANIFEST_VERSION,
       coreVersion: corePackage.version,
       renderer: {
         name: RENDERER_NAME,
-        version: RENDERER_VERSION,
+        version: LEGACY_RENDERER_VERSION,
       },
       developmentFontSha256: DEVELOPMENT_FONT_SHA256,
       productClaim: PRODUCT_CLAIM,

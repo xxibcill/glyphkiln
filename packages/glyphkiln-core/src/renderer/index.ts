@@ -4,8 +4,10 @@ import {
   createRenderFingerprint,
   type RenderFingerprintInput,
 } from "../cache/fingerprint.js";
+import { RENDER_CONFIGURATION } from "../cache/fingerprint-contract.js";
 import {
   GlyphkilnError,
+  RENDERER_VERSION,
   type OutputFormat,
   type QualityIssue,
   type ResolvedAsset,
@@ -18,8 +20,13 @@ import {
   createRenderManifest,
   type ManifestAsset,
   type ManifestFont,
+  type ManifestFontV2,
+  type ManifestTextStack,
   type RenderManifest,
 } from "../provenance/index.js";
+import { collectFontIdentityV2 } from "../provenance/font-identity.js";
+import { loadTypographyEngine } from "../typography/engine.js";
+import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
 import type { TemplateRenderResult } from "../templates/types.js";
@@ -82,10 +89,9 @@ export async function renderGraphic(
   const createdAt = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
   );
-  const { templateResult, fonts, manifestFonts, qualityIssues } = prepareGraphicScene(
-    document,
-    options,
-  );
+  if (getTemplate(document).typography === "m1") await loadTypographyEngine();
+  const { templateResult, fonts, manifestFonts, m1, qualityIssues } =
+    prepareGraphicScene(document, options);
 
   const svg = renderSceneToSvg(templateResult.scene);
   const manifestAssets = collectManifestAssets(document);
@@ -102,8 +108,20 @@ export async function renderGraphic(
       document,
       outputFormat: format,
       assetHashes,
-      fonts: manifestFonts,
+      fonts: m1 === undefined ? manifestFonts : m1.fonts,
       proceduralAlgorithmVersions: templateResult.proceduralAlgorithmVersions,
+      ...(m1 === undefined
+        ? {}
+        : {
+            rendererVersion: RENDERER_VERSION,
+            rendererConfiguration: {
+              ...RENDER_CONFIGURATION,
+              typographyPolicy: {
+                ...RENDER_CONFIGURATION.typographyPolicy,
+                m1: M1_TYPOGRAPHY_POLICY,
+              },
+            },
+          }),
     };
     const fingerprint = createRenderFingerprint(fingerprintInput);
     const outputHash = sha256(bytes);
@@ -123,6 +141,7 @@ export async function renderGraphic(
           ? "deterministic-code-rendering/direct-svg"
           : "deterministic-code-rendering/resvg",
       qualityIssues,
+      ...(m1 === undefined ? {} : { m1 }),
     });
     outputs.push({
       format,
@@ -139,6 +158,8 @@ export type PreparedGraphicScene = {
   templateResult: TemplateRenderResult;
   fonts: FontRegistry;
   manifestFonts: ManifestFont[];
+  /** Font identity v2 for templates on the M1 typography. */
+  m1: { fonts: ManifestFontV2[]; textStacks: ManifestTextStack[] } | undefined;
   qualityIssues: QualityIssue[];
 };
 
@@ -161,15 +182,24 @@ export function prepareGraphicScene(
   validateAssetReferences(document, assets);
   const fonts = new FontRegistry(options.fonts ?? []);
   fonts.validateDeclarations(document.fonts);
-  const templateResult = template.render({ document, assets, fonts });
+  const templateResult = template.render({
+    document,
+    assets,
+    fonts,
+    ...(template.typography === undefined ? {} : { typography: template.typography }),
+  });
   const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
+  const m1 =
+    template.typography === "m1"
+      ? collectFontIdentityV2(document.fonts, templateResult.scene)
+      : undefined;
   const qualityIssues = [
     ...requirementIssues,
     ...documentQuality.issues,
     ...templateResult.qualityIssues,
   ];
   blockOnQualityErrors(qualityIssues, documentQuality.textLayout);
-  return { templateResult, fonts, manifestFonts, qualityIssues };
+  return { templateResult, fonts, manifestFonts, m1, qualityIssues };
 }
 
 function collectManifestAssets(document: DesignDocument): ManifestAsset[] {

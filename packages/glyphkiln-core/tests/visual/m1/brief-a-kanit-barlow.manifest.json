@@ -1,0 +1,204 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_79aa4724f39d458c8981400b",
+  "renderFingerprint": "79aa4724f39d458c8981400b532608d822c90bfd62c9c51fdf4f5f5e121a4947",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-brief-a-kanit-barlow",
+    "sceneHash": "b5f09293e1f5f308e09bfee30993f2ec00d371b4efbcfdf5ca59499dd7e92a51"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Kanit",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5dec5b080dab13de9d2295437c0ff3ec05c9e75587dfc31358c005eb4efa5e70"
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65"
+    },
+    {
+      "family": "Kanit",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "27170c049660b2f962d3ed28441fd20f4c743503ca031fec9c2b4542d6c52736"
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Kanit",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5dec5b080dab13de9d2295437c0ff3ec05c9e75587dfc31358c005eb4efa5e70",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+      "coordinates": {},
+      "role": "script:latn",
+      "scale": 1.051,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Kanit",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "27170c049660b2f962d3ed28441fd20f4c743503ca031fec9c2b4542d6c52736",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996",
+      "coordinates": {},
+      "role": "script:latn",
+      "scale": 1.067,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "headline",
+      "stack": ["Barlow Condensed", "Kanit"],
+      "faces": [
+        {
+          "family": "Kanit",
+          "weight": 700,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Barlow Condensed",
+          "weight": 700,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "support",
+      "stack": ["Barlow Condensed", "Kanit"],
+      "faces": [
+        {
+          "family": "Kanit",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Barlow Condensed",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "caption",
+      "stack": ["Barlow Condensed", "Kanit"],
+      "faces": [
+        {
+          "family": "Kanit",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "exclusions",
+      "stack": ["Barlow Condensed", "Kanit"],
+      "faces": [
+        {
+          "family": "Kanit",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1600, "height": 1600 },
+  "output": {
+    "format": "png",
+    "sha256": "8def3804ce1e7513683e1a3afd2461052df559bde4c95ae1a9b272ccec907ba0",
+    "byteSize": 84516
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Thai planning-service cover",
+    "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+    "readingOrder": ["headline", "support", "caption", "exclusions"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

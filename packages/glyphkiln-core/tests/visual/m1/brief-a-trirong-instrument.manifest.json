@@ -1,0 +1,170 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_9b574f594a25b0790995561a",
+  "renderFingerprint": "9b574f594a25b0790995561a3aae52589574ce992c8a6747c34a26af097853de",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-brief-a-trirong-instrument",
+    "sceneHash": "7e4a078afe27d93dfd6d25a172d089fe69d844a0593afda688203046e08cafe4"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Trirong",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05"
+    },
+    {
+      "family": "Instrument Serif",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Trirong",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Instrument Serif",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88",
+      "coordinates": {},
+      "role": "script:latn",
+      "scale": 1.106,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "headline",
+      "stack": ["Instrument Serif", "Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Instrument Serif",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "support",
+      "stack": ["Instrument Serif", "Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Instrument Serif",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "caption",
+      "stack": ["Instrument Serif", "Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "exclusions",
+      "stack": ["Instrument Serif", "Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1600, "height": 1600 },
+  "output": {
+    "format": "png",
+    "sha256": "b2d770465803575b09a20597bc81dc363f974233e9a13f899b28a7b831fbb1ed",
+    "byteSize": 107950
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Thai planning-service cover",
+    "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+    "readingOrder": ["headline", "support", "caption", "exclusions"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

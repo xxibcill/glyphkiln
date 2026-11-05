@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { FontAxesSchema } from "../schema/design-document.js";
+
 import {
   SCENE_RESOURCE_LIMITS,
   getSceneInputResourceProblems,
@@ -9,6 +11,7 @@ import { AssetDeclarationSchema } from "../schema/design-document.js";
 import { isXml10Compatible } from "../security/xml.js";
 import { getScenePathDataProblem } from "./path-data.js";
 import {
+  LEGACY_SCENE_DOCUMENT_VERSION,
   SCENE_DOCUMENT_VERSION,
   type SceneDocument,
   type SceneElement,
@@ -192,6 +195,16 @@ const TextFitSchema = z
     );
   });
 
+const SceneFontFaceSchema = z
+  .object({
+    family: xmlText(z.string().min(1).max(120)),
+    scale: z.union([z.literal("auto"), z.number().min(0.5).max(2)]).optional(),
+    baselineShift: z
+      .union([z.literal("auto"), z.number().min(-0.5).max(0.5)])
+      .optional(),
+  })
+  .strict();
+
 const TextElementSchema = z
   .object({
     ...elementBase,
@@ -203,6 +216,18 @@ const TextElementSchema = z
         family: xmlText(z.string().min(1).max(120)),
         weight: z.number().int().min(100).max(900).multipleOf(100),
         style: z.enum(["normal", "italic"]),
+        axes: FontAxesSchema.optional(),
+        namedInstance: xmlText(z.string().min(1).max(64)).optional(),
+        opticalSizing: z.enum(["auto", "none"]).optional(),
+        opsz: z.number().min(1).max(1000).optional(),
+        fallback: z.array(SceneFontFaceSchema).min(1).max(3).optional(),
+        scriptFaces: z
+          .object({
+            latn: SceneFontFaceSchema.optional(),
+            thai: SceneFontFaceSchema.optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
     fit: TextFitSchema,
@@ -372,7 +397,7 @@ export const SceneFontDeclarationSchema: z.ZodType<SceneFontDeclaration> = z
 
 export const SceneDocumentSchema = z
   .object({
-    schemaVersion: z.literal(SCENE_DOCUMENT_VERSION),
+    schemaVersion: z.enum([LEGACY_SCENE_DOCUMENT_VERSION, SCENE_DOCUMENT_VERSION]),
     id: identifier,
     seed: z.string().min(1).max(256),
     dimensions: z
@@ -738,14 +763,57 @@ function checkResourceReferences(
       );
     }
     if (entry.element.type !== "text") continue;
-    const { family, weight, style } = entry.element.font;
-    if (fonts.has(fontReferenceKey(family, weight, style))) continue;
-    addSceneIssue(
-      context,
-      "UNDECLARED_SCENE_FONT_REFERENCE",
-      `Text references undeclared font "${family}" (${weight.toString()} ${style}).`,
-      [...entry.path, "font"],
-    );
+    const font = entry.element.font;
+    const { family, weight, style } = font;
+    if (!fonts.has(fontReferenceKey(family, weight, style))) {
+      addSceneIssue(
+        context,
+        "UNDECLARED_SCENE_FONT_REFERENCE",
+        `Text references undeclared font "${family}" (${weight.toString()} ${style}).`,
+        [...entry.path, "font"],
+      );
+    }
+    const m1Fields = (
+      [
+        "axes",
+        "namedInstance",
+        "opticalSizing",
+        "opsz",
+        "fallback",
+        "scriptFaces",
+      ] as const
+    ).filter((field) => font[field] !== undefined);
+    if (
+      document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION &&
+      m1Fields.length > 0
+    ) {
+      addSceneIssue(
+        context,
+        "SCENE_FIELD_REQUIRES_VERSION",
+        `Text font fields ${m1Fields.join(", ")} need SceneDocument ${SCENE_DOCUMENT_VERSION}.`,
+        [...entry.path, "font", m1Fields[0]!],
+      );
+    }
+    const stack = [
+      ...(font.fallback ?? []).map((face, index) => ({
+        face,
+        path: ["fallback", index],
+      })),
+      ...(["latn", "thai"] as const).flatMap((tag) =>
+        font.scriptFaces?.[tag] === undefined
+          ? []
+          : [{ face: font.scriptFaces[tag], path: ["scriptFaces", tag] }],
+      ),
+    ];
+    for (const { face, path } of stack) {
+      if (fonts.has(fontReferenceKey(face.family, weight, style))) continue;
+      addSceneIssue(
+        context,
+        "UNDECLARED_SCENE_FONT_REFERENCE",
+        `Text stack references undeclared font "${face.family}" (${weight.toString()} ${style}).`,
+        [...entry.path, "font", ...path],
+      );
+    }
   }
 }
 

@@ -1,6 +1,22 @@
 import type { AssetDeclaration } from "../schema/design-document.js";
 
-export const SCENE_DOCUMENT_VERSION = "1.0.0" as const;
+/**
+ * SceneDocument 1.1.0 adds the M1 font model to text (axes, named instance,
+ * optical sizing, fallback stack, per-script faces) and sets all its text on
+ * the M1 typography (renderer 0.6.0). 1.0.0 documents keep the legacy fontkit
+ * path and their exact bytes.
+ */
+export const SCENE_DOCUMENT_VERSION = "1.1.0" as const;
+export const LEGACY_SCENE_DOCUMENT_VERSION = "1.0.0" as const;
+export type SceneDocumentVersion =
+  typeof SCENE_DOCUMENT_VERSION | typeof LEGACY_SCENE_DOCUMENT_VERSION;
+
+/** A fallback or per-script face of a Scene 1.1.0 text element. */
+export type SceneFontFace = {
+  family: string;
+  scale?: number | "auto";
+  baselineShift?: number | "auto";
+};
 
 export type ScenePaint = "none" | "transparent" | `#${string}`;
 
@@ -79,6 +95,13 @@ export type SceneTextElement = SceneElementBase & {
     family: string;
     weight: number;
     style: "normal" | "italic";
+    /** Scene 1.1.0 only. */
+    axes?: Record<string, number>;
+    namedInstance?: string;
+    opticalSizing?: "auto" | "none";
+    opsz?: number;
+    fallback?: SceneFontFace[];
+    scriptFaces?: { latn?: SceneFontFace; thai?: SceneFontFace };
   };
   fit: {
     preferredFontSize: number;
@@ -171,7 +194,7 @@ export type SceneFontDeclaration = {
 };
 
 export type SceneDocument = {
-  schemaVersion: typeof SCENE_DOCUMENT_VERSION;
+  schemaVersion: SceneDocumentVersion;
   id: string;
   seed: string;
   dimensions: {

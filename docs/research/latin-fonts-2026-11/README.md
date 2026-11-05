@@ -3,7 +3,7 @@
 **Researched 4 November 2026 by Claude (Opus 5.5) for owner decision D3 in the
 [open-work plan](../../plans/open-work-plan.md). Status: the six-family
 [Latin starter set](#recommended-latin-starter-set) was approved by the owner on
-4 November 2026. The fonts are not bundled yet.**
+4 November 2026 and bundled in Core on 4 November 2026 (`packages/glyphkiln-core/assets/fonts/`, see [Font loading](../../fonts.md)).**
 
 This complements the approved [Thai + Latin set](../thai-latin-fonts-2026-11/README.md)
 (IBM Plex Sans Thai, Noto Sans Thai, Sarabun, Kanit, Trirong, Noto Serif
@@ -131,5 +131,5 @@ Barlow Condensed, Instrument Serif, Source Serif 4 and IBM Plex Mono.
 | `Anton-Regular.ttf`                      | `a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab` |
 | `JetBrainsMono[wght].ttf`                | `48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda` |
 
-Other static weights were checked from the same source; record their hashes
-when they are admitted.
+Every admitted file, with its hash, is recorded in
+`packages/glyphkiln-core/assets/fonts/catalog.json`.

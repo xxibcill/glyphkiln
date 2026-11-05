@@ -1,4 +1,4 @@
-export const DESIGN_DOCUMENT_VERSION = "1.7.0" as const;
+export const DESIGN_DOCUMENT_VERSION = "1.8.0" as const;
 export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
   "1.0.0",
   "1.1.0",
@@ -7,11 +7,23 @@ export const SUPPORTED_DESIGN_DOCUMENT_VERSIONS = Object.freeze([
   "1.4.0",
   "1.5.0",
   "1.6.0",
+  "1.7.0",
   DESIGN_DOCUMENT_VERSION,
 ] as const);
-export const MANIFEST_VERSION = "1.2.0" as const;
+export const MANIFEST_VERSION = "1.3.0" as const;
+/** Manifest version of renders on legacy typography (unchanged bytes). */
+export const LEGACY_MANIFEST_VERSION = "1.2.0" as const;
+export type ManifestVersion = typeof MANIFEST_VERSION | typeof LEGACY_MANIFEST_VERSION;
 export const RENDERER_NAME = "glyphkiln-svg" as const;
-export const RENDERER_VERSION = "0.5.0" as const;
+/**
+ * Renderer 0.6.0 owns the M1 typography pixels (HarfBuzz, script runs,
+ * cluster tracking, font model). Renders on the legacy fontkit path are
+ * byte-identical to renderer 0.5.0 and keep recording 0.5.0, so their
+ * fingerprints and manifests stay exact.
+ */
+export const RENDERER_VERSION = "0.6.0" as const;
+export const LEGACY_RENDERER_VERSION = "0.5.0" as const;
+export type RendererVersion = typeof RENDERER_VERSION | typeof LEGACY_RENDERER_VERSION;
 export const PRODUCT_CLAIM =
   "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately." as const;
 

@@ -52,10 +52,13 @@ export type {
 export {
   SCENE_PRODUCT_CLAIM,
   SCENE_RENDER_MANIFEST_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   verifySceneReproduction,
 } from "./provenance.js";
 export type { SceneRenderManifest } from "./provenance.js";
-export { SCENE_DOCUMENT_VERSION } from "./types.js";
+export { LEGACY_SCENE_DOCUMENT_VERSION, SCENE_DOCUMENT_VERSION } from "./types.js";
+export type { SceneDocumentVersion, SceneFontFace } from "./types.js";
+export { loadTypographyEngine } from "../typography/engine.js";
 export type {
   SceneBounds,
   SceneCircleElement,

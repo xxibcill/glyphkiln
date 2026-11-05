@@ -2,12 +2,20 @@ import { hashCanonical, sha256 } from "../cache/canonical.js";
 import {
   RENDERER_NAME,
   RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   type Dimensions,
   type OutputFormat,
   type QualityIssue,
   type RenderingMethod,
 } from "../domain/types.js";
-import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
+import type {
+  ManifestAsset,
+  ManifestFont,
+  ManifestFontV2,
+  ManifestTextStack,
+} from "../provenance/index.js";
+import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
+import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 import {
   RENDER_RESOURCE_LIMITS,
   getSceneInputResourceProblems,
@@ -18,12 +26,15 @@ import { flattenElements } from "./flatten.js";
 import { fontReferenceKey } from "../fonts/key.js";
 import type { SceneDocument, SceneElement } from "./types.js";
 
-export const SCENE_RENDER_MANIFEST_VERSION = "1.0.0" as const;
+/** Scene manifest 1.1.0 records font identity v2 for Scene 1.1.0 renders. */
+export const SCENE_RENDER_MANIFEST_VERSION = "1.1.0" as const;
+export const LEGACY_SCENE_RENDER_MANIFEST_VERSION = "1.0.0" as const;
 export const SCENE_PRODUCT_CLAIM =
   "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review." as const;
 
 export type SceneRenderManifest = {
-  manifestVersion: typeof SCENE_RENDER_MANIFEST_VERSION;
+  manifestVersion:
+    typeof SCENE_RENDER_MANIFEST_VERSION | typeof LEGACY_SCENE_RENDER_MANIFEST_VERSION;
   renderId: string;
   renderFingerprint: string;
   input: {
@@ -35,10 +46,16 @@ export type SceneRenderManifest = {
   sceneKernelVersion: typeof SCENE_KERNEL_VERSION;
   renderer: {
     name: typeof RENDERER_NAME;
-    version: typeof RENDERER_VERSION;
+    version: typeof LEGACY_RENDERER_VERSION | typeof RENDERER_VERSION;
   };
   assets: ManifestAsset[];
   fonts: ManifestFont[];
+  /** Scene manifest 1.1.0 only: the M1 typography policy. */
+  typographyPolicy?: typeof TYPOGRAPHY_POLICY & { m1: typeof M1_TYPOGRAPHY_POLICY };
+  /** Scene manifest 1.1.0 only: every face drawn, with coordinates. */
+  fontFaces?: ManifestFontV2[];
+  /** Scene manifest 1.1.0 only: the stack each text element tried. */
+  textStacks?: ManifestTextStack[];
   dimensions: Dimensions;
   output: {
     format: OutputFormat;
@@ -69,13 +86,17 @@ export type CreateSceneRenderManifestInput = {
   renderingMethod: RenderingMethod;
   qualityIssues: QualityIssue[];
   selectableText: boolean;
+  m1?: { fonts: ManifestFontV2[]; textStacks: ManifestTextStack[] };
 };
 
 export function createSceneRenderManifest(
   input: CreateSceneRenderManifestInput,
 ): SceneRenderManifest {
+  const legacy = input.document.schemaVersion === "1.0.0";
   return {
-    manifestVersion: SCENE_RENDER_MANIFEST_VERSION,
+    manifestVersion: legacy
+      ? LEGACY_SCENE_RENDER_MANIFEST_VERSION
+      : SCENE_RENDER_MANIFEST_VERSION,
     renderId: `scene_${input.fingerprint.slice(0, 24)}`,
     renderFingerprint: input.fingerprint,
     input: {
@@ -85,9 +106,19 @@ export function createSceneRenderManifest(
       sceneHash: hashCanonical(input.document),
     },
     sceneKernelVersion: SCENE_KERNEL_VERSION,
-    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    renderer: {
+      name: RENDERER_NAME,
+      version: legacy ? LEGACY_RENDERER_VERSION : RENDERER_VERSION,
+    },
     assets: input.assets,
     fonts: input.fonts,
+    ...(legacy
+      ? {}
+      : {
+          typographyPolicy: { ...TYPOGRAPHY_POLICY, m1: M1_TYPOGRAPHY_POLICY },
+          fontFaces: input.m1?.fonts ?? [],
+          textStacks: input.m1?.textStacks ?? [],
+        }),
     dimensions: { ...input.document.dimensions },
     output: {
       format: input.outputFormat,
@@ -135,12 +166,17 @@ export function verifySceneReproduction(input: {
   const document = validation.data;
   const issues: QualityIssue[] = [];
   const sceneHash = hashCanonical(document);
-  if (input.manifest.manifestVersion !== SCENE_RENDER_MANIFEST_VERSION) {
+  const legacy = document.schemaVersion === "1.0.0";
+  const expectedManifestVersion = legacy
+    ? LEGACY_SCENE_RENDER_MANIFEST_VERSION
+    : SCENE_RENDER_MANIFEST_VERSION;
+  const expectedRendererVersion = legacy ? LEGACY_RENDERER_VERSION : RENDERER_VERSION;
+  if (input.manifest.manifestVersion !== expectedManifestVersion) {
     issues.push(
       mismatch(
         "SCENE_MANIFEST_VERSION_MISMATCH",
         "The scene manifest version does not match this verifier.",
-        SCENE_RENDER_MANIFEST_VERSION,
+        expectedManifestVersion,
         input.manifest.manifestVersion,
       ),
     );
@@ -180,15 +216,32 @@ export function verifySceneReproduction(input: {
   }
   if (
     input.manifest.renderer.name !== RENDERER_NAME ||
-    input.manifest.renderer.version !== RENDERER_VERSION
+    input.manifest.renderer.version !== expectedRendererVersion
   ) {
     issues.push({
       code: "SCENE_RENDERER_IDENTITY_MISMATCH",
       severity: "error",
       message: "The scene manifest renderer identity does not match this verifier.",
       details: {
-        expected: { name: RENDERER_NAME, version: RENDERER_VERSION },
+        expected: { name: RENDERER_NAME, version: expectedRendererVersion },
         actual: input.manifest.renderer,
+      },
+    });
+  }
+  if (
+    !legacy &&
+    !sameCanonical(
+      { ...TYPOGRAPHY_POLICY, m1: M1_TYPOGRAPHY_POLICY },
+      (input.manifest as { typographyPolicy?: unknown }).typographyPolicy,
+    )
+  ) {
+    issues.push({
+      code: "SCENE_TYPOGRAPHY_POLICY_MISMATCH",
+      severity: "error",
+      message: "The scene manifest typography policy does not match this verifier.",
+      details: {
+        expected: { ...TYPOGRAPHY_POLICY, m1: M1_TYPOGRAPHY_POLICY },
+        actual: (input.manifest as { typographyPolicy?: unknown }).typographyPolicy,
       },
     });
   }
@@ -386,13 +439,9 @@ function expectedManifestFonts(
   const usedKeys = new Set(
     elements.flatMap((element) =>
       element.type === "text"
-        ? [
-            fontReferenceKey(
-              element.font.family,
-              element.font.weight,
-              element.font.style,
-            ),
-          ]
+        ? [element.font.family, ...stackFamilies(element.font)].map((family) =>
+            fontReferenceKey(family, element.font.weight, element.font.style),
+          )
         : [],
     ),
   );
@@ -495,6 +544,9 @@ function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifes
       "renderer",
       "assets",
       "fonts",
+      ...(value["manifestVersion"] === SCENE_RENDER_MANIFEST_VERSION
+        ? ["typographyPolicy", "fontFaces", "textStacks"]
+        : []),
       "dimensions",
       "output",
       "creationTimestamp",
@@ -503,6 +555,14 @@ function isSceneRenderManifestInput(value: unknown): value is SceneRenderManifes
       "accessibility",
       "productClaim",
     ])
+  ) {
+    return false;
+  }
+  if (
+    value["manifestVersion"] === SCENE_RENDER_MANIFEST_VERSION &&
+    (!isRecord(value["typographyPolicy"]) ||
+      !Array.isArray(value["fontFaces"]) ||
+      !Array.isArray(value["textStacks"]))
   ) {
     return false;
   }
@@ -671,4 +731,14 @@ function hasOnlyKeys(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stackFamilies(
+  font: Extract<SceneElement, { type: "text" }>["font"],
+): string[] {
+  return [
+    ...(font.fallback ?? []).map((face) => face.family),
+    ...(font.scriptFaces?.latn === undefined ? [] : [font.scriptFaces.latn.family]),
+    ...(font.scriptFaces?.thai === undefined ? [] : [font.scriptFaces.thai.family]),
+  ];
 }

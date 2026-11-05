@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "m1-specimen-instrument-serif",
+  "seed": "typography-m1",
+  "dimensions": { "width": 1080, "height": 1080 },
+  "title": "Instrument Serif specimen",
+  "description": "Instrument Serif at 112, 56 and 36 px on the M1 typography.",
+  "backgroundColor": "#F4F0E6",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Instrument Serif",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88"
+    }
+  ],
+  "elements": [
+    {
+      "id": "size-112",
+      "type": "text",
+      "text": "Glyphkiln",
+      "box": { "x": 72, "y": 96, "width": 936, "height": 300 },
+      "font": {
+        "family": "Instrument Serif",
+        "weight": 400,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 112,
+        "minimumFontSize": 112,
+        "maximumLines": 2,
+        "lineHeight": 1.2,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-56",
+      "type": "text",
+      "text": "Light should give a room",
+      "box": { "x": 72, "y": 460, "width": 936, "height": 220 },
+      "font": {
+        "family": "Instrument Serif",
+        "weight": 400,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 56,
+        "minimumFontSize": 56,
+        "maximumLines": 2,
+        "lineHeight": 1.3,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "size-36",
+      "type": "text",
+      "text": "Office AVAWAY 0123456789 — 499 €",
+      "box": { "x": 72, "y": 740, "width": 936, "height": 240 },
+      "font": {
+        "family": "Instrument Serif",
+        "weight": 400,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 36,
+        "minimumFontSize": 36,
+        "maximumLines": 3,
+        "lineHeight": 1.5,
+        "align": "left",
+        "letterSpacing": 1.8
+      },
+      "fill": "#5B5F60",
+      "textMode": "outline"
+    }
+  ],
+  "readingOrder": ["size-112", "size-56", "size-36"]
+}

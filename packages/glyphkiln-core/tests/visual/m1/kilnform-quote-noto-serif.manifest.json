@@ -1,0 +1,114 @@
+{
+  "manifestVersion": "1.3.0",
+  "renderId": "render_de17875eb8aba5e6dfd8d5eb",
+  "renderFingerprint": "de17875eb8aba5e6dfd8d5eb043ccc5b2b520ea8a9ca378e033a650e49829935",
+  "designDocumentId": "m1-kilnform-quote-noto-serif",
+  "designDocumentHash": "c57c529648abaa807adfda4cb6b88397e7e755b88d97cb2aaca1ca14899ba367",
+  "seed": "designer-day-second-firing-quote-v1",
+  "template": { "id": "quote-card", "version": "1.4.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Source Serif 4",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 60, "wght": 700 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 25.5, "wght": 600 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "quote",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Source Serif 4",
+          "weight": 700,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "attribution",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Source Serif 4",
+          "weight": 600,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "output": {
+    "format": "png",
+    "sha256": "c4899743d0cc9a3d7a7da7d928a38e742d6f605fd8e0c751696b5c576ebbd10c",
+    "byteSize": 66273
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

@@ -18,6 +18,9 @@ import {
 } from "../typography/opentype.js";
 import { emphasisFace, normalizePhrase } from "../typography/rich-text.js";
 import { sizeSetting, type SizeSettingRole } from "../typography/size-setting.js";
+import { createTypesetter } from "../typography/engine.js";
+import type { FontModel } from "../typography/font-model.js";
+import type { M1Typesetter } from "../typography/typesetter.js";
 import { accentCoverage, type AccentShape } from "./accent-budget.js";
 import type { TemplateCanvas, TextLayer } from "./shared.js";
 import type { TemplateRenderContext } from "./types.js";
@@ -79,6 +82,12 @@ export type TypesetOptions = {
   align?: "left" | "center" | "right";
   /** Template defaults merged under the layer's own openType settings. */
   openTypeDefaults?: OpenTypeFeatureSettings;
+  /**
+   * Brand typography role whose 1.8.0 font model (family, axes, optical
+   * sizing, fallback stack, script faces) applies under the M1 engine.
+   * Defaults to `label` for the label size curve and `display` otherwise.
+   */
+  fontRole?: "display" | "body" | "label";
 };
 
 export type TypesetText = {
@@ -90,6 +99,7 @@ export type TypesetText = {
 };
 
 type Prepared = {
+  engine: M1Typesetter | undefined;
   family: string;
   weight: number;
   spans: TextEmphasisSpan[];
@@ -106,9 +116,12 @@ function prepare(
   options: TypesetOptions,
   detail: "measure" | "glyphs",
 ): Prepared {
+  const role =
+    context.typography === "m1" ? fontRoleModel(context, options) : undefined;
   const family =
     layer.fontFamily ??
     options.family ??
+    role?.family ??
     context.document.brand.typography.headlineFamily;
   const weight = layer.fontWeight ?? options.weight;
   const issues: QualityIssue[] = [];
@@ -164,9 +177,20 @@ function prepare(
     canvas.scene.dimensions.width,
     canvas.scene.dimensions.height,
   );
+  const engine =
+    context.typography === "m1"
+      ? createTypesetter({
+          registry: context.fonts,
+          model: fontModelFor(layer, role, family, weight),
+          shortSidePx: shortSide,
+          layerId: layer.id,
+          ...(features === undefined ? {} : { requestedFeatures: features }),
+        })
+      : undefined;
   const layout = layoutText({
     text: layer.text,
     registry: context.fonts,
+    ...(engine === undefined ? {} : { engine }),
     face: { family, weight, style: "normal" },
     box,
     layerId: layer.id,
@@ -194,7 +218,55 @@ function prepare(
     renderedLineLimit: options.maximumLines,
     coverage: "rendered-lines",
   });
-  return { family, weight, spans, issues, layout, fitted: layout.fitted! };
+  if (engine !== undefined) issues.push(...engine.issues);
+  return { engine, family, weight, spans, issues, layout, fitted: layout.fitted! };
+}
+
+type RoleFontModel = Partial<Omit<FontModel, "weight" | "style">>;
+
+/** The 1.8.0 font-model fields of the brand role a typeset element uses. */
+function fontRoleModel(
+  context: TemplateRenderContext,
+  options: TypesetOptions,
+): RoleFontModel | undefined {
+  const typography = context.document.brand.typography;
+  if (!("roles" in typography) || typography.roles === undefined) return undefined;
+  const name = options.fontRole ?? (options.role === "label" ? "label" : "display");
+  const role = typography.roles[name];
+  if (role === undefined) return undefined;
+  const model: RoleFontModel = { family: role.family };
+  if ("axes" in role && role.axes !== undefined) model.axes = role.axes;
+  if ("namedInstance" in role && role.namedInstance !== undefined) {
+    model.namedInstance = role.namedInstance;
+  }
+  if ("opticalSizing" in role && role.opticalSizing !== undefined) {
+    model.opticalSizing = role.opticalSizing;
+  }
+  if ("opsz" in role && role.opsz !== undefined) model.opsz = role.opsz;
+  if ("fallback" in role && role.fallback !== undefined) model.fallback = role.fallback;
+  if ("scriptFaces" in role && role.scriptFaces !== undefined) {
+    model.scriptFaces = role.scriptFaces;
+  }
+  return model;
+}
+
+/** Layer 1.8.0 font-model fields override the role's; the face is the layer's. */
+function fontModelFor(
+  layer: TextLayer,
+  role: RoleFontModel | undefined,
+  family: string,
+  weight: number,
+): FontModel {
+  const model: FontModel = { ...role, family, weight, style: "normal" };
+  if ("axes" in layer && layer.axes !== undefined) model.axes = layer.axes;
+  if ("namedInstance" in layer && layer.namedInstance !== undefined) {
+    model.namedInstance = layer.namedInstance;
+  }
+  if ("opticalSizing" in layer && layer.opticalSizing !== undefined) {
+    model.opticalSizing = layer.opticalSizing;
+  }
+  if ("opsz" in layer && layer.opsz !== undefined) model.opsz = layer.opsz;
+  return model;
 }
 
 /** Fit exactly as addTypesetText does, without adding anything to the scene. */
@@ -216,7 +288,7 @@ export function addTypesetText(
   options: TypesetOptions,
 ): TypesetText {
   const prepared = prepare(context, canvas, layer, box, options, "glyphs");
-  const { family, weight, fitted, layout } = prepared;
+  const { family, weight, fitted, layout, engine } = prepared;
   const lineHeight = layout.lineHeight;
   const letterSpacing = layout.letterSpacing!;
   const align = layer.align ?? options.align ?? "left";
@@ -229,8 +301,14 @@ export function addTypesetText(
     canvas.qualityIssues.push(
       missingGlyphIssue(
         layer.id,
-        `Font "${family}" does not cover all text in layer "${layer.id}".`,
+        engine === undefined
+          ? `Font "${family}" does not cover all text in layer "${layer.id}".`
+          : `No face in the stack ${engine
+              .stackFamilies()
+              .map((name) => `"${name}"`)
+              .join(", ")} covers all text in layer "${layer.id}".`,
         layout.missingCodePoints,
+        engine?.stackFamilies(),
       ),
     );
   }
@@ -306,6 +384,9 @@ export function addTypesetText(
     letterSpacing,
     bounds,
     outlines,
+    ...(engine === undefined
+      ? {}
+      : { faces: engine.usedFaces(), fontStack: engine.stackFamilies() }),
   };
   canvas.scene.elements.push(element, ...emphasis);
   canvas.evidence.text.push({

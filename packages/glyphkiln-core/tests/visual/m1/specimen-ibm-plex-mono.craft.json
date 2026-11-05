@@ -1,0 +1,13 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [],
+    "text": [
+      { "elementId": "size-112", "fontSize": 112, "displayedXHeight": 19.26 },
+      { "elementId": "size-56", "fontSize": 56, "displayedXHeight": 9.63 },
+      { "elementId": "size-36", "fontSize": 36, "displayedXHeight": 6.19 }
+    ]
+  }
+]

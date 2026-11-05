@@ -1,0 +1,129 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_189bf71d5c36e024295869ac",
+  "renderFingerprint": "189bf71d5c36e024295869acdabf334f3724045facd85f32a4af49346f8746b3",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-specimen-schibsted-grotesk",
+    "sceneHash": "50f5c5aac28431b6fbdbcf9e3e6e9b80dc82e3bfdd9ba1963558156ab9491917"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d",
+      "coordinates": { "wght": 400 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "size-112",
+      "stack": ["Schibsted Grotesk"],
+      "faces": [
+        {
+          "family": "Schibsted Grotesk",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-56",
+      "stack": ["Schibsted Grotesk"],
+      "faces": [
+        {
+          "family": "Schibsted Grotesk",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-36",
+      "stack": ["Schibsted Grotesk"],
+      "faces": [
+        {
+          "family": "Schibsted Grotesk",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "4c27fcdda41d4b39fc62c9fa4ee979f92847c3b5753387bd2386f86b1e146c3d",
+    "byteSize": 34807
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Schibsted Grotesk specimen",
+    "description": "Schibsted Grotesk at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

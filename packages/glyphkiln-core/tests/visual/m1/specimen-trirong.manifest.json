@@ -1,0 +1,129 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_782732f62a69438eea75d84d",
+  "renderFingerprint": "782732f62a69438eea75d84dc39f474fe0e52a7bccaec87473fc0dd3e2b622bd",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-specimen-trirong",
+    "sceneHash": "f4ea58b8f90a747b40d16198e1d70a46452bb819b70f10aebe3823dd690bf681"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Trirong",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Trirong",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "3cd19b35a24df5fcf12c1f917324cf821d5aa582f7ea36fb0d2a91ba5e8ccd05",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin", "Thai"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "size-112",
+      "stack": ["Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-56",
+      "stack": ["Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-36",
+      "stack": ["Trirong"],
+      "faces": [
+        {
+          "family": "Trirong",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "b8bd1895406dc8ca1a0259f3a20f8f3850099c0ca4eb63856705193a362953e6",
+    "byteSize": 35756
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Trirong specimen",
+    "description": "Trirong at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

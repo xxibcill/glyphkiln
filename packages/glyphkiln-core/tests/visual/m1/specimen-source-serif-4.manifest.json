@@ -1,0 +1,151 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_2eaf8f19726d70fe95cb6928",
+  "renderFingerprint": "2eaf8f19726d70fe95cb6928c61362e985a1b3e8db1fbda3c73f13cad314098b",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-specimen-source-serif-4",
+    "sceneHash": "95672da3871f38c27eff37361021468288e81148aa547d9b368becbedc2543eb"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 60, "wght": 400 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 42, "wght": 400 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 27, "wght": 400 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "size-112",
+      "stack": ["Source Serif 4"],
+      "faces": [
+        {
+          "family": "Source Serif 4",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-56",
+      "stack": ["Source Serif 4"],
+      "faces": [
+        {
+          "family": "Source Serif 4",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "size-36",
+      "stack": ["Source Serif 4"],
+      "faces": [
+        {
+          "family": "Source Serif 4",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "1e9324a22cf6a425b7f870bb63456a7b02f05f55e2ab64d3f777841ff465b0a5",
+    "byteSize": 34082
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Source Serif 4 specimen",
+    "description": "Source Serif 4 at 112, 56 and 36 px on the M1 typography.",
+    "readingOrder": ["size-112", "size-56", "size-36"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

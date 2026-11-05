@@ -1,6 +1,12 @@
 import { hashCanonical } from "../cache/canonical.js";
 import { RENDER_CONFIGURATION } from "../cache/fingerprint-contract.js";
-import { RENDERER_NAME, RENDERER_VERSION, type OutputFormat } from "../domain/types.js";
+import {
+  LEGACY_RENDERER_VERSION,
+  RENDERER_NAME,
+  RENDERER_VERSION,
+  type OutputFormat,
+} from "../domain/types.js";
+import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 import { canonicalJson } from "../cache/canonical-json.js";
 import { fontReferenceKey } from "../fonts/key.js";
 import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
@@ -13,6 +19,15 @@ export const SCENE_RENDER_CONFIGURATION = Object.freeze({
   sceneKernelVersion: SCENE_KERNEL_VERSION,
   connectorArrowGeometry: "closed-triangle-v1",
   selectableTextTechnique: "transparent-live-text-over-outlines-v1",
+});
+
+/** Scene 1.1.0 renders: the M1 typography policy joins the configuration. */
+export const SCENE_M1_RENDER_CONFIGURATION = Object.freeze({
+  ...SCENE_RENDER_CONFIGURATION,
+  typographyPolicy: Object.freeze({
+    ...SCENE_RENDER_CONFIGURATION.typographyPolicy,
+    m1: M1_TYPOGRAPHY_POLICY,
+  }),
 });
 
 export type SceneFingerprintInput = {
@@ -62,19 +77,22 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
     assets: usedAssets,
     fonts: usedFonts,
   };
+  const legacy = input.document.schemaVersion === "1.0.0";
   return {
     sceneDocument: pixelDocument,
     sceneKernelVersion: SCENE_KERNEL_VERSION,
     renderer: {
       name: RENDERER_NAME,
-      version: RENDERER_VERSION,
+      version: legacy ? LEGACY_RENDERER_VERSION : RENDERER_VERSION,
     },
     assets: input.assets
       .map((asset) => ({ id: asset.id, sha256: asset.sha256 }))
       .sort(compareCanonical),
     fonts: [...input.fonts].sort(compareCanonical),
     outputFormat: input.outputFormat,
-    rendererConfiguration: SCENE_RENDER_CONFIGURATION,
+    rendererConfiguration: legacy
+      ? SCENE_RENDER_CONFIGURATION
+      : SCENE_M1_RENDER_CONFIGURATION,
   };
 }
 

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.8.0",
+  "id": "m1-kilnform-quote-noto-serif",
+  "template": { "id": "quote-card", "version": "1.4.0" },
+  "format": "instagram-portrait",
+  "seed": "designer-day-second-firing-quote-v1",
+  "mode": "dark",
+  "brand": {
+    "snapshotId": "brand-kilnform-second-firing-2026-09",
+    "version": "1.0.0",
+    "name": "Kilnform",
+    "palette": {
+      "primary": "#0D3B9C",
+      "secondary": "#C85F27",
+      "accent": "#F3C879",
+      "neutrals": ["#15100D", "#FFF6E7", "#A77B5A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF6E7",
+        "surface": "#F3E4CC",
+        "text": "#15100D",
+        "mutedText": "#5E4637"
+      },
+      "dark": {
+        "background": "#15100D",
+        "surface": "#2B211C",
+        "text": "#FFF6E7",
+        "mutedText": "#F3E4CC"
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": [
+      "layered-waves",
+      "recursive-subdivision",
+      "topographic-contours",
+      "flow-field"
+    ],
+    "safeArea": { "top": 0.08, "right": 0.07, "bottom": 0.08, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai-composition"],
+    "typography": {
+      "headlineFamily": "Source Serif 4",
+      "bodyFamily": "Source Serif 4",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Source Serif 4",
+          "weight": 700,
+          "lineHeight": 1.1,
+          "tracking": 0,
+          "fallback": [{ "family": "Noto Serif Thai", "scale": "auto" }]
+        },
+        "label": {
+          "family": "Source Serif 4",
+          "weight": 600,
+          "lineHeight": 1.1,
+          "tracking": 0,
+          "fallback": [{ "family": "Noto Serif Thai", "scale": "auto" }]
+        }
+      }
+    }
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    },
+    {
+      "family": "Noto Serif Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53"
+    },
+    {
+      "family": "Noto Serif Thai",
+      "weight": 600,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53"
+    }
+  ],
+  "metadata": {
+    "brief": "fictional-kilnform-second-firing",
+    "task": "editorial-quote-card",
+    "revision": "final",
+    "factualBasis": "Fictional client brief; no external performance claims."
+  },
+  "layers": [
+    { "id": "background", "visible": true, "type": "background" },
+    {
+      "id": "quote",
+      "visible": true,
+      "type": "headline",
+      "text": "Light should give a room a place to rest.",
+      "emphasis": [{ "phrase": "a place to rest.", "style": "accent" }],
+      "fontWeight": 700
+    },
+    {
+      "id": "attribution",
+      "visible": true,
+      "type": "attribution",
+      "text": "KILNFORM STUDIO NOTE",
+      "openType": { "caseSensitiveForms": true },
+      "fontWeight": 600
+    }
+  ]
+}

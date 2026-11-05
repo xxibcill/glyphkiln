@@ -1,0 +1,12 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": [],
+    "text": [
+      { "elementId": "quote", "fontSize": 137, "displayedXHeight": 24.08 },
+      { "elementId": "attribution", "fontSize": 34, "displayedXHeight": 5.98 }
+    ]
+  }
+]

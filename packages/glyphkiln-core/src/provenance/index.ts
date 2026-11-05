@@ -1,5 +1,7 @@
 import { hashCanonical, sha256 } from "../cache/canonical.js";
 import {
+  LEGACY_MANIFEST_VERSION,
+  LEGACY_RENDERER_VERSION,
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
@@ -12,6 +14,7 @@ import {
 } from "../domain/types.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
+import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 
 export type ManifestAsset = {
   id: string;
@@ -26,19 +29,35 @@ export type ManifestFont = {
   sha256: string;
 };
 
-export type RenderManifest = {
-  manifestVersion: typeof MANIFEST_VERSION;
+/**
+ * Font identity v2 (manifest 1.3.0): one entry per face actually drawn, with
+ * its variation coordinates, named instance, role in the stack, script
+ * matching and the scripts it set, plus the stack each text element tried.
+ */
+export type ManifestFontV2 = ManifestFont & {
+  coordinates: Readonly<Record<string, number>>;
+  namedInstance?: string;
+  role: string;
+  scale: number;
+  baselineShift: number;
+  scripts: readonly string[];
+};
+
+export type ManifestTextStack = {
+  layerId: string;
+  stack: readonly string[];
+  faces: readonly { family: string; weight: number; style: string; role: string }[];
+};
+
+type ManifestCommon = {
   renderId: string;
   renderFingerprint: string;
   designDocumentId: string;
   designDocumentHash: string;
   seed: string;
   template: { id: string; version: string };
-  renderer: { name: typeof RENDERER_NAME; version: typeof RENDERER_VERSION };
-  typographyPolicy: typeof TYPOGRAPHY_POLICY;
   proceduralAlgorithmVersions: Record<string, string>;
   assets: ManifestAsset[];
-  fonts: ManifestFont[];
   dimensions: Dimensions;
   output: {
     format: OutputFormat;
@@ -53,6 +72,25 @@ export type RenderManifest = {
   productClaim: typeof PRODUCT_CLAIM;
 };
 
+/** Manifest 1.2.0: every render on the legacy fontkit typography. */
+export type LegacyRenderManifest = ManifestCommon & {
+  manifestVersion: typeof LEGACY_MANIFEST_VERSION;
+  renderer: { name: typeof RENDERER_NAME; version: typeof LEGACY_RENDERER_VERSION };
+  typographyPolicy: typeof TYPOGRAPHY_POLICY;
+  fonts: ManifestFont[];
+};
+
+/** Manifest 1.3.0: renders on the M1 typography (renderer 0.6.0). */
+export type M1RenderManifest = ManifestCommon & {
+  manifestVersion: typeof MANIFEST_VERSION;
+  renderer: { name: typeof RENDERER_NAME; version: typeof RENDERER_VERSION };
+  typographyPolicy: typeof TYPOGRAPHY_POLICY & { m1: typeof M1_TYPOGRAPHY_POLICY };
+  fonts: ManifestFontV2[];
+  textStacks: ManifestTextStack[];
+};
+
+export type RenderManifest = LegacyRenderManifest | M1RenderManifest;
+
 export type CreateManifestInput = {
   document: DesignDocument;
   fingerprint: string;
@@ -66,24 +104,22 @@ export type CreateManifestInput = {
   creationTimestamp: string;
   renderingMethod: RenderingMethod;
   qualityIssues: QualityIssue[];
+  /** Present for M1 renders: font identity v2 and the stacks tried. */
+  m1?: { fonts: ManifestFontV2[]; textStacks: ManifestTextStack[] };
 };
 
 export function createRenderManifest(input: CreateManifestInput): RenderManifest {
-  return {
-    manifestVersion: MANIFEST_VERSION,
+  const common = {
     renderId: `render_${input.fingerprint.slice(0, 24)}`,
     renderFingerprint: input.fingerprint,
     designDocumentId: input.document.id,
     designDocumentHash: hashCanonical(input.document),
     seed: input.document.seed,
     template: { ...input.document.template },
-    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
-    typographyPolicy: { ...TYPOGRAPHY_POLICY },
     proceduralAlgorithmVersions: {
       ...input.proceduralAlgorithmVersions,
     },
     assets: input.assets,
-    fonts: input.fonts,
     dimensions: input.dimensions,
     output: {
       format: input.outputFormat,
@@ -97,6 +133,70 @@ export function createRenderManifest(input: CreateManifestInput): RenderManifest
     ),
     renderingMethod: input.renderingMethod,
     qualityIssues: input.qualityIssues,
+    productClaim: PRODUCT_CLAIM,
+  };
+  if (input.m1 === undefined) {
+    // Key order is the 1.2.0 manifest's, so legacy manifest bytes are exact.
+    const {
+      renderId,
+      renderFingerprint,
+      designDocumentId,
+      designDocumentHash,
+      seed,
+      template,
+    } = common;
+    return {
+      manifestVersion: LEGACY_MANIFEST_VERSION,
+      renderId,
+      renderFingerprint,
+      designDocumentId,
+      designDocumentHash,
+      seed,
+      template,
+      renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
+      typographyPolicy: { ...TYPOGRAPHY_POLICY },
+      proceduralAlgorithmVersions: common.proceduralAlgorithmVersions,
+      assets: common.assets,
+      fonts: input.fonts,
+      dimensions: common.dimensions,
+      output: common.output,
+      creationTimestamp: common.creationTimestamp,
+      compositionGenerativeImageModelUsed: false,
+      includedGenerativeAssetUsed: common.includedGenerativeAssetUsed,
+      renderingMethod: common.renderingMethod,
+      qualityIssues: common.qualityIssues,
+      productClaim: PRODUCT_CLAIM,
+    };
+  }
+  const {
+    renderId,
+    renderFingerprint,
+    designDocumentId,
+    designDocumentHash,
+    seed,
+    template,
+  } = common;
+  return {
+    manifestVersion: MANIFEST_VERSION,
+    renderId,
+    renderFingerprint,
+    designDocumentId,
+    designDocumentHash,
+    seed,
+    template,
+    renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+    typographyPolicy: { ...TYPOGRAPHY_POLICY, m1: M1_TYPOGRAPHY_POLICY },
+    proceduralAlgorithmVersions: common.proceduralAlgorithmVersions,
+    assets: common.assets,
+    fonts: input.m1.fonts,
+    textStacks: input.m1.textStacks,
+    dimensions: common.dimensions,
+    output: common.output,
+    creationTimestamp: common.creationTimestamp,
+    compositionGenerativeImageModelUsed: false,
+    includedGenerativeAssetUsed: common.includedGenerativeAssetUsed,
+    renderingMethod: common.renderingMethod,
+    qualityIssues: common.qualityIssues,
     productClaim: PRODUCT_CLAIM,
   };
 }

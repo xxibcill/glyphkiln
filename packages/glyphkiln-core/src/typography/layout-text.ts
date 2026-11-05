@@ -7,6 +7,7 @@ import type {
 import type { TextEmphasisSpan, TextEmphasisStyleId } from "../schema/index.js";
 import { fitText, type FittedText, type TextMeasurer } from "./index.js";
 import type { SegmentationPolicy, SegmentationPolicyVersion } from "./segmentation.js";
+import type { M1Typesetter } from "./typesetter.js";
 import {
   createEmphasisMeasurer,
   createFeatureMeasurer,
@@ -94,6 +95,11 @@ export type LayoutTextRequest = {
   renderedLineLimit?: number;
   /** Which text the face-coverage check reads (`glyphs` detail only). */
   coverage?: "rendered-lines" | "source-text";
+  /**
+   * The M1 typesetter (HarfBuzz, script runs, cluster tracking, font model).
+   * Absent means the legacy fontkit path, byte for byte.
+   */
+  engine?: M1Typesetter;
 };
 
 export type TextLayoutGlyphRun = {
@@ -153,6 +159,12 @@ export type TextLayout = {
   evidence: TextLayoutEvidence;
 };
 
+/** The measuring and setting surface shared by FontRegistry and M1Typesetter. */
+type TextSetter = Pick<
+  FontRegistry,
+  "measure" | "ascent" | "setLines" | "setSegments" | "missingCodePoints" | "shaperId"
+>;
+
 export function layoutText(request: LayoutTextRequest): TextLayout {
   const { registry, face } = request;
   const spans = request.emphasis ?? [];
@@ -177,7 +189,7 @@ export function layoutText(request: LayoutTextRequest): TextLayout {
   let missingCodePoints: number[] = [];
   if (request.detail === "glyphs") {
     if (request.coverage !== undefined) {
-      missingCodePoints = registry.missingCodePoints(
+      missingCodePoints = (request.engine ?? registry).missingCodePoints(
         request.coverage === "source-text" ? request.text : lines.join(""),
         face.family,
         face.weight,
@@ -205,7 +217,7 @@ export function layoutText(request: LayoutTextRequest): TextLayout {
     issues: sized.fitted?.issues ?? [],
     missingCodePoints,
     evidence: {
-      shaper: registry.shaperId,
+      shaper: (request.engine ?? registry).shaperId,
       brokeLongWord: sized.fitted?.brokeLongWord ?? false,
       orphanLineCount: sized.fitted?.orphanLines.length ?? 0,
       usesBalancedLineBreaking: sized.fitted?.usesBalancedLineBreaking ?? false,
@@ -220,6 +232,7 @@ export function missingGlyphIssue(
   layerId: string,
   message: string,
   codePoints: readonly number[],
+  stack?: readonly string[],
 ): QualityIssue {
   return {
     code: "MISSING_GLYPH",
@@ -230,6 +243,7 @@ export function missingGlyphIssue(
       codePoints: codePoints.map(
         (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
       ),
+      ...(stack === undefined ? {} : { stackTried: [...stack] }),
     },
   };
 }
@@ -247,7 +261,11 @@ type Sized = {
 
 function size(request: LayoutTextRequest, spans: readonly TextEmphasisSpan[]): Sized {
   const { face, setting, sizing } = request;
-  const measurer = measurerFor(request.registry, spans, request.features);
+  const measurer = measurerFor(
+    request.engine ?? request.registry,
+    spans,
+    request.features,
+  );
   if (sizing.mode === "fixed") {
     const fontSize = sizing.fontSize;
     const resolved = settingAt(setting, fontSize);
@@ -343,7 +361,7 @@ function settingAt(
 }
 
 function measurerFor(
-  registry: FontRegistry,
+  registry: TextSetter,
   spans: readonly TextEmphasisSpan[],
   features: OpenTypeFeatureMap | undefined,
 ): TextMeasurer {
@@ -364,7 +382,8 @@ function setLines(
     letterSpacing: number | undefined;
   },
 ): void {
-  const { registry, face } = request;
+  const registry: TextSetter = request.engine ?? request.registry;
+  const { face } = request;
   const features = request.features === undefined ? {} : { features: request.features };
   const letterSpacing =
     placement.letterSpacing === undefined

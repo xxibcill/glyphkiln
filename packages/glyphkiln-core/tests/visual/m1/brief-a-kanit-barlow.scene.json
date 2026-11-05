@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "1.1.0",
+  "id": "m1-brief-a-kanit-barlow",
+  "seed": "typography-m1-brief-a",
+  "dimensions": { "width": 1600, "height": 1600 },
+  "title": "Thai planning-service cover",
+  "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+  "backgroundColor": "#F4F0E6",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Kanit",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "5dec5b080dab13de9d2295437c0ff3ec05c9e75587dfc31358c005eb4efa5e70"
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65"
+    },
+    {
+      "family": "Kanit",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "27170c049660b2f962d3ed28441fd20f4c743503ca031fec9c2b4542d6c52736"
+    },
+    {
+      "family": "Barlow Condensed",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996"
+    }
+  ],
+  "elements": [
+    {
+      "id": "headline",
+      "type": "text",
+      "text": "วางแผน AI Pilot ให้ชัด ก่อนลงมือทำจริง",
+      "box": { "x": 120, "y": 140, "width": 1360, "height": 470 },
+      "font": {
+        "family": "Kanit",
+        "weight": 700,
+        "style": "normal",
+        "scriptFaces": {
+          "latn": { "family": "Barlow Condensed", "scale": "auto" }
+        }
+      },
+      "fit": {
+        "preferredFontSize": 132,
+        "minimumFontSize": 72,
+        "maximumLines": 3,
+        "lineHeight": 1.3,
+        "align": "left",
+        "keepTogether": ["ให้ชัด"]
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "support",
+      "type": "text",
+      "text": "แผนผังกระบวนการ + Pilot Brief สำหรับ 1 เวิร์กโฟลว์",
+      "box": { "x": 120, "y": 680, "width": 1360, "height": 220 },
+      "font": {
+        "family": "Kanit",
+        "weight": 400,
+        "style": "normal",
+        "scriptFaces": {
+          "latn": { "family": "Barlow Condensed", "scale": "auto" }
+        }
+      },
+      "fit": {
+        "preferredFontSize": 60,
+        "minimumFontSize": 52,
+        "maximumLines": 2,
+        "lineHeight": 1.45,
+        "align": "left"
+      },
+      "fill": "#242829",
+      "textMode": "outline"
+    },
+    {
+      "id": "route",
+      "type": "path",
+      "data": "M 160 1130 L 1040 1130",
+      "fill": "none",
+      "stroke": "#C85F35",
+      "strokeWidth": 6,
+      "lineCap": "round",
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "node-1",
+      "type": "circle",
+      "cx": 160,
+      "cy": 1130,
+      "radius": 26,
+      "fill": "#C85F35",
+      "stroke": "#C85F35",
+      "strokeWidth": 6,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "node-2",
+      "type": "circle",
+      "cx": 453,
+      "cy": 1130,
+      "radius": 26,
+      "fill": "#F4F0E6",
+      "stroke": "#C85F35",
+      "strokeWidth": 6,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "node-3",
+      "type": "circle",
+      "cx": 747,
+      "cy": 1130,
+      "radius": 26,
+      "fill": "#F4F0E6",
+      "stroke": "#C85F35",
+      "strokeWidth": 6,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "node-4",
+      "type": "circle",
+      "cx": 1040,
+      "cy": 1130,
+      "radius": 26,
+      "fill": "#F4F0E6",
+      "stroke": "#C85F35",
+      "strokeWidth": 6,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "brief-sheet",
+      "type": "rect",
+      "x": 1180,
+      "y": 1010,
+      "width": 300,
+      "height": 240,
+      "radius": 12,
+      "fill": "#FFFFFF",
+      "stroke": "#242829",
+      "strokeWidth": 4,
+      "semantic": { "role": "decoration" }
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "text": "ภาพประกอบแนวคิด",
+      "box": { "x": 160, "y": 1196, "width": 900, "height": 80 },
+      "font": {
+        "family": "Kanit",
+        "weight": 400,
+        "style": "normal",
+        "scriptFaces": {
+          "latn": { "family": "Barlow Condensed", "scale": "auto" }
+        }
+      },
+      "fit": {
+        "preferredFontSize": 52,
+        "minimumFontSize": 52,
+        "maximumLines": 1,
+        "lineHeight": 1.4,
+        "align": "left"
+      },
+      "fill": "#5B5F60",
+      "textMode": "outline"
+    },
+    {
+      "id": "exclusions",
+      "type": "text",
+      "text": "ไม่รวมการติดตั้งระบบ • ไม่รับประกันการประหยัด",
+      "box": { "x": 120, "y": 1340, "width": 1360, "height": 180 },
+      "font": {
+        "family": "Kanit",
+        "weight": 400,
+        "style": "normal",
+        "scriptFaces": {
+          "latn": { "family": "Barlow Condensed", "scale": "auto" }
+        }
+      },
+      "fit": {
+        "preferredFontSize": 56,
+        "minimumFontSize": 52,
+        "maximumLines": 2,
+        "lineHeight": 1.45,
+        "align": "left"
+      },
+      "fill": "#C85F35",
+      "textMode": "outline"
+    }
+  ],
+  "readingOrder": ["headline", "support", "caption", "exclusions"]
+}

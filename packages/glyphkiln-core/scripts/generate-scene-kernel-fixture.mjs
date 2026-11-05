@@ -4,9 +4,9 @@ import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 
 import {
-  SCENE_DOCUMENT_VERSION,
+  LEGACY_SCENE_DOCUMENT_VERSION,
   SCENE_KERNEL_VERSION,
-  SCENE_RENDER_MANIFEST_VERSION,
+  LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   renderScene,
 } from "../dist/scene/index.js";
 
@@ -43,10 +43,10 @@ const png = outputFor(result.outputs, "png");
 const expectations = {
   ...currentExpectations,
   versions: {
-    sceneSchemaVersion: SCENE_DOCUMENT_VERSION,
+    sceneSchemaVersion: LEGACY_SCENE_DOCUMENT_VERSION,
     sceneKernelVersion: SCENE_KERNEL_VERSION,
     rendererVersion: svg.manifest.renderer.version,
-    sceneManifestVersion: SCENE_RENDER_MANIFEST_VERSION,
+    sceneManifestVersion: LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   },
   outputHashes: {
     svgSha256: svg.manifest.output.sha256,

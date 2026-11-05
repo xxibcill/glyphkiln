@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   GlyphkilnError,
   RENDER_RESOURCE_LIMITS,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   RENDER_WORKER_PROFILE,
   renderGraphicIsolated,
 } from "../dist/index.js";
@@ -25,7 +25,7 @@ const result = await renderGraphicIsolated(document, {
 });
 
 assert.equal(result.outputs.length, 2);
-assert.equal(result.outputs[0].manifest.renderer.version, RENDERER_VERSION);
+assert.equal(result.outputs[0].manifest.renderer.version, LEGACY_RENDERER_VERSION);
 assert.equal(result.outputs[0].manifest.creationTimestamp, creationTimestamp);
 assert.deepEqual(
   [...result.outputs[1].bytes.slice(0, 8)],

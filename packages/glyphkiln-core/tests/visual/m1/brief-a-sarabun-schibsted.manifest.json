@@ -1,0 +1,204 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_6ee2daf15f463bce7802de47",
+  "renderFingerprint": "6ee2daf15f463bce7802de479933de454e2d0c5db12f2626fff86519d6e035ea",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-brief-a-sarabun-schibsted",
+    "sceneHash": "80741e73135f9867954c8e75e7b6b590730a05b8d6d0c16ffda19636949edf12"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Sarabun",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "d38308ca27d067b9a1b79006337c1f9a66c29aa016d96a9d88d3801da7fa83b9"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d"
+    },
+    {
+      "family": "Sarabun",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "226d4f368fbc0457990ddef2692679badfd2c1a4e89e5ac4d43c10ba7743b2f1"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Sarabun",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "d38308ca27d067b9a1b79006337c1f9a66c29aa016d96a9d88d3801da7fa83b9",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d",
+      "coordinates": { "wght": 700 },
+      "role": "script:latn",
+      "scale": 1.111,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Sarabun",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "226d4f368fbc0457990ddef2692679badfd2c1a4e89e5ac4d43c10ba7743b2f1",
+      "coordinates": {},
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "6ceeadf6be8e1fd7687011c7fa38ed0edd1abe967a0b73d97caec183552e823d",
+      "coordinates": { "wght": 400 },
+      "role": "script:latn",
+      "scale": 1.111,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "headline",
+      "stack": ["Schibsted Grotesk", "Sarabun"],
+      "faces": [
+        {
+          "family": "Sarabun",
+          "weight": 700,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Schibsted Grotesk",
+          "weight": 700,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "support",
+      "stack": ["Schibsted Grotesk", "Sarabun"],
+      "faces": [
+        {
+          "family": "Sarabun",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Schibsted Grotesk",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "caption",
+      "stack": ["Schibsted Grotesk", "Sarabun"],
+      "faces": [
+        {
+          "family": "Sarabun",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "exclusions",
+      "stack": ["Schibsted Grotesk", "Sarabun"],
+      "faces": [
+        {
+          "family": "Sarabun",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1600, "height": 1600 },
+  "output": {
+    "format": "png",
+    "sha256": "c3a16f2f02261ebe7384080befdc2ad00295163f9f27764d1e1f1c88bba19d94",
+    "byteSize": 110249
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Thai planning-service cover",
+    "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+    "readingOrder": ["headline", "support", "caption", "exclusions"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

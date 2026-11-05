@@ -1,0 +1,12 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": ["CRAFT_TEXT_SMALL_AT_DELIVERY:attribution@360"],
+    "text": [
+      { "elementId": "quote", "fontSize": 166, "displayedXHeight": 26.28 },
+      { "elementId": "attribution", "fontSize": 34, "displayedXHeight": 5.38 }
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "displayWidth": 360,
+    "policyVersion": "1.1.0",
+    "minimumXHeight": 5.5,
+    "findings": ["CRAFT_DEAD_SPACE:canvas@360"],
+    "text": [
+      { "elementId": "size-112", "fontSize": 112, "displayedXHeight": 17.73 },
+      { "elementId": "size-56", "fontSize": 56, "displayedXHeight": 8.87 },
+      { "elementId": "size-36", "fontSize": 36, "displayedXHeight": 5.7 }
+    ]
+  }
+]

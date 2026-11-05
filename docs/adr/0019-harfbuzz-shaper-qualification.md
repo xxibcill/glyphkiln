@@ -172,12 +172,39 @@ unused `harfbuzz-subset.wasm`.
 3. **Conditions before the first HarfBuzz policy ships:**
    - ~~fresh-process byte equality on macOS~~ — met on 4 November 2026 (see
      Determinism); Linux on Node 22 and 24 was already shown;
-   - a per-face outline cache, so warm outline cost is at most 2× fontkit's;
-   - a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
-     than fontkit, on CI;
-   - the open `seven`→`eight` kerning difference explained;
+   - ~~a per-face outline cache, so warm outline cost is at most 2× fontkit's~~
+     — met in M1 (see below);
+   - ~~a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
+     than fontkit, on CI~~ — met in M1, checked by `npm test`;
+   - ~~the open `seven`→`eight` kerning difference explained~~ — explained in
+     M1: a fontkit defect;
    - ~~the owner's answer to plan question Q2~~ — the owner accepted about
      530 KB of runtime wasm and JS on 4 November 2026.
+
+## Pre-ship conditions met (typography M1, 4 November 2026)
+
+M1 (branch `claude/typography-m1`) ships the first HarfBuzz policies. The
+remaining conditions:
+
+- **Outline cache.** `src/fonts/harfbuzz.ts` caches each glyph's outline per
+  face instance. `scripts/test-typography-budgets.mjs` runs in `npm test`.
+  One run on the 4-vCPU container measured warm outlines at 2.4 µs per
+  corpus line, against fontkit's 3.6, which is under the 2× budget.
+- **Cold and warm budgets.** The same script measures a fresh process from
+  importing Core's HarfBuzz module (with the wasm hash check) to the first
+  shaped and outlined Inter line: 48 ms, against fontkit's 224. Warm shaping
+  was 51 µs per line, against fontkit's 177. The script takes medians and
+  measures once more before it fails.
+- **`seven`→`eight`.** Inter's `GPOS` has a `kern` feature under `latn` with
+  lookups `[2, 3, 1]` and one under `DFLT` with `[2, 3, 1, 2, 3, 1]`, in which
+  every lookup appears twice. Digits alone have no strong script, so fontkit
+  shapes them under `DFLT` and applies the pair lookup twice (−58 units).
+  HarfBuzz applies each lookup once, as the OpenType processing model requires
+  (−29), under `DFLT` and `latn` alike, and fontkit gives −29 under `latn`.
+  HarfBuzz is correct. `tests/typography-m1.test.ts` pins both values.
+
+harfbuzzjs is now a runtime dependency of `@glyphkiln/core`. It is loaded
+lazily, so legacy renders never load it. See [Typography M1](../typography-m1.md).
 
 ## Consequences
 

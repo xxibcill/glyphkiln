@@ -4,12 +4,12 @@ import {
   DEVELOPMENT_FONT_SHA256,
   FORMAT_IDS,
   FORMAT_REGISTRY,
-  MANIFEST_VERSION,
+  LEGACY_MANIFEST_VERSION,
   PROCEDURAL_ALGORITHM_VERSIONS,
   PROCEDURAL_STYLE_IDS,
   PRODUCT_CLAIM,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   RENDER_CONFIGURATION,
   TEMPLATE_REGISTRY,
 } from "@glyphkiln/core";
@@ -66,11 +66,13 @@ export function createPreviewCatalog(
       : PREVIEW_TEMPLATE_IDS;
   return {
     schemaVersion: DESIGN_DOCUMENT_VERSION,
-    manifestVersion: MANIFEST_VERSION,
+    // App renders use template versions on the legacy typography, whose
+    // manifests and renderer identity are unchanged by typography M1.
+    manifestVersion: LEGACY_MANIFEST_VERSION,
     coreVersion: corePackage.version,
     renderer: {
       name: RENDERER_NAME,
-      version: RENDERER_VERSION,
+      version: LEGACY_RENDERER_VERSION,
     },
     productClaim: PRODUCT_CLAIM,
     rendererConfiguration: { ...RENDER_CONFIGURATION },

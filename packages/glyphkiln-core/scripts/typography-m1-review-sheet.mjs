@@ -1,0 +1,190 @@
+// Builds the owner review sheet for the typography M1 baselines:
+// docs/research/typography-m1-baselines/README.md plus 360 px wide phone
+// previews of every baseline PNG in tests/visual/m1/. Previews are resampled
+// from the exact baseline bytes with the pinned resvg; nothing is re-rendered.
+// --verify fails when the committed sheet or a preview is stale.
+import { createHash } from "node:crypto";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+
+import { Resvg } from "@resvg/resvg-js";
+import prettier from "prettier";
+
+const packageRoot = new URL("../", import.meta.url);
+const baselineDirectory = new URL("tests/visual/m1/", packageRoot);
+const sheetDirectory = new URL(
+  "../../docs/research/typography-m1-baselines/",
+  packageRoot,
+);
+const previewDirectory = new URL("previews/", sheetDirectory);
+const PREVIEW_WIDTH = 360;
+const verify = process.argv.includes("--verify");
+
+const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+
+function pngSize(bytes) {
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+}
+
+function preview(bytes) {
+  const { width, height } = pngSize(bytes);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><image width="${width}" height="${height}" href="data:image/png;base64,${bytes.toString("base64")}"/></svg>`;
+  return new Resvg(svg, {
+    fitTo: { mode: "width", value: PREVIEW_WIDTH },
+    imageRendering: 0,
+    font: { loadSystemFonts: false },
+  })
+    .render()
+    .asPng();
+}
+
+function describeFaces(manifest) {
+  const faces = manifest.fonts ?? [];
+  const v2 = manifest.fontFaces ?? faces;
+  return v2
+    .filter((face) => face.coordinates !== undefined)
+    .map((face) => {
+      const coordinates = Object.entries(face.coordinates)
+        .map(([tag, value]) => `${tag} ${value}`)
+        .join(", ");
+      return `${face.family} ${face.weight} (${face.role}${face.scale === 1 ? "" : `, scale ${face.scale}`}${coordinates.length > 0 ? `; ${coordinates}` : ""}; ${face.scripts.join("+")})`;
+    })
+    .join("<br>");
+}
+
+function describeCraft(records) {
+  return records
+    .map((record) => {
+      const smallest = Math.min(...record.text.map((text) => text.displayedXHeight));
+      const findings =
+        record.findings.length === 0
+          ? "no findings"
+          : record.findings.map((key) => `\`${key.replace(/@\d+$/, "")}\``).join(", ");
+      return `${record.displayWidth} px: smallest x-height ${smallest.toFixed(2)} px; ${findings}`;
+    })
+    .join("<br>");
+}
+
+const GROUPS = [
+  [
+    "specimen-",
+    "Family specimens: 112, 56 and 36 px (36 px tracked +1.8 px, 0.05 em) on Scene 1.1.0, 1080 × 1080",
+  ],
+  [
+    "brief-a-",
+    "Benchmark brief A (GD20 input A) per Thai–Latin pairing, Scene 1.1.0, 1600 × 1600; delivery view 400 × 400",
+  ],
+  [
+    "kilnform-quote-",
+    "Kilnform quote (K2) per pairing on quote-card@1.4.0, Instagram portrait 1080 × 1350; delivery view 360 × 450",
+  ],
+  ["", "New M1 template versions (B2 baselines on schema 1.8.0)"],
+];
+
+const names = (await readdir(baselineDirectory))
+  .filter((name) => name.endsWith(".png"))
+  .map((name) => name.slice(0, -4))
+  .sort();
+await mkdir(previewDirectory, { recursive: true });
+const stale = [];
+const sections = [];
+const placed = new Set();
+for (const [prefix, title] of GROUPS) {
+  const members = names.filter(
+    (name) => !placed.has(name) && (prefix === "" || name.startsWith(prefix)),
+  );
+  const rows = [];
+  for (const name of members) {
+    placed.add(name);
+    const bytes = await readFile(new URL(`${name}.png`, baselineDirectory));
+    const manifest = JSON.parse(
+      await readFile(new URL(`${name}.manifest.json`, baselineDirectory), "utf8"),
+    );
+    const small = Buffer.from(preview(bytes));
+    const previewUrl = new URL(`${name}.png`, previewDirectory);
+    if (verify) {
+      const committed = await readFile(previewUrl).catch(() => undefined);
+      if (committed === undefined || !committed.equals(small))
+        stale.push(`previews/${name}.png`);
+    } else {
+      await writeFile(previewUrl, small);
+    }
+    const craft = JSON.parse(
+      await readFile(new URL(`${name}.craft.json`, baselineDirectory), "utf8"),
+    );
+    const { width, height } = pngSize(bytes);
+    rows.push(
+      `| \`${name}\`<br>${width} × ${height}<br>\`${sha256(bytes).slice(0, 12)}…\` | ${describeFaces(manifest)} | ${describeCraft(craft)} | ![${name} at 360 px](previews/${name}.png) | [full size](../../../packages/glyphkiln-core/tests/visual/m1/${name}.png) |`,
+    );
+  }
+  if (rows.length === 0) continue;
+  sections.push(
+    `## ${title}\n\n| Baseline | Faces drawn (manifest font identity v2) | Craft review at delivery width | 360 px phone preview | Master |\n| --- | --- | --- | --- | --- |\n${rows.join("\n")}\n`,
+  );
+}
+
+const sheet = `# Typography M1 baseline review sheet
+
+**Generated by \`packages/glyphkiln-core/scripts/typography-m1-review-sheet.mjs\`
+from the exact PNG baselines in \`packages/glyphkiln-core/tests/visual/m1/\`.
+Status: candidates awaiting the owner's review. They have not been reviewed.**
+
+Every image is a renderer 0.6.0 baseline on the M1 typography:
+harfbuzzjs 1.6.4 / HarfBuzz 15.0.0, \`script-runs@1.0.0\`,
+\`cluster-tracking@1.0.0\`, \`font-variation@1.0.0\`,
+\`optical-size-auto@1.0.0\` (provisional Q6 mapping, opsz = 0.75 × px at the
+1080 px reference) and \`script-matching@1.0.0\`. The previews are the same
+pixels downsampled to ${PREVIEW_WIDTH} px wide, the phone-feed width of the
+benchmark delivery views.
+
+What to check, per the plan (§5 M1 exit gate, §6):
+
+- Thai marks sit on their bases, with no collisions or dropped marks (ให้,
+  ก่อน, น้ำ, ปู่, ญี่ปุ่น), including on the tracked 36 px lines. Open the
+  master for this: marks are a fraction of the x-height, so the 360 px
+  preview judges reading, not mark placement.
+- Latin and Thai look the same size in each pairing (\`script-matching\` auto
+  scale), and the shared baseline holds.
+- Display sizes use the display cut where the face has \`opsz\` (Inter,
+  Source Serif 4).
+- Text reads at the delivery view. Every case is craft-reviewed at its
+  delivery width (\`craft-review\` policy, minimum x-height 5.5 px). The test
+  pins the result beside each baseline (\`<name>.craft.json\`) and fails the
+  specimens, brief A and the Kilnform quote on any finding not listed as
+  accepted. Brief A is checked at both the 360 px phone width and its own
+  400 px delivery view. A person still judges legibility; the review only
+  rules out text that is too small.
+- Accepted findings, left visible for review:
+  - specimens are type sheets, not compositions, so their empty canvas bands
+    (\`CRAFT_DEAD_SPACE\`) are expected;
+  - \`quote-card@1.4.0\` sets the attribution at 34 px, and Source Serif 4's
+    small x-height lands at 5.38 px at 360 px in \`kilnform-quote-noto-serif\`,
+    just under the threshold. Changing it is a template decision.
+- \`image-led-campaign-m1-square\` keeps B2's copy sizes, so it inherits B2's
+  small eyebrow, subtitle and CTA and the low-visibility Kilnform mark
+  (decision D7). These are reported, not asserted.
+- The Thai–Latin pairings are provisional choices for the owner to accept or
+  change.
+- The Kilnform quote copy is Latin only, so each pairing's Thai fallback is
+  declared in its stack but draws nothing; the quote checks the Latin face,
+  optical size and tracking. Brief A exercises the Thai and Latin faces.
+- \`quote-card-m1\`, \`statistic-card-m1\` and \`image-led-campaign-m1-square\`
+  are the existing B2 baselines (Inter) on the new template versions; they
+  show what the version switch changes (optical size, cluster tracking).
+
+${sections.join("\n")}`;
+const sheetUrl = new URL("README.md", sheetDirectory);
+const formatted = await prettier.format(sheet, {
+  ...((await prettier.resolveConfig(sheetUrl.pathname)) ?? {}),
+  parser: "markdown",
+});
+if (verify) {
+  const committed = await readFile(sheetUrl, "utf8").catch(() => "");
+  if (committed !== formatted) stale.push("README.md");
+  if (stale.length > 0) {
+    throw new Error(`Typography M1 review sheet is stale: ${stale.join(", ")}`);
+  }
+  process.stdout.write(`Verified the M1 review sheet (${names.length} baselines).\n`);
+} else {
+  await writeFile(sheetUrl, formatted, "utf8");
+  process.stdout.write(`Wrote the M1 review sheet (${names.length} baselines).\n`);
+}

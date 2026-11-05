@@ -30,6 +30,8 @@ import type {
 import { renderSceneToSvg } from "../renderer/svg.js";
 import { analyzeTextLayoutSupport } from "../typography/index.js";
 import { layoutText, missingGlyphIssue } from "../typography/layout-text.js";
+import { createTypesetter, loadTypographyEngine } from "../typography/engine.js";
+import type { FontModel } from "../typography/font-model.js";
 import { createSceneFingerprint, type SceneFingerprintInput } from "./fingerprint.js";
 import {
   createSceneEvidence,
@@ -41,6 +43,8 @@ import { createSceneRenderManifest, type SceneRenderManifest } from "./provenanc
 import { reviewSceneReadingOrder } from "./reading-order.js";
 import { validateSceneDocument } from "./schema.js";
 import { reviewSceneTextOcclusion } from "./text-occlusion.js";
+import { LEGACY_SCENE_DOCUMENT_VERSION } from "./types.js";
+import { collectFontIdentityV2 } from "../provenance/font-identity.js";
 import type {
   SceneDocument,
   SceneElement,
@@ -92,6 +96,8 @@ type ResolvedScene = {
 };
 
 type ResolveContext = {
+  /** Scene 1.1.0 sets text on the M1 typography. */
+  m1: { shortSidePx: number } | undefined;
   assets: AssetRegistry;
   fonts: FontRegistry;
   declaredFonts: Set<string>;
@@ -110,6 +116,8 @@ export async function renderScene(
 ): Promise<RenderSceneResult> {
   const document = requireSceneDocument(input);
   blockOnSceneTextLayoutErrors(collectSceneTextLayoutDiagnostics(document.elements));
+  if (document.schemaVersion !== LEGACY_SCENE_DOCUMENT_VERSION)
+    await loadTypographyEngine();
   const formats = validateOutputFormats(options.formats ?? ["svg"]);
   const creationTimestamp = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
@@ -131,6 +139,10 @@ export async function renderScene(
   );
 
   const svg = renderSceneToSvg(resolved.scene);
+  const m1 =
+    document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION
+      ? undefined
+      : collectFontIdentityV2(document.fonts, resolved.scene);
   const manifestAssets = collectManifestAssets(document, resolved.assetIds);
   const manifestFonts = collectManifestFonts(document, resolved.fontKeys, fonts);
   const rasterFonts = manifestFonts.map((font) =>
@@ -166,6 +178,7 @@ export async function renderScene(
           : "deterministic-code-rendering/resvg",
       qualityIssues: resolved.qualityIssues,
       selectableText: resolved.selectableText,
+      ...(m1 === undefined ? {} : { m1 }),
     });
     outputs.push({
       format,
@@ -181,6 +194,8 @@ export async function renderScene(
 /**
  * Resolve a scene exactly as renderScene does before serialization, for
  * read-only craft review. Blocking text-layout and quality errors still throw.
+ * Scene 1.1.0 text needs the M1 engine: await loadTypographyEngine() first
+ * (reviewSceneCraft does this itself).
  */
 export function prepareSceneForReview(
   input: unknown,
@@ -322,6 +337,15 @@ function resolveScene(
   fonts: FontRegistry,
 ): ResolvedScene {
   const context: ResolveContext = {
+    m1:
+      document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION
+        ? undefined
+        : {
+            shortSidePx: Math.min(
+              document.dimensions.width,
+              document.dimensions.height,
+            ),
+          },
     assets,
     fonts,
     declaredFonts: new Set(
@@ -460,9 +484,24 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
   }
   context.fonts.get(element.font.family, element.font.weight, element.font.style);
   context.fontKeys.add(key);
+  const engine =
+    context.m1 === undefined
+      ? undefined
+      : createTypesetter({
+          registry: context.fonts,
+          model: sceneFontModel(element.font),
+          shortSidePx: context.m1.shortSidePx,
+          layerId: element.id,
+        });
+  for (const face of sceneStackFaces(element.font)) {
+    context.fontKeys.add(
+      fontReferenceKey(face, element.font.weight, element.font.style),
+    );
+  }
   const layout = layoutText({
     text: element.text,
     registry: context.fonts,
+    ...(engine === undefined ? {} : { engine }),
     face: {
       family: element.font.family,
       weight: element.font.weight,
@@ -496,11 +535,18 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
     context.qualityIssues.push(
       missingGlyphIssue(
         element.id,
-        `Font "${element.font.family}" does not cover all text in scene element "${element.id}".`,
+        engine === undefined
+          ? `Font "${element.font.family}" does not cover all text in scene element "${element.id}".`
+          : `No face in the stack ${engine
+              .stackFamilies()
+              .map((name) => `"${name}"`)
+              .join(", ")} covers all text in scene element "${element.id}".`,
         layout.missingCodePoints,
+        engine?.stackFamilies(),
       ),
     );
   }
+  if (engine !== undefined) context.qualityIssues.push(...engine.issues);
   context.qualityIssues.push(...layout.issues);
   const lines = layout.lines.map((line) => line.text);
   context.textWraps.set(element.id, {
@@ -534,6 +580,9 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
     bounds: layout.bounds,
     outlines: layout.lines.map((line) => line.set!.outline),
     textMode: element.textMode,
+    ...(engine === undefined
+      ? {}
+      : { faces: engine.usedFaces(), fontStack: engine.stackFamilies() }),
     ...(element.opacity === undefined ? {} : { opacity: element.opacity }),
     ...(element.semantic === undefined ? {} : { semantic: element.semantic }),
   };
@@ -709,4 +758,27 @@ function blockOnSceneTextLayoutErrors(collection: SceneTextLayoutCollection): vo
       },
     },
   );
+}
+
+function sceneFontModel(font: SceneTextElement["font"]): FontModel {
+  return {
+    family: font.family,
+    weight: font.weight,
+    style: font.style,
+    ...(font.axes === undefined ? {} : { axes: font.axes }),
+    ...(font.namedInstance === undefined ? {} : { namedInstance: font.namedInstance }),
+    ...(font.opticalSizing === undefined ? {} : { opticalSizing: font.opticalSizing }),
+    ...(font.opsz === undefined ? {} : { opsz: font.opsz }),
+    ...(font.fallback === undefined ? {} : { fallback: font.fallback }),
+    ...(font.scriptFaces === undefined ? {} : { scriptFaces: font.scriptFaces }),
+  };
+}
+
+/** Fallback and script-face families an element names (Scene 1.1.0). */
+export function sceneStackFaces(font: SceneTextElement["font"]): string[] {
+  return [
+    ...(font.fallback ?? []).map((face) => face.family),
+    ...(font.scriptFaces?.latn === undefined ? [] : [font.scriptFaces.latn.family]),
+    ...(font.scriptFaces?.thai === undefined ? [] : [font.scriptFaces.thai.family]),
+  ];
 }

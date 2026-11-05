@@ -1,0 +1,204 @@
+{
+  "manifestVersion": "1.1.0",
+  "renderId": "scene_d70cb33dcade3ce115fae1de",
+  "renderFingerprint": "d70cb33dcade3ce115fae1dead9a25db4b5261d58bdb48b7846c591ed3a8ec5b",
+  "input": {
+    "kind": "scene",
+    "sceneVersion": "1.1.0",
+    "sceneId": "m1-brief-a-noto-serif",
+    "sceneHash": "4d8b2553a485d1a1ae0168641cc85352c780e1c923890fa013b569e0f9521933"
+  },
+  "sceneKernelVersion": "1.0.0",
+  "renderer": { "name": "glyphkiln-svg", "version": "0.6.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Noto Serif Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53"
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    },
+    {
+      "family": "Noto Serif Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53"
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    }
+  ],
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+    "m1": {
+      "shaper": {
+        "id": "harfbuzzjs@1.6.4/harfbuzz@15.0.0",
+        "wasmSha256": "6eeed8e1bc9ad7773038e48ff8f9e07e0ad228572c594b45e5357e9c2f7a0b2e"
+      },
+      "scriptRuns": {
+        "version": "script-runs@1.0.0",
+        "unicodeVersion": "17.0.0",
+        "scriptsSha256": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+        "neutral": "attach-preceding-else-following"
+      },
+      "clusterTracking": {
+        "version": "cluster-tracking@1.0.0",
+        "unit": "grapheme-splitter@1.0.4/unicode-10.0.0",
+        "thaiSaraAm": "split-before-sara-aa",
+        "trailingTracking": false,
+        "optionalLigaturesUnderTracking": "off-unless-requested"
+      },
+      "fontVariation": "font-variation@1.0.0",
+      "opticalSize": {
+        "version": "optical-size-auto@1.0.0",
+        "pointsPerPixel": 0.75,
+        "referenceShortSidePx": 1080,
+        "rounding": 0.01,
+        "clampToAxis": true
+      },
+      "scriptMatching": {
+        "version": "script-matching@1.0.0",
+        "references": { "latn": "x", "thai": "น" },
+        "scaleRounding": 0.001,
+        "autoBaselineShift": 0
+      }
+    }
+  },
+  "fontFaces": [
+    {
+      "family": "Noto Serif Thai",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53",
+      "coordinates": { "wdth": 100, "wght": 700 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 60, "wght": 700 },
+      "role": "script:latn",
+      "scale": 1.218,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    },
+    {
+      "family": "Noto Serif Thai",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "34a7ad11647c845303aabdde639059806c56b84719e5d2ceb28eb038711bdf53",
+      "coordinates": { "wdth": 100, "wght": 400 },
+      "role": "primary",
+      "scale": 1,
+      "baselineShift": 0,
+      "scripts": ["Thai"]
+    },
+    {
+      "family": "Source Serif 4",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "coordinates": { "opsz": 35.87, "wght": 400 },
+      "role": "script:latn",
+      "scale": 1.181,
+      "baselineShift": 0,
+      "scripts": ["Latin"]
+    }
+  ],
+  "textStacks": [
+    {
+      "layerId": "headline",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Noto Serif Thai",
+          "weight": 700,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Source Serif 4",
+          "weight": 700,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "support",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Noto Serif Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        },
+        {
+          "family": "Source Serif 4",
+          "weight": 400,
+          "style": "normal",
+          "role": "script:latn"
+        }
+      ]
+    },
+    {
+      "layerId": "caption",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Noto Serif Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    },
+    {
+      "layerId": "exclusions",
+      "stack": ["Source Serif 4", "Noto Serif Thai"],
+      "faces": [
+        {
+          "family": "Noto Serif Thai",
+          "weight": 400,
+          "style": "normal",
+          "role": "primary"
+        }
+      ]
+    }
+  ],
+  "dimensions": { "width": 1600, "height": 1600 },
+  "output": {
+    "format": "png",
+    "sha256": "cbdbb3ada8e9adbff8e01d1c9bad33136db404051fedda4ec8a5e0dea7d87b13",
+    "byteSize": 110606
+  },
+  "creationTimestamp": "2026-11-04T00:00:00.000Z",
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "accessibility": {
+    "title": "Thai planning-service cover",
+    "description": "Benchmark brief A set with a Thai–Latin pairing on the M1 typography.",
+    "readingOrder": ["headline", "support", "caption", "exclusions"],
+    "selectableText": false
+  },
+  "productClaim": "Rendered deterministically from a validated Glyphkiln scene; authorship, subject accuracy, and comprehension require separate review."
+}

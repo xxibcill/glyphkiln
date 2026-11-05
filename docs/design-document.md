@@ -44,6 +44,12 @@ the selected template decides which semantic layer consumes a role. It also
 adds normalized image `focalPoint` and the closed `none`, `dark-scrim`, and
 `light-scrim` treatment IDs. Earlier schemas reject these fields.
 
+Schema `1.8.0` adds the M1 font model: text layers may set `axes`,
+`namedInstance`, `opticalSizing` and `opsz`, and roles may also set an ordered
+`fallback` stack and `scriptFaces` (`latn`, `thai`), each with a `scale` and
+`baselineShift`. Only template versions with the `fontModel` capability
+implement the layer fields. See [Typography M1](typography-m1.md).
+
 ## Layer union
 
 | Type                                     | Role                                                   |

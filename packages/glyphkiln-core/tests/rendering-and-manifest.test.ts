@@ -4,7 +4,7 @@ import {
   PRODUCT_CLAIM,
   RENDER_RESOURCE_LIMITS,
   RENDERER_NAME,
-  RENDERER_VERSION,
+  LEGACY_RENDERER_VERSION,
   TYPOGRAPHY_POLICY,
   renderGraphic,
   sha256,
@@ -120,7 +120,7 @@ describe("render manifests", () => {
       designDocumentId: "example-article-cover",
       seed: "editorial-rendering-19",
       template: { id: "article-cover", version: "1.1.0" },
-      renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+      renderer: { name: RENDERER_NAME, version: LEGACY_RENDERER_VERSION },
       typographyPolicy: TYPOGRAPHY_POLICY,
       dimensions: { width: 1280, height: 720 },
       output: {

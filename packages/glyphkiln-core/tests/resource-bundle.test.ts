@@ -20,6 +20,7 @@ import {
 import {
   DEVELOPMENT_FONT_SHA256,
   RENDER_RESOURCE_LIMITS,
+  bundledFontFile,
   renderGraphic,
   sha256,
   type DesignDocument,
@@ -324,6 +325,31 @@ describe("offline CLI resource bundles", () => {
     await expect(
       loadResourceBundle(fixture.root, fixture.document),
     ).rejects.toMatchObject({ code: "RESOURCE_BUNDLE_FONT_HASH_REQUIRED" });
+  });
+
+  it("lets a design use a bundled face by its pinned hash without bundle bytes", async () => {
+    const fixture = await createBundleFixture();
+    const kanit = bundledFontFile("Kanit", 700, "normal")!;
+    fixture.document.fonts.push({
+      family: "Kanit",
+      weight: 700,
+      style: "normal",
+      sha256: kanit.sha256,
+    });
+    await writeManifest(fixture);
+    await expect(
+      loadResourceBundle(fixture.root, fixture.document),
+    ).resolves.toBeDefined();
+
+    fixture.document.fonts[fixture.document.fonts.length - 1] = {
+      family: "Kanit",
+      weight: 700,
+      style: "normal",
+      sha256: DEVELOPMENT_FONT_SHA256,
+    };
+    await expect(
+      loadResourceBundle(fixture.root, fixture.document),
+    ).rejects.toMatchObject({ code: "RESOURCE_BUNDLE_FONT_MISSING" });
   });
 
   it("requires bundle font metadata to match the design exactly", async () => {

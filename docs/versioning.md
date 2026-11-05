@@ -222,3 +222,30 @@ exact. The optional `glyphRun` provenance on path elements does not serialize.
 Authoring metadata `1.8.0` publishes the three versions and lists `1.7.0` as
 compatible with existing templates. App template defaults are unchanged. See
 [Type and color craft controls](type-and-color-craft.md).
+
+## Typography M1 (renderer 0.6.0)
+
+DesignDocument `1.8.0` adds the M1 font model: text layers gain `axes`,
+`namedInstance`, `opticalSizing` and `opsz`; brand typography roles gain the
+same fields plus an ordered `fallback` stack and per-script `scriptFaces`.
+SceneDocument `1.1.0` adds the same model to scene text. The new pixels are
+owned by renderer `0.6.0` and three new template versions,
+`quote-card@1.4.0`, `statistic-card@1.4.0` and `image-led-campaign@1.3.0`.
+Each pins the HarfBuzz shaper (`harfbuzzjs@1.6.4/harfbuzz@15.0.0`) plus
+`script-runs@1.0.0`, `cluster-tracking@1.0.0`, `font-variation@1.0.0`,
+`optical-size-auto@1.0.0` and `script-matching@1.0.0`.
+
+Manifest `1.3.0` and Scene manifest `1.1.0` record font identity v2 and the
+shaper. Scene `1.1.0` sets all its text on the M1 typography.
+
+This milestone departs from the renderer `0.5.0` precedent. The renderer
+identity is now chosen by the render path. Renders on legacy typography
+(every older template version and Scene `1.0.0`) are byte-identical to
+renderer `0.5.0`, so they keep recording renderer `0.5.0`, manifest `1.2.0`
+and Scene manifest `1.0.0`. Their SVG, PNG, manifest and fingerprint bytes
+stay exact, and no reproduction record changes. The exported
+`RENDERER_VERSION` and `MANIFEST_VERSION` name the newest identities, and
+`LEGACY_RENDERER_VERSION` and `LEGACY_MANIFEST_VERSION` name the retained
+ones. Authoring metadata `1.9.0` publishes the three versions and lists
+`1.8.0` as compatible with existing templates. App template choices are unchanged; new App drafts follow `DESIGN_DOCUMENT_VERSION` and are created as `1.8.0`, as they moved to `1.7.0` with B2, on the same legacy template versions and pixels.
+See [Typography M1](typography-m1.md).

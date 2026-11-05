@@ -4,6 +4,7 @@ import { sha256 } from "../cache/canonical.js";
 import { GlyphkilnError, type ResolvedFont } from "../domain/types.js";
 import { assertFontResources } from "../resources/index.js";
 import type { FontDeclaration } from "../schema/index.js";
+import { bundledFontFile, resolveBundledFont } from "./bundled.js";
 import { fontReferenceKey } from "./key.js";
 import {
   fontkitShaper,
@@ -32,6 +33,8 @@ export type PositionedGlyph = {
   y: number;
   /** Advance applied after the glyph, including letter spacing. */
   advance: number;
+  /** Family of the face that drew the glyph (M1 typesetter only). */
+  face?: string;
 };
 
 /** One line set by FontRegistry.setLines: its path and glyph evidence. */
@@ -115,7 +118,8 @@ export class FontRegistry {
     weight = 400,
     style: ResolvedFont["style"] = "normal",
   ): ResolvedFont {
-    const font = this.#fonts.get(fontReferenceKey(family, weight, style));
+    const key = fontReferenceKey(family, weight, style);
+    const font = this.#fonts.get(key) ?? this.#addBundled(key, family, weight, style);
     if (font === undefined) {
       throw new GlyphkilnError(
         `Unsupported font "${family}" (${weight} ${style}). Supply its bytes explicitly.`,
@@ -294,7 +298,10 @@ export class FontRegistry {
 
   /** Whether a face is registered for this exact family, weight, and style. */
   public has(family: string, weight: number, style: ResolvedFont["style"]): boolean {
-    return this.#fonts.has(fontReferenceKey(family, weight, style));
+    return (
+      this.#fonts.has(fontReferenceKey(family, weight, style)) ||
+      bundledFontFile(family, weight, style) !== undefined
+    );
   }
 
   /** Em-relative x-height and cap height of an exact registered face. */
@@ -381,6 +388,22 @@ export class FontRegistry {
       penY -= glyph.yAdvance * scale;
     }
     return { path: paths.join(" "), glyphs };
+  }
+
+  /**
+   * Register a bundled face on first use. Caller-supplied faces are added in
+   * the constructor, so they always win over bundled bytes.
+   */
+  #addBundled(
+    key: string,
+    family: string,
+    weight: number,
+    style: ResolvedFont["style"],
+  ): ResolvedFont | undefined {
+    const bundled = resolveBundledFont(family, weight, style);
+    if (bundled === undefined) return undefined;
+    this.#fonts.set(key, bundled);
+    return bundled;
   }
 
   #addAlias(font: ResolvedFont, weight: number): void {

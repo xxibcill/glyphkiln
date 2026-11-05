@@ -23,6 +23,57 @@ The font is licensed separately under SIL OFL 1.1 in
 This open development font makes a clone immediately renderable without
 proprietary files.
 
+## Bundled font library
+
+Core also ships the twelve OFL families the owner approved on 4 November 2026
+(decision D3; see the [Thai + Latin](research/thai-latin-fonts-2026-11/README.md)
+and [Latin](research/latin-fonts-2026-11/README.md) research):
+
+| Thai + Latin       | Latin only        |
+| ------------------ | ----------------- |
+| IBM Plex Sans Thai | IBM Plex Sans     |
+| Noto Sans Thai     | Schibsted Grotesk |
+| Sarabun            | Barlow Condensed  |
+| Kanit              | Instrument Serif  |
+| Trirong            | Source Serif 4    |
+| Noto Serif Thai    | IBM Plex Mono     |
+
+The 101 files come unchanged from `github.com/google/fonts` `ofl/` at commit
+`2fe1e8c6b137fb13041a7cfca6fdcd8a910ea4dc`. Each lives under
+`packages/glyphkiln-core/assets/fonts/<family>/` next to that family's
+`OFL.txt`. Its SHA-256 and byte size are recorded in
+`assets/fonts/catalog.json` and compiled into Core's pinned table
+(`src/fonts/bundled-catalog.generated.ts`). `npm run licenses:verify` fails
+if any file under `assets/fonts` is unlisted, missing, changed or lacks its
+licence. The 17 hashes published in the research READMEs are checked again in
+`tests/bundled-fonts.test.ts`.
+
+The bundled families follow Inter's contract:
+
+- A face resolves only when a document names that exact family, weight and
+  style. Bytes are read once per process and checked against the pinned hash.
+  A changed install fails with `FONT_HASH_MISMATCH`.
+- Caller-supplied faces are registered first, so they always win over bundled
+  bytes.
+- Variable files (Noto Sans Thai, Noto Serif Thai, IBM Plex Sans, Schibsted
+  Grotesk, Source Serif 4) serve every hundred weight inside their `wght`
+  range. Static files serve their own weight only. There is no
+  synthesized weight or italic.
+- Offline resource bundles may omit a bundled face if the design declares it
+  with its pinned SHA-256.
+- Bundling changes no existing render. Documents that render today use the
+  same faces and bytes, and an unknown family still fails with
+  `UNSUPPORTED_FONT`.
+
+**Where the files live.** The fonts are part of `@glyphkiln/core`'s tarball
+(about 8.9 MB packed, against about 0.9 MB before), not a separate
+`@glyphkiln/fonts` package. That keeps the bytes in the same immutable unit as
+the code that pins their hashes, so a package manager cannot dedupe or
+override them to another version. Isolated workers can already read the
+package root, and the package-consumer test needs no second tarball. The
+lookup API (`resolveBundledFont`) does not expose the location, so moving the
+files into a separate package later would not break callers.
+
 Applications may supply additional fonts as bytes. They should retain a
 licensed immutable font object, store the verified hash in the document, and
 pass bytes through the SDK. `DesignDocument` output and Scene Kernel `outline`
@@ -50,8 +101,15 @@ ADR 0005's statement that Core did not report glyph coverage records the
 original decision state. Glyph coverage shipped before `v0.2.0`; the accepted
 ADR remains unchanged as historical evidence.
 
-Current limitations: normal Inter variable is the built-in face, font fallback
-stacks are not supported, explicit OpenType feature selection is limited to the
+## M1 font model
+
+New template versions and Scene `1.1.0` shape and outline with HarfBuzz and
+set every `fvar` axis, named instances, automatic optical size, fallback stacks
+and per-script faces. See [Typography M1](typography-m1.md). The registry still
+verifies every face by its SHA-256 first.
+
+Current limitations: normal Inter variable is the default face, font fallback
+stacks exist only on the M1 typography, explicit OpenType feature selection is limited to the
 closed DesignDocument 1.7.0 settings in
 [type and color craft controls](type-and-color-craft.md),
 and color/bitmap glyphs are rejected by the portable SVG outliner. Bidi and
