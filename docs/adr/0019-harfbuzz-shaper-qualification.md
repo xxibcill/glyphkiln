@@ -216,7 +216,13 @@ lazily, so legacy renders never load it. See [Typography M1](../typography-m1.md
   shaper.
 - Two shapers live side by side for as long as legacy versions are supported.
   The differential corpus and the spike verification stay in `npm test` to
-  keep both honest.
+  keep both honest. Since typography M2 the differential corpus runs both
+  production paths, legacy `FontRegistry` and the M1 typesetter, against a
+  committed, explained allowlist
+  (`tests/typography-m2-differential.test.ts`). A pinned fresh-process
+  digest of M1 shaping and outlines (`npm run typography-m1-digest`) carries
+  the cross-platform check forward; macOS with Node 22 is pending the
+  owner's run ([Typography M2](../typography-m2.md)).
 - New baselines are needed for every template version that opts in.
 
 ## Alternatives considered
