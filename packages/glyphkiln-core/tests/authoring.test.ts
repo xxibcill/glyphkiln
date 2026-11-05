@@ -120,6 +120,9 @@ describe("AI-ready authoring metadata", () => {
       "quote-card@1.4.0",
       "statistic-card@1.4.0",
       "image-led-campaign@1.3.0",
+      "quote-card@1.5.0",
+      "statistic-card@1.5.0",
+      "image-led-campaign@1.4.0",
     ]);
     expect(Object.keys(AUTHORING_TEMPLATE_REGISTRY)).toEqual(AUTHORING_TEMPLATE_KEYS);
     expect(Object.isFrozen(AUTHORING_TEMPLATE_REGISTRY)).toBe(true);

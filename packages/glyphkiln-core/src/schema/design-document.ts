@@ -801,13 +801,16 @@ function createVersionedDesignDocumentSchema<
   FormatIds extends readonly [string, ...string[]],
   Layers extends z.ZodType,
   Brand extends z.ZodType,
+  // No extra fields by default; only 1.8.0 adds a root `lexicon`.
+  // eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type
+  Extra extends z.ZodRawShape = Record<never, never>,
 >(
   version: Version,
   templateIds: TemplateIds,
   formatIds: FormatIds,
   layerSchema: Layers,
   brandSchema: Brand,
-  extra: z.ZodRawShape = {},
+  extra: Extra = {} as Extra,
 ) {
   return z
     .object({

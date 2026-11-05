@@ -2,6 +2,7 @@ import { hashCanonical, sha256 } from "../cache/canonical.js";
 import {
   LEGACY_MANIFEST_VERSION,
   LEGACY_RENDERER_VERSION,
+  M3_MANIFEST_VERSION,
   MANIFEST_VERSION,
   PRODUCT_CLAIM,
   RENDERER_NAME,
@@ -14,6 +15,7 @@ import {
 } from "../domain/types.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { TYPOGRAPHY_POLICY } from "../typography/policy.js";
+import type { M3TypographyPolicy } from "../typography/m3-policy.js";
 import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 
 export type ManifestAsset = {
@@ -89,7 +91,16 @@ export type M1RenderManifest = ManifestCommon & {
   textStacks: ManifestTextStack[];
 };
 
-export type RenderManifest = LegacyRenderManifest | M1RenderManifest;
+/** Manifest 1.4.0: renders on the M3 typography (M1 plus M3 line breaking). */
+export type M3RenderManifest = Omit<
+  M1RenderManifest,
+  "manifestVersion" | "typographyPolicy"
+> & {
+  manifestVersion: typeof M3_MANIFEST_VERSION;
+  typographyPolicy: M1RenderManifest["typographyPolicy"] & { m3: M3TypographyPolicy };
+};
+
+export type RenderManifest = LegacyRenderManifest | M1RenderManifest | M3RenderManifest;
 
 export type CreateManifestInput = {
   document: DesignDocument;
@@ -106,6 +117,8 @@ export type CreateManifestInput = {
   qualityIssues: QualityIssue[];
   /** Present for M1 renders: font identity v2 and the stacks tried. */
   m1?: { fonts: ManifestFontV2[]; textStacks: ManifestTextStack[] };
+  /** Present for M3 renders (which are also M1 renders). */
+  m3?: M3TypographyPolicy;
 };
 
 export function createRenderManifest(input: CreateManifestInput): RenderManifest {
@@ -176,8 +189,7 @@ export function createRenderManifest(input: CreateManifestInput): RenderManifest
     seed,
     template,
   } = common;
-  return {
-    manifestVersion: MANIFEST_VERSION,
+  const m1Fields = {
     renderId,
     renderFingerprint,
     designDocumentId,
@@ -185,6 +197,33 @@ export function createRenderManifest(input: CreateManifestInput): RenderManifest
     seed,
     template,
     renderer: { name: RENDERER_NAME, version: RENDERER_VERSION },
+  } as const;
+  if (input.m3 !== undefined) {
+    return {
+      manifestVersion: M3_MANIFEST_VERSION,
+      ...m1Fields,
+      typographyPolicy: {
+        ...TYPOGRAPHY_POLICY,
+        m1: M1_TYPOGRAPHY_POLICY,
+        m3: input.m3,
+      },
+      proceduralAlgorithmVersions: common.proceduralAlgorithmVersions,
+      assets: common.assets,
+      fonts: input.m1.fonts,
+      textStacks: input.m1.textStacks,
+      dimensions: common.dimensions,
+      output: common.output,
+      creationTimestamp: common.creationTimestamp,
+      compositionGenerativeImageModelUsed: false,
+      includedGenerativeAssetUsed: common.includedGenerativeAssetUsed,
+      renderingMethod: common.renderingMethod,
+      qualityIssues: common.qualityIssues,
+      productClaim: PRODUCT_CLAIM,
+    };
+  }
+  return {
+    manifestVersion: MANIFEST_VERSION,
+    ...m1Fields,
     typographyPolicy: { ...TYPOGRAPHY_POLICY, m1: M1_TYPOGRAPHY_POLICY },
     proceduralAlgorithmVersions: common.proceduralAlgorithmVersions,
     assets: common.assets,

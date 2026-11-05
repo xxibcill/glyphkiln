@@ -1,17 +1,38 @@
 import { THAI_SEGMENTATION_MODEL } from "./budoux-th-model.js";
 import {
+  HYBRID_SEGMENTATION_POLICY,
+  HYBRID_SEGMENTATION_POLICY_VERSION,
+  TAILORED_SEGMENTATION_POLICY,
+  TAILORED_SEGMENTATION_POLICY_VERSION,
   THAI_SEGMENTATION_POLICY,
   THAI_SEGMENTATION_POLICY_VERSION,
   WHITESPACE_SEGMENTATION_POLICY,
   WHITESPACE_SEGMENTATION_POLICY_VERSION,
 } from "./policy.js";
+import { hybridLineBreakOpportunities } from "./thai-segmentation-hybrid.js";
 
 export type SegmentationPolicy =
-  typeof THAI_SEGMENTATION_POLICY | typeof WHITESPACE_SEGMENTATION_POLICY;
+  | typeof THAI_SEGMENTATION_POLICY
+  | typeof WHITESPACE_SEGMENTATION_POLICY
+  | typeof HYBRID_SEGMENTATION_POLICY
+  | typeof TAILORED_SEGMENTATION_POLICY;
 
 export type SegmentationPolicyVersion =
   | typeof THAI_SEGMENTATION_POLICY_VERSION
-  | typeof WHITESPACE_SEGMENTATION_POLICY_VERSION;
+  | typeof WHITESPACE_SEGMENTATION_POLICY_VERSION
+  | typeof HYBRID_SEGMENTATION_POLICY_VERSION
+  | typeof TAILORED_SEGMENTATION_POLICY_VERSION;
+
+/**
+ * M3 line breaking (template versions on `typography: "m3"`): UAX #14
+ * opportunities with `line-break-tailoring@1.1.0`, hybrid Thai word
+ * boundaries with the document and brand `lexicon`, and `preferBreakAfter`
+ * phrases.
+ */
+export type M3LineBreaking = {
+  readonly lexicon: readonly string[];
+  readonly preferBreakAfter: readonly string[];
+};
 
 export type WrapUnit = {
   text: string;
@@ -27,6 +48,8 @@ export type SegmentedParagraph = {
   policy: SegmentationPolicy;
   policyVersion: SegmentationPolicyVersion;
   usesThaiSegmentation: boolean;
+  /** M3: text offsets right after a `preferBreakAfter` phrase. */
+  preferredEnds?: ReadonlySet<number>;
 };
 
 type SegmentationModel = Readonly<Record<string, Readonly<Record<string, number>>>>;
@@ -60,7 +83,32 @@ export function segmentThaiText(text: string): string[] {
 export function segmentParagraph(
   paragraph: string,
   keepTogether: readonly string[],
+  lineBreaking?: M3LineBreaking,
 ): SegmentedParagraph {
+  if (lineBreaking !== undefined) {
+    // M3 collapses only collapsible whitespace, so NBSP and NNBSP survive.
+    const normalized = paragraph
+      .replace(/^[ \t\f\r\n]+|[ \t\f\r\n]+$/g, "")
+      .replace(/[ \t\f\r\n]+/g, " ");
+    const usesThaiSegmentation = containsThai(normalized);
+    const units = createOpportunityUnits(normalized, lineBreaking.lexicon);
+    return {
+      text: normalized,
+      units: mergeKeepTogetherUnits(units, normalized, keepTogether),
+      policy: usesThaiSegmentation
+        ? HYBRID_SEGMENTATION_POLICY
+        : TAILORED_SEGMENTATION_POLICY,
+      policyVersion: usesThaiSegmentation
+        ? HYBRID_SEGMENTATION_POLICY_VERSION
+        : TAILORED_SEGMENTATION_POLICY_VERSION,
+      usesThaiSegmentation,
+      preferredEnds: new Set(
+        findKeepTogetherRanges(normalized, lineBreaking.preferBreakAfter).map(
+          (range) => range.end,
+        ),
+      ),
+    };
+  }
   const normalized = normalizeWhitespace(paragraph);
   const usesThaiSegmentation = containsThai(normalized);
   const units = createUnits(normalized);
@@ -142,6 +190,35 @@ function createUnits(text: string): WrapUnit[] {
       segmentStart = segmentEnd;
     }
   }
+  return units;
+}
+
+/**
+ * Units between the M3 line-break opportunities of a whitespace-normalized
+ * paragraph. A break after a space drops the space (`separatorBefore: " "`);
+ * a space without an opportunity, such as `499 บาท`, stays inside a unit.
+ */
+function createOpportunityUnits(text: string, lexicon: readonly string[]): WrapUnit[] {
+  const units: WrapUnit[] = [];
+  if (text.length === 0) return units;
+  let start = 0;
+  let separator: "" | " " = "";
+  const push = (end: number, next: "" | " ") => {
+    const trimmedEnd = next === " " ? end - 1 : end;
+    units.push({
+      text: text.slice(start, trimmedEnd),
+      separatorBefore: separator,
+      wordCount: 1,
+      start,
+      end: trimmedEnd,
+    });
+    start = end;
+    separator = next;
+  };
+  for (const { offset } of hybridLineBreakOpportunities(text, lexicon)) {
+    push(offset, text[offset - 1] === " " ? " " : "");
+  }
+  push(text.length, "");
   return units;
 }
 
