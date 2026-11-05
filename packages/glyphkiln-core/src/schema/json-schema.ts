@@ -44,6 +44,16 @@ export const DESIGN_DOCUMENT_RUNTIME_REFINEMENTS = [
     description:
       "After whitespace normalization, each emphasis phrase must occur within one paragraph of the layer text (schema 1.7.0).",
   },
+  {
+    code: "LEXICON_ENTRY_NFC",
+    path: "$.lexicon[*], $.brand.typography.lexicon[*]",
+    description: "Thai lexicon entries must be in Unicode NFC (schema 1.8.0).",
+  },
+  {
+    code: "UNIQUE_LEXICON_ENTRIES",
+    path: "$.lexicon[*], $.brand.typography.lexicon[*]",
+    description: "Thai lexicon entries must be unique within a lexicon (schema 1.8.0).",
+  },
 ] as const;
 
 export function getDesignDocumentJsonSchema(): object {

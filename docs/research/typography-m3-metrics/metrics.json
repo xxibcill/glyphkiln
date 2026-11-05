@@ -1,0 +1,286 @@
+{
+  "generator": "scripts/typography/m3-metrics.mjs",
+  "goldSet": {
+    "id": "G-TH",
+    "version": "0.1.0-draft",
+    "status": "draft",
+    "lines": 318
+  },
+  "measurer": {
+    "family": "Noto Sans Thai",
+    "weight": 400,
+    "style": "normal",
+    "fontSize": 32,
+    "measure": "FontRegistry.measure"
+  },
+  "widths": [120, 200, 320, 480, 720],
+  "before": {
+    "policy": "budoux-th@0.7.0 + whitespace@1.0.0",
+    "gth": [
+      {
+        "width": 120,
+        "breaks": 1136,
+        "acceptable": 1040,
+        "acceptableShare": 0.9155,
+        "insideCluster": 7,
+        "maiyamokAtLineStart": 7,
+        "amountUnitSplits": 6,
+        "firstMisses": [
+          "gth-0003@55",
+          "gth-0006@20",
+          "gth-0008@15",
+          "gth-0011@45",
+          "gth-0014@60",
+          "gth-0017@13",
+          "gth-0021@31",
+          "gth-0022@10"
+        ]
+      },
+      {
+        "width": 200,
+        "breaks": 582,
+        "acceptable": 532,
+        "acceptableShare": 0.9141,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 7,
+        "firstMisses": [
+          "gth-0004@9",
+          "gth-0013@42",
+          "gth-0021@25",
+          "gth-0022@10",
+          "gth-0023@69",
+          "gth-0024@13",
+          "gth-0026@15",
+          "gth-0039@61"
+        ]
+      },
+      {
+        "width": 320,
+        "breaks": 212,
+        "acceptable": 192,
+        "acceptableShare": 0.9057,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 3,
+        "firstMisses": [
+          "gth-0017@13",
+          "gth-0024@20",
+          "gth-0032@23",
+          "gth-0033@61",
+          "gth-0040@44",
+          "gth-0040@62",
+          "gth-0052@70",
+          "gth-0054@21"
+        ]
+      },
+      {
+        "width": 480,
+        "breaks": 110,
+        "acceptable": 101,
+        "acceptableShare": 0.9182,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": [
+          "gth-0021@25",
+          "gth-0024@28",
+          "gth-0036@24",
+          "gth-0038@59",
+          "gth-0053@62",
+          "gth-0055@25",
+          "gth-0057@27",
+          "gth-0061@27"
+        ]
+      },
+      {
+        "width": 720,
+        "breaks": 53,
+        "acceptable": 49,
+        "acceptableShare": 0.9245,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": ["gth-0024@28", "gth-0052@41", "gth-0057@27", "gth-0088@34"]
+      }
+    ]
+  },
+  "after": {
+    "policy": "line-break-tailoring@1.1.0 + thai-segmentation-hybrid@1.0.0",
+    "gth": [
+      {
+        "width": 120,
+        "breaks": 1154,
+        "acceptable": 1151,
+        "acceptableShare": 0.9974,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": ["gth-0026@15", "gth-0064@22", "gth-0064@31"]
+      },
+      {
+        "width": 200,
+        "breaks": 581,
+        "acceptable": 580,
+        "acceptableShare": 0.9983,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": ["gth-0026@15"]
+      },
+      {
+        "width": 320,
+        "breaks": 212,
+        "acceptable": 211,
+        "acceptableShare": 0.9953,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": ["gth-0064@22"]
+      },
+      {
+        "width": 480,
+        "breaks": 110,
+        "acceptable": 110,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      },
+      {
+        "width": 720,
+        "breaks": 53,
+        "acceptable": 53,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      }
+    ]
+  },
+  "afterWithBrandLexicon": {
+    "lexicon": ["เพื่อนไร่เพื่อนสวน"],
+    "gth": [
+      {
+        "width": 120,
+        "breaks": 1152,
+        "acceptable": 1152,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      },
+      {
+        "width": 200,
+        "breaks": 581,
+        "acceptable": 581,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      },
+      {
+        "width": 320,
+        "breaks": 212,
+        "acceptable": 212,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      },
+      {
+        "width": 480,
+        "breaks": 110,
+        "acceptable": 110,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      },
+      {
+        "width": 720,
+        "breaks": 53,
+        "acceptable": 53,
+        "acceptableShare": 1,
+        "insideCluster": 0,
+        "maiyamokAtLineStart": 0,
+        "amountUnitSplits": 0,
+        "firstMisses": []
+      }
+    ]
+  },
+  "probes": [
+    {
+      "id": "probe-nbsp",
+      "defect": "nbsp-breaks",
+      "text": "Run 100 km",
+      "width": 110,
+      "before": ["Run", "100 km"],
+      "after": ["Run", "100 km"]
+    },
+    {
+      "id": "probe-budoux-bangkok",
+      "defect": "budoux-in-syllable",
+      "text": "กรุงเทพมหานคร",
+      "width": 120,
+      "before": ["กรุงเทพม", "หานคร"],
+      "after": ["กรุงเทพมหานคร"]
+    },
+    {
+      "id": "probe-budoux-promotion",
+      "defect": "budoux-in-syllable",
+      "text": "โปรโมชั่นพิเศษ",
+      "width": 120,
+      "before": ["โปรโมชั่น", "พิเศษ"],
+      "after": ["โปรโมชั่น", "พิเศษ"]
+    },
+    {
+      "id": "probe-static-ads-t04-mai-yamok",
+      "defect": "thai-line-edge",
+      "text": "เด็กๆ ชอบมาก ลดราคาพิเศษ 499 บาท",
+      "width": 100,
+      "before": ["เด็ก", "ๆ ชอบ", "มาก ลด", "ราคา", "พิเศษ", "499", "บาท"],
+      "after": ["เด็กๆ", "ชอบ", "มาก ลด", "ราคา", "พิเศษ", "499 บาท"]
+    },
+    {
+      "id": "probe-static-ads-t04-amount-unit",
+      "defect": "thai-line-edge",
+      "text": "ราคาเริ่มต้นเพียง 499 บาท ต่อเดือน",
+      "width": 180,
+      "before": ["ราคาเริ่ม", "ต้นเพียง 499", "บาท ต่อเดือน"],
+      "after": ["ราคาเริ่มต้น", "เพียง", "499 บาท", "ต่อเดือน"]
+    },
+    {
+      "id": "probe-thai-offer-mai-yamok",
+      "defect": "thai-line-edge",
+      "text": "วันนี้มีข้อเสนอพิเศษสำหรับคนที่ชอบอ่านชัดๆ",
+      "width": 90,
+      "before": [
+        "วันนี้มี",
+        "ข้อเสนอ",
+        "พิเศษ",
+        "สำหรับ",
+        "คนที่",
+        "ชอบ",
+        "อ่านชัด",
+        "ๆ"
+      ],
+      "after": [
+        "วันนี้มี",
+        "ข้อเสนอ",
+        "พิเศษ",
+        "สำหรับ",
+        "คนที่",
+        "ชอบ",
+        "อ่าน",
+        "ชัดๆ"
+      ]
+    }
+  ]
+}

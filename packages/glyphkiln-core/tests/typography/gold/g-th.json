@@ -19,9 +19,9 @@
   },
   "counts": {
     "lines": 318,
-    "acceptableBoundaries": 2230,
+    "acceptableBoundaries": 2229,
     "glued": 45,
-    "correctedLines": 97
+    "correctedLines": 98
   },
   "lines": [
     {
@@ -2639,9 +2639,9 @@
       "source": "repo:c-edge",
       "kind": "repo-fixture",
       "text": "เวลา ๙.๐๐–๑๘.๐๐ น.",
-      "gold": "เวลา ๙.๐๐–/๑๘.๐๐_น.",
+      "gold": "เวลา ๙.๐๐–๑๘.๐๐_น.",
       "machine": "เวลา ๙.๐๐–/๑๘.๐๐_น.",
-      "review": "claude-checked"
+      "review": "claude-corrected"
     },
     {
       "id": "gth-0292",

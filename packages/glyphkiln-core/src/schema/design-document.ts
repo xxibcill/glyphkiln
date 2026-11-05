@@ -132,6 +132,31 @@ export const FontFaceSpecSchema = z
   })
   .strict();
 
+/**
+ * Thai lexicon entries (DesignDocument 1.8.0, M3): Thai letters, vowels and
+ * marks only (Line_Break class SA), NFC, at most 40 code units. The
+ * `thai-segmentation-hybrid` segmenter never splits an entry.
+ */
+export const THAI_LEXICON_ENTRY_PATTERN = /^[\u0E01-\u0E3A\u0E40-\u0E4E]+$/;
+
+const thaiLexicon = z
+  .array(
+    z
+      .string()
+      .min(1)
+      .max(40)
+      .regex(THAI_LEXICON_ENTRY_PATTERN, {
+        message: "Lexicon entries are Thai letters, vowels and marks only.",
+      })
+      .refine((entry) => entry.normalize("NFC") === entry, {
+        message: "Lexicon entries must be NFC.",
+      }),
+  )
+  .max(100)
+  .refine((entries) => new Set(entries).size === entries.length, {
+    message: "Lexicon entries must be unique.",
+  });
+
 const typographyRoleV1_8_0Schema = typographyRoleSchema
   .extend({
     ...fontVariationFields,
@@ -148,6 +173,8 @@ const typographyRoleV1_8_0Schema = typographyRoleSchema
 
 const typographyV1_8_0Schema = legacyTypographySchema
   .extend({
+    /** Brand Thai lexicon (M3). */
+    lexicon: thaiLexicon.optional(),
     roles: z
       .object({
         display: typographyRoleV1_8_0Schema.optional(),
@@ -269,6 +296,35 @@ const keepTogetherPhrases = z
     message: "Keep-together phrases must be unique.",
   });
 
+/**
+ * DesignDocument 1.8.0 keep-together (typography plan M3): the phrase list of
+ * earlier versions, or an object with those `phrases` and `preferBreakAfter`
+ * phrases, after which a line break is preferred (semantic line breaks).
+ */
+const keepTogetherV1_8_0 = z.union([
+  keepTogetherPhrases,
+  z
+    .object({
+      phrases: keepTogetherPhrases.optional(),
+      preferBreakAfter: keepTogetherPhrases.optional(),
+    })
+    .strict(),
+]);
+
+type KeepTogetherValue = z.infer<typeof keepTogetherV1_8_0> | undefined;
+
+/** The keep-together phrases of either 1.8.0 form. */
+export function keepTogetherPhrasesOf(value: KeepTogetherValue): readonly string[] {
+  if (value === undefined) return [];
+  return Array.isArray(value) ? value : (value.phrases ?? []);
+}
+
+/** The preferred-break phrases of a 1.8.0 keep-together object. */
+export function preferBreakAfterOf(value: KeepTogetherValue): readonly string[] {
+  if (value === undefined || Array.isArray(value)) return [];
+  return value.preferBreakAfter ?? [];
+}
+
 function textLayerFields<T extends string>(type: T) {
   return {
     ...layerBase,
@@ -353,7 +409,7 @@ function textLayerV1_8_0Schema<T extends string>(type: T) {
   return z
     .object({
       ...textLayerFields(type),
-      keepTogether: keepTogetherPhrases.optional(),
+      keepTogether: keepTogetherV1_8_0.optional(),
       emphasis: emphasisSpans.optional(),
       openType: OpenTypeFeatureSettingsSchema.optional(),
       ...fontVariationFields,
@@ -745,12 +801,16 @@ function createVersionedDesignDocumentSchema<
   FormatIds extends readonly [string, ...string[]],
   Layers extends z.ZodType,
   Brand extends z.ZodType,
+  // No extra fields by default; only 1.8.0 adds a root `lexicon`.
+  // eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type
+  Extra extends z.ZodRawShape = Record<never, never>,
 >(
   version: Version,
   templateIds: TemplateIds,
   formatIds: FormatIds,
   layerSchema: Layers,
   brandSchema: Brand,
+  extra: Extra = {} as Extra,
 ) {
   return z
     .object({
@@ -770,6 +830,7 @@ function createVersionedDesignDocumentSchema<
       fonts: z.array(FontDeclarationSchema).min(1).max(32),
       metadata: z.record(z.string(), z.json()).optional(),
       layers: z.array(layerSchema).min(1).max(100),
+      ...extra,
     })
     .strict();
 }
@@ -841,6 +902,7 @@ const DesignDocumentV1_8_0Schema = createVersionedDesignDocumentSchema(
   FORMAT_IDS,
   LayerV1_8_0Schema,
   BrandSnapshotV1_8_0Schema,
+  { lexicon: thaiLexicon.optional() },
 );
 
 export const DesignDocumentSchema = z

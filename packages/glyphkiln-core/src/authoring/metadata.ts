@@ -40,6 +40,9 @@ export const AUTHORING_TEMPLATE_KEYS = Object.freeze([
   "quote-card@1.4.0",
   "statistic-card@1.4.0",
   "image-led-campaign@1.3.0",
+  "quote-card@1.5.0",
+  "statistic-card@1.5.0",
+  "image-led-campaign@1.4.0",
 ] as const);
 export type AuthoringTemplateKey = (typeof AUTHORING_TEMPLATE_KEYS)[number];
 
@@ -313,6 +316,11 @@ const m1AuthoringGuidance = [
   "Text is set on the M1 typography (renderer 0.6.0): HarfBuzz 15.0.0 per script run, tracking between character units, and every variable axis with automatic optical size (opsz = 0.75 x px at the 1080 px reference).",
   "Brand typography roles (schema 1.8.0) may add axes, namedInstance, opticalSizing, opsz, an ordered fallback stack and per-script faces (latn, thai) with scale and baselineShift; declare every face the stack names.",
   "Layers may set axes, namedInstance, opticalSizing and opsz; out-of-range axes and unknown named instances are blocking errors.",
+] as const;
+const m3AuthoringGuidance = [
+  "Lines break at UAX #14 opportunities (Unicode 17) with line-break-tailoring@1.1.0: no line starts with ๆ, ฯ, an em dash or an en dash; an amount stays with its unit; a numeric range never breaks; NBSP and NNBSP never break.",
+  "Thai breaks at thai-segmentation-hybrid@1.0.0 word boundaries (ICU 78.3 thaidict, BudouX 0.7.0, a Thai character cluster guard). Add brand or product names to the document lexicon or the brand typography lexicon (schema 1.8.0, at most 100 Thai words each) so they are never split.",
+  "keepTogether may be { phrases, preferBreakAfter }; a line break is preferred right after each preferBreakAfter phrase.",
 ] as const;
 const b2AuthoringGuidance = [
   "Emphasis phrases (schema 1.7.0) must occur in the text; they are kept on one line and set in a closed style: strong, accent, strong-accent, italic (needs a declared italic face), or muted.",
@@ -1387,7 +1395,12 @@ const baseAuthoringTemplateRegistry = {
 >;
 
 type M1TemplateKey =
-  "quote-card@1.4.0" | "statistic-card@1.4.0" | "image-led-campaign@1.3.0";
+  | "quote-card@1.4.0"
+  | "statistic-card@1.4.0"
+  | "image-led-campaign@1.3.0"
+  | "quote-card@1.5.0"
+  | "statistic-card@1.5.0"
+  | "image-led-campaign@1.4.0";
 
 const authoringTemplateRegistryWithM1 = {
   ...baseAuthoringTemplateRegistry,
@@ -1402,13 +1415,30 @@ const authoringTemplateRegistryWithM1 = {
     "image-led-campaign@1.3.0",
     "1.3.0",
   ),
+  "quote-card@1.5.0": m1Contract("quote-card@1.3.0", "quote-card@1.5.0", "1.5.0", true),
+  "statistic-card@1.5.0": m1Contract(
+    "statistic-card@1.3.0",
+    "statistic-card@1.5.0",
+    "1.5.0",
+    true,
+  ),
+  "image-led-campaign@1.4.0": m1Contract(
+    "image-led-campaign@1.2.0",
+    "image-led-campaign@1.4.0",
+    "1.4.0",
+    true,
+  ),
 } as const satisfies Record<AuthoringTemplateKey, AuthoringTemplateContract>;
 
-/** An M1 version: its B2 base's contract on schema 1.8.0 and the M1 type. */
+/**
+ * An M1 version: its B2 base's contract on schema 1.8.0 and the M1 type. An
+ * M3 version (`m3`) adds the M3 line-breaking guidance.
+ */
 function m1Contract(
   baseKey: "quote-card@1.3.0" | "statistic-card@1.3.0" | "image-led-campaign@1.2.0",
   key: AuthoringTemplateKey,
-  version: "1.3.0" | "1.4.0",
+  version: "1.3.0" | "1.4.0" | "1.5.0",
+  m3 = false,
 ): AuthoringTemplateContract {
   const base = baseAuthoringTemplateRegistry[baseKey];
   return {
@@ -1416,7 +1446,11 @@ function m1Contract(
     key,
     template: { id: base.template.id, version },
     compatibleSchemaVersions: m1SchemaVersions,
-    authoringGuidance: [...base.authoringGuidance, ...m1AuthoringGuidance],
+    authoringGuidance: [
+      ...base.authoringGuidance,
+      ...m1AuthoringGuidance,
+      ...(m3 ? m3AuthoringGuidance : []),
+    ],
   };
 }
 

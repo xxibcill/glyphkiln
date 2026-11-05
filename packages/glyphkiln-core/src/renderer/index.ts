@@ -26,10 +26,15 @@ import {
 } from "../provenance/index.js";
 import { collectFontIdentityV2 } from "../provenance/font-identity.js";
 import { loadTypographyEngine } from "../typography/engine.js";
+import {
+  m3TypographyPolicy,
+  type M3TypographyPolicy,
+} from "../typography/m3-policy.js";
 import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
+import { documentThaiLexicon } from "../templates/typeset.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
-import type { TemplateRenderResult } from "../templates/types.js";
+import { usesM1Engine, type TemplateRenderResult } from "../templates/types.js";
 import { rasterizeSvg } from "./png.js";
 import { validateCreationTimestamp, validateOutputFormats } from "./options.js";
 import {
@@ -89,8 +94,8 @@ export async function renderGraphic(
   const createdAt = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
   );
-  if (getTemplate(document).typography === "m1") await loadTypographyEngine();
-  const { templateResult, fonts, manifestFonts, m1, qualityIssues } =
+  if (usesM1Engine(getTemplate(document).typography)) await loadTypographyEngine();
+  const { templateResult, fonts, manifestFonts, m1, m3, qualityIssues } =
     prepareGraphicScene(document, options);
 
   const svg = renderSceneToSvg(templateResult.scene);
@@ -119,6 +124,7 @@ export async function renderGraphic(
               typographyPolicy: {
                 ...RENDER_CONFIGURATION.typographyPolicy,
                 m1: M1_TYPOGRAPHY_POLICY,
+                ...(m3 === undefined ? {} : { m3 }),
               },
             },
           }),
@@ -142,6 +148,7 @@ export async function renderGraphic(
           : "deterministic-code-rendering/resvg",
       qualityIssues,
       ...(m1 === undefined ? {} : { m1 }),
+      ...(m3 === undefined ? {} : { m3 }),
     });
     outputs.push({
       format,
@@ -160,6 +167,8 @@ export type PreparedGraphicScene = {
   manifestFonts: ManifestFont[];
   /** Font identity v2 for templates on the M1 typography. */
   m1: { fonts: ManifestFontV2[]; textStacks: ManifestTextStack[] } | undefined;
+  /** The M3 policy record for templates on the M3 typography. */
+  m3: M3TypographyPolicy | undefined;
   qualityIssues: QualityIssue[];
 };
 
@@ -189,17 +198,20 @@ export function prepareGraphicScene(
     ...(template.typography === undefined ? {} : { typography: template.typography }),
   });
   const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
-  const m1 =
-    template.typography === "m1"
-      ? collectFontIdentityV2(document.fonts, templateResult.scene)
+  const m3 =
+    template.typography === "m3"
+      ? m3TypographyPolicy(documentThaiLexicon(document))
       : undefined;
+  const m1 = usesM1Engine(template.typography)
+    ? collectFontIdentityV2(document.fonts, templateResult.scene)
+    : undefined;
   const qualityIssues = [
     ...requirementIssues,
     ...documentQuality.issues,
     ...templateResult.qualityIssues,
   ];
   blockOnQualityErrors(qualityIssues, documentQuality.textLayout);
-  return { templateResult, fonts, manifestFonts, m1, qualityIssues };
+  return { templateResult, fonts, manifestFonts, m1, m3, qualityIssues };
 }
 
 function collectManifestAssets(document: DesignDocument): ManifestAsset[] {

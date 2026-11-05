@@ -13,12 +13,19 @@ export type TemplateRenderContext = {
   /**
    * The template version's typography engine. `m1` (HarfBuzz, script runs,
    * cluster tracking, font model) is opted into by new exact versions only;
-   * absent means the legacy fontkit path.
+   * `m3` is `m1` plus the M3 line breaking (UAX #14 with tailorings, the
+   * hybrid Thai segmenter with the document and brand lexicon, and
+   * `preferBreakAfter`). Absent means the legacy fontkit path.
    */
   typography?: TemplateTypographyEngine;
 };
 
-export type TemplateTypographyEngine = "m1";
+export type TemplateTypographyEngine = "m1" | "m3";
+
+/** True when a template version sets text with the M1 engine (`m1` or `m3`). */
+export function usesM1Engine(engine: TemplateTypographyEngine | undefined): boolean {
+  return engine !== undefined;
+}
 
 export type TemplateRenderResult = {
   scene: Scene;
@@ -39,7 +46,8 @@ export type TemplateDefinition = {
     | "1.1.1"
     | "1.2.0"
     | "1.3.0"
-    | "1.4.0";
+    | "1.4.0"
+    | "1.5.0";
   requiredLayers: readonly DesignLayer["type"][];
   supportedLayers: readonly DesignLayer["type"][];
   mutuallyExclusiveLayers?: readonly (readonly DesignLayer["type"][])[];
@@ -72,6 +80,8 @@ export type TemplateCapabilities = {
   openTypeFeatures?: readonly TemplateTextLayerType[];
   /** DesignDocument 1.8.0 axes, named instance and optical sizing. */
   fontModel?: readonly TemplateTextLayerType[];
+  /** DesignDocument 1.8.0 `keepTogether.preferBreakAfter` (M3). */
+  preferredBreaks?: readonly TemplateTextLayerType[];
   localImageTreatments?: boolean;
   subjectRegion?: boolean;
 };

@@ -4,6 +4,10 @@ import type { Bounds, QualityIssue } from "../domain/types.js";
 import type { FontRegistry } from "../fonts/index.js";
 import {
   GRAPHEME_SEGMENTATION_POLICY_VERSION,
+  HYBRID_SEGMENTATION_POLICY,
+  HYBRID_SEGMENTATION_POLICY_VERSION,
+  TAILORED_SEGMENTATION_POLICY,
+  TAILORED_SEGMENTATION_POLICY_VERSION,
   LINE_BREAKING_POLICY_VERSION,
   THAI_SEGMENTATION_POLICY,
   THAI_SEGMENTATION_POLICY_VERSION,
@@ -13,6 +17,7 @@ import {
   WHITESPACE_SEGMENTATION_POLICY_VERSION,
 } from "./policy.js";
 import {
+  type M3LineBreaking,
   segmentParagraph,
   segmentThaiText,
   type SegmentationPolicy,
@@ -78,6 +83,8 @@ export type FittedText = WrappedText & {
 export type WrapTextOptions = {
   keepTogether?: readonly string[];
   allowWordBreak?: boolean;
+  /** M3 line breaking; absent for every legacy and M1 policy. */
+  lineBreaking?: M3LineBreaking;
 };
 
 export type FitTextOptions = {
@@ -90,6 +97,8 @@ export type FitTextOptions = {
   maximumLines: number;
   layerId: string;
   keepTogether?: readonly string[];
+  /** M3 line breaking; absent for every legacy and M1 policy. */
+  lineBreaking?: M3LineBreaking;
   letterSpacingEm?: number;
   /**
    * Size-dependent setting. When present it replaces `style.lineHeight` and
@@ -149,7 +158,11 @@ export function wrapText(
   let usesThaiSegmentation = false;
 
   for (const rawParagraph of paragraphs) {
-    const segmented = segmentParagraph(rawParagraph, options.keepTogether ?? []);
+    const segmented = segmentParagraph(
+      rawParagraph,
+      options.keepTogether ?? [],
+      options.lineBreaking,
+    );
     const paragraph = wrapParagraph(
       segmented,
       maxWidth,
@@ -170,6 +183,24 @@ export function wrapText(
     usesBalancedLineBreaking ||= paragraph.usesBalancedLineBreaking;
     usesThaiSegmentation ||= segmented.usesThaiSegmentation;
   }
+  const policy =
+    options.lineBreaking === undefined
+      ? {
+          segmentationPolicy: usesThaiSegmentation
+            ? THAI_SEGMENTATION_POLICY
+            : WHITESPACE_SEGMENTATION_POLICY,
+          segmentationPolicyVersion: usesThaiSegmentation
+            ? THAI_SEGMENTATION_POLICY_VERSION
+            : WHITESPACE_SEGMENTATION_POLICY_VERSION,
+        }
+      : {
+          segmentationPolicy: usesThaiSegmentation
+            ? HYBRID_SEGMENTATION_POLICY
+            : TAILORED_SEGMENTATION_POLICY,
+          segmentationPolicyVersion: usesThaiSegmentation
+            ? HYBRID_SEGMENTATION_POLICY_VERSION
+            : TAILORED_SEGMENTATION_POLICY_VERSION,
+        };
 
   return {
     lines,
@@ -180,12 +211,7 @@ export function wrapText(
     brokenWords,
     orphanLines,
     usesBalancedLineBreaking,
-    segmentationPolicy: usesThaiSegmentation
-      ? THAI_SEGMENTATION_POLICY
-      : WHITESPACE_SEGMENTATION_POLICY,
-    segmentationPolicyVersion: usesThaiSegmentation
-      ? THAI_SEGMENTATION_POLICY_VERSION
-      : WHITESPACE_SEGMENTATION_POLICY_VERSION,
+    ...policy,
   };
 }
 
@@ -197,6 +223,9 @@ export function fitText(options: FitTextOptions): FittedText {
       ...(options.keepTogether === undefined
         ? {}
         : { keepTogether: options.keepTogether }),
+      ...(options.lineBreaking === undefined
+        ? {}
+        : { lineBreaking: options.lineBreaking }),
       allowWordBreak: fontSize === options.minimumFontSize,
     });
     if (!fitsTextBox(wrapped, options)) continue;
@@ -230,6 +259,9 @@ export function fitText(options: FitTextOptions): FittedText {
     ...(options.keepTogether === undefined
       ? {}
       : { keepTogether: options.keepTogether }),
+    ...(options.lineBreaking === undefined
+      ? {}
+      : { lineBreaking: options.lineBreaking }),
     allowWordBreak: true,
   });
   const issues: QualityIssue[] = [
@@ -289,7 +321,13 @@ function wrapParagraph(
     paragraph.usesThaiSegmentation &&
     paragraph.units.every((unit) => measure(unit.text, style, registry) <= maxWidth)
   ) {
-    const layout = balanceLines(paragraph.units, maxWidth, style, registry);
+    const layout = balanceLines(
+      paragraph.units,
+      maxWidth,
+      style,
+      registry,
+      paragraph.preferredEnds,
+    );
     return {
       ...layout,
       brokenWords: [],
@@ -368,11 +406,20 @@ function wrapGreedily(
   };
 }
 
+/**
+ * `prefer-break-after@1.0.0` (M3): a line that ends right after a
+ * `preferBreakAfter` phrase, before the last line, scores maxWidth² better,
+ * the cost of a wholly empty line. A preferred break therefore beats any
+ * slack, but not an orphan (4 × maxWidth²) or an overflow.
+ */
+const PREFERRED_BREAK_BONUS = 1;
+
 function balanceLines(
   units: readonly WrapUnit[],
   maxWidth: number,
   style: TextStyle,
   registry: TextMeasurer,
+  preferredEnds?: ReadonlySet<number>,
 ): BalancedLayout {
   const layouts: (BalancedState | undefined)[] = Array.from(
     { length: units.length + 1 },
@@ -401,7 +448,9 @@ function balanceLines(
       const finalLinePenalty =
         end === units.length
           ? orphanLayoutPenalty(prefix, width, wordCount, maxWidth)
-          : 0;
+          : preferredEnds?.has(units[end - 1]!.end) === true
+            ? -PREFERRED_BREAK_BONUS * maxWidth * maxWidth
+            : 0;
       const candidate: BalancedState = {
         line,
         lineWidth: width,

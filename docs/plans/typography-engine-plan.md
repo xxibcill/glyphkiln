@@ -361,6 +361,36 @@ The required starting point.
   hashes); schema (lexicon, preferred breaks); renderer, when a template opts in.
 - **Tests.** `LineBreakTest.txt`; G-TH line-breaking at 5 widths; probe
   regressions; Static Ads T04.
+- **Progress (5 November 2026, branch `claude/typography-m3`, draft PR).** See
+  [Typography M3](../typography-m3.md).
+  - **Built.**
+    - `line-break-uax14@17.0.0` passes 19,338 of 19,338 `LineBreakTest.txt` cases.
+    - `line-break-tailoring@1.1.0` covers ๆ and ฯ, amount + unit, currency and
+      dimension glue, dashes and numeric ranges.
+    - `thai-segmentation-hybrid@1.0.0` combines ICU 78.3 `thaidict` (Unicode-3.0),
+      a 47-word supplement, the lexicon, a Thai character cluster guard and BudouX
+      0.7.0.
+    - `prefer-break-after@1.0.0` handles preferred breaks.
+  - **Schema.** The owner chose to extend the unreleased DesignDocument 1.8.0, not
+    to add 1.8.x. It now has a document `lexicon`, a brand `typography.lexicon` and
+    `keepTogether: { phrases, preferBreakAfter }`. Scene 1.1.0 is unchanged.
+  - **Opt-in.** `quote-card@1.5.0`, `statistic-card@1.5.0` and
+    `image-led-campaign@1.4.0` opt in. Manifest 1.4.0 records the policy and its
+    data hashes. Legacy, M1 and M2 bytes are unchanged.
+  - **Metrics.** See the [G-TH and probe report](../research/typography-m3-metrics/README.md).
+    On the G-TH draft at 5 widths, 99.53–100 % of chosen breaks fall on
+    acceptable boundaries, against 90.57–92.45 % before. That is 100 % with the
+    brand lexicon. No break falls inside a Thai cluster, no line starts with ๆ and
+    no amount is split from its unit.
+  - **T09** is met by the tests above. **T10 is not claimed.** G-TH is still a
+    draft awaiting the native Thai reader, and the supplement word list was drawn
+    up from errors on that draft. The reader also reviews the Thai unit list and
+    the supplement.
+  - **Left open.**
+    - The owner's review of the candidates in `tests/visual/m3/`.
+    - A syllable layer for G-TH.
+    - M4 composer work: `preferBreakAfter` is a bonus in the balanced breaker for
+      now.
 
 ### M4 — Paragraph composer, ragged modes and justification
 
@@ -527,7 +557,7 @@ The required starting point.
    corpus, or annotating the workspace's own Thai campaign copy? **Answered 5 November
    2026:** annotate the owner's own copy
    ([licence research](../research/thai-gold-corpus-2026-11/README.md)). A
-   318-line draft, with 2,230 acceptable break points, is in
+   318-line draft, with 2,229 acceptable break points, is in
    [`tests/typography/gold/`](../../packages/glyphkiln-core/tests/typography/gold/README.md),
    awaiting the native reader's correction.
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures

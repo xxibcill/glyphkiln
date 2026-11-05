@@ -50,6 +50,17 @@ Schema `1.8.0` adds the M1 font model: text layers may set `axes`,
 `baselineShift`. Only template versions with the `fontModel` capability
 implement the layer fields. See [Typography M1](typography-m1.md).
 
+Schema `1.8.0` also carries the M3 line-breaking fields. A document `lexicon`
+and a brand `typography.lexicon` each hold up to 100 Thai words (Thai letters,
+vowels and marks only, NFC, at most 40 code units, unique) that the hybrid Thai
+segmenter never splits. A text layer's `keepTogether` may be the phrase list or
+an object `{ "phrases": [...], "preferBreakAfter": [...] }`; a line break is
+preferred right after each `preferBreakAfter` phrase. Only template versions on
+the M3 typography read `lexicon` and `preferBreakAfter`; other versions keep the
+`phrases` and ignore the rest. 1.8.0 was not yet released when these fields
+were added, so no new schema version was needed (owner decision, 5 November
+2026).
+
 ## Layer union
 
 | Type                                     | Role                                                   |
