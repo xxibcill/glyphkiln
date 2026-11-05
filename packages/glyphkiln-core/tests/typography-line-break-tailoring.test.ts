@@ -31,11 +31,11 @@ function goldSpaces(line: GoldLine): { glue: number[]; breaks: number[] } {
   return { glue, breaks };
 }
 
-describe("line-break-tailoring@1.0.0", () => {
+describe("line-break-tailoring@1.1.0", () => {
   it("records its policy", () => {
     expect(LINE_BREAK_TAILORING_POLICY).toEqual({
       id: "line-break-tailoring",
-      version: "1.0.0",
+      version: "1.1.0",
       base: "line-break-uax14@17.0.0",
     });
   });
@@ -59,9 +59,7 @@ describe("line-break-tailoring@1.0.0", () => {
       }
     }
     expect(cases).toBeGreaterThanOrEqual(40);
-    // Known draft gap: `Affiliate_—` (a space before an em dash) is not a
-    // number, unit or Thai line-edge case and stays breakable.
-    expect(misses).toEqual(["gth-0313@15"]);
+    expect(misses).toEqual([]);
   });
 
   it("keeps every G-TH draft breakable space breakable", () => {
@@ -90,6 +88,58 @@ describe("line-break-tailoring@1.0.0", () => {
       expect(offsets("ลด 15% เมื่อ")).toEqual([3, 7]);
       expect(offsets('คำว่า "สวน" นะ')).toEqual([6, 12]);
       expect(offsets("คำว่า “สวน” นะ")).toEqual([6, 12]);
+    });
+  });
+
+  it("never breaks inside a G-TH draft range or before a dash", () => {
+    for (const line of gold.lines) {
+      for (const offset of offsets(line.text)) {
+        expect(["—", "–"], line.id).not.toContain(line.text[offset]);
+        if (/[–-]/.test(line.text[offset - 1]!)) {
+          expect(/\p{Nd}/u.test(line.text[offset - 2] ?? ""), line.id).toBe(false);
+        }
+      }
+    }
+  });
+
+  describe("dashes (1.1.0)", () => {
+    it.each([
+      ["Affiliate — อาจ", [12]],
+      ["a – b", [4]],
+      ["abc—def", [4]],
+      ["a —— b", [5]],
+      ["ลิงก์ Affiliate — อาจได้รับ", [6, 18]],
+    ])("no line starts with an em or en dash: %s", (text, expected) => {
+      expect(offsets(text)).toEqual(expected);
+    });
+
+    it("keeps a required break before a dash", () => {
+      expect(tailoredLineBreakOpportunities("a\n— b")).toEqual([
+        { offset: 2, required: true },
+        { offset: 4, required: false },
+      ]);
+    });
+  });
+
+  describe("numeric ranges (1.1.0)", () => {
+    it.each([
+      ["3–5", []],
+      ["3–5 วัน", []],
+      ["เวลา ๙.๐๐–๑๘.๐๐ น.", [5]],
+      ["9:00–18:00", []],
+      ["1,290–1,490 บาท", []],
+      ["3-5", []],
+      ["ปี 2025–2026 นี้", [3, 13]],
+    ])("never breaks: %s", (text, expected) => {
+      expect(offsets(text)).toEqual(expected);
+    });
+
+    it("keeps the break after a dash that is not between two amounts", () => {
+      expect(offsets("3– ok")).toEqual([3]);
+      expect(offsets("A–B")).toEqual([2]);
+      expect(offsets("A–5")).toEqual([2]);
+      expect(offsets("5–A")).toEqual([2]);
+      expect(offsets("5 – 6")).toEqual([4]);
     });
   });
 

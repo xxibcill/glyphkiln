@@ -68,7 +68,10 @@ a fixed compound (รายละเอียด, ผลไม้, ต้นก�
    - breaks inside a syllable, such as คอม/เมน/ต์, ลิ/งก์, ผลอ/ยู่, เป็นก/ระ/ถาง
      and โปร/โม/ชั่/นพิ/เศษ;
    - splits inside a word, such as ราย/ละเอียด, มะเขือ/เทศ and เครื่อง/มือ;
-   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`).
+   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`);
+   - a numeric range that broke after its dash: `gth-0291` `๙.๐๐–/๑๘.๐๐_น.`
+     became `๙.๐๐–๑๘.๐๐_น.` on 5 November 2026, after the owner decided that a
+     range never breaks.
 
 ## For the native reader
 
@@ -80,6 +83,14 @@ Look especially at:
   การ/ศึกษา, ราคา/พิเศษ);
 - the short subtitle fragments, which are cut where the video cut them;
 - `|`: add preferred breaks where a phrase boundary is clearly better.
+- the **Thai unit list** in
+  [`line-break-tailoring.ts`](../../../src/typography/line-break-tailoring.ts)
+  (`THAI_UNITS`). An amount never breaks from a following word that starts with
+  one of these units, classifiers or month abbreviations (`499_บาท`, `2_ชิ้น`,
+  `31_ต.ค.`), while other words after a number stay breakable (`8 รูปแบบ`,
+  `23 ตุลาคม`). Say which entries are wrong or missing. The owner kept the list
+  bounded on 5 November 2026, so the review edits the list rather than
+  replacing it with a rule.
 
 Run `npx vitest run tests/typography-gth.test.ts` from `packages/glyphkiln-core`
 after editing.
