@@ -233,6 +233,9 @@ describe("typography M1 visual baselines (review pending)", () => {
       };
       expect(manifest.renderer.version).toBe("0.6.0");
       expect(sha256(output.bytes)).toBe(manifest.output.sha256);
+      // The whole committed manifest, including the shaper identity in
+      // typographyPolicy.m1, is the render's own.
+      expect(manifest).toEqual(JSON.parse(JSON.stringify(output.manifest)));
       expect(output.bytes).toEqual(new Uint8Array(await readFile(pngPath)));
     },
     120_000,

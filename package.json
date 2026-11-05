@@ -40,6 +40,7 @@
     "text-layout-data:update": "npm run text-layout-data:update --workspace @glyphkiln/core",
     "typography-harness:verify": "npm run typography-harness:verify --workspace @glyphkiln/core",
     "typography-harness:update": "npm run typography-harness:update --workspace @glyphkiln/core",
+    "typography-m1-digest": "npm run typography-m1-digest --workspace @glyphkiln/core",
     "fixtures:verify": "npm run fixtures:verify --workspace @glyphkiln/core",
     "fixtures:update": "npm run fixtures:update --workspace @glyphkiln/core",
     "scene-kernel-fixture:verify": "npm run scene-kernel-fixture:verify --workspace @glyphkiln/core",

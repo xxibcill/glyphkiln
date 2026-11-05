@@ -3,7 +3,9 @@
 **Drafted 4 November 2026 by Claude (Opus 5.5) for the project owner. Status:
 in progress. M0 is complete (ADR 0019 accepted 4 November 2026). M1 is
 implemented on branch `claude/typography-m1` (draft PR), with the new
-baselines awaiting the owner's review.**
+baselines awaiting the owner's review. M2 is closed out on branch
+`claude/typography-m2` (draft PR); its exit gate is met, including macOS +
+Node 22 (5 November 2026). M3 is next.**
 
 This plan stages the upgrade of Core's text engine to the level of the software
 professional designers use (Adobe InDesign and Illustrator, Figma). It turns
@@ -321,6 +323,33 @@ The required starting point.
   cost stay within budgets set in the ADR.
 - **Version owners.** Renderer; typography policy (shaper identity); manifest
   records the shaper.
+- **Progress (5 November 2026, branch `claude/typography-m2`, draft PR).**
+  M2 shrank to legacy retention, as foreseen above. See
+  [Typography M2](../typography-m2.md).
+  - **Already done in M1.** HarfBuzz is the shaper and outline source of the
+    M1 policies, and fontkit keeps every legacy policy byte for byte. Renderer
+    0.6.0 and manifest 1.3.0 record the shaper identity. The ADR's budgets are
+    in `npm test`, and the `seven`→`eight` difference is explained.
+  - **Added in M2, with no pixel, schema, manifest or policy change.**
+    - A differential corpus test runs C-LAT, C-TH and C-MIX through the legacy
+      fontkit path and the M1 HarfBuzz path. 250 of 314 lines are identical.
+      The other 64 are on a committed allowlist under four kinds, and each
+      kind is proved mechanically: script itemization (58), Thai mark shaping
+      (4), Inter `endash.case` (1) and the doubled `DFLT` kern (1). In each
+      kind, fontkit is the incorrect one.
+    - The known fontkit defects are asserted as fixed on M1 and kept on
+      legacy: §3.1 one script per line and tracking after every glyph, plus
+      the ADR's sara am, `seven`→`eight` and instancing findings.
+    - A fresh-process digest of M1 shaping and outlines
+      (`npm run typography-m1-digest`) is pinned. It is identical on Linux
+      x64 with Node 22.23.4 and 24.22.1, as are the 27 M1 visual baselines.
+    - The shaper identity is checked in the policy, against the installed
+      wasm, and in every committed manifest: the 27 M1 manifests record it,
+      and the legacy ones record none. Both visual suites now pin each
+      committed manifest exactly.
+  - **Exit gate.** Met. On 5 November 2026 the owner's Mac (macOS arm64,
+    Node 22.23.1) reproduced the M1 digest and all 27 M1 baselines, and passed
+    the full gate. macOS arm64 with Node 24 already matched in M0 and M1.
 
 ### M3 — Break opportunities and Thai segmentation 2.0
 
