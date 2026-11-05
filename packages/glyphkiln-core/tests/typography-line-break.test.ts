@@ -103,4 +103,40 @@ describe("line-break-uax14@17.0.0", () => {
     expect(lineBreakOpportunities("")).toEqual([]);
     expect(lineBreakOpportunities("😀😀")).toEqual([{ offset: 2, required: false }]);
   });
+
+  describe("break controls", () => {
+    const offsets = (text: string) =>
+      lineBreakOpportunities(text).map((opportunity) => opportunity.offset);
+
+    it.each([
+      ["NBSP", "10\u00A0kg"],
+      ["NNBSP", "10\u202Fkg"],
+      ["WJ", "ab\u2060cd"],
+    ])("%s never breaks", (_name, text) => {
+      expect(offsets(text)).toEqual([]);
+      expect(offsets(`x ${text} y`)).toEqual([2, text.length + 3]);
+    });
+
+    it("keeps NBSP glued even beside spaces it would otherwise follow", () => {
+      expect(offsets("a\u00A0\u00A0b")).toEqual([]);
+      expect(offsets("\u0E01\u00A0\u0E02")).toEqual([]);
+    });
+
+    it("allows a break after ZWSP, even before spaces", () => {
+      expect(offsets("ab\u200Bcd")).toEqual([3]);
+      expect(offsets("ab\u200B  cd")).toEqual([5]);
+    });
+
+    it("allows a break after SHY but never before it", () => {
+      expect(offsets("hy\u00ADphen")).toEqual([3]);
+    });
+
+    it("allows a break after a hard hyphen", () => {
+      expect(offsets("well-known")).toEqual([5]);
+      expect(offsets("A\u2010B")).toEqual([2]);
+      // Except before a number (LB25) and after a word-initial hyphen (LB20a).
+      expect(offsets("x -5")).toEqual([2]);
+      expect(offsets("-ish")).toEqual([]);
+    });
+  });
 });
