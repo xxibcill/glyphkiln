@@ -16,6 +16,8 @@ DesignDocument 1.8.0 adds `axes`, `namedInstance`, `opticalSizing` and `opsz` to
 
 The new template versions `quote-card@1.4.0`, `statistic-card@1.4.0` and `image-led-campaign@1.3.0` opt in; this is the provisional answer to Q1. Renderer 0.6.0, manifest 1.3.0 and Scene manifest 1.1.0 record font identity v2: coordinates, stack role, scale, scripts set and the stacks tried.
 
+`reviewSceneCraft` loads the M1 engine itself for Scene 1.1.0 documents, as `renderScene` does. The synchronous `prepareSceneForReview` still needs `loadTypographyEngine()` awaited first.
+
 Legacy renders keep renderer 0.5.0, manifest 1.2.0 and Scene manifest 1.0.0, so their SVG, PNG, manifest and fingerprint bytes are unchanged.
 
 New exports: `loadTypographyEngine`, the HarfBuzz identity constants, the M1 policy constants, `LEGACY_RENDERER_VERSION`, `LEGACY_MANIFEST_VERSION`, `LEGACY_SCENE_DOCUMENT_VERSION` and `LEGACY_SCENE_RENDER_MANIFEST_VERSION`. Authoring metadata moves to 1.9.0.

@@ -194,6 +194,8 @@ export async function renderScene(
 /**
  * Resolve a scene exactly as renderScene does before serialization, for
  * read-only craft review. Blocking text-layout and quality errors still throw.
+ * Scene 1.1.0 text needs the M1 engine: await loadTypographyEngine() first
+ * (reviewSceneCraft does this itself).
  */
 export function prepareSceneForReview(
   input: unknown,
