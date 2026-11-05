@@ -1,6 +1,6 @@
 /**
  * Tailorings on top of `line-break-uax14@17.0.0` (policy
- * `line-break-tailoring@1.0.0`, plan M3). They only remove opportunities, so a
+ * `line-break-tailoring@1.1.0`, plan M3). They only remove opportunities, so a
  * tailored break is always a UAX #14 break too:
  *
  * - **Thai line edges.** ๆ (MAIYAMOK) and ฯ (PAIYANNOI) never start a line,
@@ -16,6 +16,10 @@
  *   (`30 x 45`).
  * - **Currency glue.** No break between a prefix currency sign and its amount
  *   (`฿ 499`).
+ * - **Dashes** (1.1.0). No line starts with an em dash or an en dash, so the
+ *   space before one holds (`Affiliate — อาจ`).
+ * - **Numeric ranges** (1.1.0). No break after `–` or `-` between two amounts
+ *   (`3–5`, `๙.๐๐–๑๘.๐๐`, `9:00–18:00`).
  *
  * Classes come from the pinned table, never from host `\p{…}` regexes, so the
  * result does not depend on the host's Unicode version.
@@ -28,12 +32,15 @@ import {
 
 export const LINE_BREAK_TAILORING_POLICY = Object.freeze({
   id: "line-break-tailoring",
-  version: "1.0.0",
+  version: "1.1.0",
   base: "line-break-uax14@17.0.0",
 });
 
 const MAIYAMOK = 0x0e46;
 const PAIYANNOI = 0x0e2f;
+const EN_DASH = 0x2013;
+const EM_DASH = 0x2014;
+const HYPHEN_MINUS = 0x2d;
 const LATIN_UNITS = new Set([
   "cm",
   "g",
@@ -133,10 +140,21 @@ function lastCodePoint(word: string): number | undefined {
     : low;
 }
 
+/** True when `text[offset]` is `–` or `-` directly after a digit. */
+function isRangeDash(text: string, offset: number): boolean {
+  const dash = text.charCodeAt(offset);
+  return (
+    (dash === EN_DASH || dash === HYPHEN_MINUS) &&
+    isNumber(lastCodePoint(text.slice(Math.max(0, offset - 2), offset)))
+  );
+}
+
 /** True when the UAX #14 opportunity at `offset` is removed by a tailoring. */
 function isSuppressed(text: string, offset: number): boolean {
   const next = text.codePointAt(offset)!;
   if (next === MAIYAMOK || next === PAIYANNOI) return true;
+  if (next === EM_DASH || next === EN_DASH) return true;
+  if (isRangeDash(text, offset - 1) && isNumber(next)) return true;
 
   const { word: before, start } = wordBefore(text, offset);
   const previous = lastCodePoint(before);

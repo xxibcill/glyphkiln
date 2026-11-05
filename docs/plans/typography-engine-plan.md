@@ -527,7 +527,7 @@ The required starting point.
    corpus, or annotating the workspace's own Thai campaign copy? **Answered 5 November
    2026:** annotate the owner's own copy
    ([licence research](../research/thai-gold-corpus-2026-11/README.md)). A
-   318-line draft, with 2,230 acceptable break points, is in
+   318-line draft, with 2,229 acceptable break points, is in
    [`tests/typography/gold/`](../../packages/glyphkiln-core/tests/typography/gold/README.md),
    awaiting the native reader's correction.
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures
