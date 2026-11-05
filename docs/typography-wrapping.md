@@ -1,7 +1,8 @@
 # Typography wrapping
 
-Core typography algorithm `2.0.0` adds deterministic Thai-aware wrapping while
-preserving the existing Latin layout contract.
+Core typography algorithm `2.0.0` added deterministic Thai-aware wrapping while
+preserving the existing Latin layout contract. The current algorithm is `2.0.1`,
+which measures tracking from shaped glyphs.
 
 ## Segmentation
 
@@ -86,7 +87,7 @@ successful manifests; error issues are returned in
 
 The current policy is:
 
-- typography algorithm: `2.0.0`
+- typography algorithm: `2.0.1`
 - Thai segmentation: `budoux-th@0.7.0`
 - whitespace segmentation: `whitespace@1.0.0`
 - line breaking: `balanced-lines@1.0.0`

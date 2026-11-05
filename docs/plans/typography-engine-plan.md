@@ -163,10 +163,6 @@ diagnostics (`LINGUISTIC_WORD_BROKEN`, `ORPHAN_LINE`, `TEXT_OVERFLOW`); a
 deterministic fit-to-box that the desktop tools do not offer; no synthesized
 styles; no host fonts or host ICU.
 
-**Housekeeping found:** `TYPOGRAPHY_ALGORITHM_VERSION` is `2.0.1` in
-[`policy.ts`](../../packages/glyphkiln-core/src/typography/policy.ts) while
-[`typography-wrapping.md`](../typography-wrapping.md) still says `2.0.0`.
-
 ## 4. Engine technology
 
 | Layer                    | Recommendation                                                                                                                                                                                                                       | Rejected or deferred                                                                                      | Determinism risk and control                                                                                                                                                                           |

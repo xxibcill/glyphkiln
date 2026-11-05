@@ -91,7 +91,7 @@ blocked input produces no output and accepted input is pixel-identical.
 
 ## Text wrapping
 
-Typography algorithm `2.0.0` uses the bundled `budoux-th@0.7.0` model for Thai
+Typography algorithm `2.0.1` uses the bundled `budoux-th@0.7.0` model for Thai
 boundaries and `balanced-lines@1.0.0` for Thai line selection. It does not use
 host ICU or `Intl.Segmenter`. Emergency minimum-size word splitting uses pinned
 `grapheme-splitter@1.0.4/unicode-10.0.0` and creates a blocking quality error.
