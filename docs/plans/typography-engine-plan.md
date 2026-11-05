@@ -163,10 +163,6 @@ diagnostics (`LINGUISTIC_WORD_BROKEN`, `ORPHAN_LINE`, `TEXT_OVERFLOW`); a
 deterministic fit-to-box that the desktop tools do not offer; no synthesized
 styles; no host fonts or host ICU.
 
-**Housekeeping found:** `TYPOGRAPHY_ALGORITHM_VERSION` is `2.0.1` in
-[`policy.ts`](../../packages/glyphkiln-core/src/typography/policy.ts) while
-[`typography-wrapping.md`](../typography-wrapping.md) still says `2.0.0`.
-
 ## 4. Engine technology
 
 | Layer                    | Recommendation                                                                                                                                                                                                                       | Rejected or deferred                                                                                      | Determinism risk and control                                                                                                                                                                           |
@@ -528,7 +524,12 @@ The required starting point.
    [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md); the measured
    runtime cost is about 530 KB of wasm and JS.
 3. **Thai gold corpus.** Which source and licence for G-TH: an existing licensed
-   corpus, or annotating the workspace's own Thai campaign copy?
+   corpus, or annotating the workspace's own Thai campaign copy? **Answered 5 November
+   2026:** annotate the owner's own copy
+   ([licence research](../research/thai-gold-corpus-2026-11/README.md)). A
+   318-line draft, with 2,230 acceptable break points, is in
+   [`tests/typography/gold/`](../../packages/glyphkiln-core/tests/typography/gold/README.md),
+   awaiting the native reader's correction.
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures
    (part of the D2 budget)?
 5. **Hyphenation languages** beyond en-US.

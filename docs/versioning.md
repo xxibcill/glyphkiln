@@ -84,6 +84,9 @@ Renderer `0.3.0` owns the pixel change, design schema `1.2.0` owns the optional
 The policy is also included in fingerprint renderer configuration. Legacy
 schemas remain readable and keep their original field surface.
 
+Typography algorithm `2.0.1` is the current version. It measures tracking from
+shaped glyphs; the rest of the `2.0.0` policy is unchanged.
+
 Design schema `1.3.0` adds the `tiktok-photo-carousel` format without changing
 the renderer or manifest contracts. Template `tiktok-carousel-slide@1.0.3`
 owns the first 3:4 organic-photo composition. Versions `1.0.1` and `1.0.2` retain

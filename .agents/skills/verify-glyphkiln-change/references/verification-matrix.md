@@ -24,6 +24,8 @@ These five gates are mandatory under `AGENTS.md`.
 | Unicode sources, tables, or text diagnostics | `npm run text-layout-data:verify`                                                                             |
 | Core public exports or packaging             | `npm run test:package-consumer`; inspect `npm run pack:core:dry-run`                                          |
 | Dependencies or licenses                     | `npm run licenses:verify`; `npm audit --audit-level=low`                                                      |
+| Bundled fonts or font licenses               | `npm run licenses:verify`                                                                                     |
+| Typography (Core `src/typography`, fonts)    | see **Typography checks** below                                                                               |
 | Visual baselines                             | exact visual test; inspect every PNG, design, and manifest diff                                               |
 | Schema conformance artifacts                 | run the schema conformance generator in verify mode if available; otherwise generate and require a clean diff |
 | App runtime or standalone scripts            | App script tests and `npm run test:standalone --workspace @glyphkiln/app`                                     |
@@ -31,6 +33,34 @@ These five gates are mandatory under `AGENTS.md`.
 | SQL migrations                               | migration tests plus affected PGlite and PostgreSQL adapter tests                                             |
 | Example consumer                             | `npm run verify --workspace @glyphkiln/example-style-showcase`                                                |
 | Release preparation                          | every item in `docs/release-process.md` on supported Node/npm versions                                        |
+
+## Typography checks
+
+For changes to Core typography, shaping, line breaking, bundled fonts, or the
+typography harness, run these in addition to the mandatory gates:
+
+```sh
+npm run typography-harness:verify
+npm run typography-m1-digest
+npm run test:typography-budgets --workspace @glyphkiln/core
+npm exec --workspace @glyphkiln/core vitest run tests/typography-m2-differential.test.ts tests/typography-m2-identity.test.ts
+npm exec --workspace @glyphkiln/core vitest run tests/visual-m1.test.ts
+npm run licenses:verify
+```
+
+- `typography-harness:verify` checks the M0 harness, the M1 metrics, and the M1
+  review sheet.
+- `test:typography-budgets` runs `scripts/test-typography-budgets.mjs`.
+- `tests/typography-m2-differential.test.ts` and
+  `tests/typography-m2-identity.test.ts` are the M2 differential and
+  shaper-identity tests.
+- `tests/visual-m1.test.ts` also checks each case's pinned `<name>.craft.json`
+  delivery-size craft review; treat a craft diff like a baseline diff.
+- `licenses:verify` covers bundled fonts.
+
+The Core `npm test` script also runs the harness, digest, and budget scripts,
+so the mandatory gate repeats them; run them alone first for attributable
+feedback.
 
 ## Repository skill and harness checks
 
