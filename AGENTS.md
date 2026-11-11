@@ -5,3 +5,4 @@
 - Add or update tests for every pixel-affecting change.
 - Update the renderer or algorithm version when output pixels deliberately change.
 - Run build, typecheck, lint, tests, and coverage before handing off work.
+- Typography engine work: read `docs/plans/typography-engine-progress.md` first, and update it at the end of each slice.

@@ -1,11 +1,9 @@
 # Typography engine plan: from correct wrapping to professional typesetting
 
 **Drafted 4 November 2026 by Claude (Opus 5.5) for the project owner. Status:
-in progress. M0 is complete (ADR 0019 accepted 4 November 2026). M1 is
-implemented on branch `claude/typography-m1` (draft PR), with the new
-baselines awaiting the owner's review. M2 is closed out on branch
-`claude/typography-m2` (draft PR); its exit gate is met, including macOS +
-Node 22 (5 November 2026). M3 is next.**
+in progress. M0–M3 are implemented on stacked draft PRs; M4 is next. The
+current state, branch stack, verification record and pending owner decisions
+are in [typography-engine-progress.md](typography-engine-progress.md).**
 
 This plan stages the upgrade of Core's text engine to the level of the software
 professional designers use (Adobe InDesign and Illustrator, Figma). It turns
