@@ -67,19 +67,22 @@ export function StaticAdStudio({
     setError("");
     setMessage("");
     try {
+      const drafts = buildStaticAdCampaignDrafts(
+        staticAdBriefFromForm(form),
+        families,
+        formats,
+        formState,
+        catalog,
+      );
+      const campaignSeed = formText(form, "campaignSeed");
+      if (campaignSeed.length === 0) throw new Error("Campaign seed is required.");
       const result = await api.createStaticAdCampaign({
         workspaceId,
         brandSnapshotId,
         name: formText(form, "campaignName"),
         brief: formText(form, "brief"),
-        campaignSeed: formText(form, "campaignName"),
-        drafts: buildStaticAdCampaignDrafts(
-          staticAdBriefFromForm(form),
-          families,
-          formats,
-          formState,
-          catalog,
-        ),
+        campaignSeed,
+        drafts,
       });
       if (!result.ok) throw new Error(result.error.detail);
       setSelectedId(result.value.id);
@@ -118,6 +121,10 @@ export function StaticAdStudio({
                 <label>
                   Campaign name
                   <input name="campaignName" required maxLength={120} />
+                </label>
+                <label>
+                  Campaign seed
+                  <input name="campaignSeed" required maxLength={256} />
                 </label>
                 <label>
                   Campaign brief

@@ -15,8 +15,9 @@ also require the existing render worker.
 
 1. Publish or select a brand, and select admitted product, portrait, logo and font
    resources in the editor. Resource roles are optional where the template permits.
-2. Open **Create a static ad campaign**. Supply audience/objective context and
-   explicit copy. Testimonials require an exact quote, customer and source;
+2. Open **Create a static ad campaign**. Supply audience/objective context, a
+   campaign seed and explicit copy. Use a distinct seed per campaign: campaigns
+   that share a seed share every derived canvas seed. Testimonials require an exact quote, customer and source;
    comparisons require supplied evidence; offer ads require offer terms. No
    customer claims, discounts or deadlines are generated.
 3. Choose families and sizes. **Create ads** saves the campaign, direction, designs,

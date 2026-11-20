@@ -127,6 +127,7 @@ describe("static ad campaign UI", () => {
     if (form === null) throw new Error("Form missing");
     for (const [name, value] of Object.entries({
       campaignName: "Launch",
+      campaignSeed: "launch-seed-2026",
       brief: "Launch brief",
       headline: "Your product",
       benefits: "One verified benefit",
@@ -140,6 +141,8 @@ describe("static ad campaign UI", () => {
       expect.objectContaining({
         workspaceId: "workspace-1",
         brandSnapshotId: "brand-1",
+        name: "Launch",
+        campaignSeed: "launch-seed-2026",
       }),
     );
     expect(createStaticAdCampaign.mock.calls[0]?.[0]?.drafts).toHaveLength(4);
@@ -170,6 +173,21 @@ describe("static ad campaign UI", () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });
     expect(container.textContent).toContain("Main promise is required");
+    expect(createStaticAdCampaign).not.toHaveBeenCalled();
+    await act(async () => {
+      await Promise.resolve();
+      const form = container.querySelector("form");
+      if (form === null) throw new Error("Form missing");
+      for (const [name, value] of Object.entries({
+        campaignName: "Launch",
+        brief: "Launch brief",
+        headline: "Your product",
+        benefits: "One verified benefit",
+      }))
+        (form.elements.namedItem(name) as HTMLInputElement).value = value;
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    expect(container.textContent).toContain("Campaign seed is required");
     expect(createStaticAdCampaign).not.toHaveBeenCalled();
     await act(async () => {
       await Promise.resolve();
