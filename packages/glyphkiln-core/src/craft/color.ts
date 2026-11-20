@@ -9,6 +9,7 @@ import {
   CRAFT_IMAGE_CHROMATIC_MINIMUM,
   CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES,
   CRAFT_IMAGE_COLOR_SHARE,
+  CRAFT_IMAGE_FOOTPRINT_SAMPLES,
   CRAFT_IMAGE_HUE_BINS,
   CRAFT_IMAGE_MAXIMUM_COLORS,
   CRAFT_IMAGE_MINIMUM_AREA,
@@ -121,24 +122,23 @@ function compareImage(
       const cy = py + 0.5;
       if (occluders.some((bounds) => inside(bounds, cx, cy))) continue;
       if (rounded !== undefined && inCutCorner(rounded, cx, cy)) continue;
-      const u = (cx - placed.x) / placed.width;
-      const v = (cy - placed.y) / placed.height;
-      const sx = clamp(
-        Math.floor((mirrored?.x === true ? 1 - u : u) * source.width),
-        source.width - 1,
-      );
-      const sy = clamp(
-        Math.floor((mirrored?.y === true ? 1 - v : v) * source.height),
-        source.height - 1,
-      );
-      const sourceOffset = (sy * source.width + sx) * 4;
-      if (source.data[sourceOffset + 3]! < 250) continue;
+      // The renderer filters every source pixel under the rendered pixel, so
+      // compare with their mean rather than with one nearest source pixel.
+      const columns = footprint(px, placed.x, placed.width, source.width, mirrored?.x);
+      const rows = footprint(py, placed.y, placed.height, source.height, mirrored?.y);
+      const mean = meanColor(source, columns, rows);
+      if (mean[3] < 250) continue;
       sampleCount += 1;
-      const before = oklab(source.data, sourceOffset);
+      const before = oklab(mean[0], mean[1], mean[2]);
       const chroma = Math.hypot(before[1], before[2]);
       if (chroma < CRAFT_IMAGE_CHROMATIC_MINIMUM) continue;
       chromaticCount += 1;
-      const after = oklab(raster.data, (py * raster.width + px) * 4);
+      const offset = (py * raster.width + px) * 4;
+      const after = oklab(
+        raster.data[offset]!,
+        raster.data[offset + 1]!,
+        raster.data[offset + 2]!,
+      );
       const hue = (Math.atan2(before[2], before[1]) * 180) / Math.PI;
       const bin = Math.min(
         CRAFT_IMAGE_HUE_BINS - 1,
@@ -192,15 +192,60 @@ function compareImage(
   };
 }
 
-/** sRGB bytes to OKLab (Ottosson 2020), L in 0–1. */
-function oklab(data: ArrayLike<number>, offset: number): Lab {
+/**
+ * Source pixel indices [start, end) under canvas pixel `pixel` along one
+ * axis, read from the opposite edge when the image is mirrored.
+ */
+function footprint(
+  pixel: number,
+  placedStart: number,
+  placedSize: number,
+  sourceSize: number,
+  mirrored: boolean | undefined,
+): [number, number] {
+  let from = ((pixel - placedStart) / placedSize) * sourceSize;
+  let to = ((pixel + 1 - placedStart) / placedSize) * sourceSize;
+  if (mirrored === true) [from, to] = [sourceSize - to, sourceSize - from];
+  const start = clamp(Math.floor(from), sourceSize - 1);
+  const end = Math.max(start + 1, Math.min(sourceSize, Math.ceil(to)));
+  return [start, end];
+}
+
+/**
+ * Mean straight RGBA of a source region, reading at most
+ * CRAFT_IMAGE_FOOTPRINT_SAMPLES pixels per axis so heavy downscales stay cheap.
+ */
+function meanColor(
+  source: CraftRaster,
+  [x0, x1]: [number, number],
+  [y0, y1]: [number, number],
+): [number, number, number, number] {
+  const stepX = Math.max(1, (x1 - x0) / CRAFT_IMAGE_FOOTPRINT_SAMPLES);
+  const stepY = Math.max(1, (y1 - y0) / CRAFT_IMAGE_FOOTPRINT_SAMPLES);
+  const sum = [0, 0, 0, 0];
+  let count = 0;
+  for (let y = y0; y < y1; y += stepY) {
+    const row = Math.floor(y) * source.width;
+    for (let x = x0; x < x1; x += stepX) {
+      const offset = (row + Math.floor(x)) * 4;
+      for (let channel = 0; channel < 4; channel += 1) {
+        sum[channel]! += source.data[offset + channel]!;
+      }
+      count += 1;
+    }
+  }
+  return [sum[0]! / count, sum[1]! / count, sum[2]! / count, sum[3]! / count];
+}
+
+/** sRGB channel values (0–255) to OKLab (Ottosson 2020), L in 0–1. */
+function oklab(red: number, green: number, blue: number): Lab {
   const linear = (channel: number): number => {
     const value = channel / 255;
     return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   };
-  const r = linear(data[offset]!);
-  const g = linear(data[offset + 1]!);
-  const b = linear(data[offset + 2]!);
+  const r = linear(red);
+  const g = linear(green);
+  const b = linear(blue);
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);

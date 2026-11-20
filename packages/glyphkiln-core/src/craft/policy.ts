@@ -96,6 +96,8 @@ export const CRAFT_IMAGE_HUE_BINS = 12;
 export const CRAFT_IMAGE_COLOR_SHARE = 0.02;
 /** Minimum samples in a dominant color, so tiny regions are not judged. */
 export const CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES = 16;
+/** Source pixels read per axis when averaging under one rendered pixel. */
+export const CRAFT_IMAGE_FOOTPRINT_SAMPLES = 16;
 /** Dominant colors reported per image. */
 export const CRAFT_IMAGE_MAXIMUM_COLORS = 4;
 /** Reviews accepted by one format-set review. */

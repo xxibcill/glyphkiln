@@ -240,6 +240,48 @@ describe("product color", () => {
     expect(dimmedCodes(neutral)).toEqual([]);
   });
 
+  it("compares a downscaled photograph with the mean of its source footprint", () => {
+    // Fine three-color texture at 1600 px, shown at 400 px without treatment.
+    const colors: Rgb[] = [
+      [230, 40, 40],
+      [40, 180, 60],
+      [40, 70, 230],
+    ];
+    const source = raster(1600, 1600, colors[0]!);
+    for (let y = 0; y < 1600; y += 1) {
+      for (let x = 0; x < 1600; x += 1) {
+        const cell = (Math.floor(x / 2) * 7 + Math.floor(y / 8) * 13) % 3;
+        paint(source, x, y, 1, 1, colors[cell]!);
+      }
+    }
+    // What a box-filtering renderer paints: each pixel is a 4 × 4 mean.
+    const rendered = raster(400, 400, [0, 0, 0]);
+    for (let y = 0; y < 400; y += 1) {
+      for (let x = 0; x < 400; x += 1) {
+        const sum = [0, 0, 0];
+        for (let dy = 0; dy < 4; dy += 1) {
+          for (let dx = 0; dx < 4; dx += 1) {
+            const offset = ((y * 4 + dy) * 1600 + x * 4 + dx) * 4;
+            for (let channel = 0; channel < 3; channel += 1) {
+              sum[channel]! += source.data[offset + channel]!;
+            }
+          }
+        }
+        paint(rendered, x, y, 1, 1, [
+          Math.round(sum[0]! / 16),
+          Math.round(sum[1]! / 16),
+          Math.round(sum[2]! / 16),
+        ]);
+      }
+    }
+    const review = analyzeCraft(photoModel(rendered, [], source));
+    expect(dimmedCodes(review)).toEqual([]);
+    for (const color of review.metrics.images[0]!.colors) {
+      expect(color.chromaRetention).toBeGreaterThan(0.95);
+      expect(Math.abs(color.lightnessChange)).toBeLessThan(0.02);
+    }
+  });
+
   it("treats models without decoded images as having none", () => {
     const model: CraftModel = photoModel(renderedPhoto());
     delete model.images;
