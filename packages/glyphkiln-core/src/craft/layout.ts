@@ -2,6 +2,9 @@ import { GlyphkilnError, type Bounds, type Dimensions } from "../domain/types.js
 import type { CraftElement, CraftModel } from "./model.js";
 import {
   CRAFT_FORMAT_SET_MAXIMUM,
+  CRAFT_FORMAT_SET_MINIMUM_SHARED,
+  CRAFT_FORMAT_SET_ROW_TOLERANCE,
+  CRAFT_FORMAT_SET_SHARED_SHARE,
   CRAFT_REVIEW_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
   type CraftReviewThresholds,
@@ -89,12 +92,17 @@ export type CraftFormatPairMetric = {
   sharedElementIds: string[];
   /** Elements present in only one of the two layouts. */
   unmatchedElementIds: string[];
+  /** Shared elements as a share of all elements in either layout (0–1). */
+  sharedShare: number;
   /**
-   * Mean over all elements of normalized center displacement plus mean
-   * normalized size difference; unmatched elements count as 1.
+   * Mean over shared elements of normalized center displacement plus mean
+   * normalized size difference; 1 when nothing is shared.
    */
   layoutDistance: number;
-  /** Shared elements appear in the same reading order in both formats. */
+  /**
+   * No two shared elements read in opposite order in the two formats
+   * (elements on one row, within a small tolerance, read left to right).
+   */
   sameReadingOrder: boolean;
   notRecomposed: boolean;
 };
@@ -158,6 +166,7 @@ export function reviewFormatSet(
           layoutDistance: pair.layoutDistance,
           sameReadingOrder: pair.sameReadingOrder,
           sharedElementIds: pair.sharedElementIds,
+          unmatchedElementIds: pair.unmatchedElementIds,
           formatLayoutDistance,
         },
       });
@@ -228,27 +237,56 @@ function comparePair(
     ...leftLayout.filter((element) => !rightById.has(element.elementId)),
     ...rightLayout.filter((element) => !leftIds.has(element.elementId)),
   ].map((element) => element.elementId);
-  let total = unmatched.length;
-  for (const element of shared) {
-    total += elementDistance(element.bounds, rightById.get(element.elementId)!.bounds);
-  }
+  const pairs = shared.map((element) => ({
+    left: element.bounds,
+    right: rightById.get(element.elementId)!.bounds,
+  }));
+  let total = 0;
+  for (const pair of pairs) total += elementDistance(pair.left, pair.right);
+  const layoutDistance = pairs.length === 0 ? 1 : total / pairs.length;
   const count = shared.length + unmatched.length;
-  const layoutDistance = count === 0 ? 1 : total / count;
-  const sharedIds = new Set(shared.map((element) => element.elementId));
-  const rightOrder = rightLayout
-    .filter((element) => sharedIds.has(element.elementId))
-    .map((element) => element.elementId);
-  const leftOrder = shared.map((element) => element.elementId);
-  const sameReadingOrder = leftOrder.every((id, index) => rightOrder[index] === id);
+  const sharedShare = count === 0 ? 0 : shared.length / count;
+  const sameReadingOrder = readingOrderAgrees(pairs);
   return {
     formats: [left.format, right.format],
-    sharedElementIds: leftOrder,
+    sharedElementIds: shared.map((element) => element.elementId),
     unmatchedElementIds: unmatched,
+    sharedShare: round(sharedShare),
     layoutDistance: round(layoutDistance),
     sameReadingOrder,
     notRecomposed:
-      shared.length > 0 && sameReadingOrder && layoutDistance <= formatLayoutDistance,
+      shared.length >= CRAFT_FORMAT_SET_MINIMUM_SHARED &&
+      sharedShare >= CRAFT_FORMAT_SET_SHARED_SHARE &&
+      sameReadingOrder &&
+      layoutDistance <= formatLayoutDistance,
   };
+}
+
+/**
+ * Whether no two shared elements read in opposite order in the two formats.
+ * Elements whose centers lie within CRAFT_FORMAT_SET_ROW_TOLERANCE vertically
+ * share a row and read left to right; within the tolerance on both axes they
+ * are tied and compatible with either order.
+ */
+function readingOrderAgrees(
+  pairs: readonly { left: Bounds; right: Bounds }[],
+): boolean {
+  for (let first = 0; first < pairs.length; first += 1) {
+    for (let second = first + 1; second < pairs.length; second += 1) {
+      const before = readsAfter(pairs[first]!.left, pairs[second]!.left);
+      const after = readsAfter(pairs[first]!.right, pairs[second]!.right);
+      if (before * after < 0) return false;
+    }
+  }
+  return true;
+}
+
+/** 1 when `a` reads after `b`, -1 when before, 0 when tied. */
+function readsAfter(a: Bounds, b: Bounds): number {
+  const dy = a.y + a.height / 2 - (b.y + b.height / 2);
+  if (Math.abs(dy) > CRAFT_FORMAT_SET_ROW_TOLERANCE) return Math.sign(dy);
+  const dx = a.x + a.width / 2 - (b.x + b.width / 2);
+  return Math.abs(dx) > CRAFT_FORMAT_SET_ROW_TOLERANCE ? Math.sign(dx) : 0;
 }
 
 /** Normalized center displacement plus mean absolute size difference. */

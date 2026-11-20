@@ -673,22 +673,77 @@ describe("reviewFormatSet", () => {
     });
   });
 
-  it("counts reordered or unmatched elements as recomposition", () => {
-    const base = resized(1080, 1080);
-    const reordered: CraftReview = {
-      ...base,
-      metrics: { ...base.metrics, layout: [...base.metrics.layout].reverse() },
+  it("compares reading order pairwise with a row tolerance", () => {
+    const layout = (logoY: number, headlineY: number): CraftReview => {
+      const base = resized(1080, 1080);
+      return {
+        ...base,
+        metrics: {
+          ...base.metrics,
+          layout: [
+            {
+              elementId: "logo",
+              role: "mark",
+              bounds: { x: 0.1, y: logoY, width: 0.1, height: 0.04 },
+            },
+            {
+              elementId: "headline",
+              role: "text",
+              bounds: { x: 0.4, y: headlineY, width: 0.5, height: 0.04 },
+            },
+            {
+              elementId: "photo",
+              role: "image",
+              bounds: { x: 0, y: 0, width: 1, height: 1 },
+            },
+          ],
+        },
+      };
     };
+    // The logo moves below the headline: a real reorder at a small distance.
     const swapped = reviewFormatSet([
+      { format: "a", review: layout(0.1, 0.14) },
+      { format: "b", review: layout(0.14, 0.1) },
+    ]).metrics.pairs[0]!;
+    expect(swapped.layoutDistance).toBeLessThan(0.12);
+    expect(swapped).toMatchObject({ sameReadingOrder: false, notRecomposed: false });
+    // One row whose centers drift by less than the tolerance is not a reorder.
+    const row = reviewFormatSet([
+      { format: "a", review: layout(0.1, 0.11) },
+      { format: "b", review: layout(0.11, 0.1) },
+    ]).metrics.pairs[0]!;
+    expect(row).toMatchObject({ sameReadingOrder: true, notRecomposed: true });
+  });
+
+  it("judges shared elements and requires most elements to be shared", () => {
+    const base = resized(1080, 1080);
+    // A resized set that adds one call to action is still one composition.
+    const withCta: CraftReview = {
+      ...base,
+      metrics: {
+        ...base.metrics,
+        layout: [
+          ...base.metrics.layout,
+          {
+            elementId: "cta",
+            role: "text",
+            bounds: { x: 0.1, y: 0.8, width: 0.3, height: 0.05 },
+          },
+        ],
+      },
+    };
+    const added = reviewFormatSet([
       { format: "a", review: base },
-      { format: "b", review: reordered },
-    ]);
-    expect(swapped.metrics.pairs[0]).toMatchObject({
+      { format: "b", review: withCta },
+    ]).metrics.pairs[0]!;
+    expect(added).toMatchObject({
+      unmatchedElementIds: ["cta"],
+      sharedShare: 0.75,
       layoutDistance: 0,
-      sameReadingOrder: false,
-      notRecomposed: false,
+      notRecomposed: true,
     });
 
+    // Dropping the photograph and adding a badge changes half the set.
     const extra: CraftReview = {
       ...base,
       metrics: {
@@ -708,8 +763,11 @@ describe("reviewFormatSet", () => {
       { format: "b", review: extra },
     ]).metrics.pairs[0]!;
     expect(pair.unmatchedElementIds).toEqual(["photo", "badge"]);
-    expect(pair.layoutDistance).toBe(0.5);
-    expect(pair.notRecomposed).toBe(false);
+    expect(pair).toMatchObject({
+      sharedShare: 0.5,
+      layoutDistance: 0,
+      notRecomposed: false,
+    });
 
     const empty: CraftReview = { ...base, metrics: { ...base.metrics, layout: [] } };
     expect(
@@ -717,7 +775,7 @@ describe("reviewFormatSet", () => {
         { format: "a", review: empty },
         { format: "b", review: empty },
       ]).metrics.pairs[0],
-    ).toMatchObject({ layoutDistance: 1, notRecomposed: false });
+    ).toMatchObject({ sharedShare: 0, layoutDistance: 1, notRecomposed: false });
   });
 
   it("depends on the format layout threshold", () => {

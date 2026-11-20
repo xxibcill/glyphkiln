@@ -100,5 +100,17 @@ export const CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES = 16;
 export const CRAFT_IMAGE_FOOTPRINT_SAMPLES = 16;
 /** Dominant colors reported per image. */
 export const CRAFT_IMAGE_MAXIMUM_COLORS = 4;
+/** Shared elements two formats need before they can count as one composition. */
+export const CRAFT_FORMAT_SET_MINIMUM_SHARED = 2;
+/**
+ * Share of all elements that two formats must share to count as one
+ * composition; a format that adds or drops a few elements still can.
+ */
+export const CRAFT_FORMAT_SET_SHARED_SHARE = 0.75;
+/**
+ * Normalized center distance within which two elements count as one row
+ * (vertically) or one column (horizontally) for reading order.
+ */
+export const CRAFT_FORMAT_SET_ROW_TOLERANCE = 0.02;
 /** Reviews accepted by one format-set review. */
 export const CRAFT_FORMAT_SET_MAXIMUM = 16;
