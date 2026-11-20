@@ -7,7 +7,7 @@ import {
   type CarouselCopyAdvisoryRange,
 } from "./carousel-copy-policy.js";
 
-export const AUTHORING_CONTRACT_VERSION = "1.7.0" as const;
+export const AUTHORING_CONTRACT_VERSION = "1.8.0" as const;
 export const AUTHORING_ISSUE_METADATA_VERSION = "1.0.0" as const;
 
 export const AUTHORING_TEMPLATE_KEYS = Object.freeze([

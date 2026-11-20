@@ -206,3 +206,17 @@ manual product drafts select `1.2.0`. Shared renderer, design schema, manifest,
 procedural algorithms, campaign-family metadata, and database stay unchanged.
 
 The completed [static-ad starter set](static-ad-starter-set.md) introduces four new templates at 1.0.0, DesignDocument 1.6.0 and authoring metadata 1.7.0. Existing template pixels and shared renderer/manifest versions remain unchanged.
+
+## Editorial fill templates and advisory craft review
+
+[`quote-card@1.2.0` and `statistic-card@1.2.0`](editorial-fill-templates.md)
+are opt-in exact versions that fit copy to its field. Exact `1.1.0` remains
+registered and stays the App default, and saved `1.1.0` documents render
+byte-identically. Authoring metadata advances to `1.8.0` to publish both
+contracts. Shared renderer, design schema, manifest, procedural algorithms and
+database stay unchanged.
+
+Advisory craft review starts at policy `craft-review 1.1.0`. Its findings and
+thresholds are versioned by that policy alone: they never block rendering and
+never enter manifests, fingerprints, render evidence, SVG or PNG bytes, so a
+policy change needs no renderer or template version change.

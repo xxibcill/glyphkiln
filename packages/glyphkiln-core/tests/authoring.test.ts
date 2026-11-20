@@ -90,7 +90,7 @@ describe("AI-ready authoring metadata", () => {
   });
 
   it("publishes every supported template version as immutable browser-safe data", () => {
-    expect(AUTHORING_CONTRACT_VERSION).toBe("1.7.0");
+    expect(AUTHORING_CONTRACT_VERSION).toBe("1.8.0");
     expect(AUTHORING_TEMPLATE_KEYS).toEqual([
       "testimonial-evidence@1.0.0",
       "comparison@1.0.0",
