@@ -665,6 +665,131 @@ describe("AppWorkflow", () => {
     ).toBe(false);
   });
 
+  it("does not disclose foreign brands or assets to static-ad creation and denies revoked editors", async () => {
+    const owner = await bootstrapOwner();
+    const workspaceId = requireWorkspaceId(owner);
+    const evidence = ownerEvidence(owner);
+    const brand = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "brand.publish",
+          workspaceId,
+          name: "Brand",
+          snapshot: brandDraft("#A4462A"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    const foreignWorkspace = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: { type: "workspace.create", name: "Foreign static studio" },
+      }),
+      "workspace-created",
+    ).workspace;
+    const foreignBrand = expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "brand.publish",
+          workspaceId: foreignWorkspace.id,
+          name: "Foreign brand",
+          snapshot: brandDraft("#0D3B9C"),
+        },
+      }),
+      "brand-snapshot-published",
+    );
+    await seedResourceVersion({
+      id: "foreign-static-asset",
+      workspaceId: foreignWorkspace.id,
+      actorUserId: owner.user.id,
+      kind: "raster-asset",
+      contentHash: "a".repeat(64),
+      storageKey: "internal-foreign-static-asset",
+      mediaType: "image/png",
+      byteSize: 68,
+      width: 1,
+      height: 1,
+      originKind: "user-upload",
+      originSourceName: "foreign.png",
+      licenseStatus: "owned",
+    });
+    const catalog = createPreviewCatalog();
+    const form = createInitialPreviewForm(catalog);
+    form.composition.templateId = "product-announcement";
+    const draft = buildManualDraft(form, catalog);
+    const command = {
+      type: "campaign.static-ads.create" as const,
+      workspaceId,
+      brandSnapshotId: brand.snapshotId,
+      name: "Static set",
+      brief: "Shared brief",
+      campaignSeed: "test",
+      drafts: [draft],
+    };
+
+    expectFailure(
+      await workflow.execute({
+        evidence,
+        command: { ...command, brandSnapshotId: foreignBrand.snapshotId },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+    expectFailure(
+      await workflow.execute({
+        evidence,
+        command: {
+          ...command,
+          drafts: [
+            {
+              ...draft,
+              resources: { assetIds: ["foreign-static-asset"], fontIds: [] },
+            },
+          ],
+        },
+      }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+
+    const editor = await registerMember(
+      owner,
+      workspaceId,
+      "static-editor@example.com",
+      "editor",
+    );
+    expectReceipt(
+      await workflow.execute({
+        evidence,
+        command: {
+          type: "workspace.member.revoke",
+          workspaceId,
+          userId: editor.user.id,
+        },
+      }),
+      "workspace-member-revoked",
+    );
+    const revokedSession = expectSessionGrant(
+      await workflow.execute({
+        evidence: {},
+        command: {
+          type: "session.login",
+          email: editor.user.email,
+          password: "correct horse battery staple",
+        },
+      }),
+    );
+    expectFailure(
+      await workflow.execute({ evidence: ownerEvidence(revokedSession), command }),
+      404,
+      "RESOURCE_NOT_FOUND",
+    );
+    expect(await database.query("SELECT id FROM campaigns")).toEqual([]);
+    expect(await database.query("SELECT id FROM designs")).toEqual([]);
+  });
+
   it("derives campaign canvas seeds only from trusted campaign scope", async () => {
     const owner = await bootstrapOwner();
     const workspaceId = requireWorkspaceId(owner);
