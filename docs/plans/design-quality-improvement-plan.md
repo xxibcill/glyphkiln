@@ -1,6 +1,29 @@
 # Design-quality improvement plan: from reproducible graphics to graphic design
 
-**Drafted 20 October 2026. Status: proposed plan, nothing implemented.**
+**Drafted 20 October 2026. Status: proposed plan; P0 partly implemented on
+22 October 2026.**
+
+**Progress, 22 October 2026:**
+
+- **P0 (internal part done):** the
+  [critique ledger, craft-heuristic results and twelve benchmark briefs](../../Deliverables/benchmarks/p0-baseline-2026-10/README.md),
+  and the advisory craft review (`reviewGraphicCraft` / `reviewSceneCraft`,
+  policy `craft-review 1.1.0` including brand-mark visibility, see
+  [quality policy](../quality-policy.md#advisory-craft-review)). Still open:
+  commissioning the expert baselines and the first blind round (owner decision
+  §8.2). No baseline win rate exists yet.
+- **P1 (first slice):** opt-in
+  [`quote-card@1.2.0` and `statistic-card@1.2.0`](../editorial-fill-templates.md)
+  fill their fields, avoid orphaned display words and use the accent once; the
+  Kilnform announcement was re-authored to show the product, and the photo
+  campaign was recomposed per format on `image-led-campaign@1.1.1` without the
+  scrim that dimmed the product, and the carousel now shows the lamp on three
+  of six slides (`tiktok-carousel-slide@1.1.1`).
+  [Before/after proofs](../../Deliverables/benchmarks/p1-craft-2026-10/README.md):
+  advisory findings 2 → 0 (quote, statistic), 3 → 2 (announcement), 1 → 1 per campaign format (the mark, which needs an owner-supplied light variant), and 22 → 15 across the carousel. Still
+  open in P1: the font library and pairings (decision §8.3), rich-text emphasis
+  and OpenType controls, color roles in brand snapshots, decoration off by
+  default, and product-color protection in image treatments.
 
 Author: Claude (Opus 5.5) for the project owner. Sources: the owner's
 assessment ("the output is useful but not yet graphic design; it cannot beat an
@@ -34,14 +57,14 @@ what the graphic is trying to say, and nothing judges whether it says it well.
 
 ### 1.1 Critique of the actual outputs (GD19 rubric, reviewed at board size)
 
-| Dimension | Observation in the Kilnform outputs | Consequence | KB reference |
-| --- | --- | --- | --- |
-| **Concept / message fit** | Announcement, quote, statistic and article cover would all be unchanged if "Studio Lamp" became any other product. Waves, flow fields and contours carry no subject meaning. | Fails the substitution test, so it reads as a template rather than a Kilnform idea. | GD20 card 1; GD01–02 |
-| **Composition** | Every semantic template uses the same structure: a dark rectangle placed on a textured field, top-left. The quote panel is about two-thirds empty. Carousel slides leave the lower 40–50% unused. Panels have no grouping job. | The hierarchy looks flat and the eye has no entry point. Empty space reads as unfinished, not as intentional quiet. | GD03 supplement: "a container without a communication role adds clutter"; GD20 card 2 |
-| **Typography** | One family (Inter) for all roles. Headline-to-body scale contrast is modest. Most labels sit at roughly 9–11 px at board size. There is no emphasis inside a headline, no display behavior and no typographic idea. | The type is "polished but anonymous" and nothing in it expresses the premise. | GD20 card 3; GD04 |
-| **Imagery** | All three campaign formats use the same photo, crop logic and type position. The cobalt mark disappears on the dark scrim, and the scrim dims the product's defining blue. | The adaptations shrink one design instead of recomposing it. The image's own color fights the treatment. | GD17 adaptation; GD06 "include the image's colors"; GD20 card 7 |
-| **Color** | A gold accent appears everywhere as decorative bars, ticks and frames. No color has a role, and area is not budgeted. | The accent stops signaling anything. | GD06 color by role, adjacency and area |
-| **Coherence / finish** | The family is consistent, but it shows consistency of the *template*, not of the *brand*. The benchmark found the same thing: "a template family more than a distinctive Kilnform identity". | Routine production value, no portfolio value. | GD10 identity contract |
+| Dimension                 | Observation in the Kilnform outputs                                                                                                                                                                                            | Consequence                                                                                                         | KB reference                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Concept / message fit** | Announcement, quote, statistic and article cover would all be unchanged if "Studio Lamp" became any other product. Waves, flow fields and contours carry no subject meaning.                                                   | Fails the substitution test, so it reads as a template rather than a Kilnform idea.                                 | GD20 card 1; GD01–02                                                                  |
+| **Composition**           | Every semantic template uses the same structure: a dark rectangle placed on a textured field, top-left. The quote panel is about two-thirds empty. Carousel slides leave the lower 40–50% unused. Panels have no grouping job. | The hierarchy looks flat and the eye has no entry point. Empty space reads as unfinished, not as intentional quiet. | GD03 supplement: "a container without a communication role adds clutter"; GD20 card 2 |
+| **Typography**            | One family (Inter) for all roles. Headline-to-body scale contrast is modest. Most labels sit at roughly 9–11 px at board size. There is no emphasis inside a headline, no display behavior and no typographic idea.            | The type is "polished but anonymous" and nothing in it expresses the premise.                                       | GD20 card 3; GD04                                                                     |
+| **Imagery**               | All three campaign formats use the same photo, crop logic and type position. The cobalt mark disappears on the dark scrim, and the scrim dims the product's defining blue.                                                     | The adaptations shrink one design instead of recomposing it. The image's own color fights the treatment.            | GD17 adaptation; GD06 "include the image's colors"; GD20 card 7                       |
+| **Color**                 | A gold accent appears everywhere as decorative bars, ticks and frames. No color has a role, and area is not budgeted.                                                                                                          | The accent stops signaling anything.                                                                                | GD06 color by role, adjacency and area                                                |
+| **Coherence / finish**    | The family is consistent, but it shows consistency of the _template_, not of the _brand_. The benchmark found the same thing: "a template family more than a distinctive Kilnform identity".                                   | Routine production value, no portfolio value.                                                                       | GD10 identity contract                                                                |
 
 **The strongest output, the Scene Kernel process diagram, is the evidence for
 the fix.** It is the only piece whose geometry was designed for its subject:
@@ -50,14 +73,14 @@ color. Quality appeared where composition was allowed to respond to content.
 
 ### 1.2 Root causes in the system
 
-| # | Root cause | Where it lives |
-| --- | --- | --- |
-| R1 | **Each template has one hard-coded composition.** `product-announcement` is "left-weighted copy with optional right image", built from fixed multipliers (`safe.width * 0.52`, `22 * unit` …). The document is intentionally coordinate-free, so the author cannot change it either. Every design is the same design with different words. | `packages/glyphkiln-core/src/templates/*.ts` |
-| R2 | **No representation of intent.** The document has layers (headline, subtitle, cta …), not a message, a visual relationship, an image job or a dominant element. The system cannot choose a composition for a reason. | `DesignDocument` schema |
-| R3 | **Quality gates measure correctness, not design.** Contrast, overflow, orphans, glyph coverage and safe areas are all necessary, and none is a design judgment. A design can pass every gate and still be weak. The KB is explicit on this: "a contrast calculation does not qualify the layout or its beauty." | `quality-policy.md` |
-| R4 | **Thin typographic material.** One bundled font, no rich-text emphasis, no OpenType feature control, no size-dependent tracking or leading, and no display behaviors. | `fonts.md`, `typography/` |
-| R5 | **The only graphic vocabulary is generic procedural texture.** Decoration is on by default and has no job. | `backgrounds/`, `procedural-backgrounds.md` |
-| R6 | **No exploration step and no external judgment.** One brief produces one layout. There are no competing premises, no delivered-size critique loop and no comparison with expert work for the same brief. | Workflow |
+| #   | Root cause                                                                                                                                                                                                                                                                                                                                 | Where it lives                               |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| R1  | **Each template has one hard-coded composition.** `product-announcement` is "left-weighted copy with optional right image", built from fixed multipliers (`safe.width * 0.52`, `22 * unit` …). The document is intentionally coordinate-free, so the author cannot change it either. Every design is the same design with different words. | `packages/glyphkiln-core/src/templates/*.ts` |
+| R2  | **No representation of intent.** The document has layers (headline, subtitle, cta …), not a message, a visual relationship, an image job or a dominant element. The system cannot choose a composition for a reason.                                                                                                                       | `DesignDocument` schema                      |
+| R3  | **Quality gates measure correctness, not design.** Contrast, overflow, orphans, glyph coverage and safe areas are all necessary, and none is a design judgment. A design can pass every gate and still be weak. The KB is explicit on this: "a contrast calculation does not qualify the layout or its beauty."                            | `quality-policy.md`                          |
+| R4  | **Thin typographic material.** One bundled font, no rich-text emphasis, no OpenType feature control, no size-dependent tracking or leading, and no display behaviors.                                                                                                                                                                      | `fonts.md`, `typography/`                    |
+| R5  | **The only graphic vocabulary is generic procedural texture.** Decoration is on by default and has no job.                                                                                                                                                                                                                                 | `backgrounds/`, `procedural-backgrounds.md`  |
+| R6  | **No exploration step and no external judgment.** One brief produces one layout. There are no competing premises, no delivered-size critique loop and no comparison with expert work for the same brief.                                                                                                                                   | Workflow                                     |
 
 ---
 
@@ -78,7 +101,7 @@ professional designer **blind**. "Beat" means:
 **Realistic staging.** Craft parity on **routine work** (social posts,
 announcements, quotes, covers, adaptations, carousels) is reachable. Parity on
 **concept originality for hero/identity work** is a long-term target. In the
-near term, Glyphkiln wins by pairing *expert-level craft at scale* with a human
+near term, Glyphkiln wins by pairing _expert-level craft at scale_ with a human
 choosing the concept. The plan measures both separately and does not blend
 them into one score.
 
@@ -97,8 +120,8 @@ Brief ─► Intent ─► Directions (≥3 premises) ─► Composition solve �
 
 Key decision: **semantic templates stop drawing directly. They compile to
 Scene Kernel geometry through a composition solver.** The `DesignDocument`
-stays coordinate-free and safe. The author chooses *intent, archetype and
-parameters*. A deterministic, seeded solver produces the reviewed geometry.
+stays coordinate-free and safe. The author chooses _intent, archetype and
+parameters_. A deterministic, seeded solver produces the reviewed geometry.
 The roadmap already anticipated this ("semantic domain compilers produce
 reviewed geometry"). This plan makes it the center of the work.
 
@@ -111,15 +134,15 @@ reviewed geometry"). This plan makes it the center of the work.
 Add an inert, bounded `DesignIntent` object (schema 1.7.0) beside the layers.
 It turns the GD20 "Concept/reference" template into data:
 
-| Field | Closed vocabulary or bound | Purpose |
-| --- | --- | --- |
-| `viewerTask` | notice / understand / compare / decide / feel | What the graphic must achieve |
-| `message` | ≤ 140 chars | One-sentence takeaway |
+| Field          | Closed vocabulary or bound                                                                                                                         | Purpose                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `viewerTask`   | notice / understand / compare / decide / feel                                                                                                      | What the graphic must achieve                 |
+| `message`      | ≤ 140 chars                                                                                                                                        | One-sentence takeaway                         |
 | `relationship` | object↔feature, before↔after, input↔output, price↔condition, image↔title, scale-comparison, process, contrast, metaphor, type-as-image, atmosphere | The visual relationship that carries the idea |
-| `dominant` | layer ID | The one element that wins first attention |
-| `imageJob` | identity / action / construction / context / atmosphere | What the photo or illustration must prove |
-| `avoid` | ≤ 140 chars | The wrong interpretation to prevent |
-| `tone` | quiet / confident / urgent / playful / editorial / technical | Drives type and color defaults |
+| `dominant`     | layer ID                                                                                                                                           | The one element that wins first attention     |
+| `imageJob`     | identity / action / construction / context / atmosphere                                                                                            | What the photo or illustration must prove     |
+| `avoid`        | ≤ 140 chars                                                                                                                                        | The wrong interpretation to prevent           |
+| `tone`         | quiet / confident / urgent / playful / editorial / technical                                                                                       | Drives type and color defaults                |
 
 The solver (W2) uses `relationship` and `dominant` to pick archetypes and
 scale ratios. Critique (W7) uses `viewerTask` and `avoid` as its rubric.
@@ -186,7 +209,7 @@ Three tiers. They stay **reported separately** from correctness checks and
 from each other, as the KB requires.
 
 1. **Deterministic craft heuristics** (in Core, versioned, advisory): scale contrast of dominant vs. next element; count of competing focal elements (area × contrast weight map); **dead-space detection** (large unused regions inside containers); alignment-edge count; **delivered-size legibility** (minimum rendered x-height in px at the target display width, for example 360 px phone); mark and subject visibility; accent-area budget; grayscale hierarchy; carousel adjacency difference.
-2. **Model critique adapter** (App-owned, optional, outside the render path, consistent with `ai-authoring-contracts.md`). A multimodal reviewer applies the GD19 rubric to the actual exports at delivery size and returns located findings: *version / size / region → observation → consequence → hypothesis → repair → preserved constraints*. Findings map to solver parameters, so repairs are concrete and never free-form pixel edits.
+2. **Model critique adapter** (App-owned, optional, outside the render path, consistent with `ai-authoring-contracts.md`). A multimodal reviewer applies the GD19 rubric to the actual exports at delivery size and returns located findings: _version / size / region → observation → consequence → hypothesis → repair → preserved constraints_. Findings map to solver parameters, so repairs are concrete and never free-form pixel edits.
 3. **Human expert panel** for benchmark rounds (§2). This is the only source of "beats expert" claims.
 
 ### W8 — Directions, revision and adaptation workflow (App)
@@ -208,14 +231,14 @@ from each other, as the KB requires.
 
 ## 5. Phased delivery
 
-| Phase | Scope | Exit gate (measured, not asserted) |
-| --- | --- | --- |
-| **P0 Baseline** (≈2 wks) | Full GD19 critique ledger of current outputs; W7 tier-1 heuristics as *advisory only*; commission expert baselines for the 12 briefs; first blind round | Baseline win rate, comprehension and defect counts recorded per brief. This is the "before" number. |
-| **P1 Craft quick wins** (≈4–6 wks) | W3 font library, rich spans, OpenType and size curves; W5 color roles and accent budget; W6 decoration off by default; W4 mark visibility; re-render Kilnform | Visible improvement in a blind round on type/color dimensions. No mandatory-defect regressions. Legibility heuristic passes at phone width. |
-| **P2 Composition engine** (≈8–10 wks) | W2 grid, 10 archetypes, hierarchy solver, subject masks, semantic→Scene compilation, per-format recomposition, seeded candidates | Kilnform campaign and announcement sets win ≥ 40% vs. experts on composition. Old template versions reproduce byte-exact. |
-| **P3 Intent and directions** (≈6 wks) | W1 schema 1.7.0; W8 three-premise directions in the App; W7 tier-2 model critic with located repairs | Routine briefs reach ≥ 50% pairwise preference and expert-level comprehension. Time-to-first-acceptable-direction is below the expert baseline. |
-| **P4 Vocabulary and systems** (≈8 wks) | W6 motifs, illustration kits, info compilers; W4 treatments/cutout grounding; W8 family view; Thai GD20 A/C | Diagram and carousel briefs reach ≥ 50%. The identity-consistency judgment improves across a 10-asset family. |
-| **P5 Hero work** (ongoing) | Type-as-image, collage/material finish, concept exploration for identity/hero briefs | Tracked separately. Report concept-originality results honestly even while craft wins. |
+| Phase                                  | Scope                                                                                                                                                         | Exit gate (measured, not asserted)                                                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **P0 Baseline** (≈2 wks)               | Full GD19 critique ledger of current outputs; W7 tier-1 heuristics as _advisory only_; commission expert baselines for the 12 briefs; first blind round       | Baseline win rate, comprehension and defect counts recorded per brief. This is the "before" number.                                             |
+| **P1 Craft quick wins** (≈4–6 wks)     | W3 font library, rich spans, OpenType and size curves; W5 color roles and accent budget; W6 decoration off by default; W4 mark visibility; re-render Kilnform | Visible improvement in a blind round on type/color dimensions. No mandatory-defect regressions. Legibility heuristic passes at phone width.     |
+| **P2 Composition engine** (≈8–10 wks)  | W2 grid, 10 archetypes, hierarchy solver, subject masks, semantic→Scene compilation, per-format recomposition, seeded candidates                              | Kilnform campaign and announcement sets win ≥ 40% vs. experts on composition. Old template versions reproduce byte-exact.                       |
+| **P3 Intent and directions** (≈6 wks)  | W1 schema 1.7.0; W8 three-premise directions in the App; W7 tier-2 model critic with located repairs                                                          | Routine briefs reach ≥ 50% pairwise preference and expert-level comprehension. Time-to-first-acceptable-direction is below the expert baseline. |
+| **P4 Vocabulary and systems** (≈8 wks) | W6 motifs, illustration kits, info compilers; W4 treatments/cutout grounding; W8 family view; Thai GD20 A/C                                                   | Diagram and carousel briefs reach ≥ 50%. The identity-consistency judgment improves across a 10-asset family.                                   |
+| **P5 Hero work** (ongoing)             | Type-as-image, collage/material finish, concept exploration for identity/hero briefs                                                                          | Tracked separately. Report concept-originality results honestly even while craft wins.                                                          |
 
 The phases are sequential where they share the solver (P2 → P3 → P4). W3 and
 W5 in P1 are independent and can run in parallel. Calendar estimates assume
@@ -227,13 +250,13 @@ one focused engineer plus design review, and need confirmation after P0.
 
 These are concrete repairs to test in P1, each with a named symptom:
 
-| Asset | Symptom | Repair |
-| --- | --- | --- |
-| Quote | Small quote floating in a mostly empty panel | Remove the panel; set the quote as the image in display serif, 2–3× larger, with hanging marks; let the attribution be a small tracked label |
-| Statistic | "03" competes with the panel and background | Make the number dominant and edge-to-edge; drop the container; place the three places as a grid-aligned list |
-| Announcement A/B | Box on waves; product never shown | Use the product (cutout or image) as the dominant; set the headline with internal emphasis; remove procedural texture |
-| Campaign ×3 | Same composition shrunk; mark lost; cobalt dimmed | Square: type behind the lamp via mask. Portrait: oversized stacked headline above a full silhouette. Landscape: split field. Use the light mark variant, with local rather than global darkening |
-| Carousel | Repeated panel structure, gold bars everywhere | Use 1.1.1 image slides for product frames; vary the archetype by frame task; restrict the accent to the frame's single key element |
+| Asset            | Symptom                                           | Repair                                                                                                                                                                                           |
+| ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Quote            | Small quote floating in a mostly empty panel      | Remove the panel; set the quote as the image in display serif, 2–3× larger, with hanging marks; let the attribution be a small tracked label                                                     |
+| Statistic        | "03" competes with the panel and background       | Make the number dominant and edge-to-edge; drop the container; place the three places as a grid-aligned list                                                                                     |
+| Announcement A/B | Box on waves; product never shown                 | Use the product (cutout or image) as the dominant; set the headline with internal emphasis; remove procedural texture                                                                            |
+| Campaign ×3      | Same composition shrunk; mark lost; cobalt dimmed | Square: type behind the lamp via mask. Portrait: oversized stacked headline above a full silhouette. Landscape: split field. Use the light mark variant, with local rather than global darkening |
+| Carousel         | Repeated panel structure, gold bars everywhere    | Use 1.1.1 image slides for product frames; vary the archetype by frame task; restrict the accent to the frame's single key element                                                               |
 
 ---
 

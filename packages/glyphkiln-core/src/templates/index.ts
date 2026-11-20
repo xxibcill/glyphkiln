@@ -14,6 +14,10 @@ import {
 } from "./image-editorial.js";
 import { articleCoverTemplate } from "./article-cover.js";
 import {
+  quoteCardTypographicTemplate,
+  statisticCardHeroTemplate,
+} from "./editorial-fill.js";
+import {
   imageLedCampaignTemplate,
   imageLedCampaignV1_0_0Template,
 } from "./image-led-campaign.js";
@@ -55,8 +59,8 @@ const TEMPLATE_VERSION_REGISTRY: Readonly<
     productAnnouncementTemplate,
     productOfferTemplate,
   ]),
-  "statistic-card": Object.freeze([statisticCardTemplate]),
-  "quote-card": Object.freeze([quoteCardTemplate]),
+  "statistic-card": Object.freeze([statisticCardTemplate, statisticCardHeroTemplate]),
+  "quote-card": Object.freeze([quoteCardTemplate, quoteCardTypographicTemplate]),
   "article-cover": Object.freeze([articleCoverTemplate]),
   "tiktok-carousel-slide": Object.freeze([
     tiktokCarouselSlideV1_0_1Template,

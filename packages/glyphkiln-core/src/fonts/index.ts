@@ -118,6 +118,19 @@ export class FontRegistry {
     });
   }
 
+  /** Em-relative x-height and cap height of an exact registered face. */
+  public verticalMetrics(
+    family: string,
+    weight: number,
+    style: ResolvedFont["style"],
+  ): { xHeight: number; capHeight: number } {
+    const face = this.#getFace(family, weight, style);
+    return {
+      xHeight: face.xHeight / face.unitsPerEm,
+      capHeight: face.capHeight / face.unitsPerEm,
+    };
+  }
+
   public list(): ResolvedFont[] {
     return [...this.#fonts.values()];
   }

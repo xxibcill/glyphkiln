@@ -11,7 +11,7 @@ import {
   safeAreaIssue,
 } from "../layout/index.js";
 import type { DesignLayer } from "../schema/index.js";
-import { fitText } from "../typography/index.js";
+import { fitText, type FittedText } from "../typography/index.js";
 import type {
   ImageElement,
   Scene,
@@ -108,31 +108,28 @@ export function createTemplateCanvas(context: TemplateRenderContext): TemplateCa
   };
 }
 
-export function addText(
-  canvas: TemplateCanvas,
+export type TextFitOptions = {
+  preferredFontSize: number;
+  minimumFontSize: number;
+  maximumLines: number;
+  weight: number;
+  lineHeight?: number;
+  family?: string;
+  tracking?: number;
+};
+
+/** Fit text exactly as addText does, without adding it to the scene. */
+export function measureText(
   context: TemplateRenderContext,
   layer: TextLayer,
   box: Bounds,
-  options: {
-    preferredFontSize: number;
-    minimumFontSize: number;
-    maximumLines: number;
-    weight: number;
-    color?: string;
-    lineHeight?: number;
-    align?: "left" | "center" | "right";
-    family?: string;
-    contrastBackgroundColor?: string;
-    tracking?: number;
-    checkContrast?: boolean;
-  },
-): TextElement {
+  options: TextFitOptions,
+): { family: string; weight: number; lineHeight: number; fitted: FittedText } {
   const family =
     layer.fontFamily ??
     options.family ??
     context.document.brand.typography.headlineFamily;
   const weight = layer.fontWeight ?? options.weight;
-  const align = layer.align ?? options.align ?? "left";
   const lineHeight = options.lineHeight ?? 1.08;
   const fitted = fitText({
     text: layer.text,
@@ -156,6 +153,35 @@ export function addText(
       ? { keepTogether: layer.keepTogether }
       : {}),
   });
+  return { family, weight, lineHeight, fitted };
+}
+
+export function addText(
+  canvas: TemplateCanvas,
+  context: TemplateRenderContext,
+  layer: TextLayer,
+  box: Bounds,
+  options: {
+    preferredFontSize: number;
+    minimumFontSize: number;
+    maximumLines: number;
+    weight: number;
+    color?: string;
+    lineHeight?: number;
+    align?: "left" | "center" | "right";
+    family?: string;
+    contrastBackgroundColor?: string;
+    tracking?: number;
+    checkContrast?: boolean;
+  },
+): TextElement {
+  const { family, weight, lineHeight, fitted } = measureText(
+    context,
+    layer,
+    box,
+    options,
+  );
+  const align = layer.align ?? options.align ?? "left";
   const x =
     align === "center"
       ? box.x + box.width / 2

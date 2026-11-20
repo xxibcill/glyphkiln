@@ -22,6 +22,7 @@ import {
 } from "../provenance/index.js";
 import { validateDesignDocument, type DesignDocument } from "../schema/index.js";
 import { checkTemplateRequirements, getTemplate } from "../templates/index.js";
+import type { TemplateRenderResult } from "../templates/types.js";
 import { rasterizeSvg } from "./png.js";
 import { validateCreationTimestamp, validateOutputFormats } from "./options.js";
 import {
@@ -81,25 +82,10 @@ export async function renderGraphic(
   const createdAt = validateCreationTimestamp(
     options.creationTimestamp ?? new Date().toISOString(),
   );
-  const template = getTemplate(document);
-  const requirementIssues = checkTemplateRequirements(document, template);
-  const documentQuality = runDocumentQualityChecks(document);
-  blockOnQualityErrors(
-    [...requirementIssues, ...documentQuality.issues],
-    documentQuality.textLayout,
+  const { templateResult, fonts, manifestFonts, qualityIssues } = prepareGraphicScene(
+    document,
+    options,
   );
-  const assets = new AssetRegistry(document.assets, options.assets ?? []);
-  validateAssetReferences(document, assets);
-  const fonts = new FontRegistry(options.fonts ?? []);
-  fonts.validateDeclarations(document.fonts);
-  const templateResult = template.render({ document, assets, fonts });
-  const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
-  const qualityIssues = [
-    ...requirementIssues,
-    ...documentQuality.issues,
-    ...templateResult.qualityIssues,
-  ];
-  blockOnQualityErrors(qualityIssues, documentQuality.textLayout);
 
   const svg = renderSceneToSvg(templateResult.scene);
   const manifestAssets = collectManifestAssets(document);
@@ -147,6 +133,43 @@ export async function renderGraphic(
     });
   }
   return { document, outputs, qualityIssues, evidence: templateResult.evidence };
+}
+
+export type PreparedGraphicScene = {
+  templateResult: TemplateRenderResult;
+  fonts: FontRegistry;
+  manifestFonts: ManifestFont[];
+  qualityIssues: QualityIssue[];
+};
+
+/**
+ * Resolve a validated document to its renderer-neutral scene through exactly
+ * the checks renderGraphic applies. Quality errors throw before any output.
+ */
+export function prepareGraphicScene(
+  document: DesignDocument,
+  options: Pick<RenderGraphicOptions, "assets" | "fonts">,
+): PreparedGraphicScene {
+  const template = getTemplate(document);
+  const requirementIssues = checkTemplateRequirements(document, template);
+  const documentQuality = runDocumentQualityChecks(document);
+  blockOnQualityErrors(
+    [...requirementIssues, ...documentQuality.issues],
+    documentQuality.textLayout,
+  );
+  const assets = new AssetRegistry(document.assets, options.assets ?? []);
+  validateAssetReferences(document, assets);
+  const fonts = new FontRegistry(options.fonts ?? []);
+  fonts.validateDeclarations(document.fonts);
+  const templateResult = template.render({ document, assets, fonts });
+  const manifestFonts = collectManifestFonts(document, templateResult.scene, fonts);
+  const qualityIssues = [
+    ...requirementIssues,
+    ...documentQuality.issues,
+    ...templateResult.qualityIssues,
+  ];
+  blockOnQualityErrors(qualityIssues, documentQuality.textLayout);
+  return { templateResult, fonts, manifestFonts, qualityIssues };
 }
 
 function collectManifestAssets(document: DesignDocument): ManifestAsset[] {
