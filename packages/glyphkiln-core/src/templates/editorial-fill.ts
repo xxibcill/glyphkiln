@@ -83,6 +83,8 @@ function unitFor(canvas: TemplateCanvas): number {
 /**
  * Display type should not end on an isolated word. Step the preferred size down
  * (to at most 80% of the first fit) until the fitted copy has no orphan line.
+ * A step that does not shrink the fit, such as when the layer pins its own
+ * fontSize, ends the search and keeps the first fit.
  */
 function fitWithoutOrphan(
   context: TemplateRenderContext,
@@ -90,7 +92,7 @@ function fitWithoutOrphan(
   box: Bounds,
   options: TextFitOptions,
 ): { options: TextFitOptions; fitted: ReturnType<typeof measureText>["fitted"] } {
-  let fitted = measureText(context, layer, box, options).fitted;
+  const fitted = measureText(context, layer, box, options).fitted;
   const floor = Math.max(options.minimumFontSize, fitted.fontSize * 0.8);
   let current = options;
   let candidate = fitted;
@@ -98,10 +100,11 @@ function fitWithoutOrphan(
     const next = candidate.fontSize - 1;
     if (next < floor) return { options, fitted };
     current = { ...options, preferredFontSize: next };
-    candidate = measureText(context, layer, box, current).fitted;
+    const smaller = measureText(context, layer, box, current).fitted;
+    if (smaller.fontSize >= candidate.fontSize) return { options, fitted };
+    candidate = smaller;
   }
-  fitted = candidate;
-  return { options: current, fitted };
+  return { options: current, fitted: candidate };
 }
 
 function syntheticLayer(

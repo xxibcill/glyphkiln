@@ -123,6 +123,44 @@ describe("editorial fill templates 1.2.0", () => {
     );
   });
 
+  it.each([
+    {
+      id: "quote-card" as const,
+      text: "Good design is as little design as possible, and then a little more.",
+      fontSize: 96,
+    },
+    {
+      id: "statistic-card" as const,
+      text: "Customer retention after one full quarter of use",
+      fontSize: 40,
+    },
+  ])(
+    "keep a pinned $id headline fontSize instead of stepping down forever",
+    async ({ id, text, fontSize }) => {
+      const document = await example(id);
+      setText(document, "headline", text);
+      const headline = document.layers.find((layer) => layer.type === "headline");
+      if (headline?.type !== "headline") throw new Error("Missing headline layer.");
+      headline.fontSize = fontSize;
+      const result = await renderGraphic(document, {
+        formats: ["svg"],
+        creationTimestamp: "2026-10-22T00:00:00.000Z",
+      });
+      expect(
+        result.qualityIssues.filter((issue) => issue.severity === "error"),
+      ).toEqual([]);
+      expect(
+        result.qualityIssues.some(
+          (issue) => issue.code === "ORPHAN_LINE" && issue.layerId === headline.id,
+        ),
+      ).toBe(true);
+      const fitted = result.evidence.text.find(
+        (entry) => entry.layerId === headline.id,
+      )!;
+      expect(fitted.fontSize).toBeLessThanOrEqual(fontSize);
+    },
+  );
+
   it("draw one accent hanging quotation mark and keep the accent off other elements", async () => {
     const document = await example("quote-card");
     const review = await reviewGraphicCraft(document);

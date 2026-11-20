@@ -19,7 +19,8 @@ Shared rules:
   block is centered vertically so leftover space becomes even margins.
 - **No isolated final word:** display type steps down one pixel at a time, to at
   most 80% of its first fitted size, until the fitted copy has no
-  `ORPHAN_LINE`. If none is found, the first fit is kept and the warning remains.
+  `ORPHAN_LINE`. If none is found, or the layer pins its own `fontSize` so the
+  size cannot shrink, the first fit is kept and the warning remains.
 - **Accent once:** the accent is used on one element. If it does not reach 3:1
   (quotation mark) or 4.5:1 (value) on the ground, the brand primary is tried,
   then the text color.
