@@ -1514,6 +1514,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           id: designId,
           name: `${command.name.slice(0, 65)} · ${canvasKey}`,
         });
+        const documentHash = hashCanonical(construction.document);
         await state.insertDesignRevision({
           ...ownership,
           id: revisionId,
@@ -1521,7 +1522,7 @@ class AppWorkflowImplementation implements AppWorkflow {
           revisionNumber: 1,
           brandSnapshotId: brand.id,
           document: construction.document,
-          canonicalHash: hashCanonical(construction.document),
+          canonicalHash: documentHash,
           resourceReferences: admitted.resourceReferences,
         });
         if (
@@ -1550,6 +1551,15 @@ class AppWorkflowImplementation implements AppWorkflow {
           directionSeed: seeds.directionSeed,
           canvasSeed: seeds.canvasSeed,
           ordinal,
+        });
+        await this.#audit(state, {
+          workspaceId: command.workspaceId,
+          actorUserId: context.session.user.id,
+          action: "design.created",
+          targetType: "design",
+          targetId: designId,
+          metadata: { revisionId, documentHash },
+          createdAt: now,
         });
       }
       await this.#audit(state, {

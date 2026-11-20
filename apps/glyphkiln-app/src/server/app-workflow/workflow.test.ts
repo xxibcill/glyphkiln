@@ -450,6 +450,15 @@ describe("AppWorkflow", () => {
     const direction = board.directions[0];
     expect(direction.canvases).toHaveLength(6);
     expect(new Set(direction.canvases.map((canvas) => canvas.canvasSeed)).size).toBe(6);
+    const designAudits = await database.query<{ target_id: string }>(
+      `SELECT target_id FROM audit_events
+       WHERE workspace_id = $1 AND action = 'design.created'
+       ORDER BY target_id`,
+      [workspaceId],
+    );
+    expect(designAudits.map((row) => row.target_id)).toEqual(
+      direction.canvases.map((canvas) => canvas.designId).sort(),
+    );
     for (const canvas of direction.canvases) {
       const revision = expectProjection(
         await workflow.read({
