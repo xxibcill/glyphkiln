@@ -28,9 +28,9 @@ export const STATIC_AD_BRIEF_FIELDS = [
   ["customer", "Customer name", 100],
   ["leftLabel", "First option", 60],
   ["rightLabel", "Second option", 60],
-  ["comparisonLabel", "Comparison criterion", 60],
-  ["leftValue", "First option evidence", 100],
-  ["rightValue", "Second option evidence", 100],
+  ["comparisonLabel", "Comparison criteria (one per line, up to three)", 190],
+  ["leftValue", "First option evidence (one line per criterion)", 310],
+  ["rightValue", "Second option evidence (one line per criterion)", 310],
   ["problem", "Problem", 180],
   ["solution", "Solution", 180],
 ] as const;
@@ -50,10 +50,12 @@ export function buildStaticAdCampaignDrafts(
   catalog: PreviewCatalog,
 ): ManualDraft[] {
   requireText(brief.headline, "Main promise");
-  const benefits = brief.benefits
-    .split("\n")
-    .map((title) => title.trim())
-    .filter(Boolean);
+  const benefits = lines(brief.benefits);
+  const comparisonRows = lines(brief.comparisonLabel).map((label, index) => ({
+    label,
+    left: lines(brief.leftValue)[index] ?? "",
+    right: lines(brief.rightValue)[index] ?? "",
+  }));
   if (
     families.includes("benefit-proof") &&
     (benefits.length < 1 || benefits.length > 3)
@@ -74,6 +76,15 @@ export function buildStaticAdCampaignDrafts(
       "source",
     ] as const)
       requireText(brief[key], key);
+  if (
+    families.includes("comparison") &&
+    (comparisonRows.length > 3 ||
+      lines(brief.leftValue).length !== comparisonRows.length ||
+      lines(brief.rightValue).length !== comparisonRows.length)
+  )
+    throw new Error(
+      "Enter one to three comparison criteria, each with one line of evidence per option.",
+    );
   if (families.includes("problem-solution")) {
     requireText(brief.problem, "Problem");
     requireText(brief.solution, "Solution");
@@ -97,9 +108,7 @@ export function buildStaticAdCampaignDrafts(
     badge: "",
     leftLabel: brief.leftLabel,
     rightLabel: brief.rightLabel,
-    rows: [
-      { label: brief.comparisonLabel, left: brief.leftValue, right: brief.rightValue },
-    ],
+    rows: comparisonRows,
     problemTitle: "Problem",
     problem: brief.problem,
     solutionTitle: "Solution",
@@ -147,6 +156,12 @@ export function buildStaticAdCampaignDrafts(
       };
     }),
   );
+}
+function lines(value: string): string[] {
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 function requireText(value: string, label: string): void {
   if (value.length === 0)

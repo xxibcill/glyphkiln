@@ -18,7 +18,8 @@ also require the existing render worker.
 2. Open **Create a static ad campaign**. Supply audience/objective context, a
    campaign seed and explicit copy. Use a distinct seed per campaign: campaigns
    that share a seed share every derived canvas seed. Testimonials require an exact quote, customer and source;
-   comparisons require supplied evidence; offer ads require offer terms. No
+   comparisons require supplied evidence (one to three criteria, one line each, with
+   one matching line of evidence per option); offer ads require offer terms. No
    customer claims, discounts or deadlines are generated.
 3. Choose families and sizes. **Create ads** saves the campaign, direction, designs,
    revisions, resource pins and canvas attachments in one database transaction.

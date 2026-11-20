@@ -74,6 +74,29 @@ describe("shared static ad brief", () => {
     );
     expect(noOffer[0]?.layers.some((layer) => layer.type === "badge")).toBe(false);
   });
+  it("builds one comparison row per supplied criterion", () => {
+    const [draft] = buildStaticAdCampaignDrafts(
+      {
+        ...brief,
+        comparisonLabel: "Inputs\n\nReview\nExports",
+        leftValue: "Recreated\nManual\nRedrawn",
+        rightValue: "Saved\nTracked\nExact",
+      },
+      ["comparison"],
+      ["instagram-square"],
+      state,
+      catalog,
+    );
+    expect(
+      draft.layers.find((layer) => layer.type === "comparison-table"),
+    ).toMatchObject({
+      rows: [
+        { label: "Inputs", left: "Recreated", right: "Saved" },
+        { label: "Review", left: "Manual", right: "Tracked" },
+        { label: "Exports", left: "Redrawn", right: "Exact" },
+      ],
+    });
+  });
   it("requires evidence and family-specific copy before submitting", () => {
     for (const [family, key] of [
       ["testimonial-evidence", "quote"],
@@ -105,6 +128,23 @@ describe("shared static ad brief", () => {
     expect(() =>
       buildStaticAdCampaignDrafts(brief, [], ["instagram-square"], state, catalog),
     ).toThrow();
+    for (const mismatched of [
+      { comparisonLabel: "Inputs\nReview", leftValue: "Recreated" },
+      {
+        comparisonLabel: "A\nB\nC\nD",
+        leftValue: "1\n2\n3\n4",
+        rightValue: "1\n2\n3\n4",
+      },
+    ])
+      expect(() =>
+        buildStaticAdCampaignDrafts(
+          { ...brief, ...mismatched },
+          ["comparison"],
+          ["instagram-square"],
+          state,
+          catalog,
+        ),
+      ).toThrow("one to three comparison criteria");
     const form = new FormData();
     form.set("headline", "  Good input  ");
     expect(staticAdBriefFromForm(form)).toMatchObject({
