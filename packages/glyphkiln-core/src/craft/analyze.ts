@@ -83,6 +83,18 @@ export type CraftReview = {
   };
 };
 
+/**
+ * Upper limits of thresholds that are shares or OKLab lightness: a chroma
+ * retention above 1 would flag every photograph, and a lightness drop of 1
+ * or more could never be reached.
+ */
+const THRESHOLD_LIMITS: Partial<
+  Record<keyof CraftReviewThresholds, { max: number; inclusive: boolean }>
+> = {
+  imageChromaRetention: { max: 1, inclusive: true },
+  imageLightnessDrop: { max: 1, inclusive: false },
+};
+
 export function resolveCraftThresholds(input: unknown = {}): CraftReviewThresholds {
   const thresholds = { ...CRAFT_REVIEW_DEFAULTS };
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
@@ -111,6 +123,17 @@ export function resolveCraftThresholds(input: unknown = {}): CraftReviewThreshol
         `Craft threshold "${key}" must be a positive finite number.`,
         "INVALID_CRAFT_REVIEW_OPTIONS",
         { threshold: key },
+      );
+    }
+    const limit = THRESHOLD_LIMITS[key];
+    if (
+      limit !== undefined &&
+      (limit.inclusive ? value > limit.max : value >= limit.max)
+    ) {
+      throw new GlyphkilnError(
+        `Craft threshold "${key}" must be ${limit.inclusive ? "at most" : "below"} ${limit.max}.`,
+        "INVALID_CRAFT_REVIEW_OPTIONS",
+        { threshold: key, maximum: limit.max },
       );
     }
     thresholds[key] = value;

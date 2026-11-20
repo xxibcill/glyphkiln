@@ -236,6 +236,20 @@ describe("product color", () => {
         analyzeCraft(model, { imageChromaRetention: 0.5, imageLightnessDrop: 0.5 }),
       ),
     ).toEqual([]);
+    expect(
+      dimmedCodes(
+        analyzeCraft(model, { imageChromaRetention: 1, imageLightnessDrop: 0.99 }),
+      ),
+    ).toHaveLength(1);
+    for (const thresholds of [
+      { imageChromaRetention: 1.01 },
+      { imageLightnessDrop: 1 },
+      { imageLightnessDrop: 2 },
+    ]) {
+      expect(() => analyzeCraft(model, thresholds)).toThrow(
+        expect.objectContaining({ code: "INVALID_CRAFT_REVIEW_OPTIONS" }),
+      );
+    }
   });
 
   it("skips marks, small images, transparent and neutral sources", () => {
