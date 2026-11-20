@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   AUTHORING_TEMPLATE_REGISTRY,
@@ -8,6 +8,7 @@ import {
   type DesignDocument,
   type FormatId,
 } from "../src/index.js";
+import { FontRegistry } from "../src/fonts/index.js";
 import { cloneDocument, loadExample, loadExampleAssets } from "./helpers.js";
 
 const FORMATS: FormatId[] = [
@@ -160,6 +161,33 @@ describe("editorial fill templates 1.2.0", () => {
       expect(fitted.fontSize).toBeLessThanOrEqual(fontSize);
     },
   );
+
+  it("outline the quotation mark only from the quote's declared, recorded face", async () => {
+    const document = await example("quote-card");
+    const quote = document.layers.find((layer) => layer.type === "headline");
+    if (quote?.type !== "headline") throw new Error("Missing headline layer.");
+    quote.fontWeight = 400;
+    document.fonts = document.fonts.filter((font) => font.weight !== 700);
+    const outline = vi.spyOn(FontRegistry.prototype, "outlineText");
+    try {
+      const result = await renderGraphic(document, {
+        formats: ["svg"],
+        creationTimestamp: "2026-10-22T00:00:00.000Z",
+      });
+      const recorded = new Set(
+        result.outputs[0]!.manifest.fonts.map(
+          (font) => `${font.family}:${font.weight}`,
+        ),
+      );
+      const outlined = outline.mock.calls.map(
+        ([input]) => `${input.family}:${input.weight}`,
+      );
+      expect(outlined).toContain("Inter:400");
+      for (const face of outlined) expect(recorded).toContain(face);
+    } finally {
+      outline.mockRestore();
+    }
+  });
 
   it("draw one accent hanging quotation mark and keep the accent off other elements", async () => {
     const document = await example("quote-card");

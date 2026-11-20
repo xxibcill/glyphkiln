@@ -33,8 +33,9 @@ drafts, and saved `1.1.0` documents render byte-identically. Visual baselines:
 `tests/visual/baselines/quote-card-typographic.png` and
 `statistic-card-hero.png`.
 
-Known limits: the quotation mark uses the headline font's `“` glyph, so its
-shape follows that typeface; the statistic template cannot detect when the
+Known limits: the quotation mark is outlined from the quotation's own face
+(its family and weight), so its shape follows that typeface and it adds no
+font beyond the ones the manifest records; a face without `“` draws no mark; the statistic template cannot detect when the
 headline, label, and trend repeat each other, which remains an authoring
 judgment. Before/after Kilnform proofs are in
 [Deliverables/benchmarks/p1-craft-2026-10](../Deliverables/benchmarks/p1-craft-2026-10/README.md).

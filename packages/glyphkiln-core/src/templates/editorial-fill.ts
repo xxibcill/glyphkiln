@@ -91,20 +91,26 @@ function fitWithoutOrphan(
   layer: TextLayer,
   box: Bounds,
   options: TextFitOptions,
-): { options: TextFitOptions; fitted: ReturnType<typeof measureText>["fitted"] } {
-  const fitted = measureText(context, layer, box, options).fitted;
+): {
+  options: TextFitOptions;
+  fitted: ReturnType<typeof measureText>["fitted"];
+  family: string;
+  weight: number;
+} {
+  const { fitted, family, weight } = measureText(context, layer, box, options);
   const floor = Math.max(options.minimumFontSize, fitted.fontSize * 0.8);
   let current = options;
   let candidate = fitted;
   while (candidate.issues.some((issue) => issue.code === "ORPHAN_LINE")) {
     const next = candidate.fontSize - 1;
-    if (next < floor) return { options, fitted };
+    if (next < floor) return { options, fitted, family, weight };
     current = { ...options, preferredFontSize: next };
     const smaller = measureText(context, layer, box, current).fitted;
-    if (smaller.fontSize >= candidate.fontSize) return { options, fitted };
+    if (smaller.fontSize >= candidate.fontSize)
+      return { options, fitted, family, weight };
     candidate = smaller;
   }
-  return { options: current, fitted: candidate };
+  return { options: current, fitted: candidate, family, weight };
 }
 
 function syntheticLayer(
@@ -173,12 +179,12 @@ export const quoteCardTypographicTemplate: TemplateDefinition = {
       lineHeight: 1.06,
       tracking: -0.015,
     };
-    const { options: fittedQuoteOptions, fitted: quoteFit } = fitWithoutOrphan(
-      context,
-      quote,
-      quoteBox,
-      quoteOptions,
-    );
+    const {
+      options: fittedQuoteOptions,
+      fitted: quoteFit,
+      family: quoteFamily,
+      weight: quoteWeight,
+    } = fitWithoutOrphan(context, quote, quoteBox, quoteOptions);
     const blockHeight = markBand + quoteFit.height + gap + attributionFit.height;
     const offset = Math.max(0, (inner.height - blockHeight) / 2);
     const top = inner.y + offset;
@@ -191,6 +197,8 @@ export const quoteCardTypographicTemplate: TemplateDefinition = {
       bottom: top + markBand - Math.min(markBand * 0.18, quoteFit.fontSize * 0.2),
       inkHeight: markHeight,
       color: mark,
+      family: quoteFamily,
+      weight: quoteWeight,
     });
     const quoteElement = addText(
       canvas,
@@ -221,14 +229,26 @@ export const quoteCardTypographicTemplate: TemplateDefinition = {
 function addHangingQuoteMark(
   canvas: TemplateCanvas,
   context: TemplateRenderContext,
-  input: { id: string; x: number; bottom: number; inkHeight: number; color: string },
+  input: {
+    id: string;
+    x: number;
+    bottom: number;
+    inkHeight: number;
+    color: string;
+    /** The quotation's resolved face, so the mark adds no undeclared font. */
+    family: string;
+    weight: number;
+  },
 ): void {
-  const family = context.document.brand.typography.headlineFamily;
+  const { family, weight } = input;
+  // The mark is decorative: a face without the glyph draws no mark rather
+  // than a .notdef box.
+  if (context.fonts.missingCodePoints("“", family, weight, "normal").length > 0) return;
   const outline = (fontSize: number, x: number, y: number): string =>
     context.fonts.outlineText({
       lines: ["“"],
       family,
-      weight: 700,
+      weight,
       style: "normal",
       fontSize,
       lineHeight: 1,
