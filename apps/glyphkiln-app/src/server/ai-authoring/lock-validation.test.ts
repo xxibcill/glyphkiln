@@ -72,6 +72,15 @@ describe("server-owned authoring lock validation", () => {
     panels.solution = "Changed solution";
     expect(validateAuthoringLocks(base, candidate, ["copy"]).success).toBe(false);
     expect(validateAuthoringLocks(base, candidate, ["composition"]).success).toBe(true);
+
+    const relabeled = structuredClone(base);
+    const relabeledPanels = relabeled.layers.find(
+      (layer) => layer.type === "problem-solution",
+    );
+    if (!relabeledPanels) throw new Error("Missing panels");
+    Object.assign(relabeledPanels, { problemLabel: "PROBLEMA" });
+    expect(validateAuthoringLocks(base, relabeled, ["copy"]).success).toBe(false);
+    expect(validateAuthoringLocks(base, relabeled, ["composition"]).success).toBe(true);
   });
 
   it("locks benefit item copy and item count without blocking unlocked copy edits", () => {

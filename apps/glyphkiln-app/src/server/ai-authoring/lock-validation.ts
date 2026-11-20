@@ -336,8 +336,10 @@ function projectLayerLocks(layer: DesignLayer): LayerLockProjections {
       return createLayerLockProjections(identity, {
         copy: {
           ...identity,
+          problemLabel: layer.problemLabel ?? null,
           problemTitle: layer.problemTitle,
           problem: layer.problem,
+          solutionLabel: layer.solutionLabel ?? null,
           solutionTitle: layer.solutionTitle,
           solution: layer.solution,
         },

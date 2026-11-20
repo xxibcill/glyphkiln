@@ -134,9 +134,19 @@ function getTextFields(layer: DesignLayer, layerIndex: number): TextField[] {
         ),
       ];
     case "problem-solution":
-      return (["problemTitle", "problem", "solutionTitle", "solution"] as const).map(
-        (field) => ({ text: layer[field], fieldPath: `${layerPath}/${field}` }),
-      );
+      return (
+        [
+          "problemLabel",
+          "problemTitle",
+          "problem",
+          "solutionLabel",
+          "solutionTitle",
+          "solution",
+        ] as const
+      ).flatMap((field) => {
+        const text = layer[field];
+        return text === undefined ? [] : [{ text, fieldPath: `${layerPath}/${field}` }];
+      });
     case "benefit-list":
       return layer.items.flatMap((item, index) => [
         { text: item.title, fieldPath: `${layerPath}/items/${index}/title` },

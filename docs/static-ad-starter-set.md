@@ -59,7 +59,7 @@ Comparison requires one to three rows. Option names and criterion labels have a 
 }
 ```
 
-Problem/solution titles have an 80-character bound and explanations have a 180-character bound. All four fields are required and nonblank. Character bounds do not promise that every string fits: overflow and unsupported scripts block rendering. Required visible roles are checked at render time; saving an incomplete but schema-valid draft retains the existing workflow behavior.
+Problem/solution titles have an 80-character bound and explanations have a 180-character bound. All four fields are required and nonblank. Optional `problemLabel` and `solutionLabel` (40 characters, nonblank) replace the panel labels, which default to `PROBLEM` and `SOLUTION`; supply them for copy in other languages. Character bounds do not promise that every string fits: overflow and unsupported scripts block rendering. Required visible roles are checked at render time; saving an incomplete but schema-valid draft retains the existing workflow behavior.
 
 Testimonials reuse the existing text roles: quote as `headline`, speaker as `attribution`, role as `subtitle`, literal rating as `badge`, and source as `footer`. Portrait uses `image`; product uses `product-screenshot`. Logos, products and portraits use `contain`, preserving the complete supplied image. Comparison and Problem / Solution support logos but not product photography in this version.
 

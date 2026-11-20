@@ -259,8 +259,16 @@ export const problemSolutionTemplate: TemplateDefinition = {
     const width = stacked ? area.width : (area.width - gap) / 2;
     const height = stacked ? (area.height - gap) / 2 : area.height;
     for (const [index, content] of [
-      { label: "PROBLEM", title: layer.problemTitle, body: layer.problem },
-      { label: "SOLUTION", title: layer.solutionTitle, body: layer.solution },
+      {
+        label: layer.problemLabel ?? "PROBLEM",
+        title: layer.problemTitle,
+        body: layer.problem,
+      },
+      {
+        label: layer.solutionLabel ?? "SOLUTION",
+        title: layer.solutionTitle,
+        body: layer.solution,
+      },
     ].entries()) {
       const x = area.x + (stacked ? 0 : index * (width + gap));
       const y = area.y + (stacked ? index * (height + gap) : 0);

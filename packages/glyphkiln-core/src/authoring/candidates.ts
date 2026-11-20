@@ -151,7 +151,7 @@ function validateCandidateDocument(
 
 function mapValidationProblem(problem: ValidationProblem): CandidateDocumentIssue {
   const contentField =
-    /(?:^|\.)(?:text|value|label|trend|title|description|leftLabel|rightLabel|left|right|problemTitle|problem|solutionTitle|solution)$/.test(
+    /(?:^|\.)(?:text|value|label|trend|title|description|leftLabel|rightLabel|left|right|problemLabel|problemTitle|problem|solutionLabel|solutionTitle|solution)$/.test(
       problem.path,
     );
   const code =

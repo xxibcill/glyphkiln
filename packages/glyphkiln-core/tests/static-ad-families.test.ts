@@ -218,4 +218,36 @@ describe("static ad families", () => {
     },
     60_000,
   );
+
+  it("renders supplied problem/solution labels instead of the English defaults", async () => {
+    const document = await example("problem-solution");
+    const layer = document.layers.find((item) => item.type === "problem-solution");
+    if (layer?.type !== "problem-solution") throw new Error("Missing layer.");
+    const assets = await loadExampleAssets(document);
+    const defaults = new TextDecoder().decode(
+      (await renderGraphic(document, { assets, formats: ["svg"] })).outputs[0]!.bytes,
+    );
+    expect(defaults).toContain('aria-label="PROBLEM"');
+    expect(defaults).toContain('aria-label="SOLUTION"');
+
+    Object.assign(layer, { problemLabel: "PROBLEMA", solutionLabel: "RESPUESTA" });
+    const result = await renderGraphic(document, { assets, formats: ["svg"] });
+    expect(result.qualityIssues.filter((issue) => issue.severity === "error")).toEqual(
+      [],
+    );
+    const svg = new TextDecoder().decode(result.outputs[0]!.bytes);
+    expect(svg).toContain('aria-label="PROBLEMA"');
+    expect(svg).toContain('aria-label="RESPUESTA"');
+    expect(svg).not.toContain('aria-label="SOLUTION"');
+
+    Object.assign(layer, { problemLabel: "\u05D0" });
+    expect(
+      inspectDesignTextLayout(document).diagnostics.map(
+        (diagnostic) => diagnostic.fieldPath,
+      ),
+    ).toEqual(expect.arrayContaining([expect.stringMatching(/\/problemLabel$/u)]));
+
+    Object.assign(layer, { problemLabel: "   " });
+    expect(validateDesignDocument(document).success).toBe(false);
+  }, 60_000);
 });

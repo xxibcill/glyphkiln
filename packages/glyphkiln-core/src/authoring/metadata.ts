@@ -62,8 +62,10 @@ type ContentFieldName =
   | "trend"
   | "leftLabel"
   | "rightLabel"
+  | "problemLabel"
   | "problemTitle"
   | "problem"
+  | "solutionLabel"
   | "solutionTitle"
   | "solution";
 
@@ -658,6 +660,12 @@ const authoringTemplateRegistry = {
           "Use a concrete problem and a supported solution without invented outcomes.",
         fields: [
           {
+            name: "problemLabel",
+            required: false,
+            minimumCharacters: 1,
+            maximumCharacters: 40,
+          },
+          {
             name: "problemTitle",
             required: true,
             minimumCharacters: 1,
@@ -668,6 +676,12 @@ const authoringTemplateRegistry = {
             required: true,
             minimumCharacters: 1,
             maximumCharacters: 180,
+          },
+          {
+            name: "solutionLabel",
+            required: false,
+            minimumCharacters: 1,
+            maximumCharacters: 40,
           },
           {
             name: "solutionTitle",

@@ -396,8 +396,10 @@ const problemSolutionLayerSchema = z
   .object({
     ...layerBase,
     type: z.literal("problem-solution"),
+    problemLabel: proofText(40).optional(),
     problemTitle: proofText(80),
     problem: proofText(180),
+    solutionLabel: proofText(40).optional(),
     solutionTitle: proofText(80),
     solution: proofText(180),
   })
