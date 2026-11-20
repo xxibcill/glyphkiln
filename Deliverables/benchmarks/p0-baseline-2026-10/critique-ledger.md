@@ -194,7 +194,7 @@ What this baseline shows about the advisory checks themselves:
   - `CRAFT_PRODUCT_COLOR_DIMMED` (CA-3) flags all three formats. Against the
     source asset at the same positions, every dominant hue keeps about 51% of
     its OKLab chroma (threshold 0.75) and loses 0.21–0.31 lightness
-    (threshold 0.1); the lamp's cobalt (240–270°, 3–4% of samples) is among
+    (threshold 0.1); the lamp's cobalt (240–270°, 3–5% of chromatic samples) is among
     them. The P1 versions (treatment `none`) keep over 99% and do not fire.
     The check cannot tell which hue is the product: it fired because the
     scrim dims every dominant hue, not because it found the lamp. A local
