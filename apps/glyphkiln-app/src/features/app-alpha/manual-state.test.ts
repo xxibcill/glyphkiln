@@ -1,4 +1,4 @@
-import { STATIC_AD_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
+import { STATIC_AD_STARTER_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
 import { describe, expect, it } from "vitest";
 
 import type { BrandSnapshot, DesignDocument } from "@glyphkiln/core";
@@ -21,7 +21,7 @@ import {
 const catalog = createPreviewCatalog();
 
 describe("manual App Alpha state", () => {
-  it.each(STATIC_AD_TEMPLATE_IDS)(
+  it.each(STATIC_AD_STARTER_TEMPLATE_IDS)(
     "round-trips %s copy and admitted asset roles",
     (templateId) => {
       const state = createInitialPreviewForm(catalog);

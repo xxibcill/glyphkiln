@@ -1,4 +1,4 @@
-import { STATIC_AD_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
+import { STATIC_AD_STARTER_TEMPLATE_IDS } from "@/features/project-preview/static-ad-copy";
 import { createInitialPreviewForm } from "@/features/project-preview/document-builder";
 import { createPreviewCatalog } from "@/lib/project-preview/catalog";
 import { buildManualDraft } from "@/features/app-alpha/manual-state";
@@ -412,7 +412,11 @@ describe("AppWorkflow", () => {
     const catalog = createPreviewCatalog();
     const form = createInitialPreviewForm(catalog);
     const drafts = (
-      ["product-announcement", "benefit-proof", ...STATIC_AD_TEMPLATE_IDS] as const
+      [
+        "product-announcement",
+        "benefit-proof",
+        ...STATIC_AD_STARTER_TEMPLATE_IDS,
+      ] as const
     ).map((templateId) =>
       buildManualDraft(
         {
@@ -3600,7 +3604,7 @@ describe("AppWorkflow", () => {
     ).resolves.toEqual([{ owner_count: 1 }]);
   });
 
-  it.each(STATIC_AD_TEMPLATE_IDS)(
+  it.each(STATIC_AD_STARTER_TEMPLATE_IDS)(
     "persists %s revisions and rejects invalid copy",
     async (templateId) => {
       const owner = await bootstrapOwner();

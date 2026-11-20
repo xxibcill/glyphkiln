@@ -1,4 +1,4 @@
-import { STATIC_AD_TEMPLATE_IDS, STATIC_AD_FIELDS } from "./static-ad-copy";
+import { STATIC_AD_STARTER_TEMPLATE_IDS, STATIC_AD_FIELDS } from "./static-ad-copy";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -64,7 +64,7 @@ describe("EditorControls", () => {
     expect(markup).toContain("Shorten the solution explanation.");
   });
 
-  it.each(STATIC_AD_TEMPLATE_IDS)(
+  it.each(STATIC_AD_STARTER_TEMPLATE_IDS)(
     "exposes the semantic fields and resources for %s",
     (id) => {
       const catalog = createPreviewCatalog();

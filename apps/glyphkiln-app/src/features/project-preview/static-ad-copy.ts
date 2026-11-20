@@ -1,13 +1,13 @@
 import type { DesignDocument, DesignLayer } from "@glyphkiln/core";
 import type { PreviewFormState } from "./types";
 
-export const STATIC_AD_TEMPLATE_IDS = [
+export const STATIC_AD_STARTER_TEMPLATE_IDS = [
   "testimonial-evidence",
   "comparison",
   "problem-solution",
   "offer-urgency",
 ] as const;
-export type StaticAdTemplateId = (typeof STATIC_AD_TEMPLATE_IDS)[number];
+export type StaticAdStarterTemplateId = (typeof STATIC_AD_STARTER_TEMPLATE_IDS)[number];
 export type StaticAdCopy = {
   eyebrow: string;
   headline: string;
@@ -24,7 +24,7 @@ export type StaticAdCopy = {
   solutionTitle: string;
   solution: string;
 };
-export type StaticAdCopies = Record<StaticAdTemplateId, StaticAdCopy>;
+export type StaticAdCopies = Record<StaticAdStarterTemplateId, StaticAdCopy>;
 export type StaticAdTextField = {
   key: Exclude<keyof StaticAdCopy, "rows">;
   label: string;
@@ -38,7 +38,7 @@ const field = (
   maximum = 2000,
 ): StaticAdTextField => ({ key, label, required, maximum });
 export const STATIC_AD_FIELDS: Record<
-  StaticAdTemplateId,
+  StaticAdStarterTemplateId,
   readonly StaticAdTextField[]
 > = {
   "testimonial-evidence": [
@@ -78,8 +78,10 @@ export const STATIC_AD_FIELDS: Record<
   ],
 };
 
-export function isStaticAdTemplateId(id: string): id is StaticAdTemplateId {
-  return STATIC_AD_TEMPLATE_IDS.some((candidate) => candidate === id);
+export function isStaticAdStarterTemplateId(
+  id: string,
+): id is StaticAdStarterTemplateId {
+  return STATIC_AD_STARTER_TEMPLATE_IDS.some((candidate) => candidate === id);
 }
 
 export function createStaticAdCopies(): StaticAdCopies {
@@ -137,7 +139,7 @@ export function createStaticAdCopies(): StaticAdCopies {
 }
 
 export function buildStaticAdLayers(
-  id: StaticAdTemplateId,
+  id: StaticAdStarterTemplateId,
   copy: StaticAdCopy,
   resources: PreviewFormState["resources"],
 ): DesignLayer[] {
@@ -233,7 +235,7 @@ export function buildStaticAdLayers(
 export function staticAdCopiesFromDocument(document: DesignDocument): StaticAdCopies {
   const copies = createStaticAdCopies();
   const id = document.template.id;
-  if (!isStaticAdTemplateId(id)) return copies;
+  if (!isStaticAdStarterTemplateId(id)) return copies;
   const copy = copies[id];
   for (const field of STATIC_AD_FIELDS[id]) copy[field.key] = "";
   for (const layer of document.layers) {

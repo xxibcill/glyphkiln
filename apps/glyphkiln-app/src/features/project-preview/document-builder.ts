@@ -1,6 +1,6 @@
 import {
   createStaticAdCopies,
-  isStaticAdTemplateId,
+  isStaticAdStarterTemplateId,
   buildStaticAdLayers,
 } from "./static-ad-copy";
 import type { AssetOrigin, DesignDocument, DesignLayer } from "@glyphkiln/core";
@@ -215,7 +215,7 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
   ];
 
   if (
-    !isStaticAdTemplateId(state.composition.templateId) &&
+    !isStaticAdStarterTemplateId(state.composition.templateId) &&
     state.composition.templateId !== "tiktok-carousel-slide" &&
     state.composition.templateId !== "image-led-campaign" &&
     state.composition.templateId !== "product-announcement" &&
@@ -235,7 +235,7 @@ function buildLayers(state: PreviewFormState): DesignLayer[] {
   }
 
   const templateId = state.composition.templateId;
-  if (isStaticAdTemplateId(templateId))
+  if (isStaticAdStarterTemplateId(templateId))
     return [
       ...layers,
       ...buildStaticAdLayers(

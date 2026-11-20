@@ -5,6 +5,8 @@ import {
   CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
+  STATIC_AD_FORMATS,
+  STATIC_AD_TEMPLATE_IDS,
   createCarouselSequenceKey,
 } from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
@@ -364,20 +366,8 @@ const CreateStaticAdCampaignSchema = z
     drafts: z
       .array(
         ManualDraftSchema.extend({
-          templateId: z.enum([
-            "product-announcement",
-            "benefit-proof",
-            "testimonial-evidence",
-            "comparison",
-            "problem-solution",
-            "offer-urgency",
-          ]),
-          format: z.enum([
-            "instagram-square",
-            "instagram-portrait",
-            "instagram-story",
-            "linkedin-landscape",
-          ]),
+          templateId: z.enum(STATIC_AD_TEMPLATE_IDS),
+          format: z.enum(STATIC_AD_FORMATS),
         }),
       )
       .min(1)

@@ -1,8 +1,8 @@
 import {
-  isStaticAdTemplateId,
+  isStaticAdStarterTemplateId,
   STATIC_AD_FIELDS,
   type StaticAdCopy,
-  type StaticAdTemplateId,
+  type StaticAdStarterTemplateId,
 } from "./static-ad-copy";
 import { useEffect, useRef } from "react";
 import type { ChangeEvent, ReactNode, RefObject, SyntheticEvent } from "react";
@@ -103,7 +103,7 @@ export function EditorControls({
     template?.supportedFormats.includes(format.id),
   );
   const isTiktokCarousel = state.composition.templateId === "tiktok-carousel-slide";
-  const isStaticAd = isStaticAdTemplateId(state.composition.templateId);
+  const isStaticAd = isStaticAdStarterTemplateId(state.composition.templateId);
   const hasContainedProduct =
     state.composition.templateId === "testimonial-evidence" ||
     state.composition.templateId === "offer-urgency" ||
@@ -988,7 +988,7 @@ function TemplateCopyFields({
   updateCopy: (update: Partial<CopyFormState>) => void;
 }) {
   const templateId = state.composition.templateId;
-  if (isStaticAdTemplateId(templateId))
+  if (isStaticAdStarterTemplateId(templateId))
     return (
       <StaticAdFields
         id={templateId}
@@ -1881,7 +1881,7 @@ function StaticAdFields({
   failure,
   onChange,
 }: {
-  id: StaticAdTemplateId;
+  id: StaticAdStarterTemplateId;
   copy: StaticAdCopy;
   failure: PreviewFailure | null;
   onChange: (copy: StaticAdCopy) => void;
