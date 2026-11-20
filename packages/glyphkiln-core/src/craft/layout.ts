@@ -6,9 +6,9 @@ import {
   CRAFT_FORMAT_SET_MINIMUM_SHARED,
   CRAFT_FORMAT_SET_ROW_TOLERANCE,
   CRAFT_FORMAT_SET_SHARED_SHARE,
-  CRAFT_REVIEW_DEFAULTS,
+  CRAFT_FORMAT_SET_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
-  type CraftReviewThresholds,
+  type CraftFormatSetThresholds,
 } from "./policy.js";
 
 export type CraftLayoutRole = "text" | "image" | "mark";
@@ -133,12 +133,12 @@ export type CraftFormatSetReview = {
 export function reviewFormatSet(
   input: readonly CraftFormatSetEntry[],
   options: {
-    thresholds?: Pick<Partial<CraftReviewThresholds>, "formatLayoutDistance">;
+    thresholds?: Partial<CraftFormatSetThresholds>;
   } = {},
 ): CraftFormatSetReview {
   const entries = validateEntries(input);
   const limit = validateFormatSetOptions(options);
-  const formatLayoutDistance = limit ?? CRAFT_REVIEW_DEFAULTS.formatLayoutDistance;
+  const formatLayoutDistance = limit ?? CRAFT_FORMAT_SET_DEFAULTS.formatLayoutDistance;
   const pairs: CraftFormatPairMetric[] = [];
   const findings: CraftFormatSetFinding[] = [];
   for (let first = 0; first < entries.length; first += 1) {

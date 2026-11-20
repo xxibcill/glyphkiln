@@ -264,6 +264,7 @@ export type { IsolatedRenderOptions } from "./isolation/index.js";
 
 export {
   CRAFT_FINDING_CODES,
+  CRAFT_FORMAT_SET_DEFAULTS,
   CRAFT_REVIEW_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
   reviewFormatSet,
@@ -278,6 +279,7 @@ export type {
   CraftFormatSetEntry,
   CraftFormatSetFinding,
   CraftFormatSetReview,
+  CraftFormatSetThresholds,
   CraftImageColorMetric,
   CraftImageMetric,
   CraftLayoutElement,

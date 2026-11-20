@@ -29,6 +29,7 @@ export type {
 } from "./evidence.js";
 export {
   CRAFT_FINDING_CODES,
+  CRAFT_FORMAT_SET_DEFAULTS,
   CRAFT_REVIEW_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
 } from "../craft/policy.js";
@@ -51,7 +52,11 @@ export type {
   CraftReview,
   CraftTextMetric,
 } from "../craft/analyze.js";
-export type { CraftFindingCode, CraftReviewThresholds } from "../craft/policy.js";
+export type {
+  CraftFindingCode,
+  CraftFormatSetThresholds,
+  CraftReviewThresholds,
+} from "../craft/policy.js";
 export type { CraftReviewOptions } from "../craft/review.js";
 export { reviewSceneReadingOrder } from "./reading-order.js";
 export type {

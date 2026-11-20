@@ -4,11 +4,14 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  CRAFT_FORMAT_SET_DEFAULTS,
+  CRAFT_REVIEW_DEFAULTS,
   renderGraphic,
   reviewFormatSet,
   reviewGraphicCraft,
   sha256,
   type CraftReview,
+  type CraftReviewThresholds,
   type DesignDocument,
 } from "../src/index.js";
 import { analyzeCraft } from "../src/craft/analyze.js";
@@ -25,7 +28,10 @@ import {
 } from "../src/craft/model.js";
 import { createCraftImageDecoder } from "../src/craft/review.js";
 import type { SceneKernel, SceneKernelElement } from "../src/renderer/scene.js";
-import { reviewFormatSet as sceneReviewFormatSet } from "../src/scene/index.js";
+import {
+  CRAFT_FORMAT_SET_DEFAULTS as sceneFormatSetDefaults,
+  reviewFormatSet as sceneReviewFormatSet,
+} from "../src/scene/index.js";
 
 type Rgb = readonly [number, number, number];
 
@@ -776,6 +782,20 @@ describe("reviewFormatSet", () => {
         { format: "b", review: empty },
       ]).metrics.pairs[0],
     ).toMatchObject({ sharedShare: 0, layoutDistance: 1, notRecomposed: false });
+  });
+
+  it("keeps the set-level threshold out of single-format reviews", () => {
+    const review = resized(1080, 1080);
+    expect(review.thresholds).not.toHaveProperty("formatLayoutDistance");
+    expect(CRAFT_REVIEW_DEFAULTS).not.toHaveProperty("formatLayoutDistance");
+    expect(CRAFT_FORMAT_SET_DEFAULTS).toEqual({ formatLayoutDistance: 0.12 });
+    expect(Object.isFrozen(CRAFT_FORMAT_SET_DEFAULTS)).toBe(true);
+    expect(sceneFormatSetDefaults).toBe(CRAFT_FORMAT_SET_DEFAULTS);
+    expect(() =>
+      analyzeCraft(photoModel(renderedPhoto()), {
+        formatLayoutDistance: 0.2,
+      } as Partial<CraftReviewThresholds>),
+    ).toThrow(expect.objectContaining({ code: "INVALID_CRAFT_REVIEW_OPTIONS" }));
   });
 
   it("depends on the format layout threshold", () => {

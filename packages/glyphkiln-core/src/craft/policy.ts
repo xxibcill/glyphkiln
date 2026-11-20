@@ -49,11 +49,6 @@ export type CraftReviewThresholds = {
   imageChromaRetention: number;
   /** Largest allowed drop in OKLab lightness (0–1) of a dominant image color. */
   imageLightnessDrop: number;
-  /**
-   * Format-set review only: normalized layout distance at or below which two
-   * formats with the same reading order count as one composition resized.
-   */
-  formatLayoutDistance: number;
 };
 
 export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.freeze({
@@ -70,8 +65,19 @@ export const CRAFT_REVIEW_DEFAULTS: Readonly<CraftReviewThresholds> = Object.fre
   markMinimumSize: 24,
   imageChromaRetention: 0.75,
   imageLightnessDrop: 0.1,
-  formatLayoutDistance: 0.12,
 });
+
+/** Thresholds of the set-level `reviewFormatSet`, separate from one review's. */
+export type CraftFormatSetThresholds = {
+  /**
+   * Normalized layout distance at or below which two formats with the same
+   * reading order count as one composition resized.
+   */
+  formatLayoutDistance: number;
+};
+
+export const CRAFT_FORMAT_SET_DEFAULTS: Readonly<CraftFormatSetThresholds> =
+  Object.freeze({ formatLayoutDistance: 0.12 });
 
 /** Containers smaller than this share of the canvas are treated as marks or rules. */
 export const CRAFT_MINIMUM_CONTAINER_AREA = 0.04;

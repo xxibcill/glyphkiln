@@ -23,8 +23,10 @@ export {
 } from "./analyze.js";
 export {
   CRAFT_FINDING_CODES,
+  CRAFT_FORMAT_SET_DEFAULTS,
   CRAFT_REVIEW_DEFAULTS,
   CRAFT_REVIEW_POLICY_VERSION,
   type CraftFindingCode,
+  type CraftFormatSetThresholds,
   type CraftReviewThresholds,
 } from "./policy.js";
