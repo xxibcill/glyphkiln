@@ -142,4 +142,19 @@ describe("approved ad ZIP", () => {
     for (const path of ["../ad.png", "/ad.png", "a//b.png", "a\\b.png"])
       expect(() => zipCampaignHandoff(archive(path))).toThrow("path");
   });
+  it("parses the archive instead of trusting its shape", () => {
+    const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
+    expect(() => zipCampaignHandoff(new TextEncoder().encode("{"))).toThrow(
+      "not valid JSON",
+    );
+    for (const value of [
+      {},
+      { files: [] },
+      { files: [{ path: "ad.png", base64: "MTIz", approvalStatus: "pending" }] },
+      {
+        files: [{ path: "ad.png", base64: "not base64!", approvalStatus: "approved" }],
+      },
+    ])
+      expect(() => zipCampaignHandoff(encode(value))).toThrow("unexpected shape");
+  });
 });

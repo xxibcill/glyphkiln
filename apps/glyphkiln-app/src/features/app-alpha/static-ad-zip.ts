@@ -1,8 +1,21 @@
+import { z } from "zod";
+
+const HandoffFilesSchema = z.object({
+  files: z
+    .array(
+      z.object({
+        path: z.string().min(1).max(512),
+        base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/u),
+        approvalStatus: z.enum(["approved", "unapproved"]),
+      }),
+    )
+    .min(1)
+    .max(4096),
+});
+
 /** A stored ZIP preserves the parser-verified artifact bytes without re-encoding. */
 export function zipCampaignHandoff(verifiedArchive: Uint8Array): Uint8Array {
-  const archive = JSON.parse(new TextDecoder().decode(verifiedArchive)) as {
-    files: { path: string; base64: string; approvalStatus: string }[];
-  };
+  const archive = parseHandoffFiles(verifiedArchive);
   if (archive.files.some((file) => file.approvalStatus !== "approved"))
     throw new Error("Only approved artifacts can be packaged.");
   const local: Uint8Array[] = [];
@@ -69,4 +82,16 @@ function crc32(data: Uint8Array): number {
     for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
   }
   return (crc ^ 0xffffffff) >>> 0;
+}
+
+function parseHandoffFiles(bytes: Uint8Array): z.infer<typeof HandoffFilesSchema> {
+  let input: unknown;
+  try {
+    input = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new Error("The handoff archive is not valid JSON.");
+  }
+  const parsed = HandoffFilesSchema.safeParse(input);
+  if (!parsed.success) throw new Error("The handoff archive has an unexpected shape.");
+  return parsed.data;
 }
