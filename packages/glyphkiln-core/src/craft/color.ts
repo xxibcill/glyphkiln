@@ -20,7 +20,10 @@ import {
 export type CraftImageColorMetric = {
   /** Hue range, in OKLab hue degrees, of this dominant color. */
   hueRange: [number, number];
-  /** Share of the image's compared samples that fall in this color. */
+  /**
+   * Share of the image's chromatic samples that fall in this color, the same
+   * share the dominant-color cutoff uses.
+   */
   share: number;
   sourceLightness: number;
   renderedLightness: number;
@@ -179,7 +182,7 @@ function compareImage(
       const lightnessChange = (record.renderedL - record.sourceL) / record.count;
       return {
         hueRange: [bin * width, (bin + 1) * width],
-        share: round(record.count / sampleCount),
+        share: round(record.count / chromaticCount),
         sourceLightness: round(record.sourceL / record.count),
         renderedLightness: round(record.renderedL / record.count),
         sourceChroma: round(record.sourceC / record.count),

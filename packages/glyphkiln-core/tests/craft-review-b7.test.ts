@@ -226,6 +226,19 @@ describe("product color", () => {
     expect(covered.metrics.images[0]!.sampleCount).toBe(0);
   });
 
+  it("reports each color's share of the chromatic samples", () => {
+    // The left half of the photograph is neutral grey.
+    const source = photograph();
+    paint(source, 0, 0, 100, 200, [128, 128, 128]);
+    const rendered = renderedPhoto();
+    paint(rendered, 0, 0, 200, 400, [128, 128, 128]);
+    const metric = analyzeCraft(photoModel(rendered, [], source)).metrics.images[0]!;
+    expect(metric.chromaticSampleCount).toBeLessThan(metric.sampleCount * 0.6);
+    const total = metric.colors.reduce((sum, color) => sum + color.share, 0);
+    expect(total).toBeCloseTo(1, 3);
+    for (const color of metric.colors) expect(color.share).toBeGreaterThanOrEqual(0.02);
+  });
+
   it("respects the documented thresholds", () => {
     const rendered = renderedPhoto();
     scrim(rendered, [0, 0, 0], 0.2);
