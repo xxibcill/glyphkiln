@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Glyphkiln · Static-ad starter set</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #eeeee9;
+        color: #151a24;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      .intro {
+        padding: 48px 5vw 24px;
+        max-width: 950px;
+      }
+      .kicker {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-size: clamp(32px, 5vw, 64px);
+        line-height: 1.05;
+        letter-spacing: -0.045em;
+        margin: 18px 0;
+      }
+      h2 {
+        font-size: 22px;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      p {
+        color: #535966;
+      }
+      nav {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 0 5vw 32px;
+      }
+      nav label {
+        border: 1px solid #adb2ba;
+        border-radius: 24px;
+        padding: 8px 18px;
+        cursor: pointer;
+      }
+      .view {
+        position: absolute;
+        left: -100vw;
+      }
+      .view:focus-visible ~ nav {
+        outline: 2px solid #164db2;
+        outline-offset: 4px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 36px;
+        padding: 0 5vw 60px;
+      }
+      section header {
+        min-height: 96px;
+      }
+      section header p {
+        margin: 8px 0 18px;
+      }
+      figure {
+        margin: 0;
+        background: #fff;
+        border: 1px solid #d5d8da;
+      }
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      figcaption {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px;
+        font-size: 13px;
+      }
+      a {
+        color: inherit;
+      }
+      footer {
+        padding: 24px 5vw;
+        border-top: 1px solid #d5d8da;
+        color: #535966;
+        font-size: 13px;
+      }
+      @media (max-width: 700px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+        .intro {
+          padding-top: 30px;
+        }
+      }
+      #view-square:checked ~ main figure:not(.square) {
+        display: none;
+      }
+      #view-square:checked ~ nav label[for="view-square"] {
+        background: #151a24;
+        color: #fff;
+      }
+      #view-portrait:checked ~ main figure:not(.portrait) {
+        display: none;
+      }
+      #view-portrait:checked ~ nav label[for="view-portrait"] {
+        background: #151a24;
+        color: #fff;
+      }
+      #view-story:checked ~ main figure:not(.story) {
+        display: none;
+      }
+      #view-story:checked ~ nav label[for="view-story"] {
+        background: #151a24;
+        color: #fff;
+      }
+      #view-landscape:checked ~ main figure:not(.landscape) {
+        display: none;
+      }
+      #view-landscape:checked ~ nav label[for="view-landscape"] {
+        background: #151a24;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="intro">
+      <div class="kicker">Glyphkiln / Static-ad starter set</div>
+      <h1>Six ways to make<br />a clear first impression.</h1>
+      <p>
+        Six creative families. Four canvas formats. Twenty-four reproducible proofs.
+        Change the format to inspect each composition.
+      </p>
+    </header>
+    <input class="view" type="radio" name="format" id="view-square" checked /><input
+      class="view"
+      type="radio"
+      name="format"
+      id="view-portrait"
+    /><input class="view" type="radio" name="format" id="view-story" /><input
+      class="view"
+      type="radio"
+      name="format"
+      id="view-landscape"
+    />
+    <nav aria-label="Canvas format">
+      <label for="view-square">1:1 · Square</label
+      ><label for="view-portrait">4:5 · Portrait</label
+      ><label for="view-story">9:16 · Story</label
+      ><label for="view-landscape">1.91:1 · Landscape</label>
+    </nav>
+    <main>
+      <section>
+        <header>
+          <h2>Product + Offer</h2>
+          <p>Lead with the product, then make the offer clear.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/product-offer-square.png"
+            ><img
+              src="../png/product-offer-square.png"
+              alt="Product + Offer square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/product-offer-square.png">PNG</a> ·
+              <a href="../svg/product-offer-square.svg">SVG</a> ·
+              <a href="../json/product-offer-square.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/product-offer-portrait.png"
+            ><img
+              src="../png/product-offer-portrait.png"
+              alt="Product + Offer portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/product-offer-portrait.png">PNG</a> ·
+              <a href="../svg/product-offer-portrait.svg">SVG</a> ·
+              <a href="../json/product-offer-portrait.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/product-offer-story.png"
+            ><img
+              src="../png/product-offer-story.png"
+              alt="Product + Offer story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/product-offer-story.png">PNG</a> ·
+              <a href="../svg/product-offer-story.svg">SVG</a> ·
+              <a href="../json/product-offer-story.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/product-offer-landscape.png"
+            ><img
+              src="../png/product-offer-landscape.png"
+              alt="Product + Offer landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/product-offer-landscape.png">PNG</a> ·
+              <a href="../svg/product-offer-landscape.svg">SVG</a> ·
+              <a href="../json/product-offer-landscape.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <header>
+          <h2>Benefit / Feature Proof</h2>
+          <p>Connect one headline to three supporting facts.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/benefit-proof-square.png"
+            ><img
+              src="../png/benefit-proof-square.png"
+              alt="Benefit / Feature Proof square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/benefit-proof-square.png">PNG</a> ·
+              <a href="../svg/benefit-proof-square.svg">SVG</a> ·
+              <a href="../json/benefit-proof-square.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/benefit-proof-portrait.png"
+            ><img
+              src="../png/benefit-proof-portrait.png"
+              alt="Benefit / Feature Proof portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/benefit-proof-portrait.png">PNG</a> ·
+              <a href="../svg/benefit-proof-portrait.svg">SVG</a> ·
+              <a href="../json/benefit-proof-portrait.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/benefit-proof-story.png"
+            ><img
+              src="../png/benefit-proof-story.png"
+              alt="Benefit / Feature Proof story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/benefit-proof-story.png">PNG</a> ·
+              <a href="../svg/benefit-proof-story.svg">SVG</a> ·
+              <a href="../json/benefit-proof-story.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/benefit-proof-landscape.png"
+            ><img
+              src="../png/benefit-proof-landscape.png"
+              alt="Benefit / Feature Proof landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/benefit-proof-landscape.png">PNG</a> ·
+              <a href="../svg/benefit-proof-landscape.svg">SVG</a> ·
+              <a href="../json/benefit-proof-landscape.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <header>
+          <h2>Testimonial / Evidence</h2>
+          <p>Keep the quote, speaker and source together.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/testimonial-evidence-square.png"
+            ><img
+              src="../png/testimonial-evidence-square.png"
+              alt="Testimonial / Evidence square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/testimonial-evidence-square.png">PNG</a> ·
+              <a href="../svg/testimonial-evidence-square.svg">SVG</a> ·
+              <a href="../json/testimonial-evidence-square.design.json"
+                >Document</a
+              ></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/testimonial-evidence-portrait.png"
+            ><img
+              src="../png/testimonial-evidence-portrait.png"
+              alt="Testimonial / Evidence portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/testimonial-evidence-portrait.png">PNG</a> ·
+              <a href="../svg/testimonial-evidence-portrait.svg">SVG</a> ·
+              <a href="../json/testimonial-evidence-portrait.design.json"
+                >Document</a
+              ></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/testimonial-evidence-story.png"
+            ><img
+              src="../png/testimonial-evidence-story.png"
+              alt="Testimonial / Evidence story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/testimonial-evidence-story.png">PNG</a> ·
+              <a href="../svg/testimonial-evidence-story.svg">SVG</a> ·
+              <a href="../json/testimonial-evidence-story.design.json"
+                >Document</a
+              ></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/testimonial-evidence-landscape.png"
+            ><img
+              src="../png/testimonial-evidence-landscape.png"
+              alt="Testimonial / Evidence landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/testimonial-evidence-landscape.png">PNG</a> ·
+              <a href="../svg/testimonial-evidence-landscape.svg">SVG</a> ·
+              <a href="../json/testimonial-evidence-landscape.design.json"
+                >Document</a
+              ></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <header>
+          <h2>Comparison</h2>
+          <p>Compare the same criteria across two options.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/comparison-square.png"
+            ><img
+              src="../png/comparison-square.png"
+              alt="Comparison square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/comparison-square.png">PNG</a> ·
+              <a href="../svg/comparison-square.svg">SVG</a> ·
+              <a href="../json/comparison-square.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/comparison-portrait.png"
+            ><img
+              src="../png/comparison-portrait.png"
+              alt="Comparison portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/comparison-portrait.png">PNG</a> ·
+              <a href="../svg/comparison-portrait.svg">SVG</a> ·
+              <a href="../json/comparison-portrait.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/comparison-story.png"
+            ><img
+              src="../png/comparison-story.png"
+              alt="Comparison story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/comparison-story.png">PNG</a> ·
+              <a href="../svg/comparison-story.svg">SVG</a> ·
+              <a href="../json/comparison-story.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/comparison-landscape.png"
+            ><img
+              src="../png/comparison-landscape.png"
+              alt="Comparison landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/comparison-landscape.png">PNG</a> ·
+              <a href="../svg/comparison-landscape.svg">SVG</a> ·
+              <a href="../json/comparison-landscape.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <header>
+          <h2>Problem / Solution</h2>
+          <p>Show the friction and the proposed answer.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/problem-solution-square.png"
+            ><img
+              src="../png/problem-solution-square.png"
+              alt="Problem / Solution square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/problem-solution-square.png">PNG</a> ·
+              <a href="../svg/problem-solution-square.svg">SVG</a> ·
+              <a href="../json/problem-solution-square.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/problem-solution-portrait.png"
+            ><img
+              src="../png/problem-solution-portrait.png"
+              alt="Problem / Solution portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/problem-solution-portrait.png">PNG</a> ·
+              <a href="../svg/problem-solution-portrait.svg">SVG</a> ·
+              <a href="../json/problem-solution-portrait.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/problem-solution-story.png"
+            ><img
+              src="../png/problem-solution-story.png"
+              alt="Problem / Solution story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/problem-solution-story.png">PNG</a> ·
+              <a href="../svg/problem-solution-story.svg">SVG</a> ·
+              <a href="../json/problem-solution-story.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/problem-solution-landscape.png"
+            ><img
+              src="../png/problem-solution-landscape.png"
+              alt="Problem / Solution landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/problem-solution-landscape.png">PNG</a> ·
+              <a href="../svg/problem-solution-landscape.svg">SVG</a> ·
+              <a href="../json/problem-solution-landscape.design.json"
+                >Document</a
+              ></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <header>
+          <h2>Offer / Urgency</h2>
+          <p>Give the offer priority and keep its terms visible.</p>
+        </header>
+        <figure class="square">
+          <a href="../png/offer-urgency-square.png"
+            ><img
+              src="../png/offer-urgency-square.png"
+              alt="Offer / Urgency square illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1:1 · Square<span
+              ><a href="../png/offer-urgency-square.png">PNG</a> ·
+              <a href="../svg/offer-urgency-square.svg">SVG</a> ·
+              <a href="../json/offer-urgency-square.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="portrait">
+          <a href="../png/offer-urgency-portrait.png"
+            ><img
+              src="../png/offer-urgency-portrait.png"
+              alt="Offer / Urgency portrait illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            4:5 · Portrait<span
+              ><a href="../png/offer-urgency-portrait.png">PNG</a> ·
+              <a href="../svg/offer-urgency-portrait.svg">SVG</a> ·
+              <a href="../json/offer-urgency-portrait.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="story">
+          <a href="../png/offer-urgency-story.png"
+            ><img
+              src="../png/offer-urgency-story.png"
+              alt="Offer / Urgency story illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            9:16 · Story<span
+              ><a href="../png/offer-urgency-story.png">PNG</a> ·
+              <a href="../svg/offer-urgency-story.svg">SVG</a> ·
+              <a href="../json/offer-urgency-story.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+        <figure class="landscape">
+          <a href="../png/offer-urgency-landscape.png"
+            ><img
+              src="../png/offer-urgency-landscape.png"
+              alt="Offer / Urgency landscape illustrative proof"
+              loading="lazy"
+          /></a>
+          <figcaption>
+            1.91:1 · Landscape<span
+              ><a href="../png/offer-urgency-landscape.png">PNG</a> ·
+              <a href="../svg/offer-urgency-landscape.svg">SVG</a> ·
+              <a href="../json/offer-urgency-landscape.design.json">Document</a></span
+            >
+          </figcaption>
+        </figure>
+      </section>
+    </main>
+    <footer>
+      Illustrative briefs, testimonials and offers. These are layout proofs, not live
+      campaigns or performance results. Canvas presets require placement-specific review
+      before publication.
+    </footer>
+  </body>
+</html>

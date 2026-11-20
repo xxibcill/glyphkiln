@@ -1,0 +1,51 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_84b313d2567f5747d9634b54",
+  "renderFingerprint": "84b313d2567f5747d9634b54eafa2d0433a6666ddd9b40b70ad8cbdbb0ad3746",
+  "designDocumentId": "designer-day-article-cover",
+  "designDocumentHash": "2b89b2eda4ecb6bc732eea2178e52e418932fd7459f42620d78e1461147b6559",
+  "seed": "designer-day-second-firing-article-cover-v1",
+  "template": { "id": "article-cover", "version": "1.1.0" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": { "flow-field": "1.1.0" },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 500,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1280, "height": 720 },
+  "output": {
+    "format": "svg",
+    "sha256": "0651d2cd9e80315ed37d80d24a67fd9f308a04998dc17cb97e9410b751b5d86b",
+    "byteSize": 71995
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

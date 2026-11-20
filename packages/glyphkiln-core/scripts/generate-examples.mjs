@@ -6,6 +6,12 @@ import { renderGraphic } from "../dist/index.js";
 import { loadExampleAssets } from "./example-assets.mjs";
 
 const examples = [
+  "testimonial-evidence",
+  "comparison",
+  "problem-solution",
+  "offer-urgency",
+
+  "benefit-proof",
   "product-announcement",
   "statistic-card",
   "quote-card",

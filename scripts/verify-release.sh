@@ -15,6 +15,7 @@ npm run scene-thai-fixture:verify
 npm run schema-conformance:verify
 npm run identity:verify
 npm run examples:verify
+npm run review-samples:verify
 npm run licenses:verify
 npm audit --audit-level=low
 npm run pack:core:dry-run

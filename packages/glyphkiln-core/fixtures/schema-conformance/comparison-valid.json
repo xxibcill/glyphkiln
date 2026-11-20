@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "1.6.0",
+  "id": "schema-conformance-comparison-valid",
+  "template": { "id": "comparison", "version": "1.0.0" },
+  "format": "instagram-square",
+  "seed": "kilnform-light-01",
+  "mode": "light",
+  "brand": {
+    "snapshotId": "brand-kilnform-2026-07",
+    "version": "1.0.0",
+    "name": "Glyphkiln",
+    "palette": {
+      "primary": "#0D3B9C",
+      "secondary": "#C85F27",
+      "accent": "#0D3B9C",
+      "neutrals": ["#15100D", "#FFF6E7", "#A77B5A"]
+    },
+    "themes": {
+      "light": {
+        "background": "#FFF6E7",
+        "surface": "#F3E4CC",
+        "text": "#15100D",
+        "mutedText": "#5E4637"
+      },
+      "dark": {
+        "background": "#15100D",
+        "surface": "#2B211C",
+        "text": "#FFF6E7",
+        "mutedText": "#F3E4CC"
+      }
+    },
+    "typography": {
+      "headlineFamily": "Inter",
+      "bodyFamily": "Inter",
+      "monospaceFamily": "Inter",
+      "roles": {
+        "display": {
+          "family": "Inter",
+          "weight": 800,
+          "lineHeight": 0.92,
+          "tracking": -0.03
+        },
+        "body": {
+          "family": "Inter",
+          "weight": 400,
+          "lineHeight": 1.25,
+          "tracking": 0
+        },
+        "label": {
+          "family": "Inter",
+          "weight": 700,
+          "lineHeight": 1,
+          "tracking": 0.08
+        }
+      }
+    },
+    "spacingScale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "borderRadii": [0, 12, 24],
+    "visualDensity": "quiet",
+    "preferredProceduralStyles": ["layered-waves"],
+    "safeArea": { "top": 0.08, "right": 0.07, "bottom": 0.08, "left": 0.07 },
+    "prohibitedColors": [],
+    "prohibitedStyles": ["photorealistic-ai-composition"]
+  },
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "layers": [
+    { "id": "background", "type": "background", "visible": true },
+    {
+      "id": "eyebrow",
+      "type": "eyebrow",
+      "text": "GLYPHKILN / TWO WAYS TO WORK",
+      "visible": true
+    },
+    {
+      "id": "headline",
+      "type": "headline",
+      "text": "Choose a repeatable workflow.",
+      "visible": true
+    },
+    {
+      "id": "comparison",
+      "type": "comparison-table",
+      "visible": true,
+      "leftLabel": "Manual exports",
+      "rightLabel": "Glyphkiln",
+      "rows": [
+        {
+          "label": "Inputs",
+          "left": "Rebuilt by hand",
+          "right": "Pinned design document"
+        },
+        {
+          "label": "Output",
+          "left": "Export each version",
+          "right": "Reproduce saved inputs"
+        },
+        {
+          "label": "Review",
+          "left": "Check each file",
+          "right": "Keep render evidence"
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "type": "cta",
+      "text": "Explore the workflow →",
+      "visible": true
+    },
+    {
+      "id": "footer",
+      "type": "footer",
+      "text": "Illustrative workflow comparison · verify against your process",
+      "visible": true
+    }
+  ],
+  "metadata": {
+    "purpose": "Illustrative static-ad proof; supplied sample copy, not a live advertisement."
+  }
+}

@@ -178,6 +178,14 @@ const MIGRATION_FILES = [
     ),
     version: "202608190017_campaign_canvas_alt_text",
   },
+  {
+    version: "202609250018_static_ad_campaign",
+    up: new URL("./migrations/202609250018_static_ad_campaign.up.sql", import.meta.url),
+    down: new URL(
+      "./migrations/202609250018_static_ad_campaign.down.sql",
+      import.meta.url,
+    ),
+  },
 ] as const;
 
 const CREATE_MIGRATION_TABLE_SQL = `

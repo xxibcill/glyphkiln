@@ -10,7 +10,117 @@ const base = JSON.parse(
 const imageLed = JSON.parse(
   await readFile(new URL("examples/image-led-campaign.json", root), "utf8"),
 );
+const benefitProof = JSON.parse(
+  await readFile(new URL("examples/benefit-proof.json", root), "utf8"),
+);
+const comparison = JSON.parse(
+  await readFile(new URL("examples/comparison.json", root), "utf8"),
+);
+const panels = JSON.parse(
+  await readFile(new URL("examples/problem-solution.json", root), "utf8"),
+);
 const cases = [
+  ...[comparison, panels].flatMap((document) => [
+    {
+      name: `${document.template.id}-valid`,
+      document: structuredClone(document),
+      jsonSchemaValid: true,
+      runtimeValid: true,
+    },
+    {
+      name: `${document.template.id}-legacy`,
+      document: { ...structuredClone(document), schemaVersion: "1.5.0" },
+      jsonSchemaValid: false,
+      runtimeValid: false,
+    },
+  ]),
+  {
+    name: "comparison-excess-rows",
+    document: {
+      ...structuredClone(comparison),
+      layers: [
+        {
+          id: "table",
+          type: "comparison-table",
+          visible: true,
+          leftLabel: "First",
+          rightLabel: "Second",
+          rows: Array.from({ length: 4 }, () => ({
+            label: "Criterion",
+            left: "A",
+            right: "B",
+          })),
+        },
+      ],
+    },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "problem-solution-blank-copy",
+    document: {
+      ...structuredClone(panels),
+      layers: [
+        {
+          id: "panels",
+          type: "problem-solution",
+          visible: true,
+          problemTitle: "Problem",
+          problem: " ",
+          solutionTitle: "Solution",
+          solution: "Supplied solution",
+        },
+      ],
+    },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+
+  {
+    name: "benefit-proof-valid",
+    document: structuredClone(benefitProof),
+    jsonSchemaValid: true,
+    runtimeValid: true,
+  },
+  {
+    name: "benefit-proof-legacy",
+    document: { ...structuredClone(benefitProof), schemaVersion: "1.4.0" },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "benefit-proof-too-many",
+    document: {
+      ...structuredClone(benefitProof),
+      layers: [
+        {
+          id: "benefits",
+          type: "benefit-list",
+          visible: true,
+          items: Array(4).fill({ title: "Feature" }),
+        },
+      ],
+    },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "benefit-proof-blank-title",
+    document: {
+      ...structuredClone(benefitProof),
+      layers: [
+        {
+          id: "benefits",
+          type: "benefit-list",
+          visible: true,
+          items: [{ title: " " }],
+        },
+      ],
+    },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+
   {
     name: "valid",
     document: structuredClone(base),

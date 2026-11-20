@@ -1,0 +1,1039 @@
+[
+  {
+    "name": "kilnform-linkedin-landscape",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 84.00000000000001,
+        "y": 50.160000000000004,
+        "width": 1031.9999999999998,
+        "height": 526.6800000000001
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 186.22222222222223,
+            "y": 67.93777777777778,
+            "width": 303.2376649591706,
+            "height": 26.400000000000002
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 24.444444444444446,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 84.00000000000001,
+            "y": 152.38222222222223,
+            "width": 483.683243606004,
+            "height": 239.76000000000002
+          },
+          "lineCount": 2,
+          "maximumLines": 4,
+          "fontSize": 111,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 84.00000000000001,
+            "y": 416.5866666666667,
+            "width": 474.638671875,
+            "height": 93.6888888888889
+          },
+          "lineCount": 2,
+          "maximumLines": 3,
+          "fontSize": 37.77777777777778,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 84.00000000000001,
+            "y": 527.9511111111111,
+            "width": 442.0946553619575,
+            "height": 27.600000000000005
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 25.555555555555557,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "kilnform-lamp-campaign",
+          "treatment": "none",
+          "focalPoint": { "x": 0.69, "y": 0.48 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 615.5555555555554,
+            "y": 50.160000000000004,
+            "width": 500.44444444444434,
+            "height": 526.6800000000001
+          },
+          "sourceBounds": {
+            "x": 563.0085989384238,
+            "y": 0,
+            "width": 972.9914010615762,
+            "height": 1024
+          },
+          "renderedBounds": {
+            "x": 325.9799999999997,
+            "y": 50.160000000000004,
+            "width": 790.0200000000001,
+            "height": 526.6800000000001
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "light.",
+          "lineNumber": 2,
+          "phrase": "light.",
+          "previousLine": "Fired into",
+          "measuredLineWidths": [483.683, 269.228],
+          "previousLineWidth": 483.683,
+          "finalLineWidth": 269.228,
+          "finalLineToPreviousLineWidthRatio": 0.557,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "kilnform-instagram-square",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 75.60000000000001,
+        "y": 86.4,
+        "width": 928.7999999999998,
+        "height": 907.2
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 167.60000000000002,
+            "y": 102.4,
+            "width": 272.91389846325353,
+            "height": 23.76
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 22,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 178.4,
+            "width": 261.9515660760605,
+            "height": 349.92
+          },
+          "lineCount": 3,
+          "maximumLines": 4,
+          "fontSize": 108,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 550.32,
+            "width": 355.970703125,
+            "height": 126.48
+          },
+          "lineCount": 3,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 949.6,
+            "width": 380.5858337463808,
+            "height": 23.76
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 22,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "kilnform-lamp-campaign",
+          "treatment": "none",
+          "focalPoint": { "x": 0.69, "y": 0.48 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 498.27199999999993,
+            "y": 86.4,
+            "width": 506.12799999999993,
+            "height": 907.2
+          },
+          "sourceBounds": {
+            "x": 774.1945679012346,
+            "y": 0,
+            "width": 571.2908641975307,
+            "height": 1024
+          },
+          "renderedBounds": {
+            "x": -187.6160000000001,
+            "y": 86.4,
+            "width": 1360.8000000000002,
+            "height": 907.2
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "light.",
+          "lineNumber": 3,
+          "phrase": "light.",
+          "previousLine": "into",
+          "measuredLineWidths": [256.935, 196.514, 261.952],
+          "previousLineWidth": 196.514,
+          "finalLineWidth": 261.952,
+          "finalLineToPreviousLineWidthRatio": 1.333,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      },
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "subtitle",
+        "details": {
+          "affectedLine": "view.",
+          "lineNumber": 3,
+          "phrase": "view.",
+          "previousLine": "lighting with a point of",
+          "measuredLineWidths": [299.891, 355.971, 81.663],
+          "previousLineWidth": 355.971,
+          "finalLineWidth": 81.663,
+          "finalLineToPreviousLineWidthRatio": 0.229,
+          "isolatedWord": true,
+          "disproportionatelyShort": true,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "kilnform-instagram-portrait",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 75.60000000000001,
+        "y": 108,
+        "width": 928.7999999999998,
+        "height": 1134
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 167.60000000000002,
+            "y": 124,
+            "width": 272.91389846325353,
+            "height": 23.76
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 22,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 818.4,
+            "width": 721.9563946635643,
+            "height": 112.32000000000001
+          },
+          "lineCount": 1,
+          "maximumLines": 4,
+          "fontSize": 104,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 952.72,
+            "width": 756.6494140625,
+            "height": 42.16
+          },
+          "lineCount": 1,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 75.60000000000001,
+            "y": 1198,
+            "width": 397.8851898257617,
+            "height": 24.840000000000003
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "kilnform-lamp-campaign",
+          "treatment": "none",
+          "focalPoint": { "x": 0.69, "y": 0.48 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 75.60000000000001,
+            "y": 200,
+            "width": 928.7999999999998,
+            "height": 590.4
+          },
+          "sourceBounds": {
+            "x": 0,
+            "y": 3.3339534883720603,
+            "width": 1536,
+            "height": 976.3720930232558
+          },
+          "renderedBounds": {
+            "x": 75.60000000000001,
+            "y": 197.984,
+            "width": 928.8,
+            "height": 619.1999999999999
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": []
+  },
+  {
+    "name": "morrow-field-linkedin-landscape",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 90,
+        "y": 53.295,
+        "width": 1020.0000000000001,
+        "height": 520.4100000000001
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 192.22222222222223,
+            "y": 71.07277777777779,
+            "width": 376.5201660698785,
+            "height": 22.080000000000002
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 20.444444444444446,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 90,
+            "y": 155.51722222222224,
+            "width": 462.1917639465332,
+            "height": 235.44000000000003
+          },
+          "lineCount": 2,
+          "maximumLines": 4,
+          "fontSize": 109,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 90,
+            "y": 415.40166666666676,
+            "width": 485.81792363823786,
+            "height": 88.72888888888889
+          },
+          "lineCount": 2,
+          "maximumLines": 3,
+          "fontSize": 35.77777777777778,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 90,
+            "y": 524.8161111111111,
+            "width": 422.06914482964413,
+            "height": 27.600000000000005
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 25.555555555555557,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "morrow-field-botanical-still-life",
+          "treatment": "none",
+          "focalPoint": { "x": 0.5, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 615.5555555555555,
+            "y": 53.295,
+            "width": 494.4444444444445,
+            "height": 520.4100000000001
+          },
+          "sourceBounds": {
+            "x": 0,
+            "y": 413.4325213483145,
+            "width": 1024,
+            "height": 1077.774957303371
+          },
+          "renderedBounds": {
+            "x": 615.5555555555555,
+            "y": -146.33333333333331,
+            "width": 494.4444444444445,
+            "height": 741.6666666666667
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "bright.",
+          "lineNumber": 2,
+          "phrase": "bright.",
+          "previousLine": "A slower",
+          "measuredLineWidths": [462.192, 366.893],
+          "previousLineWidth": 462.192,
+          "finalLineWidth": 366.893,
+          "finalLineToPreviousLineWidthRatio": 0.794,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "morrow-field-instagram-square",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 81,
+        "y": 91.80000000000001,
+        "width": 918.0000000000001,
+        "height": 896.4000000000001
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 173,
+            "y": 107.80000000000001,
+            "width": 294.66795605468747,
+            "height": 17.28
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 16,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 81,
+            "y": 183.8,
+            "width": 363.5269782714844,
+            "height": 349.92
+          },
+          "lineCount": 3,
+          "maximumLines": 4,
+          "fontSize": 108,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 81,
+            "y": 555.72,
+            "width": 310.6151555175781,
+            "height": 126.48
+          },
+          "lineCount": 3,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 81,
+            "y": 944.2,
+            "width": 379.8622303466797,
+            "height": 24.840000000000003
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "morrow-field-botanical-still-life",
+          "treatment": "none",
+          "focalPoint": { "x": 0.5, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 498.9200000000001,
+            "y": 91.80000000000001,
+            "width": 500.08000000000015,
+            "height": 896.4000000000001
+          },
+          "sourceBounds": {
+            "x": 83.55127175368125,
+            "y": 0,
+            "width": 856.8974564926375,
+            "height": 1536
+          },
+          "renderedBounds": {
+            "x": 450.16000000000014,
+            "y": 91.80000000000001,
+            "width": 597.6,
+            "height": 896.4000000000001
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "bright.",
+          "lineNumber": 3,
+          "phrase": "bright.",
+          "previousLine": "slower",
+          "measuredLineWidths": [82.479, 355.816, 363.527],
+          "previousLineWidth": 355.816,
+          "finalLineWidth": 363.527,
+          "finalLineToPreviousLineWidthRatio": 1.022,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "morrow-field-instagram-portrait",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 81,
+        "y": 114.75000000000001,
+        "width": 918.0000000000001,
+        "height": 1120.5
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 173,
+            "y": 130.75,
+            "width": 405.1684395751953,
+            "height": 23.76
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 22,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 81,
+            "y": 817.05,
+            "width": 809.9813674316407,
+            "height": 112.32000000000001
+          },
+          "lineCount": 1,
+          "maximumLines": 4,
+          "fontSize": 104,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 81,
+            "y": 951.37,
+            "width": 870.0671199951172,
+            "height": 42.16
+          },
+          "lineCount": 1,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 81,
+            "y": 1191.25,
+            "width": 379.8622303466797,
+            "height": 24.840000000000003
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "morrow-field-botanical-still-life",
+          "treatment": "none",
+          "focalPoint": { "x": 0.5, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 81,
+            "y": 206.75,
+            "width": 918.0000000000001,
+            "height": 582.3
+          },
+          "sourceBounds": {
+            "x": 0,
+            "y": 627.5513725490196,
+            "width": 1024,
+            "height": 649.5372549019606
+          },
+          "renderedBounds": {
+            "x": 81,
+            "y": -355.84000000000003,
+            "width": 918.0000000000001,
+            "height": 1377.0000000000002
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": []
+  },
+  {
+    "name": "northline-works-linkedin-landscape",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 72,
+        "y": 43.89000000000001,
+        "width": 1055.9999999999998,
+        "height": 539.2199999999999
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 174.22222222222223,
+            "y": 61.667777777777786,
+            "width": 409.0458483479818,
+            "height": 25.320000000000004
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23.444444444444446,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 72,
+            "y": 146.11222222222224,
+            "width": 427.58099999999996,
+            "height": 249.48000000000002
+          },
+          "lineCount": 3,
+          "maximumLines": 4,
+          "fontSize": 77,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 72,
+            "y": 420.03666666666675,
+            "width": 502.89381580946184,
+            "height": 88.72888888888889
+          },
+          "lineCount": 2,
+          "maximumLines": 3,
+          "fontSize": 35.77777777777778,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 72,
+            "y": 534.221111111111,
+            "width": 314.5237053765191,
+            "height": 27.600000000000005
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 25.555555555555557,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "northline-works-rain-commute",
+          "treatment": "none",
+          "focalPoint": { "x": 0.62, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 615.5555555555554,
+            "y": 43.89000000000001,
+            "width": 512.4444444444443,
+            "height": 539.2199999999999
+          },
+          "sourceBounds": {
+            "x": 465.7439168510894,
+            "y": 0,
+            "width": 973.152166297821,
+            "height": 1024
+          },
+          "renderedBounds": {
+            "x": 370.3031777777777,
+            "y": 43.89000000000001,
+            "width": 808.8299999999999,
+            "height": 539.2199999999999
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "between.",
+          "lineNumber": 3,
+          "phrase": "between.",
+          "previousLine": "weather",
+          "measuredLineWidths": [427.581, 292.292, 333.41],
+          "previousLineWidth": 292.292,
+          "finalLineWidth": 333.41,
+          "finalLineToPreviousLineWidthRatio": 1.141,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "northline-works-instagram-square",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 64.8,
+        "y": 75.60000000000001,
+        "width": 950.3999999999999,
+        "height": 928.7999999999998
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 156.8,
+            "y": 91.60000000000001,
+            "width": 296.6067052001953,
+            "height": 18.36
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 17,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 64.8,
+            "y": 167.60000000000002,
+            "width": 402.69,
+            "height": 401.76000000000005
+          },
+          "lineCount": 4,
+          "maximumLines": 4,
+          "fontSize": 93,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 64.8,
+            "y": 591.3600000000001,
+            "width": 379.5311259765625,
+            "height": 126.48
+          },
+          "lineCount": 3,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 64.8,
+            "y": 960.3999999999999,
+            "width": 283.0713348388672,
+            "height": 24.840000000000003
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "northline-works-rain-commute",
+          "treatment": "none",
+          "focalPoint": { "x": 0.62, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 496.97599999999994,
+            "y": 75.60000000000001,
+            "width": 518.2239999999999,
+            "height": 928.7999999999998
+          },
+          "sourceBounds": {
+            "x": 666.6495779500431,
+            "y": 0,
+            "width": 571.3408440999139,
+            "height": 1024
+          },
+          "renderedBounds": {
+            "x": -107.69599999999997,
+            "y": 75.60000000000001,
+            "width": 1393.1999999999998,
+            "height": 928.7999999999998
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": [
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "headline",
+        "details": {
+          "affectedLine": "between.",
+          "lineNumber": 4,
+          "phrase": "between.",
+          "previousLine": "weather",
+          "measuredLineWidths": [348.75, 148.707, 353.028, 402.69],
+          "previousLineWidth": 353.028,
+          "finalLineWidth": 402.69,
+          "finalLineToPreviousLineWidthRatio": 1.141,
+          "isolatedWord": true,
+          "disproportionatelyShort": false,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      },
+      {
+        "code": "ORPHAN_LINE",
+        "severity": "warning",
+        "message": "The final line is isolated or disproportionately short.",
+        "layerId": "subtitle",
+        "details": {
+          "affectedLine": "rides.",
+          "lineNumber": 3,
+          "phrase": "rides.",
+          "previousLine": "platforms and last-mile",
+          "measuredLineWidths": [333.423, 379.531, 89.642],
+          "previousLineWidth": 379.531,
+          "finalLineWidth": 89.642,
+          "finalLineToPreviousLineWidthRatio": 0.236,
+          "isolatedWord": true,
+          "disproportionatelyShort": true,
+          "segmentationPolicy": "whitespace",
+          "segmentationPolicyVersion": "whitespace@1.0.0",
+          "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+          "typographyAlgorithmVersion": "2.0.1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "northline-works-instagram-portrait",
+    "evidence": {
+      "version": "1.1.0",
+      "safeArea": {
+        "x": 64.8,
+        "y": 94.50000000000001,
+        "width": 950.3999999999999,
+        "height": 1160.9999999999998
+      },
+      "text": [
+        {
+          "layerId": "eyebrow",
+          "bounds": {
+            "x": 156.8,
+            "y": 110.50000000000001,
+            "width": 383.84397143554685,
+            "height": 23.76
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 22,
+          "overflow": false
+        },
+        {
+          "layerId": "headline",
+          "bounds": {
+            "x": 64.8,
+            "y": 821.0999999999998,
+            "width": 866.32,
+            "height": 224.64000000000001
+          },
+          "lineCount": 2,
+          "maximumLines": 4,
+          "fontSize": 104,
+          "overflow": false
+        },
+        {
+          "layerId": "subtitle",
+          "bounds": {
+            "x": 64.8,
+            "y": 1067.7399999999998,
+            "width": 820.0605699462891,
+            "height": 42.16
+          },
+          "lineCount": 1,
+          "maximumLines": 3,
+          "fontSize": 34,
+          "overflow": false
+        },
+        {
+          "layerId": "cta",
+          "bounds": {
+            "x": 64.8,
+            "y": 1211.4999999999998,
+            "width": 283.0713348388672,
+            "height": 24.840000000000003
+          },
+          "lineCount": 1,
+          "maximumLines": 1,
+          "fontSize": 23,
+          "overflow": false
+        }
+      ],
+      "crops": [
+        {
+          "layerId": "campaign-image",
+          "assetId": "northline-works-rain-commute",
+          "treatment": "none",
+          "focalPoint": { "x": 0.62, "y": 0.62 },
+          "policyVersion": "focal-cover-v1",
+          "destinationBounds": {
+            "x": 64.8,
+            "y": 186.5,
+            "width": 950.3999999999999,
+            "height": 606.5999999999998
+          },
+          "sourceBounds": {
+            "x": 0,
+            "y": 43.63636363636385,
+            "width": 1536,
+            "height": 980.3636363636361
+          },
+          "renderedBounds": {
+            "x": 64.8,
+            "y": 159.49999999999986,
+            "width": 950.3999999999999,
+            "height": 633.5999999999999
+          }
+        }
+      ],
+      "contrast": []
+    },
+    "qualityIssues": []
+  }
+]

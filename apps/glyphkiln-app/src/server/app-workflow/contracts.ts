@@ -128,6 +128,15 @@ export type AppCommand =
       changeNote?: string;
     }
   | {
+      type: "campaign.static-ads.create";
+      workspaceId: string;
+      name: string;
+      brief: string;
+      campaignSeed: string;
+      brandSnapshotId: string;
+      drafts: ManualDraft[];
+    }
+  | {
       type: "campaign.create";
       workspaceId: string;
       name: string;
@@ -240,6 +249,8 @@ export type AppQuery =
       directionId: string;
       canvasKey: string;
       templateId: TemplateId;
+      /** Exact template version; defaults to the family's current member. */
+      templateVersion?: string;
       format: FormatId;
       compositionVariantId: CampaignCompositionVariantId;
     }
@@ -258,6 +269,7 @@ export type AppQuery =
     }
   | {
       type: "campaign.handoff";
+      approvedOnly?: boolean;
       workspaceId: string;
       campaignId: string;
       directionId: string;

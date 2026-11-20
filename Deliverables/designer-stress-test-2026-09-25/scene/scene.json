@@ -1,0 +1,1229 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "kilnform-how-the-light-is-made-v1",
+  "seed": "kilnform-process-diagram-2026-09-25-v1",
+  "dimensions": {
+    "width": 1200,
+    "height": 675
+  },
+  "title": "How the light is made",
+  "description": "An editorial process diagram for fictional ceramic lighting brand Kilnform. Four stages read left to right: Shape, Dry, Fire, Finish. Drawn symbols are schematic; process wording is general and requires production review.",
+  "backgroundColor": "#F5F0E7",
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "elements": [
+    {
+      "id": "brand-mark-outer",
+      "type": "circle",
+      "cx": 69,
+      "cy": 63,
+      "radius": 14,
+      "fill": "none",
+      "stroke": "#A34F37",
+      "strokeWidth": 2.5,
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "brand-mark-inner",
+      "type": "path",
+      "data": "M 64 56 L 64 70 M 75 56 L 64 63 L 75 70",
+      "fill": "none",
+      "stroke": "#A34F37",
+      "strokeWidth": 2.2,
+      "lineCap": "round",
+      "lineJoin": "round",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "brand-wordmark",
+      "type": "text",
+      "text": "KILNFORM",
+      "box": {
+        "x": 93,
+        "y": 47,
+        "width": 190,
+        "height": 30
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 700,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 18,
+        "minimumFontSize": 18,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "left",
+        "letterSpacing": 1.7
+      },
+      "fill": "#172B34",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "annotation",
+        "label": "KILNFORM"
+      }
+    },
+    {
+      "id": "series-label",
+      "type": "text",
+      "text": "ATELIER NOTES   /   01",
+      "box": {
+        "x": 918,
+        "y": 49,
+        "width": 226,
+        "height": 22
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 700,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 13,
+        "minimumFontSize": 13,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "right",
+        "letterSpacing": 1
+      },
+      "fill": "#A34F37",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "annotation",
+        "label": "ATELIER NOTES   /   01"
+      }
+    },
+    {
+      "id": "headline",
+      "type": "text",
+      "text": "How the light is made",
+      "box": {
+        "x": 56,
+        "y": 99,
+        "width": 1050,
+        "height": 83
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 700,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 66,
+        "minimumFontSize": 66,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "left"
+      },
+      "fill": "#172B34",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "content",
+        "label": "How the light is made"
+      }
+    },
+    {
+      "id": "deck",
+      "type": "text",
+      "text": "Four deliberate stages, from raw clay to a warm glow.",
+      "box": {
+        "x": 58,
+        "y": 185,
+        "width": 880,
+        "height": 34
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 400,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 20,
+        "minimumFontSize": 20,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "left"
+      },
+      "fill": "#52636A",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "content",
+        "label": "Four deliberate stages, from raw clay to a warm glow."
+      }
+    },
+    {
+      "id": "header-rule",
+      "type": "rect",
+      "x": 56,
+      "y": 230,
+      "width": 1088,
+      "height": 2,
+      "fill": "#172B34",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "stage-shape",
+      "type": "group",
+      "semantic": {
+        "role": "content",
+        "conceptId": "process-shape",
+        "label": "Shape: Hands shape the clay into a calm, balanced form."
+      },
+      "elements": [
+        {
+          "id": "shape-card",
+          "type": "rect",
+          "x": 56,
+          "y": 252,
+          "width": 251,
+          "height": 311,
+          "fill": "#FFFCF7",
+          "radius": 18,
+          "stroke": "#D9CEC1",
+          "strokeWidth": 1,
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-top-rule",
+          "type": "rect",
+          "x": 77,
+          "y": 345,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-index",
+          "type": "text",
+          "text": "01 / FORM",
+          "box": {
+            "x": 78,
+            "y": 271,
+            "width": 206,
+            "height": 21
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 13,
+            "minimumFontSize": 13,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left",
+            "letterSpacing": 1.1
+          },
+          "fill": "#A34F37",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "annotation",
+            "label": "01 / FORM"
+          }
+        },
+        {
+          "id": "shape-title",
+          "type": "text",
+          "text": "Shape",
+          "box": {
+            "x": 77,
+            "y": 299,
+            "width": 209,
+            "height": 40
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 30,
+            "minimumFontSize": 30,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left"
+          },
+          "fill": "#172B34",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Shape"
+          }
+        },
+        {
+          "id": "shape-roundel",
+          "type": "circle",
+          "cx": 181.5,
+          "cy": 405,
+          "radius": 54,
+          "fill": "#E8EEE9",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-wheel",
+          "type": "path",
+          "data": "M 138.5 442 L 224.5 442",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-form-icon",
+          "type": "path",
+          "data": "M 162.5 382 C 157.5 398 144.5 410 150.5 428 C 156.5 441 206.5 441 212.5 428 C 218.5 410 205.5 398 200.5 382 Z",
+          "fill": "#C87856",
+          "stroke": "#2B5361",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-rim",
+          "type": "path",
+          "data": "M 158.5 383 C 171.5 373 191.5 373 204.5 383",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-groove",
+          "type": "path",
+          "data": "M 161.5 418 C 174.5 424 188.5 424 201.5 418",
+          "fill": "none",
+          "stroke": "#FCE7D7",
+          "strokeWidth": 2,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-bottom-rule",
+          "type": "rect",
+          "x": 77,
+          "y": 464,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "shape-body",
+          "type": "text",
+          "text": "Hands shape the clay into a calm, balanced form.",
+          "box": {
+            "x": 77,
+            "y": 478,
+            "width": 209,
+            "height": 67
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 16,
+            "minimumFontSize": 16,
+            "maximumLines": 3,
+            "lineHeight": 1.32,
+            "align": "left"
+          },
+          "fill": "#52636A",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Hands shape the clay into a calm, balanced form."
+          }
+        }
+      ]
+    },
+    {
+      "id": "stage-dry",
+      "type": "group",
+      "semantic": {
+        "role": "content",
+        "conceptId": "process-dry",
+        "label": "Dry: Air leaves the body slowly before it enters the kiln."
+      },
+      "elements": [
+        {
+          "id": "dry-card",
+          "type": "rect",
+          "x": 335,
+          "y": 252,
+          "width": 251,
+          "height": 311,
+          "fill": "#FFFCF7",
+          "radius": 18,
+          "stroke": "#D9CEC1",
+          "strokeWidth": 1,
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-top-rule",
+          "type": "rect",
+          "x": 356,
+          "y": 345,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-index",
+          "type": "text",
+          "text": "02 / REST",
+          "box": {
+            "x": 357,
+            "y": 271,
+            "width": 206,
+            "height": 21
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 13,
+            "minimumFontSize": 13,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left",
+            "letterSpacing": 1.1
+          },
+          "fill": "#A34F37",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "annotation",
+            "label": "02 / REST"
+          }
+        },
+        {
+          "id": "dry-title",
+          "type": "text",
+          "text": "Dry",
+          "box": {
+            "x": 356,
+            "y": 299,
+            "width": 209,
+            "height": 40
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 30,
+            "minimumFontSize": 30,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left"
+          },
+          "fill": "#172B34",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Dry"
+          }
+        },
+        {
+          "id": "dry-roundel",
+          "type": "circle",
+          "cx": 460.5,
+          "cy": 405,
+          "radius": 54,
+          "fill": "#F2E9DE",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-shelf",
+          "type": "path",
+          "data": "M 413.5 442 L 507.5 442",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-form-icon",
+          "type": "path",
+          "data": "M 444.5 392 C 436.5 410 432.5 424 438.5 433 C 444.5 440 476.5 440 482.5 433 C 488.5 424 484.5 410 476.5 392 Z",
+          "fill": "#C88F70",
+          "stroke": "#2B5361",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-air-left",
+          "type": "path",
+          "data": "M 417.5 391 C 425.5 381 418.5 373 425.5 366",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-air-mid",
+          "type": "path",
+          "data": "M 457.5 385 C 465.5 376 457.5 368 464.5 361",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-air-right",
+          "type": "path",
+          "data": "M 495.5 391 C 503.5 381 495.5 373 502.5 366",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-bottom-rule",
+          "type": "rect",
+          "x": 356,
+          "y": 464,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "dry-body",
+          "type": "text",
+          "text": "Air leaves the body slowly before it enters the kiln.",
+          "box": {
+            "x": 356,
+            "y": 478,
+            "width": 209,
+            "height": 67
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 16,
+            "minimumFontSize": 16,
+            "maximumLines": 3,
+            "lineHeight": 1.32,
+            "align": "left"
+          },
+          "fill": "#52636A",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Air leaves the body slowly before it enters the kiln."
+          }
+        }
+      ]
+    },
+    {
+      "id": "stage-fire",
+      "type": "group",
+      "semantic": {
+        "role": "content",
+        "conceptId": "process-fire",
+        "label": "Fire: Heat hardens the body and sets its final surface."
+      },
+      "elements": [
+        {
+          "id": "fire-card",
+          "type": "rect",
+          "x": 614,
+          "y": 252,
+          "width": 251,
+          "height": 311,
+          "fill": "#FFFCF7",
+          "radius": 18,
+          "stroke": "#D9CEC1",
+          "strokeWidth": 1,
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-top-rule",
+          "type": "rect",
+          "x": 635,
+          "y": 345,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-index",
+          "type": "text",
+          "text": "03 / TRANSFORM",
+          "box": {
+            "x": 636,
+            "y": 271,
+            "width": 206,
+            "height": 21
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 13,
+            "minimumFontSize": 13,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left",
+            "letterSpacing": 1.1
+          },
+          "fill": "#A34F37",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "annotation",
+            "label": "03 / TRANSFORM"
+          }
+        },
+        {
+          "id": "fire-title",
+          "type": "text",
+          "text": "Fire",
+          "box": {
+            "x": 635,
+            "y": 299,
+            "width": 209,
+            "height": 40
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 30,
+            "minimumFontSize": 30,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left"
+          },
+          "fill": "#172B34",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Fire"
+          }
+        },
+        {
+          "id": "fire-roundel",
+          "type": "circle",
+          "cx": 739.5,
+          "cy": 405,
+          "radius": 54,
+          "fill": "#F5E9DA",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-kiln",
+          "type": "path",
+          "data": "M 695.5 442 L 695.5 393 C 695.5 362 783.5 362 783.5 393 L 783.5 442",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-hearth",
+          "type": "path",
+          "data": "M 696.5 442 L 782.5 442",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-flame",
+          "type": "path",
+          "data": "M 739.5 435 C 714.5 425 716.5 408 729.5 393 C 730.5 406 736.5 409 739.5 383 C 764.5 402 764.5 424 739.5 435 Z",
+          "fill": "#C75B38",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-flame-core",
+          "type": "path",
+          "data": "M 739.5 430 C 729.5 424 732.5 413 740.5 406 C 750.5 419 750.5 425 739.5 430 Z",
+          "fill": "#F5BD78",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-bottom-rule",
+          "type": "rect",
+          "x": 635,
+          "y": 464,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "fire-body",
+          "type": "text",
+          "text": "Heat hardens the body and sets its final surface.",
+          "box": {
+            "x": 635,
+            "y": 478,
+            "width": 209,
+            "height": 67
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 16,
+            "minimumFontSize": 16,
+            "maximumLines": 3,
+            "lineHeight": 1.32,
+            "align": "left"
+          },
+          "fill": "#52636A",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Heat hardens the body and sets its final surface."
+          }
+        }
+      ]
+    },
+    {
+      "id": "stage-finish",
+      "type": "group",
+      "semantic": {
+        "role": "content",
+        "conceptId": "process-finish",
+        "label": "Finish: Glaze, wiring and testing turn the form into light."
+      },
+      "elements": [
+        {
+          "id": "finish-card",
+          "type": "rect",
+          "x": 893,
+          "y": 252,
+          "width": 251,
+          "height": 311,
+          "fill": "#FFFCF7",
+          "radius": 18,
+          "stroke": "#D9CEC1",
+          "strokeWidth": 1,
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-top-rule",
+          "type": "rect",
+          "x": 914,
+          "y": 345,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-index",
+          "type": "text",
+          "text": "04 / GLOW",
+          "box": {
+            "x": 915,
+            "y": 271,
+            "width": 206,
+            "height": 21
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 13,
+            "minimumFontSize": 13,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left",
+            "letterSpacing": 1.1
+          },
+          "fill": "#A34F37",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "annotation",
+            "label": "04 / GLOW"
+          }
+        },
+        {
+          "id": "finish-title",
+          "type": "text",
+          "text": "Finish",
+          "box": {
+            "x": 914,
+            "y": 299,
+            "width": 209,
+            "height": 40
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 700,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 30,
+            "minimumFontSize": 30,
+            "maximumLines": 1,
+            "lineHeight": 1.16,
+            "align": "left"
+          },
+          "fill": "#172B34",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Finish"
+          }
+        },
+        {
+          "id": "finish-roundel",
+          "type": "circle",
+          "cx": 1018.5,
+          "cy": 405,
+          "radius": 54,
+          "fill": "#E8EEE9",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-stem",
+          "type": "path",
+          "data": "M 1018.5 410 L 1018.5 440 M 991.5 441 L 1045.5 441",
+          "fill": "none",
+          "stroke": "#2B5361",
+          "strokeWidth": 4,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-shade",
+          "type": "path",
+          "data": "M 1008.5 376 L 1028.5 376 L 1051.5 407 L 985.5 407 Z",
+          "fill": "#C87856",
+          "stroke": "#2B5361",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-bulb",
+          "type": "circle",
+          "cx": 1018.5,
+          "cy": 416,
+          "radius": 5,
+          "fill": "#E8A653",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-ray-left",
+          "type": "path",
+          "data": "M 978.5 387 L 965.5 383",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-ray-right",
+          "type": "path",
+          "data": "M 1058.5 387 L 1071.5 383",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-ray-top",
+          "type": "path",
+          "data": "M 1018.5 370 L 1018.5 357",
+          "fill": "none",
+          "stroke": "#A34F37",
+          "strokeWidth": 3,
+          "lineCap": "round",
+          "lineJoin": "round",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-bottom-rule",
+          "type": "rect",
+          "x": 914,
+          "y": 464,
+          "width": 209,
+          "height": 1,
+          "fill": "#D9CEC1",
+          "semantic": {
+            "role": "decoration"
+          }
+        },
+        {
+          "id": "finish-body",
+          "type": "text",
+          "text": "Glaze, wiring and testing turn the form into light.",
+          "box": {
+            "x": 914,
+            "y": 478,
+            "width": 209,
+            "height": 67
+          },
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "style": "normal"
+          },
+          "fit": {
+            "preferredFontSize": 16,
+            "minimumFontSize": 16,
+            "maximumLines": 3,
+            "lineHeight": 1.32,
+            "align": "left"
+          },
+          "fill": "#52636A",
+          "textMode": "outline-with-selectable-text",
+          "semantic": {
+            "role": "content",
+            "label": "Glaze, wiring and testing turn the form into light."
+          }
+        }
+      ]
+    },
+    {
+      "id": "flow-shape-dry",
+      "type": "connector",
+      "fromId": "rail-shape",
+      "toId": "rail-dry",
+      "points": [
+        {
+          "x": 196,
+          "y": 599
+        },
+        {
+          "x": 444,
+          "y": 599
+        }
+      ],
+      "stroke": "#2B5361",
+      "strokeWidth": 2,
+      "markers": {
+        "start": "none",
+        "end": "arrow"
+      },
+      "semantic": {
+        "role": "connector",
+        "label": "Shape to Dry"
+      }
+    },
+    {
+      "id": "flow-dry-fire",
+      "type": "connector",
+      "fromId": "rail-dry",
+      "toId": "rail-fire",
+      "points": [
+        {
+          "x": 475,
+          "y": 599
+        },
+        {
+          "x": 723,
+          "y": 599
+        }
+      ],
+      "stroke": "#2B5361",
+      "strokeWidth": 2,
+      "markers": {
+        "start": "none",
+        "end": "arrow"
+      },
+      "semantic": {
+        "role": "connector",
+        "label": "Dry to Fire"
+      }
+    },
+    {
+      "id": "flow-fire-finish",
+      "type": "connector",
+      "fromId": "rail-fire",
+      "toId": "rail-finish",
+      "points": [
+        {
+          "x": 754,
+          "y": 599
+        },
+        {
+          "x": 1002,
+          "y": 599
+        }
+      ],
+      "stroke": "#2B5361",
+      "strokeWidth": 2,
+      "markers": {
+        "start": "none",
+        "end": "arrow"
+      },
+      "semantic": {
+        "role": "connector",
+        "label": "Fire to Finish"
+      }
+    },
+    {
+      "id": "rail-shape",
+      "type": "circle",
+      "cx": 181.5,
+      "cy": 599,
+      "radius": 5.5,
+      "fill": "#A34F37",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "rail-dry",
+      "type": "circle",
+      "cx": 460.5,
+      "cy": 599,
+      "radius": 5.5,
+      "fill": "#A34F37",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "rail-fire",
+      "type": "circle",
+      "cx": 739.5,
+      "cy": 599,
+      "radius": 5.5,
+      "fill": "#A34F37",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "rail-finish",
+      "type": "circle",
+      "cx": 1018.5,
+      "cy": 599,
+      "radius": 5.5,
+      "fill": "#A34F37",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "footer-rule",
+      "type": "rect",
+      "x": 56,
+      "y": 628,
+      "width": 1088,
+      "height": 1,
+      "fill": "#D9CEC1",
+      "semantic": {
+        "role": "decoration"
+      }
+    },
+    {
+      "id": "footer-left",
+      "type": "text",
+      "text": "EARTH  /  AIR  /  HEAT  /  LIGHT",
+      "box": {
+        "x": 56,
+        "y": 638,
+        "width": 510,
+        "height": 22
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 700,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 12,
+        "minimumFontSize": 12,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "left",
+        "letterSpacing": 1.15
+      },
+      "fill": "#2B5361",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "annotation",
+        "label": "EARTH  /  AIR  /  HEAT  /  LIGHT"
+      }
+    },
+    {
+      "id": "footer-right",
+      "type": "text",
+      "text": "KILNFORM  ·  OBJECT 01 / CERAMIC TABLE LAMP",
+      "box": {
+        "x": 592,
+        "y": 638,
+        "width": 552,
+        "height": 22
+      },
+      "font": {
+        "family": "Inter",
+        "weight": 700,
+        "style": "normal"
+      },
+      "fit": {
+        "preferredFontSize": 12,
+        "minimumFontSize": 12,
+        "maximumLines": 1,
+        "lineHeight": 1.16,
+        "align": "right",
+        "letterSpacing": 0.7
+      },
+      "fill": "#52636A",
+      "textMode": "outline-with-selectable-text",
+      "semantic": {
+        "role": "annotation",
+        "label": "KILNFORM  ·  OBJECT 01 / CERAMIC TABLE LAMP"
+      }
+    }
+  ],
+  "readingOrder": [
+    "brand-wordmark",
+    "series-label",
+    "headline",
+    "deck",
+    "stage-shape",
+    "stage-dry",
+    "stage-fire",
+    "stage-finish",
+    "footer-left",
+    "footer-right"
+  ],
+  "metadata": {
+    "purpose": "designer-stress-test",
+    "authoring": "reviewed-static-scene",
+    "subject": "fictional ceramic lighting process"
+  }
+}

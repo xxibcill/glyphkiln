@@ -47,6 +47,7 @@ import {
 } from "./app-alpha-workshop";
 import { BrandPublisher } from "./brand-publisher";
 import type { BrandPublishInput } from "./brand-publisher";
+import { StaticAdStudio } from "./static-ad-studio";
 import { CampaignStudio } from "./campaign-studio";
 import { DurableExportStation } from "./durable-export-station";
 import {
@@ -728,23 +729,38 @@ export function AppAlpha({ catalog, api: apiOverride }: AppAlphaProps) {
               />
               {selectedWorkspaceId === undefined ||
               dashboard?.features.campaignWorkflow !== true ? null : (
-                <CampaignStudio
-                  api={api}
-                  workspaceId={selectedWorkspaceId}
-                  campaigns={dashboard.campaigns}
-                  draftCanvas={{
-                    templateId: formState.composition.templateId,
-                    format: formState.composition.formatId,
-                    seed: formState.composition.seed,
-                  }}
-                  openRevision={openRevision}
-                  canCoordinate={canEdit}
-                  selectedDeliveryProfileId={selectedDeliveryProfileId}
-                  onDeliveryProfileChange={setSelectedDeliveryProfileId}
-                  onApplyCanvasSeed={applyCampaignCanvasSeed}
-                  onCampaignChanged={refreshDashboard}
-                  onOpenDesign={reopenDesign}
-                />
+                <>
+                  <StaticAdStudio
+                    key={selectedWorkspaceId}
+                    api={api}
+                    workspaceId={selectedWorkspaceId}
+                    brandSnapshotId={activeBrand.snapshotId}
+                    campaigns={dashboard.campaigns}
+                    formState={formState}
+                    catalog={catalog}
+                    canEdit={canEdit}
+                    canApprove={canApprove}
+                    onChanged={refreshDashboard}
+                    onOpenDesign={reopenDesign}
+                  />
+                  <CampaignStudio
+                    api={api}
+                    workspaceId={selectedWorkspaceId}
+                    campaigns={dashboard.campaigns}
+                    draftCanvas={{
+                      templateId: formState.composition.templateId,
+                      format: formState.composition.formatId,
+                      seed: formState.composition.seed,
+                    }}
+                    openRevision={openRevision}
+                    canCoordinate={canEdit}
+                    selectedDeliveryProfileId={selectedDeliveryProfileId}
+                    onDeliveryProfileChange={setSelectedDeliveryProfileId}
+                    onApplyCanvasSeed={applyCampaignCanvasSeed}
+                    onCampaignChanged={refreshDashboard}
+                    onOpenDesign={reopenDesign}
+                  />
+                </>
               )}
               <DesignLifecycle
                 openRevision={openRevision}

@@ -1,0 +1,69 @@
+{
+  "suite": "designer-stress-test-negative-probes",
+  "cases": [
+    {
+      "id": "overlong-visible-copy",
+      "source": "packages/glyphkiln-core/examples/tiktok-carousel-slide.json",
+      "control": {
+        "validationAccepted": true,
+        "inspectionRenderable": true,
+        "renderAccepted": true
+      },
+      "validation": { "accepted": true },
+      "inspection": {
+        "accepted": true,
+        "renderable": true,
+        "diagnosticCodes": []
+      },
+      "render": {
+        "accepted": false,
+        "errorCode": "QUALITY_VALIDATION_FAILED",
+        "qualityIssueCodes": ["TEXT_OVERFLOW"]
+      },
+      "firstDetectionStage": "render"
+    },
+    {
+      "id": "unsupported-visible-rtl",
+      "source": "packages/glyphkiln-core/examples/product-announcement.json",
+      "control": {
+        "validationAccepted": true,
+        "inspectionRenderable": true,
+        "renderAccepted": true
+      },
+      "validation": { "accepted": true },
+      "inspection": {
+        "accepted": true,
+        "renderable": false,
+        "diagnosticCodes": ["BIDI_LAYOUT_UNSUPPORTED"]
+      },
+      "render": {
+        "accepted": false,
+        "errorCode": "QUALITY_VALIDATION_FAILED",
+        "qualityIssueCodes": ["BIDI_LAYOUT_UNSUPPORTED"]
+      },
+      "firstDetectionStage": "inspect"
+    },
+    {
+      "id": "wrong-declared-asset-hash",
+      "source": "packages/glyphkiln-core/examples/image-led-campaign.json",
+      "control": {
+        "validationAccepted": true,
+        "inspectionRenderable": true,
+        "renderAccepted": true
+      },
+      "validation": { "accepted": true },
+      "inspection": {
+        "accepted": true,
+        "renderable": true,
+        "diagnosticCodes": []
+      },
+      "render": {
+        "accepted": false,
+        "errorCode": "ASSET_DECLARATION_MISMATCH",
+        "qualityIssueCodes": [],
+        "mismatchFields": ["sha256"]
+      },
+      "firstDetectionStage": "render"
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 5. Review changelog, package version, renderer/version contracts, and lockfile.
 6. Run the complete local validation sequence from a clean clone, including
    `npm run scene-kernel-fixture:verify`, `npm run examples:verify`,
+   `npm run review-samples:verify`,
    `npm run test:package-consumer`, and `npm audit --audit-level=low`.
 7. Inspect `npm run pack:core:dry-run`, then install the local archive in a fresh
    consumer and verify strict TypeScript, public exports, CLI, and

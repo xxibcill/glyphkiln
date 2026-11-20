@@ -5,6 +5,8 @@ import {
   CAROUSEL_SEQUENCE_LIMITS,
   DELIVERY_PROFILE_IDS,
   FORMAT_IDS,
+  STATIC_AD_FORMATS,
+  STATIC_AD_TEMPLATE_IDS,
   createCarouselSequenceKey,
 } from "@glyphkiln/core";
 import { BrandSnapshotSchema, LayerSchema, TEMPLATE_IDS } from "@glyphkiln/core/schema";
@@ -353,7 +355,34 @@ const RequestRevisionExportSchema = z
   })
   .strict();
 
+const CreateStaticAdCampaignSchema = z
+  .object({
+    type: z.literal("campaign.static-ads.create"),
+    workspaceId: identifier,
+    name: designName,
+    brief: campaignBrief,
+    campaignSeed: z.string().trim().min(1).max(256),
+    brandSnapshotId: identifier,
+    drafts: z
+      .array(
+        ManualDraftSchema.extend({
+          templateId: z.enum(STATIC_AD_TEMPLATE_IDS),
+          format: z.enum(STATIC_AD_FORMATS),
+        }),
+      )
+      .min(1)
+      .max(24)
+      .refine(
+        (drafts) =>
+          new Set(drafts.map((draft) => `${draft.templateId}:${draft.format}`)).size ===
+          drafts.length,
+        "Choose each family and size once.",
+      ),
+  })
+  .strict();
+
 export const AppCommandSchema = z.discriminatedUnion("type", [
+  CreateStaticAdCampaignSchema,
   BootstrapRegisterSchema,
   InvitationRegisterSchema,
   LoginSchema,
@@ -417,6 +446,11 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       directionId: identifier,
       canvasKey: identifier,
       templateId: z.enum(TEMPLATE_IDS),
+      templateVersion: z
+        .string()
+        .max(32)
+        .regex(/^\d+\.\d+\.\d+$/u)
+        .optional(),
       format: z.enum(FORMAT_IDS),
       compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     })
@@ -441,6 +475,7 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
   z
     .object({
       type: z.literal("campaign.handoff"),
+      approvedOnly: z.boolean().optional(),
       workspaceId: identifier,
       campaignId: identifier,
       directionId: identifier,

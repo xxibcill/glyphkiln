@@ -4,14 +4,18 @@ import { AUTHORING_TEMPLATE_REGISTRY } from "../authoring/metadata.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../templates/image-led-campaign-contract.js";
 import type { TemplateDefinition } from "../templates/types.js";
 
-export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.2.0" as const;
+export const CAMPAIGN_FAMILY_METADATA_VERSION = "1.5.0" as const;
 
-export const CAMPAIGN_FAMILY_IDS = Object.freeze(["image-led-campaign"] as const);
+export const CAMPAIGN_FAMILY_IDS = Object.freeze([
+  "image-led-campaign",
+  "static-ads",
+] as const);
 export type CampaignFamilyId = (typeof CAMPAIGN_FAMILY_IDS)[number];
 
 export const CAMPAIGN_COMPOSITION_VARIANT_IDS = Object.freeze([
   "focal-editorial",
   "organic-photo-editorial",
+  "static-ad",
 ] as const);
 export type CampaignCompositionVariantId =
   (typeof CAMPAIGN_COMPOSITION_VARIANT_IDS)[number];
@@ -23,6 +27,9 @@ type ContentLayerType = Extract<
   | "headline"
   | "subtitle"
   | "statistic"
+  | "comparison-table"
+  | "problem-solution"
+  | "benefit-list"
   | "cta"
   | "footer"
   | "attribution"
@@ -110,6 +117,10 @@ const imageLedCampaignFamily = {
   id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
   label: "Image-led campaign",
   members: [
+    editorialMember("image-led-campaign@1.1.1", "focal-editorial"),
+    editorialMember("tiktok-carousel-slide@1.1.1", "organic-photo-editorial"),
+    editorialMember("image-led-campaign@1.1.0", "focal-editorial"),
+    editorialMember("tiktok-carousel-slide@1.1.0", "organic-photo-editorial"),
     {
       template: {
         id: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.id,
@@ -145,8 +156,65 @@ const imageLedCampaignFamily = {
   ],
 } as const satisfies CampaignFamilyDefinition;
 
+function editorialMember(
+  key:
+    | "product-announcement@1.2.0"
+    | "benefit-proof@1.0.0"
+    | "testimonial-evidence@1.0.0"
+    | "comparison@1.0.0"
+    | "problem-solution@1.0.0"
+    | "offer-urgency@1.0.0"
+    | "image-led-campaign@1.1.0"
+    | "tiktok-carousel-slide@1.1.0"
+    | "image-led-campaign@1.1.1"
+    | "tiktok-carousel-slide@1.1.1",
+  variant: CampaignCompositionVariantId,
+): CampaignFamilyMember {
+  const contract = AUTHORING_TEMPLATE_REGISTRY[key];
+  return {
+    template: contract.template,
+    formats: contract.compatibleFormats,
+    compositionVariants: [
+      {
+        id: variant,
+        label: contract.compositionVariant.label,
+        description: contract.compositionVariant.guidance,
+      },
+    ],
+    contentRoles: contract.contentRoles.map(({ layerType, required }) => ({
+      layerType,
+      required,
+    })),
+    assetRoles: contract.assetRoles.map((role) => ({
+      layerType: role.layerType,
+      required: role.required,
+      fit: role.supportedFits[0]!,
+      supportsFocalPoint: role.supportsFocalPoint,
+      supportedTreatments: role.supportedTreatments,
+    })),
+    safeAreaPolicy: {
+      semanticContent: "brand-snapshot",
+      fullBleedAssetLayers: [],
+      exposesRenderEvidence: true,
+      guidance: contract.safeAreaGuidance,
+    },
+  };
+}
+
 export const CAMPAIGN_FAMILY_REGISTRY = deepFreeze({
   "image-led-campaign": imageLedCampaignFamily,
+  "static-ads": {
+    id: "static-ads",
+    label: "Static ads",
+    members: [
+      editorialMember("product-announcement@1.2.0", "static-ad"),
+      editorialMember("benefit-proof@1.0.0", "static-ad"),
+      editorialMember("testimonial-evidence@1.0.0", "static-ad"),
+      editorialMember("comparison@1.0.0", "static-ad"),
+      editorialMember("problem-solution@1.0.0", "static-ad"),
+      editorialMember("offer-urgency@1.0.0", "static-ad"),
+    ],
+  },
 } as const satisfies Record<CampaignFamilyId, CampaignFamilyDefinition>);
 
 function isImageLedContentLayerType(

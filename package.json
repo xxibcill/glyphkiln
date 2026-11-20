@@ -53,6 +53,7 @@
     "qualification:campaign-workflow:verify": "npm run build --workspace @glyphkiln/core && node scripts/generate-campaign-workflow-qualification.mjs --verify",
     "sample:carousel": "npm run build --workspace @glyphkiln/core && node scripts/generate-carousel-review-sample.mjs",
     "sample:carousel:verify": "npm run build --workspace @glyphkiln/core && node scripts/generate-carousel-review-sample.mjs --verify",
+    "review-samples:verify": "npm run build --workspace @glyphkiln/core && node scripts/generate-static-ad-review.mjs --verify && node scripts/generate-benefit-proof-review.mjs --verify && node scripts/generate-product-offer-review.mjs --verify && node scripts/generate-reference-led-review.mjs --verify && node scripts/review-editorial-brands.mjs --deliver --verify",
     "licenses:verify": "npm run licenses:verify --workspace @glyphkiln/core",
     "licenses:update": "npm run licenses:update --workspace @glyphkiln/core",
     "test:package-consumer": "npm run test:package-consumer --workspace @glyphkiln/core",

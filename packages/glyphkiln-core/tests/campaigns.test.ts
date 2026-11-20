@@ -8,7 +8,7 @@ import {
   CAMPAIGN_SEED_DERIVATION_VERSION,
   GlyphkilnError,
   IMAGE_TREATMENT_IDS,
-  TEMPLATE_REGISTRY,
+  type DesignDocument,
   createCampaignCanvasKey,
   createCampaignDirectionKey,
   deriveCampaignSeeds,
@@ -19,13 +19,19 @@ import {
   CAMPAIGN_FAMILY_METADATA_VERSION as BROWSER_CAMPAIGN_FAMILY_METADATA_VERSION,
   CAMPAIGN_FAMILY_REGISTRY as BROWSER_CAMPAIGN_FAMILY_REGISTRY,
 } from "../src/browser.js";
+import { getTemplate } from "../src/templates/index.js";
 import { AUTHORING_TEMPLATE_REGISTRY } from "../src/authoring/metadata.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "../src/templates/image-led-campaign-contract.js";
 
 describe("campaign-family metadata", () => {
   it("publishes the exact image-led family contract", () => {
-    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.2.0");
-    expect(CAMPAIGN_FAMILY_REGISTRY).toEqual({
+    expect(CAMPAIGN_FAMILY_METADATA_VERSION).toBe("1.5.0");
+    expect({
+      "image-led-campaign": {
+        ...CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"],
+        members: CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members.slice(4),
+      },
+    }).toEqual({
       "image-led-campaign": {
         id: "image-led-campaign",
         label: "Image-led campaign",
@@ -106,7 +112,7 @@ describe("campaign-family metadata", () => {
 
   it("freezes the registry and every published nested collection", () => {
     const family = CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
-    const member = family.members[0];
+    const member = family.members[4];
 
     expect(Object.isFrozen(CAMPAIGN_FAMILY_IDS)).toBe(true);
     expect(Object.isFrozen(CAMPAIGN_COMPOSITION_VARIANT_IDS)).toBe(true);
@@ -123,8 +129,11 @@ describe("campaign-family metadata", () => {
 
   it("matches the authoritative template and treatment registries", () => {
     const family = CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"];
-    const member = family.members[0];
-    const template = TEMPLATE_REGISTRY[member.template.id];
+    const member = family.members[4];
+    const template = getTemplate({
+      template: member.template,
+      format: member.formats[0],
+    } as DesignDocument);
     const imageRole = member.assetRoles.find((role) => role.layerType === "image");
 
     expect(template.requiredLayers).toBe(
@@ -146,8 +155,11 @@ describe("campaign-family metadata", () => {
       IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.safeAreaPolicy,
     );
     expect(imageRole?.supportedTreatments).toEqual(IMAGE_TREATMENT_IDS);
-    const carouselMember = family.members[1];
-    const carouselTemplate = TEMPLATE_REGISTRY["tiktok-carousel-slide"];
+    const carouselMember = family.members[5];
+    const carouselTemplate = getTemplate({
+      template: carouselMember.template,
+      format: carouselMember.formats[0],
+    } as DesignDocument);
     expect(carouselMember.template).toEqual({
       id: carouselTemplate.id,
       version: carouselTemplate.version,

@@ -43,6 +43,9 @@ const contentLayerTypes = new Set<DesignLayer["type"]>([
   "badge",
   "headline",
   "subtitle",
+  "comparison-table",
+  "problem-solution",
+  "benefit-list",
   "statistic",
   "cta",
   "footer",
@@ -87,9 +90,15 @@ describe("AI-ready authoring metadata", () => {
   });
 
   it("publishes every supported template version as immutable browser-safe data", () => {
-    expect(AUTHORING_CONTRACT_VERSION).toBe("1.2.0");
+    expect(AUTHORING_CONTRACT_VERSION).toBe("1.7.0");
     expect(AUTHORING_TEMPLATE_KEYS).toEqual([
+      "testimonial-evidence@1.0.0",
+      "comparison@1.0.0",
+      "problem-solution@1.0.0",
+      "offer-urgency@1.0.0",
+      "benefit-proof@1.0.0",
       "product-announcement@1.1.1",
+      "product-announcement@1.2.0",
       "statistic-card@1.1.0",
       "quote-card@1.1.0",
       "article-cover@1.1.0",
@@ -99,6 +108,10 @@ describe("AI-ready authoring metadata", () => {
       "tiktok-carousel-slide@1.0.4",
       "image-led-campaign@1.0.0",
       "image-led-campaign@1.0.1",
+      "image-led-campaign@1.1.0",
+      "tiktok-carousel-slide@1.1.0",
+      "image-led-campaign@1.1.1",
+      "tiktok-carousel-slide@1.1.1",
     ]);
     expect(Object.keys(AUTHORING_TEMPLATE_REGISTRY)).toEqual(AUTHORING_TEMPLATE_KEYS);
     expect(Object.isFrozen(AUTHORING_TEMPLATE_REGISTRY)).toBe(true);
@@ -173,7 +186,7 @@ describe("AI-ready authoring metadata", () => {
     expect(
       AUTHORING_TEMPLATE_REGISTRY["image-led-campaign@1.0.1"].compositionVariant.id,
     ).toBe(
-      CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].compositionVariants[0]
+      CAMPAIGN_FAMILY_REGISTRY["image-led-campaign"].members[0].compositionVariants[0]!
         .id,
     );
   });

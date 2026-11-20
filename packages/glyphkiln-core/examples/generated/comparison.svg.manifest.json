@@ -1,0 +1,136 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_88a923e80b3a43e3d5e2b613",
+  "renderFingerprint": "88a923e80b3a43e3d5e2b613392fa622df61ffce6f671853a05ed6357a59f6aa",
+  "designDocumentId": "comparison",
+  "designDocumentHash": "36f87f202259e21dfd24674fea732486de394ba3bfd88f7b49279aa33072dfe8",
+  "seed": "kilnform-light-01",
+  "template": {
+    "id": "comparison",
+    "version": "1.0.0"
+  },
+  "renderer": {
+    "name": "glyphkiln-svg",
+    "version": "0.5.0"
+  },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 700,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": {
+    "width": 1080,
+    "height": 1080
+  },
+  "output": {
+    "format": "svg",
+    "sha256": "aa65c0f3d3e70c9808901a22ffd847b758a72eb2bad0c390c8a7e437d41f2035",
+    "byteSize": 183411
+  },
+  "creationTimestamp": "2026-07-29T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": false,
+  "renderingMethod": "deterministic-code-rendering/direct-svg",
+  "qualityIssues": [
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "headline",
+      "details": {
+        "affectedLine": "workflow.",
+        "lineNumber": 2,
+        "phrase": "workflow.",
+        "previousLine": "Choose a repeatable",
+        "measuredLineWidths": [
+          680.128,
+          331.22
+        ],
+        "previousLineWidth": 680.128,
+        "finalLineWidth": 331.22,
+        "finalLineToPreviousLineWidthRatio": 0.487,
+        "isolatedWord": true,
+        "disproportionatelyShort": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.1"
+      }
+    },
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "comparison-0-right",
+      "details": {
+        "affectedLine": "document",
+        "lineNumber": 2,
+        "phrase": "document",
+        "previousLine": "Pinned design",
+        "measuredLineWidths": [
+          198.422,
+          141.591
+        ],
+        "previousLineWidth": 198.422,
+        "finalLineWidth": 141.591,
+        "finalLineToPreviousLineWidthRatio": 0.714,
+        "isolatedWord": true,
+        "disproportionatelyShort": false,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.1"
+      }
+    },
+    {
+      "code": "ORPHAN_LINE",
+      "severity": "warning",
+      "message": "The final line is isolated or disproportionately short.",
+      "layerId": "comparison-1-right",
+      "details": {
+        "affectedLine": "inputs",
+        "lineNumber": 2,
+        "phrase": "inputs",
+        "previousLine": "Reproduce saved",
+        "measuredLineWidths": [
+          242.266,
+          87.666
+        ],
+        "previousLineWidth": 242.266,
+        "finalLineWidth": 87.666,
+        "finalLineToPreviousLineWidthRatio": 0.362,
+        "isolatedWord": true,
+        "disproportionatelyShort": true,
+        "segmentationPolicy": "whitespace",
+        "segmentationPolicyVersion": "whitespace@1.0.0",
+        "lineBreakingPolicyVersion": "balanced-lines@1.0.0",
+        "typographyAlgorithmVersion": "2.0.1"
+      }
+    }
+  ],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}

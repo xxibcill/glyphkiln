@@ -1,6 +1,24 @@
 # Roadmap
 
-## Current execution status
+## Graphic design coverage — 25 September 2026
+
+The [graphic design capability roadmap](plans/graphic-design-capability-roadmap.md)
+is the forward plan for expanding beyond campaign graphics and carousels. It
+covers **16 work families, 48 basic-to-advanced briefs, and 11 milestones**:
+identity, posters, stationery, editorial, reports/presentations, data,
+diagrams/maps, packaging, hospitality, wayfinding, advertising, digital assets,
+illustration, compositing, merchandise, and motion.
+
+It defines dependencies, the first ten execution tickets, and separate engine,
+App authoring, visual-quality, and production-handoff gates. The recent campaign
+refinement is a bounded foundation, not completion of the broader roadmap.
+The milestones are proposed work; release dates follow technical scoping.
+
+The dated records below retain historical release scope and decisions. Their
+“next” milestones describe the situation at the recorded date, not the current
+working-tree capability inventory.
+
+## Historical execution status
 
 As of 2026-08-29, Core `v0.7.0` is the tagged baseline on `main`, and App
 `v0.1.0-alpha` remains the qualified application release. Core `0.7.0` adds the

@@ -70,6 +70,7 @@ const MIGRATION_VERSIONS = [
   "202608190015_campaign_carousel_sequence",
   "202608190016_campaign_canvas_source_notes",
   "202608190017_campaign_canvas_alt_text",
+  "202609250018_static_ad_campaign",
 ] as const;
 
 type TableNameRow = {
@@ -1326,5 +1327,33 @@ describe("App Alpha PostgreSQL migration", () => {
         renderJobId: "job-a",
       }),
     ).resolves.toBeUndefined();
+  });
+
+  it("admits static-ad campaigns and refuses a rollback that would orphan them", async () => {
+    await migrateDatabase(database);
+    await seedBrandAndDesignState(database);
+    const insertCampaign = (id: string, familyId: string) =>
+      database.query(
+        `INSERT INTO campaigns (
+           id, workspace_id, name, brief, campaign_seed, family_id, created_by
+         ) VALUES ($1, 'workspace-a', 'Campaign', 'Brief', 'seed', $2, 'user-a')`,
+        [id, familyId],
+      );
+    await expect(
+      insertCampaign("campaign-unknown", "unknown-family"),
+    ).rejects.toHaveProperty("code", "23514");
+    await expect(insertCampaign("campaign-static", "static-ads")).resolves.toEqual([]);
+
+    const variantConstraints = await database.query<{ definition: string }>(
+      `SELECT pg_get_constraintdef(oid) AS definition
+       FROM pg_constraint
+       WHERE conname = 'campaign_canvases_composition_variant_check'`,
+    );
+    expect(variantConstraints).toHaveLength(1);
+    expect(variantConstraints[0]?.definition).toContain("static-ad");
+
+    await expect(
+      rollbackMigrations(database, { allowDataLoss: true, warn: () => undefined }),
+    ).rejects.toThrow("while static-ad campaigns exist");
   });
 });

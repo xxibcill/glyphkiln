@@ -18,6 +18,12 @@ import type { ProceduralStyleId } from "@glyphkiln/core";
 import type { PreviewCatalog, PreviewTemplateId } from "@/features/project-preview";
 
 export const PREVIEW_TEMPLATE_IDS = [
+  "testimonial-evidence",
+  "comparison",
+  "problem-solution",
+  "offer-urgency",
+
+  "benefit-proof",
   "product-announcement",
   "statistic-card",
   "quote-card",
@@ -30,6 +36,12 @@ const RESOURCE_BACKED_TEMPLATE_IDS = [
 ] as const satisfies readonly PreviewTemplateId[];
 
 const TEMPLATE_LABELS = {
+  "testimonial-evidence": "Testimonial / Evidence",
+  comparison: "Comparison",
+  "problem-solution": "Problem / Solution",
+  "offer-urgency": "Offer / Urgency",
+
+  "benefit-proof": "Benefit / feature proof",
   "product-announcement": "Product announcement",
   "statistic-card": "Statistic card",
   "quote-card": "Quote card",

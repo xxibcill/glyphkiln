@@ -88,7 +88,7 @@ const CampaignSummarySchema = z
     name: z.string().min(1),
     brief: z.string().min(1),
     campaignSeed: z.string().min(1),
-    familyId: z.literal("image-led-campaign"),
+    familyId: z.enum(["image-led-campaign", "static-ads"]),
     createdAt: z.string().min(1),
     updatedAt: z.string().min(1),
   })
@@ -1134,6 +1134,9 @@ export type AppAlphaApi = {
     workspaceId: string,
     revisionId: string,
   ) => Promise<ApiResult<RenderJob[]>>;
+  createStaticAdCampaign: (
+    input: Omit<Extract<AppCommand, { type: "campaign.static-ads.create" }>, "type">,
+  ) => Promise<ApiResult<CampaignSummary>>;
   createCampaign: (input: {
     workspaceId: string;
     name: string;
@@ -1209,6 +1212,7 @@ export type AppAlphaApi = {
     reason?: string;
   }) => Promise<ApiResult<CampaignProposalDecision>>;
   campaignHandoff: (input: {
+    approvedOnly?: boolean;
     workspaceId: string;
     campaignId: string;
     directionId: string;
@@ -1471,6 +1475,13 @@ export function createAppAlphaApi(
         }),
         CompletedRenderJobsSchema,
         (value) => value.jobs,
+      );
+    },
+    async createStaticAdCampaign(input) {
+      return parseValue(
+        await command({ type: "campaign.static-ads.create", ...input }),
+        CampaignCreatedSchema,
+        (value) => value.campaign,
       );
     },
     async createCampaign(input) {

@@ -1,0 +1,58 @@
+{
+  "manifestVersion": "1.2.0",
+  "renderId": "render_3b8d969dab8da526749c6a11",
+  "renderFingerprint": "3b8d969dab8da526749c6a115d0705637f157aea5d96fe0fb18648333b6e51af",
+  "designDocumentId": "designer-day-campaign-instagram-square",
+  "designDocumentHash": "155cb80353b9827dc1475921e5868b782076744f5395f87b8592a405551f76e9",
+  "seed": "8a45819cf918b852a98fc368783c48ac00cd2b38b36d4ea646219f831e7dfebc",
+  "template": { "id": "image-led-campaign", "version": "1.0.1" },
+  "renderer": { "name": "glyphkiln-svg", "version": "0.5.0" },
+  "typographyPolicy": {
+    "algorithmVersion": "2.0.1",
+    "thaiSegmentationPolicyVersion": "budoux-th@0.7.0",
+    "whitespaceSegmentationPolicyVersion": "whitespace@1.0.0",
+    "graphemeSegmentationPolicyVersion": "grapheme-splitter@1.0.4/unicode-10.0.0",
+    "lineBreakingPolicyVersion": "balanced-lines@1.0.0"
+  },
+  "proceduralAlgorithmVersions": {},
+  "assets": [
+    {
+      "id": "kilnform-lamp-campaign",
+      "sha256": "42930ab31255277669c7aea6da1c25b27ddc61891d29ca8298adcc4b65d13368",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform lamp campaign fixture",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    },
+    {
+      "id": "kilnform-mark",
+      "sha256": "4c582c95cbb7fdff2597bb6c57a11da219a7ce328f0e67447b4894c95ad575d9",
+      "origin": {
+        "kind": "generated",
+        "sourceName": "Kilnform Kilnmaker Seal, deterministically redrawn from generated concept",
+        "generativeImageModel": "OpenAI image generation"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Inter",
+      "weight": 800,
+      "style": "normal",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    }
+  ],
+  "dimensions": { "width": 1080, "height": 1080 },
+  "output": {
+    "format": "png",
+    "sha256": "e167cb0d57199d26357d3c14ec854b770f30670d9fa9e7b83b279aa80e40f0c2",
+    "byteSize": 1823169
+  },
+  "creationTimestamp": "2026-09-25T00:00:00.000Z",
+  "compositionGenerativeImageModelUsed": false,
+  "includedGenerativeAssetUsed": true,
+  "renderingMethod": "deterministic-code-rendering/resvg",
+  "qualityIssues": [],
+  "productClaim": "Composed without generative image models and rendered deterministically from code; included asset origins are reported separately."
+}
