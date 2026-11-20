@@ -17,8 +17,9 @@ import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 /**
  * Editorial "fill the field" compositions (1.2.0). They respond to the amount
  * of copy instead of placing small text in a fixed panel: type is fitted to the
- * whole copy field, the content block is centered in it, and the accent is used
- * once, on the element that carries the idea.
+ * whole copy field, the quote block is centered in it (the statistic anchors its
+ * headline to the top and trend to the bottom), and the accent is used once, on
+ * the element that carries the idea.
  */
 
 type CopyField = { bounds: Bounds; ground: string };

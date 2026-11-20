@@ -15,8 +15,11 @@ Shared rules:
 - **Copy field:** the procedural decoration's quiet region, inset by 8% of its
   shorter side and clipped to the safe area; without procedural decoration, the
   safe area.
-- **Fill and centering:** display type is fitted to the field, and the content
-  block is centered vertically so leftover space becomes even margins.
+- **Fill:** display type is fitted to the field. The quote block (mark,
+  quotation and attribution) is centered vertically so leftover space becomes
+  even margins. The statistic block is anchored instead: the headline sits at
+  the top of the field, the trend at the bottom, and the value grows into the
+  space between with its label directly below it.
 - **No isolated final word:** display type steps down one pixel at a time, to at
   most 80% of its first fitted size, until the fitted copy has no
   `ORPHAN_LINE`. If none is found, or the layer pins its own `fontSize` so the
