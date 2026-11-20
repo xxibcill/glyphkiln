@@ -21,6 +21,7 @@ These five gates are mandatory under `AGENTS.md`.
 | Repository skills or agent harness config    | validate each skill; inspect interface metadata, Claude symlink modes and targets, and `CLAUDE.md` imports    |
 | Fixtures or fixture generators               | `npm run fixtures:verify`                                                                                     |
 | Generated examples or renderer behavior      | `npm run examples:verify`                                                                                     |
+| Review deliverables or their generators      | `npm run review-samples:verify`                                                                               |
 | Unicode sources, tables, or text diagnostics | `npm run text-layout-data:verify`                                                                             |
 | Core public exports or packaging             | `npm run test:package-consumer`; inspect `npm run pack:core:dry-run`                                          |
 | Dependencies or licenses                     | `npm run licenses:verify`; `npm audit --audit-level=low`                                                      |

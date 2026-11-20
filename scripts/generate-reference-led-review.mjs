@@ -10,6 +10,16 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const core = resolve(root, "packages/glyphkiln-core");
 const outputRoot = resolve(root, "Deliverables");
+const verify = process.argv.includes("--verify");
+async function emit(path, bytes) {
+  const expected = Buffer.from(bytes);
+  if (verify) {
+    if (!(await readFile(path)).equals(expected))
+      throw new Error(`Artifact drift: ${path}`);
+  } else {
+    await writeFile(path, expected);
+  }
+}
 const names = [
   "split-editorial-landscape-balanced",
   "split-editorial-square-balanced",
@@ -77,8 +87,9 @@ if (
 )
   throw new Error(JSON.stringify(review));
 
-for (const extension of ["png", "svg", "json", "html"])
-  await mkdir(resolve(outputRoot, extension), { recursive: true });
+if (!verify)
+  for (const extension of ["png", "svg", "json", "html"])
+    await mkdir(resolve(outputRoot, extension), { recursive: true });
 for (const { name, document } of examples) {
   const assets = await Promise.all(
     document.assets.map(async (declaration) => ({
@@ -96,17 +107,17 @@ for (const { name, document } of examples) {
   if (result.qualityIssues.some((issue) => issue.severity === "error"))
     throw new Error(`Render failed: ${name}`);
   for (const output of result.outputs) {
-    await writeFile(
+    await emit(
       resolve(outputRoot, output.format, `${name}.${output.format}`),
       output.bytes,
     );
-    await writeFile(
+    await emit(
       resolve(outputRoot, "json", `${name}.${output.format}.manifest.json`),
       await prettier.format(JSON.stringify(output.manifest), { parser: "json" }),
     );
   }
 }
-await writeFile(
+await emit(
   resolve(outputRoot, "json", "refinement-story.review.json"),
   await prettier.format(JSON.stringify(review), { parser: "json" }),
 );
@@ -117,13 +128,32 @@ const brandExamples = ["kilnform", "morrow-field", "northline-works"].flatMap((b
 );
 const card = ({ name }) =>
   `<figure><a href="../png/${name}.png"><img src="../png/${name}.png" alt="${name.replaceAll("-", " ")}" loading="lazy"></a><figcaption>${name.replace("refinement-", "").replaceAll("-", " ")} · <a href="../svg/${name}.svg">SVG</a> · <a href="../json/${name}.png.manifest.json">Manifest</a></figcaption></figure>`;
-await writeFile(
+await emit(
   resolve(outputRoot, "html", "reference-led-review.html"),
-  await prettier.format(
+  await formatHtml(
     `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Glyphkiln · Reference-led refinement</title><style>body{margin:0;background:#f1efe8;color:#20251f;font:16px/1.5 system-ui}main{max-width:1144px;padding:48px 28px;margin:auto}h1{font:clamp(36px,5vw,72px)/1.05 Georgia,serif;max-width:950px;margin:16px 0}h2{font:32px Georgia,serif;margin-top:64px}p{max-width:760px}a{color:#254c3c}section{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start}figure{margin:0}img{width:100%;display:block;border:1px solid #d7d4ca}figcaption{padding:12px 0;font-size:14px}small{letter-spacing:.12em;text-transform:uppercase}.wide{grid-column:1/-1;max-width:900px}@media(max-width:700px){section{grid-template-columns:1fr}main{padding:28px 18px}}</style><main><small>Glyphkiln / research to renderer / 25 September 2026</small><h1>Give the image a role.<br>Give the story room.</h1><p>Template version 1.1.1: larger display type, deliberate subject windows, and a shared editorial system for image and typography slides. Reviewed across three fictional brands, three typefaces, and four delivery formats. References inform the design requirements; their artwork is not reused.</p><p><a href="../graphic-design-reference-research-2026-09-25/index.html">Browse the 120-project reference library</a></p><h2>Three brands, three art directions</h2><p>Inter and cobalt ceramic lighting; Fraunces and botanical still life; Space Grotesk and urban equipment. Each uses the same deterministic renderer with its own brand roles and reviewed focal point.</p><section>${brandExamples.map(card).join("")}</section><h2>One campaign, three formats</h2><section>${examples.slice(0, 3).map(card).join("")}</section><h2>A sequence with image and typography</h2><p>The middle slide changes pace through oversized typography. Header, numbering, and action stay aligned across the sequence.</p><section>${examples.slice(5).map(card).join("")}</section><h2>Supporting information</h2><section>${examples.slice(3, 5).map(card).join("")}</section><p>Exact versioned baselines are retained in the Core test suite; three-brand inputs and render evidence are in docs/qualification/reference-led-2026-09-25. Older template versions remain available. Focal crops still need a designer's judgment; this pass does not provide print production, multi-page layout, or animation.</p></main></html>`,
-    { parser: "html" },
   ),
 );
 console.log(
-  `Rendered ${examples.length} reviewed examples to Deliverables/{png,svg,json}; review page: Deliverables/html/reference-led-review.html`,
+  verify
+    ? `Verified ${examples.length} reviewed examples and the review page in Deliverables/`
+    : `Rendered ${examples.length} reviewed examples to Deliverables/{png,svg,json}; review page: Deliverables/html/reference-led-review.html`,
 );
+
+// Prettier's HTML output can change on a second pass; format to a fixed point
+// so the delivered page also passes `prettier --check`.
+async function formatHtml(source) {
+  const options = {
+    ...(await prettier.resolveConfig(
+      resolve(outputRoot, "html/reference-led-review.html"),
+    )),
+    parser: "html",
+  };
+  let formatted = await prettier.format(source, options);
+  for (let pass = 0; pass < 3; pass += 1) {
+    const next = await prettier.format(formatted, options);
+    if (next === formatted) return formatted;
+    formatted = next;
+  }
+  throw new Error("The review page did not reach a stable Prettier format.");
+}
