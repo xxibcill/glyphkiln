@@ -5,6 +5,7 @@ import type {
   CraftModel,
   CraftRaster,
 } from "./model.js";
+import { clipBounds, containsPoint, round } from "./geometry.js";
 import {
   CRAFT_IMAGE_CHROMATIC_MINIMUM,
   CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES,
@@ -53,6 +54,9 @@ export type CraftImageColorResult = {
 
 type Lab = readonly [number, number, number];
 
+/** Width, in OKLab hue degrees, of one dominant-color bin. */
+const HUE_BIN_WIDTH = 360 / CRAFT_IMAGE_HUE_BINS;
+
 /**
  * Compares the rendered canvas with the source asset at the same mapped
  * positions inside the image's visible region. Later opaque content (text,
@@ -71,7 +75,7 @@ export function reviewImageColors(
     const index = model.elements.findIndex((element) => element.id === image.elementId);
     const element = model.elements[index];
     if (element === undefined || element.decoration || element.opacity <= 0) continue;
-    const visible = clip(image.visible, model.raster);
+    const visible = clipBounds(image.visible, model.raster.width, model.raster.height);
     if (visible === null) continue;
     if ((visible.width * visible.height) / canvasArea < CRAFT_IMAGE_MINIMUM_AREA) {
       continue;
@@ -133,7 +137,7 @@ function compareImage(
       const px = Math.floor(x);
       const cx = px + 0.5;
       const cy = py + 0.5;
-      if (occluders.some((bounds) => inside(bounds, cx, cy))) continue;
+      if (occluders.some((bounds) => containsPoint(bounds, cx, cy))) continue;
       if (rounded !== undefined && inCutCorner(rounded, cx, cy)) continue;
       // The renderer filters every source pixel under the rendered pixel, so
       // compare with their mean rather than with one nearest source pixel.
@@ -155,7 +159,7 @@ function compareImage(
       const hue = (Math.atan2(before[2], before[1]) * 180) / Math.PI;
       const bin = Math.min(
         CRAFT_IMAGE_HUE_BINS - 1,
-        Math.floor((((hue % 360) + 360) % 360) / (360 / CRAFT_IMAGE_HUE_BINS)),
+        Math.floor((((hue % 360) + 360) % 360) / HUE_BIN_WIDTH),
       );
       const record = bins[bin]!;
       record.count += 1;
@@ -165,14 +169,13 @@ function compareImage(
       record.renderedC += Math.hypot(after[1], after[2]);
     }
   }
-  const width = 360 / CRAFT_IMAGE_HUE_BINS;
-  const minimum = Math.max(
+  const minimumBinSamples = Math.max(
     CRAFT_IMAGE_COLOR_MINIMUM_SAMPLES,
     chromaticCount * CRAFT_IMAGE_COLOR_SHARE,
   );
   const colors = bins
     .map((record, bin) => ({ record, bin }))
-    .filter(({ record }) => record.count >= minimum)
+    .filter(({ record }) => record.count >= minimumBinSamples)
     .sort(
       (left, right) => right.record.count - left.record.count || left.bin - right.bin,
     )
@@ -181,7 +184,7 @@ function compareImage(
       const chromaRetention = record.renderedC / record.sourceC;
       const lightnessChange = (record.renderedL - record.sourceL) / record.count;
       return {
-        hueRange: [bin * width, (bin + 1) * width],
+        hueRange: [bin * HUE_BIN_WIDTH, (bin + 1) * HUE_BIN_WIDTH],
         share: round(record.count / chromaticCount),
         sourceLightness: round(record.sourceL / record.count),
         renderedLightness: round(record.renderedL / record.count),
@@ -269,24 +272,6 @@ function oklab(red: number, green: number, blue: number): Lab {
   ];
 }
 
-function clip(bounds: Bounds, raster: CraftRaster): Bounds | null {
-  const x = Math.max(0, bounds.x);
-  const y = Math.max(0, bounds.y);
-  const right = Math.min(raster.width, bounds.x + bounds.width);
-  const bottom = Math.min(raster.height, bounds.y + bounds.height);
-  if (right <= x || bottom <= y) return null;
-  return { x, y, width: right - x, height: bottom - y };
-}
-
-function inside(bounds: Bounds, x: number, y: number): boolean {
-  return (
-    x >= bounds.x &&
-    x <= bounds.x + bounds.width &&
-    y >= bounds.y &&
-    y <= bounds.y + bounds.height
-  );
-}
-
 /**
  * Whether a point lies in, or within a pixel of, a cut-away corner of a
  * rounded clip rectangle, where the canvas behind the image shows through.
@@ -309,9 +294,4 @@ function inCutCorner(
 
 function clamp(value: number, maximum: number): number {
   return Math.min(maximum, Math.max(0, value));
-}
-
-function round(value: number, digits = 4): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
 }

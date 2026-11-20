@@ -1,6 +1,12 @@
 import { GlyphkilnError, type Bounds, type Dimensions } from "../domain/types.js";
 import { reviewImageColors, type CraftImageMetric } from "./color.js";
-import { normalizeHexColor, parseHexColor } from "./geometry.js";
+import {
+  clipBounds,
+  containsPoint,
+  normalizeHexColor,
+  parseHexColor,
+  round,
+} from "./geometry.js";
 import { describeLayout, type CraftLayoutElement } from "./layout.js";
 import type { CraftElement, CraftModel, CraftRaster } from "./model.js";
 import {
@@ -509,7 +515,8 @@ function reviewAccent(
   let accentPixels = 0;
   for (let y = 0; y < raster.height; y += 1) {
     for (let x = 0; x < raster.width; x += 1) {
-      if (photographs.some((bounds) => contains(bounds, x + 0.5, y + 0.5))) continue;
+      if (photographs.some((bounds) => containsPoint(bounds, x + 0.5, y + 0.5)))
+        continue;
       counted += 1;
       if (accents.some((accent) => pixelMatches(raster, x, y, accent)))
         accentPixels += 1;
@@ -695,29 +702,6 @@ function pixelMatches(
     Math.abs(raster.data[offset + 2]! - color[2]) <= CRAFT_PIXEL_TOLERANCE &&
     raster.data[offset + 3]! >= 250
   );
-}
-
-function contains(bounds: Bounds, x: number, y: number): boolean {
-  return (
-    x >= bounds.x &&
-    x <= bounds.x + bounds.width &&
-    y >= bounds.y &&
-    y <= bounds.y + bounds.height
-  );
-}
-
-function clipBounds(bounds: Bounds, width: number, height: number): Bounds | null {
-  const x = Math.max(0, bounds.x);
-  const y = Math.max(0, bounds.y);
-  const right = Math.min(width, bounds.x + bounds.width);
-  const bottom = Math.min(height, bounds.y + bounds.height);
-  if (right <= x || bottom <= y) return null;
-  return { x, y, width: right - x, height: bottom - y };
-}
-
-function round(value: number, digits = 4): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
 }
 
 function roundBounds(bounds: Bounds): Bounds {

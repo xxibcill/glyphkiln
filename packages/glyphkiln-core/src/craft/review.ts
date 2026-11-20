@@ -1,4 +1,3 @@
-import { decode as decodeJpeg } from "jpeg-js";
 import { PNG } from "pngjs";
 
 import {
@@ -7,10 +6,10 @@ import {
   type ResolvedFont,
 } from "../domain/types.js";
 import type { FontRegistry } from "../fonts/index.js";
-import { RENDER_RESOURCE_LIMITS, RENDER_WORKER_PROFILE } from "../resources/index.js";
+import { decodeRgba } from "../assets/image-contrast.js";
 import { rasterizeSvg } from "../renderer/png.js";
 import type { SceneKernel, SceneKernelElement } from "../renderer/scene.js";
-import { renderSceneToSvg } from "../renderer/svg.js";
+import { EMBEDDED_IMAGE_HREF, renderSceneToSvg } from "../renderer/svg.js";
 import { analyzeCraft, type CraftReview } from "./analyze.js";
 import { buildCraftModel, type CraftImageDecoder, type CraftRaster } from "./model.js";
 import type { CraftReviewThresholds } from "./policy.js";
@@ -77,8 +76,6 @@ export async function reviewSceneKernelCraft(
   return analyzeCraft(model, thresholds);
 }
 
-const DATA_URI = /^data:(image\/png|image\/jpeg);base64,([a-zA-Z0-9+/]+=*)$/;
-
 /**
  * Decodes the embedded PNG or JPEG data URIs the serializer accepts. Repeated
  * hrefs decode once; anything else, or a decode failure, yields null so the
@@ -89,29 +86,19 @@ export function createCraftImageDecoder(): CraftImageDecoder {
   return (href) => {
     const cached = cache.get(href);
     if (cached !== undefined) return cached;
-    const match = DATA_URI.exec(href);
+    const match = EMBEDDED_IMAGE_HREF.exec(href);
     let raster: CraftRaster | null = null;
     if (match !== null) {
       try {
-        const bytes = Buffer.from(match[2]!, "base64");
-        if (match[1] === "image/png") {
-          raster = decodeRaster(bytes);
-        } else {
-          const decoded = decodeJpeg(bytes, {
-            useTArray: true,
-            formatAsRGBA: true,
-            maxResolutionInMP: Math.ceil(
-              RENDER_RESOURCE_LIMITS.maxAssetPixels / 1_000_000,
-            ),
-            maxMemoryUsageInMB:
-              RENDER_WORKER_PROFILE.nodeResourceLimits.maxOldGenerationSizeMb,
-          });
-          raster = {
-            width: decoded.width,
-            height: decoded.height,
-            data: new Uint8Array(decoded.data),
-          };
-        }
+        const decoded = decodeRgba(
+          Buffer.from(match[2]!, "base64"),
+          match[1] as "image/png" | "image/jpeg",
+        );
+        raster = {
+          width: decoded.width,
+          height: decoded.height,
+          data: new Uint8Array(decoded.data),
+        };
       } catch {
         raster = null;
       }

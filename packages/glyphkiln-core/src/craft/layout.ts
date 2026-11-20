@@ -1,4 +1,5 @@
 import { GlyphkilnError, type Bounds, type Dimensions } from "../domain/types.js";
+import { clipBounds, round } from "./geometry.js";
 import type { CraftElement, CraftModel } from "./model.js";
 import {
   CRAFT_FORMAT_SET_MAXIMUM,
@@ -35,21 +36,18 @@ export function describeLayout(model: CraftModel): CraftLayoutElement[] {
     if (role === null) return;
     const source = element.visibleBounds ?? element.bounds;
     if (source == null) return;
-    const x = Math.max(0, source.x);
-    const y = Math.max(0, source.y);
-    const right = Math.min(width, source.x + source.width);
-    const bottom = Math.min(height, source.y + source.height);
-    if (right <= x || bottom <= y) return;
+    const visible = clipBounds(source, width, height);
+    if (visible === null) return;
     layout.push({
       order,
       element: {
         elementId: element.id,
         role,
         bounds: {
-          x: round(x / width),
-          y: round(y / height),
-          width: round((right - x) / width),
-          height: round((bottom - y) / height),
+          x: round(visible.x / width),
+          y: round(visible.y / height),
+          width: round(visible.width / width),
+          height: round(visible.height / height),
         },
       },
     });
@@ -356,9 +354,4 @@ function elementDistance(left: Bounds, right: Bounds): number {
   const size =
     (Math.abs(left.width - right.width) + Math.abs(left.height - right.height)) / 2;
   return displacement + size;
-}
-
-function round(value: number, digits = 4): number {
-  const factor = 10 ** digits;
-  return Math.round(value * factor) / factor;
 }

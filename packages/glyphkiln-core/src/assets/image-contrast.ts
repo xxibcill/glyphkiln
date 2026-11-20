@@ -88,20 +88,30 @@ export function inspectImageTextContrast(input: {
   };
 }
 
+/**
+ * Decodes embedded PNG or JPEG bytes to straight RGBA within the render
+ * resource limits. Throws when the bytes cannot be decoded.
+ */
+export function decodeRgba(
+  bytes: Uint8Array,
+  mimeType: "image/png" | "image/jpeg",
+): { width: number; height: number; data: Uint8Array } {
+  if (mimeType === "image/png") {
+    const decoded = PNG.sync.read(Buffer.from(bytes), { checkCRC: true });
+    return { width: decoded.width, height: decoded.height, data: decoded.data };
+  }
+  const decoded = decodeJpeg(bytes, {
+    useTArray: true,
+    formatAsRGBA: true,
+    maxResolutionInMP: Math.ceil(RENDER_RESOURCE_LIMITS.maxAssetPixels / 1_000_000),
+    maxMemoryUsageInMB: RENDER_WORKER_PROFILE.nodeResourceLimits.maxOldGenerationSizeMb,
+  });
+  return { width: decoded.width, height: decoded.height, data: decoded.data };
+}
+
 export function decodeRasterForContrast(asset: ResolvedAsset): ContrastRaster {
   try {
-    if (asset.mimeType === "image/png") {
-      const decoded = PNG.sync.read(Buffer.from(asset.bytes), { checkCRC: true });
-      return { width: decoded.width, height: decoded.height, data: decoded.data };
-    }
-    const decoded = decodeJpeg(asset.bytes, {
-      useTArray: true,
-      formatAsRGBA: true,
-      maxResolutionInMP: Math.ceil(RENDER_RESOURCE_LIMITS.maxAssetPixels / 1_000_000),
-      maxMemoryUsageInMB:
-        RENDER_WORKER_PROFILE.nodeResourceLimits.maxOldGenerationSizeMb,
-    });
-    return { width: decoded.width, height: decoded.height, data: decoded.data };
+    return decodeRgba(asset.bytes, asset.mimeType);
   } catch {
     throw new GlyphkilnError(
       `Asset "${asset.id}" could not be decoded for contrast inspection.`,

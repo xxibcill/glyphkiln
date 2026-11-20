@@ -162,6 +162,41 @@ export function pathDataBounds(data: string): Bounds | null {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
+/** Intersection of two bounds, or null when they do not overlap. */
+export function intersectBounds(left: Bounds, right: Bounds): Bounds | null {
+  const x = Math.max(left.x, right.x);
+  const y = Math.max(left.y, right.y);
+  const x1 = Math.min(left.x + left.width, right.x + right.width);
+  const y1 = Math.min(left.y + left.height, right.y + right.height);
+  if (x1 <= x || y1 <= y) return null;
+  return { x, y, width: x1 - x, height: y1 - y };
+}
+
+/** Bounds clipped to a width × height canvas, or null when outside it. */
+export function clipBounds(
+  bounds: Bounds,
+  width: number,
+  height: number,
+): Bounds | null {
+  return intersectBounds(bounds, { x: 0, y: 0, width, height });
+}
+
+/** Whether a point lies inside bounds, edges included. */
+export function containsPoint(bounds: Bounds, x: number, y: number): boolean {
+  return (
+    x >= bounds.x &&
+    x <= bounds.x + bounds.width &&
+    y >= bounds.y &&
+    y <= bounds.y + bounds.height
+  );
+}
+
+/** Rounds to a fixed number of decimal digits for stable reported metrics. */
+export function round(value: number, digits = 4): number {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
 export function unionBounds(items: readonly (Bounds | null)[]): Bounds | null {
   let result: Bounds | null = null;
   for (const item of items) {

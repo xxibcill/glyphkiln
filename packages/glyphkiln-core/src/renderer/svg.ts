@@ -17,6 +17,13 @@ import type {
 } from "./scene.js";
 import { connectorArrowheadSize } from "./scene.js";
 
+/**
+ * The only image hrefs the serializer accepts: embedded base64 PNG or JPEG.
+ * Groups capture the media type and the base64 payload.
+ */
+export const EMBEDDED_IMAGE_HREF =
+  /^data:(image\/(?:png|jpeg));base64,([a-zA-Z0-9+/]+=*)$/;
+
 export function renderSceneToSvg(scene: Scene | SceneKernel): string {
   const { width, height } = scene.dimensions;
   const content = scene.elements.map((element) => renderElement(element)).join("");
@@ -235,7 +242,7 @@ function renderSelectableText(element: TextElement): string {
 }
 
 function renderImage(element: ImageElement): string {
-  if (!/^data:image\/(?:png|jpeg);base64,[a-zA-Z0-9+/]+=*$/.test(element.href)) {
+  if (!EMBEDDED_IMAGE_HREF.test(element.href)) {
     throw new GlyphkilnError(
       `Image "${element.id}" is not an embedded PNG or JPEG.`,
       "UNSAFE_IMAGE_REFERENCE",

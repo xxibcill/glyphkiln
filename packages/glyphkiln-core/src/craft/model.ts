@@ -3,6 +3,7 @@ import type { FontRegistry } from "../fonts/index.js";
 import type { SceneClip, SceneKernel, SceneKernelElement } from "../renderer/scene.js";
 import {
   IDENTITY,
+  intersectBounds,
   matrixScale,
   multiply,
   normalizeHexColor,
@@ -313,15 +314,6 @@ function addGroupClip(
       (clip.radius ?? 0) <= 0 &&
       axisAligned(matrix),
   };
-}
-
-function intersectBounds(left: Bounds, right: Bounds): Bounds | null {
-  const x = Math.max(left.x, right.x);
-  const y = Math.max(left.y, right.y);
-  const x1 = Math.min(left.x + left.width, right.x + right.width);
-  const y1 = Math.min(left.y + left.height, right.y + right.height);
-  if (x1 <= x || y1 <= y) return null;
-  return { x, y, width: x1 - x, height: y1 - y };
 }
 
 function xHeightRatio(
