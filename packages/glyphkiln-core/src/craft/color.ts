@@ -84,11 +84,21 @@ export function reviewImageColors(
 
 function isOccluder(element: CraftElement): boolean {
   if (element.bounds === null || element.opacity <= 0) return false;
-  if (element.kind === "text") return true;
-  // Translucent rectangles and paths are treatments over the photograph.
-  return (
-    element.opacity >= 0.95 || (element.kind !== "rect" && element.kind !== "path")
-  );
+  switch (element.kind) {
+    case "text":
+    case "image":
+      return true;
+    case "rect":
+    case "circle":
+    case "path":
+      // Only an opaque fill hides the photograph across the shape's box.
+      // Translucent fills are treatments over it, and unfilled (stroke-only)
+      // shapes such as frames leave their interior visible.
+      return element.fill !== null && element.opacity >= 0.95;
+    default:
+      // Connectors are thin strokes; their box is not covered.
+      return false;
+  }
 }
 
 function compareImage(

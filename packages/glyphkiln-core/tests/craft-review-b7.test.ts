@@ -199,6 +199,27 @@ describe("product color", () => {
     expect(dimmedCodes(analyzeCraft(photoModel(rendered)))).toHaveLength(1);
   });
 
+  it("does not treat stroke-only frames or connectors as covering the photograph", () => {
+    const rendered = renderedPhoto();
+    scrim(rendered, [0, 0, 0], 0.56);
+    const box = { x: 0, y: 0, width: 400, height: 400 };
+    const review = analyzeCraft(
+      photoModel(rendered, [
+        element({ id: "scrim", bounds: box, fill: "#000000", opacity: 0.56 }),
+        element({ id: "frame", bounds: box, fill: null, stroke: "#ffffff" }),
+        element({ id: "ring", kind: "circle", bounds: box, fill: null }),
+        element({ id: "arrow", kind: "connector", bounds: box, stroke: "#ffffff" }),
+      ]),
+    );
+    expect(review.metrics.images[0]!.sampleCount).toBeGreaterThan(8_000);
+    expect(dimmedCodes(review)).toHaveLength(1);
+    // A filled opaque card over the same box does hide every sample.
+    const covered = analyzeCraft(
+      photoModel(rendered, [element({ id: "card", bounds: box, fill: "#ffffff" })]),
+    );
+    expect(covered.metrics.images[0]!.sampleCount).toBe(0);
+  });
+
   it("respects the documented thresholds", () => {
     const rendered = renderedPhoto();
     scrim(rendered, [0, 0, 0], 0.2);
