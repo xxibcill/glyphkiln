@@ -58,6 +58,11 @@ export type CraftImageSource = {
   placed: Bounds;
   /** Canvas-space region where the image is visible. */
   visible: Bounds;
+  /**
+   * Whether a negative scale mirrors the source along each canvas axis, so
+   * canvas positions map to the source from the opposite edge.
+   */
+  mirrored?: { x: boolean; y: boolean };
 };
 
 export type CraftModel = {
@@ -146,6 +151,7 @@ export function buildCraftModel(input: {
           source,
           placed: placement.placed,
           visible: placement.visible,
+          mirrored: placement.mirrored,
         });
       }
     }
@@ -183,8 +189,12 @@ function imagePlacement(
   element: Extract<SceneKernelElement, { type: "image" }>,
   matrix: Matrix,
   source: CraftRaster | null,
-): { placed: Bounds | null; visible: Bounds } | null {
-  const [, b, c] = matrix;
+): {
+  placed: Bounds | null;
+  visible: Bounds;
+  mirrored: { x: boolean; y: boolean };
+} | null {
+  const [a, b, c, d] = matrix;
   if (Math.abs(b) > 1e-9 || Math.abs(c) > 1e-9) return null;
   const box = {
     x: element.x,
@@ -216,6 +226,7 @@ function imagePlacement(
   return {
     placed: placed === null ? null : transformBounds(placed, matrix),
     visible: transformBounds(visible, matrix),
+    mirrored: { x: a < 0, y: d < 0 },
   };
 }
 

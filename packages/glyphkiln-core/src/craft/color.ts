@@ -106,7 +106,7 @@ function compareImage(
   }));
   let sampleCount = 0;
   let chromaticCount = 0;
-  const { source, placed } = image;
+  const { source, placed, mirrored } = image;
   const x0 = Math.ceil(visible.x) + 1;
   const y0 = Math.ceil(visible.y) + 1;
   const x1 = Math.floor(visible.x + visible.width) - 1;
@@ -120,12 +120,14 @@ function compareImage(
       const cx = px + 0.5;
       const cy = py + 0.5;
       if (occluders.some((bounds) => inside(bounds, cx, cy))) continue;
+      const u = (cx - placed.x) / placed.width;
+      const v = (cy - placed.y) / placed.height;
       const sx = clamp(
-        Math.floor(((cx - placed.x) / placed.width) * source.width),
+        Math.floor((mirrored?.x === true ? 1 - u : u) * source.width),
         source.width - 1,
       );
       const sy = clamp(
-        Math.floor(((cy - placed.y) / placed.height) * source.height),
+        Math.floor((mirrored?.y === true ? 1 - v : v) * source.height),
         source.height - 1,
       );
       const sourceOffset = (sy * source.width + sx) * 4;

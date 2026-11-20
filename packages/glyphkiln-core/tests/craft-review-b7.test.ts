@@ -335,6 +335,46 @@ describe("image placement and decoding", () => {
     expect(rotated.images).toEqual([]);
   });
 
+  it("maps a mirrored image from the opposite edge of its source", () => {
+    const RED: Rgb = [220, 30, 30];
+    const BLUE: Rgb = [30, 60, 220];
+    const split = raster(200, 200, RED);
+    paint(split, 100, 0, 100, 200, BLUE);
+    const flipped = build(
+      [
+        {
+          id: "group",
+          type: "group",
+          transforms: [
+            { type: "translate", x: 400, y: 0 },
+            { type: "scale", x: -1, y: 1 },
+          ],
+          elements: [image("cover")],
+        },
+      ],
+      split,
+    );
+    const placed = flipped.images![0]!;
+    expect(placed.mirrored).toEqual({ x: true, y: false });
+    expect(placed.visible).toEqual({ x: 0, y: 0, width: 400, height: 400 });
+
+    // The renderer paints the flip: blue on the left, red on the right.
+    const rendered = raster(400, 400, BLUE);
+    paint(rendered, 200, 0, 200, 400, RED);
+    const model: CraftModel = { ...flipped, raster: rendered };
+    const review = analyzeCraft(model);
+    expect(dimmedCodes(review)).toEqual([]);
+    for (const color of review.metrics.images[0]!.colors) {
+      expect(color.chromaRetention).toBeGreaterThan(0.99);
+    }
+    // Mapped without the mirror, the same untreated render reads as dimmed.
+    const unmirrored: CraftModel = {
+      ...model,
+      images: [{ ...placed, mirrored: { x: false, y: false } }],
+    };
+    expect(dimmedCodes(analyzeCraft(unmirrored))).toHaveLength(1);
+  });
+
   it("keeps the box as the visible region when the source cannot be decoded", () => {
     const model = build([image("contain")], null);
     expect(model.elements[0]!.visibleBounds).toEqual({
