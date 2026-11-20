@@ -1,5 +1,5 @@
 import type { Bounds } from "../domain/types.js";
-import { pathDataBounds } from "../craft/geometry.js";
+import { pathDataBounds } from "../layout/path-bounds.js";
 import { contrastRatio } from "../layout/index.js";
 import {
   addQuietRegionIssue,

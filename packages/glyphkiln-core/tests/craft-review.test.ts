@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { readdir, readFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -12,7 +12,7 @@ import {
   sha256,
 } from "../src/index.js";
 import { analyzeCraft, type CraftReview } from "../src/craft/analyze.js";
-import { pathDataBounds } from "../src/craft/geometry.js";
+import { pathDataBounds } from "../src/layout/path-bounds.js";
 import type { CraftElement, CraftModel, CraftRaster } from "../src/craft/model.js";
 import { reviewSceneCraft } from "../src/scene/index.js";
 import { cloneDocument, loadExample, loadExampleAssets } from "./helpers.js";
@@ -413,6 +413,21 @@ describe("path bounds", () => {
     });
     expect(pathDataBounds("")).toBeNull();
     expect(pathDataBounds("10 10")).toBeNull();
+  });
+
+  it("is never imported by render-path modules, so review code cannot move pixels", async () => {
+    const renderPath = ["fonts", "layout", "renderer", "templates", "typography"];
+    const offenders: string[] = [];
+    for (const directory of renderPath) {
+      const root = resolve("src", directory);
+      for (const name of await readdir(root, { recursive: true })) {
+        if (!name.endsWith(".ts")) continue;
+        const source = await readFile(join(root, name), "utf8");
+        if (/from "(?:\.\.\/)+craft\//.test(source))
+          offenders.push(`${directory}/${name}`);
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });
 

@@ -6,12 +6,12 @@ import {
   matrixScale,
   multiply,
   normalizeHexColor,
-  pathDataBounds,
   transformBounds,
   transformMatrix,
   unionBounds,
   type Matrix,
 } from "./geometry.js";
+import { pathDataBounds } from "../layout/path-bounds.js";
 
 /** Straight RGBA pixels of the exact rendered canvas, row-major. */
 export type CraftRaster = {
