@@ -736,6 +736,48 @@ describe("AppWorkflow", () => {
       canvasSeed: expected.canvasSeed,
     });
 
+    const legacyQuery = {
+      type: "campaign.canvas.seed" as const,
+      workspaceId,
+      campaignId: campaign.id,
+      directionId: direction.id,
+      canvasKey: "hero-landscape",
+      templateId: "image-led-campaign" as const,
+      templateVersion: "1.0.1",
+      format: "linkedin-landscape" as const,
+      compositionVariantId: "focal-editorial" as const,
+    };
+    const legacy = deriveCampaignSeeds({
+      campaignSeed: campaign.campaignSeed,
+      familyId: campaign.familyId,
+      directionKey: createCampaignDirectionKey(direction.directionKey),
+      canvasKey: createCampaignCanvasKey("hero-landscape"),
+      template: { id: "image-led-campaign", version: "1.0.1" },
+      format: "linkedin-landscape",
+      compositionVariantId: "focal-editorial",
+    });
+    expect(
+      expectProjection(
+        await workflow.read({
+          evidence: { sessionToken: owner.sessionToken },
+          query: legacyQuery,
+        }),
+        "campaign-canvas-seed",
+      ),
+    ).toMatchObject({
+      template: { id: "image-led-campaign", version: "1.0.1" },
+      canvasSeed: legacy.canvasSeed,
+    });
+    expect(legacy.canvasSeed).not.toBe(expected.canvasSeed);
+    expectFailure(
+      await workflow.read({
+        evidence: { sessionToken: owner.sessionToken },
+        query: { ...legacyQuery, templateVersion: "9.9.9" },
+      }),
+      422,
+      "INVALID_CAMPAIGN_CANVAS",
+    );
+
     const foreignCampaign = expectReceipt(
       await workflow.execute({
         evidence: ownerEvidence(owner),

@@ -1833,6 +1833,7 @@ class AppWorkflowImplementation implements AppWorkflow {
       const derivedSeed = deriveStoredCampaignCanvasSeed(campaign, direction, {
         canvasKey: command.canvasKey,
         templateId: revision.document.template.id,
+        templateVersion: revision.document.template.version,
         format: revision.document.format,
         compositionVariantId: command.compositionVariantId,
       });
@@ -4003,14 +4004,19 @@ function deriveStoredCampaignCanvasSeed(
   scope: {
     canvasKey: string;
     templateId: TemplateId;
+    templateVersion?: string;
     format: FormatId;
     compositionVariantId: CampaignCompositionVariantId;
   },
 ): Omit<CampaignCanvasSeedProjection, "kind"> {
   const family = CAMPAIGN_FAMILY_REGISTRY[campaign.familyId];
+  // Members are ordered newest first. An exact version keeps seeds stable for
+  // revisions authored against an earlier member of the same family.
   const member = family.members.find(
     (candidate) =>
       candidate.template.id === scope.templateId &&
+      (scope.templateVersion === undefined ||
+        candidate.template.version === scope.templateVersion) &&
       candidate.formats.some((format) => format === scope.format),
   );
   if (member === undefined) throw invalidCampaignCanvas();

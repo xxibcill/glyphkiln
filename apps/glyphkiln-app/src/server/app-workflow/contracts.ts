@@ -249,6 +249,8 @@ export type AppQuery =
       directionId: string;
       canvasKey: string;
       templateId: TemplateId;
+      /** Exact template version; defaults to the family's current member. */
+      templateVersion?: string;
       format: FormatId;
       compositionVariantId: CampaignCompositionVariantId;
     }

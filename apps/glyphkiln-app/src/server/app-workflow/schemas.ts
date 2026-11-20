@@ -456,6 +456,11 @@ export const AppQuerySchema = z.discriminatedUnion("type", [
       directionId: identifier,
       canvasKey: identifier,
       templateId: z.enum(TEMPLATE_IDS),
+      templateVersion: z
+        .string()
+        .max(32)
+        .regex(/^\d+\.\d+\.\d+$/u)
+        .optional(),
       format: z.enum(FORMAT_IDS),
       compositionVariantId: z.enum(CAMPAIGN_COMPOSITION_VARIANT_IDS),
     })
