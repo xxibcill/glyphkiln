@@ -52,6 +52,37 @@ describe("parsePreviewResponse", () => {
     },
   );
 
+  it.each(["1.4.0", "1.5.0"])(
+    "verifies a stored schema %s proof against its exact template contract",
+    async (schemaVersion) => {
+      const document = createPreviewDesign();
+      Object.assign(document, { schemaVersion });
+      document.template.version = "1.1.1";
+      const result = await createProjectPreview(document, {
+        render: async (document, options) => {
+          const { renderGraphic } = await import("@glyphkiln/core");
+          return renderGraphic(document, options);
+        },
+        now: () => FIXED_NOW,
+      });
+      if (!result.body.ok) throw new Error("Expected a rendered preview.");
+      await expect(
+        verifyPreviewIntegrity(result.body, CATALOG, result.body.document),
+      ).resolves.toBeNull();
+    },
+  );
+
+  it("rejects a schema version the exact template does not declare", async () => {
+    const proof = await renderSuccess();
+    Object.assign(proof.document, { schemaVersion: "9.9.9" });
+    for (const output of proof.outputs) {
+      output.manifest.designDocumentHash = hashCanonical(proof.document);
+    }
+    const failure = await verifyPreviewIntegrity(proof, CATALOG, proof.document);
+    expect(failure).toMatchObject({ code: "PREVIEW_INTEGRITY_FAILED" });
+    expect(failure?.detail).toContain("trusted Core catalog");
+  });
+
   it("rejects an unregistered exact version even when document and manifests agree", async () => {
     const proof = await renderSuccess();
     proof.document.template.version = "9.9.9";

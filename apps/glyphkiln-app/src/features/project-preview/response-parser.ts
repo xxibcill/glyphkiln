@@ -271,7 +271,6 @@ function inspectTrustedManifest(
     format === undefined ||
     template === undefined ||
     (proceduralLayer !== undefined && proceduralStyle === undefined) ||
-    response.document.schemaVersion !== catalog.schemaVersion ||
     exactTemplate === undefined ||
     !exactTemplate.compatibleFormats.includes(response.document.format) ||
     !exactTemplate.compatibleSchemaVersions.includes(response.document.schemaVersion) ||
