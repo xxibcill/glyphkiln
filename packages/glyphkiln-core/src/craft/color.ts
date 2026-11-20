@@ -106,7 +106,7 @@ function compareImage(
   }));
   let sampleCount = 0;
   let chromaticCount = 0;
-  const { source, placed, mirrored } = image;
+  const { source, placed, mirrored, rounded } = image;
   const x0 = Math.ceil(visible.x) + 1;
   const y0 = Math.ceil(visible.y) + 1;
   const x1 = Math.floor(visible.x + visible.width) - 1;
@@ -120,6 +120,7 @@ function compareImage(
       const cx = px + 0.5;
       const cy = py + 0.5;
       if (occluders.some((bounds) => inside(bounds, cx, cy))) continue;
+      if (rounded !== undefined && inCutCorner(rounded, cx, cy)) continue;
       const u = (cx - placed.x) / placed.width;
       const v = (cy - placed.y) / placed.height;
       const sx = clamp(
@@ -226,6 +227,26 @@ function inside(bounds: Bounds, x: number, y: number): boolean {
     y >= bounds.y &&
     y <= bounds.y + bounds.height
   );
+}
+
+/**
+ * Whether a point lies in, or within a pixel of, a cut-away corner of a
+ * rounded clip rectangle, where the canvas behind the image shows through.
+ */
+function inCutCorner(
+  rounded: NonNullable<CraftImageSource["rounded"]>,
+  x: number,
+  y: number,
+): boolean {
+  const { bounds, radiusX, radiusY } = rounded;
+  const left = bounds.x + radiusX;
+  const right = bounds.x + bounds.width - radiusX;
+  const top = bounds.y + radiusY;
+  const bottom = bounds.y + bounds.height - radiusY;
+  const dx = x < left ? left - x : x > right ? x - right : 0;
+  const dy = y < top ? top - y : y > bottom ? y - bottom : 0;
+  if (dx === 0 || dy === 0) return false;
+  return ((dx + 1) / radiusX) ** 2 + ((dy + 1) / radiusY) ** 2 > 1;
 }
 
 function clamp(value: number, maximum: number): number {

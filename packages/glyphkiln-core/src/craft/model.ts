@@ -1,6 +1,6 @@
 import type { Bounds, Dimensions } from "../domain/types.js";
 import type { FontRegistry } from "../fonts/index.js";
-import type { SceneKernel, SceneKernelElement } from "../renderer/scene.js";
+import type { SceneClip, SceneKernel, SceneKernelElement } from "../renderer/scene.js";
 import {
   IDENTITY,
   matrixScale,
@@ -63,7 +63,19 @@ export type CraftImageSource = {
    * canvas positions map to the source from the opposite edge.
    */
   mirrored?: { x: boolean; y: boolean };
+  /**
+   * The image's own rounded clip in canvas space, when it has a radius:
+   * pixels in the cut-away corners show what lies behind the image.
+   */
+  rounded?: { bounds: Bounds; radiusX: number; radiusY: number };
 };
+
+/**
+ * Group clips around an element, in canvas space: the intersection of their
+ * bounding boxes (null when nothing survives) and whether every clip is an
+ * axis-aligned rectangle without rounded corners, so the box is exact.
+ */
+type GroupClip = { bounds: Bounds | null; rectangular: boolean };
 
 export type CraftModel = {
   canvas: Dimensions;
@@ -100,6 +112,7 @@ export function buildCraftModel(input: {
     matrix: Matrix,
     opacity: number,
     decoration: boolean,
+    clip: GroupClip | undefined,
   ): void => {
     const elementOpacity = opacity * (element.opacity ?? 1);
     // Only procedural texture is excluded. Accessibility "decoration" roles
@@ -110,8 +123,12 @@ export function buildCraftModel(input: {
         (current, transform) => multiply(current, transformMatrix(transform)),
         matrix,
       );
+      const childClip =
+        element.clip === undefined
+          ? clip
+          : addGroupClip(clip, element.clip, childMatrix);
       for (const child of element.elements) {
-        visit(child, childMatrix, elementOpacity, isDecoration);
+        visit(child, childMatrix, elementOpacity, isDecoration, childClip);
       }
       return;
     }
@@ -143,21 +160,31 @@ export function buildCraftModel(input: {
     }
     if (element.type === "image") {
       const source = input.decodeImage?.(element.href) ?? null;
-      const placement = imagePlacement(element, matrix, source);
+      const placement = imagePlacement(element, matrix, source, clip);
       record.visibleBounds = placement?.visible ?? null;
-      if (source !== null && placement !== null && placement.placed !== null) {
+      // Only rectangular group clips are mapped exactly; under a circle,
+      // path, or rounded group clip the image is not color-reviewed.
+      if (
+        source !== null &&
+        placement !== null &&
+        placement.placed !== null &&
+        (clip === undefined || clip.rectangular)
+      ) {
         images.push({
           elementId: element.id,
           source,
           placed: placement.placed,
           visible: placement.visible,
           mirrored: placement.mirrored,
+          ...(placement.rounded === undefined ? {} : { rounded: placement.rounded }),
         });
       }
     }
     elements.push(record);
   };
-  for (const element of input.scene.elements) visit(element, IDENTITY, 1, false);
+  for (const element of input.scene.elements) {
+    visit(element, IDENTITY, 1, false, undefined);
+  }
   const accentColors = [
     ...new Set(
       input.accentColors
@@ -189,13 +216,15 @@ function imagePlacement(
   element: Extract<SceneKernelElement, { type: "image" }>,
   matrix: Matrix,
   source: CraftRaster | null,
+  clip: GroupClip | undefined,
 ): {
   placed: Bounds | null;
   visible: Bounds;
   mirrored: { x: boolean; y: boolean };
+  rounded?: { bounds: Bounds; radiusX: number; radiusY: number };
 } | null {
-  const [a, b, c, d] = matrix;
-  if (Math.abs(b) > 1e-9 || Math.abs(c) > 1e-9) return null;
+  const [a, , , d] = matrix;
+  if (!axisAligned(matrix)) return null;
   const box = {
     x: element.x,
     y: element.y,
@@ -223,10 +252,66 @@ function imagePlacement(
     visible = intersectBounds(visible, element.clipBounds);
   }
   if (visible === null) return null;
+  let canvasVisible: Bounds | null = transformBounds(visible, matrix);
+  if (clip !== undefined) {
+    canvasVisible =
+      clip.bounds === null ? null : intersectBounds(canvasVisible, clip.bounds);
+  }
+  if (canvasVisible === null) return null;
+  // The serializer clips to `clipBounds ?? box` with rx = clipRadius, which
+  // SVG limits to half of each side.
+  const radius = element.clipRadius ?? 0;
+  const clipRect = element.clipBounds ?? box;
+  const rounded =
+    radius > 0
+      ? {
+          bounds: transformBounds(clipRect, matrix),
+          radiusX: Math.min(radius, clipRect.width / 2) * Math.abs(a),
+          radiusY: Math.min(radius, clipRect.height / 2) * Math.abs(d),
+        }
+      : undefined;
   return {
     placed: placed === null ? null : transformBounds(placed, matrix),
-    visible: transformBounds(visible, matrix),
+    visible: canvasVisible,
     mirrored: { x: a < 0, y: d < 0 },
+    ...(rounded === undefined ? {} : { rounded }),
+  };
+}
+
+function axisAligned(matrix: Matrix): boolean {
+  return Math.abs(matrix[1]) <= 1e-9 && Math.abs(matrix[2]) <= 1e-9;
+}
+
+function addGroupClip(
+  outer: GroupClip | undefined,
+  clip: SceneClip,
+  matrix: Matrix,
+): GroupClip {
+  const local =
+    clip.type === "rect"
+      ? { x: clip.x, y: clip.y, width: clip.width, height: clip.height }
+      : clip.type === "circle"
+        ? {
+            x: clip.cx - clip.radius,
+            y: clip.cy - clip.radius,
+            width: clip.radius * 2,
+            height: clip.radius * 2,
+          }
+        : pathDataBounds(clip.data);
+  const canvas = local === null ? null : transformBounds(local, matrix);
+  const bounds =
+    outer === undefined
+      ? canvas
+      : outer.bounds === null || canvas === null
+        ? null
+        : intersectBounds(outer.bounds, canvas);
+  return {
+    bounds,
+    rectangular:
+      (outer?.rectangular ?? true) &&
+      clip.type === "rect" &&
+      (clip.radius ?? 0) <= 0 &&
+      axisAligned(matrix),
   };
 }
 

@@ -105,7 +105,10 @@ three format pairs sit at layout distance 0.02–0.08; the P1 recomposition
 (no treatment, separated image and copy) keeps over 99% of chroma and its
 pairs sit at 0.21–0.38. The product-color check does not know which hue is the
 product: it reviews every dominant hue, so a deliberate grade or duotone is
-also flagged. Rotated images and group clips are not mapped.
+also flagged. Mirrored images are mapped from the opposite edge, rounded
+image corners are skipped, and rectangular group clips narrow the visible
+region; rotated images and images under circle, path, or rounded group clips
+are not color-reviewed.
 
 Design documents budget the brand snapshot accent by default; scenes budget
 only the `accentColors` the caller declares. Procedural background texture is

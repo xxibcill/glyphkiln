@@ -375,6 +375,67 @@ describe("image placement and decoding", () => {
     expect(dimmedCodes(analyzeCraft(unmirrored))).toHaveLength(1);
   });
 
+  it("narrows to rectangular group clips and skips other group clips", () => {
+    const group = (clip: object): SceneKernelElement =>
+      ({
+        id: "group",
+        type: "group",
+        clip,
+        elements: [image("cover")],
+      }) as SceneKernelElement;
+    const rect = build([
+      group({ type: "rect", x: 100, y: 50, width: 200, height: 300 }),
+    ]);
+    expect(rect.images?.[0]!.visible).toEqual({
+      x: 100,
+      y: 50,
+      width: 200,
+      height: 300,
+    });
+    expect(rect.elements[0]!.visibleBounds).toEqual(rect.images?.[0]!.visible);
+
+    const circle = build([group({ type: "circle", cx: 200, cy: 200, radius: 100 })]);
+    expect(circle.images).toEqual([]);
+    expect(circle.elements[0]!.visibleBounds).toEqual({
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 200,
+    });
+    const roundedGroup = build([
+      group({ type: "rect", x: 0, y: 0, width: 400, height: 400, radius: 40 }),
+    ]);
+    expect(roundedGroup.images).toEqual([]);
+    const outside = build([
+      group({ type: "rect", x: 500, y: 0, width: 10, height: 10 }),
+    ]);
+    expect(outside.elements[0]!.visibleBounds).toBeNull();
+  });
+
+  it("skips the cut-away corners of a rounded image clip", () => {
+    const photo = photograph();
+    const model = build([image("cover", { clipRadius: 200 })], photo);
+    expect(model.images?.[0]!.rounded).toEqual({
+      bounds: { x: 0, y: 0, width: 400, height: 400 },
+      radiusX: 200,
+      radiusY: 200,
+    });
+    // An untreated circular crop on a dark canvas: the corners show the canvas.
+    const rendered = renderedPhoto();
+    for (let y = 0; y < 400; y += 1) {
+      for (let x = 0; x < 400; x += 1) {
+        if ((x + 0.5 - 200) ** 2 + (y + 0.5 - 200) ** 2 > 200 ** 2) {
+          paint(rendered, x, y, 1, 1, [21, 21, 21]);
+        }
+      }
+    }
+    const cropped: CraftModel = { ...model, raster: rendered };
+    expect(dimmedCodes(analyzeCraft(cropped))).toEqual([]);
+    const square = { ...model.images![0]! };
+    delete square.rounded;
+    expect(dimmedCodes(analyzeCraft({ ...cropped, images: [square] }))).toHaveLength(1);
+  });
+
   it("keeps the box as the visible region when the source cannot be decoded", () => {
     const model = build([image("contain")], null);
     expect(model.elements[0]!.visibleBounds).toEqual({
