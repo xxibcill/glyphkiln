@@ -2,6 +2,7 @@ import { GlyphkilnError, type Bounds, type Dimensions } from "../domain/types.js
 import type { CraftElement, CraftModel } from "./model.js";
 import {
   CRAFT_FORMAT_SET_MAXIMUM,
+  CRAFT_FORMAT_SET_MAXIMUM_ELEMENTS,
   CRAFT_FORMAT_SET_MINIMUM_SHARED,
   CRAFT_FORMAT_SET_ROW_TOLERANCE,
   CRAFT_FORMAT_SET_SHARED_SHARE,
@@ -136,17 +137,7 @@ export function reviewFormatSet(
   } = {},
 ): CraftFormatSetReview {
   const entries = validateEntries(input);
-  const limit = options.thresholds?.formatLayoutDistance;
-  if (
-    limit !== undefined &&
-    (typeof limit !== "number" || !Number.isFinite(limit) || limit <= 0)
-  ) {
-    throw new GlyphkilnError(
-      'Craft threshold "formatLayoutDistance" must be a positive finite number.',
-      "INVALID_CRAFT_REVIEW_OPTIONS",
-      { threshold: "formatLayoutDistance" },
-    );
-  }
+  const limit = validateFormatSetOptions(options);
   const formatLayoutDistance = limit ?? CRAFT_REVIEW_DEFAULTS.formatLayoutDistance;
   const pairs: CraftFormatPairMetric[] = [];
   const findings: CraftFormatSetFinding[] = [];
@@ -212,15 +203,82 @@ function validateEntries(value: unknown): CraftFormatSetEntry[] {
       review?.policyVersion !== CRAFT_REVIEW_POLICY_VERSION ||
       typeof review.canvas?.width !== "number" ||
       typeof review.canvas.height !== "number" ||
-      !Array.isArray(review.metrics?.layout)
+      !Array.isArray(review.metrics?.layout) ||
+      review.metrics.layout.length > CRAFT_FORMAT_SET_MAXIMUM_ELEMENTS ||
+      !review.metrics.layout.every(isLayoutElement)
     ) {
       throw new GlyphkilnError(
-        `Each format-set entry needs a format label and a craft review made under policy ${CRAFT_REVIEW_POLICY_VERSION}.`,
+        `Each format-set entry needs a format label and a craft review made under policy ${CRAFT_REVIEW_POLICY_VERSION}, with at most ${CRAFT_FORMAT_SET_MAXIMUM_ELEMENTS} well-formed layout elements.`,
         "INVALID_CRAFT_REVIEW_OPTIONS",
       );
     }
     return entry as CraftFormatSetEntry;
   });
+}
+
+const LAYOUT_ROLES: ReadonlySet<unknown> = new Set(["text", "image", "mark"]);
+
+function isLayoutElement(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const element = value as { elementId?: unknown; role?: unknown; bounds?: unknown };
+  if (
+    typeof element.elementId !== "string" ||
+    element.elementId.length === 0 ||
+    element.elementId.length > 200 ||
+    !LAYOUT_ROLES.has(element.role) ||
+    typeof element.bounds !== "object" ||
+    element.bounds === null
+  ) {
+    return false;
+  }
+  const bounds = element.bounds as Record<string, unknown>;
+  return (["x", "y", "width", "height"] as const).every(
+    (key) =>
+      typeof bounds[key] === "number" &&
+      Number.isFinite(bounds[key]) &&
+      (key === "x" || key === "y" || bounds[key] >= 0),
+  );
+}
+
+/** Rejects unknown option keys, like `resolveCraftThresholds` does. */
+function validateFormatSetOptions(options: unknown): number | undefined {
+  const invalid = (message: string, details?: Record<string, unknown>) =>
+    new GlyphkilnError(message, "INVALID_CRAFT_REVIEW_OPTIONS", details);
+  if (typeof options !== "object" || options === null || Array.isArray(options)) {
+    throw invalid("Format-set options must be an object.");
+  }
+  for (const key of Object.keys(options)) {
+    if (key !== "thresholds") {
+      throw invalid(`Unknown format-set option "${key}".`, { option: key });
+    }
+  }
+  const thresholds = (options as { thresholds?: unknown }).thresholds;
+  if (thresholds === undefined) return undefined;
+  if (
+    typeof thresholds !== "object" ||
+    thresholds === null ||
+    Array.isArray(thresholds)
+  ) {
+    throw invalid("Craft thresholds must be an object.");
+  }
+  for (const key of Object.keys(thresholds)) {
+    if (key !== "formatLayoutDistance") {
+      throw invalid(`Unknown format-set threshold "${key}".`, { threshold: key });
+    }
+  }
+  const limit = (thresholds as { formatLayoutDistance?: unknown }).formatLayoutDistance;
+  if (
+    limit !== undefined &&
+    (typeof limit !== "number" || !Number.isFinite(limit) || limit <= 0)
+  ) {
+    throw invalid(
+      'Craft threshold "formatLayoutDistance" must be a positive finite number.',
+      {
+        threshold: "formatLayoutDistance",
+      },
+    );
+  }
+  return limit;
 }
 
 function comparePair(

@@ -114,3 +114,5 @@ export const CRAFT_FORMAT_SET_SHARED_SHARE = 0.75;
 export const CRAFT_FORMAT_SET_ROW_TOLERANCE = 0.02;
 /** Reviews accepted by one format-set review. */
 export const CRAFT_FORMAT_SET_MAXIMUM = 16;
+/** Layout elements accepted per review in a format-set review. */
+export const CRAFT_FORMAT_SET_MAXIMUM_ELEMENTS = 2_000;

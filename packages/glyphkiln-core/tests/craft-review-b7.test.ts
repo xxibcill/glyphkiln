@@ -814,6 +814,41 @@ describe("reviewFormatSet", () => {
       { format: "a", review: { ...review, canvas: undefined } },
       { format: "b", review },
     ]);
+    const withLayout = (layout: unknown[]) => ({
+      ...review,
+      metrics: { ...review.metrics, layout },
+    });
+    const valid = review.metrics.layout[0]!;
+    for (const item of [
+      null,
+      { elementId: "x" },
+      { ...valid, elementId: "" },
+      { ...valid, role: "rect" },
+      { ...valid, bounds: { ...valid.bounds, x: Number.NaN } },
+      { ...valid, bounds: { ...valid.bounds, width: -1 } },
+    ]) {
+      rejects([
+        { format: "a", review: withLayout([item]) },
+        { format: "b", review },
+      ]);
+    }
+    rejects([
+      { format: "a", review: withLayout(Array.from({ length: 2_001 }, () => valid)) },
+      { format: "b", review },
+    ]);
+    const pair = [
+      { format: "a", review },
+      { format: "b", review },
+    ];
+    const rejectsOptions = (options: unknown) =>
+      expect(() =>
+        reviewFormatSet(pair, options as Parameters<typeof reviewFormatSet>[1]),
+      ).toThrow(expect.objectContaining({ code: "INVALID_CRAFT_REVIEW_OPTIONS" }));
+    rejectsOptions(null);
+    rejectsOptions({ threshold: { formatLayoutDistance: 0.2 } });
+    rejectsOptions({ thresholds: { displayWidth: 360 } });
+    rejectsOptions({ thresholds: { formatLayoutDistance: 0 } });
+    rejectsOptions({ thresholds: [] });
     expect(sceneReviewFormatSet).toBe(reviewFormatSet);
   });
 });
