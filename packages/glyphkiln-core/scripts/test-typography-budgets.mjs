@@ -1,7 +1,14 @@
-// ADR 0019 pre-ship budgets for the M1 HarfBuzz shaper, checked in CI:
+// ADR 0019 pre-ship budgets for the M1 HarfBuzz shaper, run by `npm test`
+// (the repository has no hosted CI yet, so this is the local release gate):
 //   - cold: first shaped and outlined line <= 100 ms in a fresh process;
 //   - warm shaping per corpus line no slower than fontkit 2.0.4;
 //   - warm outlines (per-face cache) at most 2x fontkit's.
+// Those compare the raw shapers. The M1 typesetter adds script runs, face
+// coverage, variation instances and cluster tracking, so the script also
+// sets every corpus line through it and through the legacy FontRegistry
+// path, and fails if M1 is more than TYPESET_RATIO_LIMIT times slower. That
+// is a regression guard, not an ADR condition; on 21 November 2026 the two
+// paths measured within about 6% of each other on macOS arm64.
 // Wall-clock numbers on shared machines vary; the test takes medians and
 // allows one re-measurement before failing, and prints the numbers.
 import { execFile } from "node:child_process";
@@ -10,10 +17,13 @@ import { performance } from "node:perf_hooks";
 import { promisify } from "node:util";
 
 import { loadHarfBuzzShaper } from "../dist/fonts/harfbuzz.js";
+import { FontRegistry } from "../dist/fonts/index.js";
 import { fontkitShaper } from "../dist/fonts/shaper.js";
+import { createTypesetter } from "../dist/typography/engine.js";
 
 const execFileAsync = promisify(execFile);
 const COLD_BUDGET_MS = 100;
+const TYPESET_RATIO_LIMIT = 1.25;
 
 const median = (values) => {
   const sorted = [...values].sort((left, right) => left - right);
@@ -83,6 +93,57 @@ function warm(shaper) {
   };
 }
 
+/** Warm µs per corpus line through each full line setter, at 48 px. */
+function typeset() {
+  const registry = new FontRegistry();
+  const engines = new Map();
+  const engineFor = (family) => {
+    if (!engines.has(family)) {
+      engines.set(
+        family,
+        createTypesetter({
+          registry,
+          model: { family, weight: 400, style: "normal" },
+          shortSidePx: 1080,
+          layerId: "budget",
+        }),
+      );
+    }
+    return engines.get(family);
+  };
+  const corpus = lines().map((line) => ({
+    ...line,
+    family: line.latin ? "Inter" : "Noto Sans Thai",
+  }));
+  const set = (setter, line) =>
+    setter.setLines({
+      lines: [line.text],
+      family: line.family,
+      weight: 400,
+      style: "normal",
+      fontSize: 48,
+      lineHeight: 1.2,
+      x: 0,
+      y: 0,
+      align: "left",
+    });
+  const rounds = { legacy: [], m1: [] };
+  for (let iteration = 0; iteration < 9; iteration += 1) {
+    for (const [name, setterFor] of [
+      ["legacy", () => registry],
+      ["m1", (line) => engineFor(line.family)],
+    ]) {
+      const started = performance.now();
+      for (const line of corpus) set(setterFor(line), line);
+      rounds[name].push(((performance.now() - started) * 1000) / corpus.length);
+    }
+  }
+  return {
+    legacyMicroseconds: median(rounds.legacy.slice(2)),
+    m1Microseconds: median(rounds.m1.slice(2)),
+  };
+}
+
 async function measure() {
   const harfbuzz = await loadHarfBuzzShaper();
   const fontkitWarm = warm(fontkitShaper);
@@ -93,6 +154,7 @@ async function measure() {
       fontkit: await cold("fontkit"),
     },
     warm: { fontkit: fontkitWarm, harfbuzz: harfbuzzWarm },
+    typeset: typeset(),
   };
   const failures = [];
   if (result.coldFirstShapedLineMs.harfbuzz > COLD_BUDGET_MS) {
@@ -106,6 +168,14 @@ async function measure() {
   if (harfbuzzWarm.outlineMicroseconds > 2 * fontkitWarm.outlineMicroseconds) {
     failures.push("warm HarfBuzz outlines exceed 2x fontkit");
   }
+  if (
+    result.typeset.m1Microseconds >
+    TYPESET_RATIO_LIMIT * result.typeset.legacyMicroseconds
+  ) {
+    failures.push(
+      `warm M1 typesetting exceeds ${TYPESET_RATIO_LIMIT}x the legacy FontRegistry path`,
+    );
+  }
   return { result, failures };
 }
 
@@ -113,7 +183,7 @@ let attempt = await measure();
 if (attempt.failures.length > 0) attempt = await measure();
 const round = (value) => Math.round(value * 10) / 10;
 process.stdout.write(
-  `Typography budgets: cold first line HarfBuzz ${round(attempt.result.coldFirstShapedLineMs.harfbuzz)} ms (fontkit ${round(attempt.result.coldFirstShapedLineMs.fontkit)} ms); warm shaping ${round(attempt.result.warm.harfbuzz.shapeMicroseconds)} µs/line vs fontkit ${round(attempt.result.warm.fontkit.shapeMicroseconds)}; warm outlines ${round(attempt.result.warm.harfbuzz.outlineMicroseconds)} µs/line vs fontkit ${round(attempt.result.warm.fontkit.outlineMicroseconds)}.\n`,
+  `Typography budgets: cold first line HarfBuzz ${round(attempt.result.coldFirstShapedLineMs.harfbuzz)} ms (fontkit ${round(attempt.result.coldFirstShapedLineMs.fontkit)} ms); warm shaping ${round(attempt.result.warm.harfbuzz.shapeMicroseconds)} µs/line vs fontkit ${round(attempt.result.warm.fontkit.shapeMicroseconds)}; warm outlines ${round(attempt.result.warm.harfbuzz.outlineMicroseconds)} µs/line vs fontkit ${round(attempt.result.warm.fontkit.outlineMicroseconds)}; warm full line setting M1 ${round(attempt.result.typeset.m1Microseconds)} µs/line vs legacy ${round(attempt.result.typeset.legacyMicroseconds)}.\n`,
 );
 if (attempt.failures.length > 0) {
   process.stderr.write(`Typography budget failures: ${attempt.failures.join("; ")}\n`);

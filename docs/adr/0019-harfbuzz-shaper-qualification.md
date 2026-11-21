@@ -174,8 +174,10 @@ unused `harfbuzz-subset.wasm`.
      Determinism); Linux on Node 22 and 24 was already shown;
    - ~~a per-face outline cache, so warm outline cost is at most 2× fontkit's~~
      — met in M1 (see below);
-   - ~~a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
-     than fontkit, on CI~~ — met in M1, checked by `npm test`;
+   - a cold first-shaped-line budget of ≤ 100 ms and warm shaping no slower
+     than fontkit, on CI — **partly met** in M1: the budgets hold and
+     `npm test` checks them, but the repository has no hosted CI yet, so
+     they run only where the gate is run;
    - ~~the open `seven`→`eight` kerning difference explained~~ — explained in
      M1: a fontkit defect;
    - ~~the owner's answer to plan question Q2~~ — the owner accepted about
@@ -194,7 +196,13 @@ remaining conditions:
   importing Core's HarfBuzz module (with the wasm hash check) to the first
   shaped and outlined Inter line: 48 ms, against fontkit's 224. Warm shaping
   was 51 µs per line, against fontkit's 177. The script takes medians and
-  measures once more before it fails.
+  measures once more before it fails. These compare the raw shapers. Set
+  through the full M1 typesetter (script runs, coverage, instances, cluster
+  tracking), a corpus line costs about the same as the legacy FontRegistry
+  path: within about 6% on macOS arm64 on 21 November 2026. The script
+  reports that number too and fails above 1.25×, as a regression guard.
+  There is no hosted CI yet; until there is, the budgets are checked only
+  where `npm test` runs.
 - **`seven`→`eight`.** Inter's `GPOS` has a `kern` feature under `latn` with
   lookups `[2, 3, 1]` and one under `DFLT` with `[2, 3, 1, 2, 3, 1]`, in which
   every lookup appears twice. Digits alone have no strong script, so fontkit
