@@ -3,7 +3,7 @@
 **Compiled 3 November 2026. Status: index of all work that is planned but not
 yet implemented. Nothing here is newly approved or started.**
 
-Glyphkiln's open work was spread across six planning documents. This plan
+Glyphkiln's open work was spread across seven planning documents. This plan
 gathers it in one place, removes duplicates, and proposes one order. Detail stays
 in the source documents; each item links back to its source.
 
@@ -15,6 +15,7 @@ in the source documents; each item links back to its source.
 | [Roadmap](../roadmap.md) (RM)                                                  | Core after `0.8.0`, App after Alpha                             |
 | [Reference-led refinement](../reference-led-refinement.md) (RL)                | Five next priorities from the 120-project study                 |
 | [Known limitations](../known-limitations.md) (KL)                              | Current gaps that no plan yet schedules                         |
+| [Typography engine plan](typography-engine-plan.md) (TE)                       | Text engine: professional typesetting, M0–M10                   |
 
 ## 1. Where things stand
 
@@ -101,7 +102,7 @@ delivered-size readability) is covered by B3 and the craft review in #67.
 | D-3 Semantic illustration compiler on the Scene Kernel (possible `@glyphkiln/book`) | not started         | Real illustration brief                 | RM                 |
 | D-4 Accessible publication output                                                   | not started         | Real brief; follows C6                  | RM, KL             |
 | D-5 Scene authoring and review in the App (today SDK-only)                          | not started         | B4/B5 need it                           | Stress test, DQ W8 |
-| D-6 Hyphenation, font fallback stacks, more script wrapping models                  | not started         | Part of B2/D-2                          | KL                 |
+| D-6 Hyphenation, font fallback stacks, more script wrapping models                  | not started         | TE M1c, M3, M5                          | KL, TE             |
 | D-7 ICC color-profile control and C2PA signing                                      | not started         | Outside the pure renderer; low priority | RM, KL             |
 | D-8 Feature-frozen `1.0.0`: compatibility and capability tooling                    | not started         | After contracts survive real use        | RM                 |
 
