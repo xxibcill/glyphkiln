@@ -392,7 +392,9 @@ export class FontRegistry {
 
   /**
    * Register a bundled face on first use. Caller-supplied faces are added in
-   * the constructor, so they always win over bundled bytes.
+   * the constructor, so they always win over bundled bytes. Bundled bytes are
+   * fixed package files pinned by hash, so `assertFontResources` (a limit on
+   * caller-supplied fonts) does not apply to them; see SECURITY.md.
    */
   #addBundled(
     key: string,

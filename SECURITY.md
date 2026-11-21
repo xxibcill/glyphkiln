@@ -12,7 +12,15 @@ Only the latest released minor version is supported during the pre-1.0 phase.
 
 - `glyphkiln-core` validates untrusted structured documents and renders only
   built-in, versioned algorithms. It accepts already-resolved bytes and never
-  fetches arbitrary URLs.
+  fetches arbitrary URLs. The one exception is fonts: when a document names
+  the exact family, weight and style of a font Core bundles (the owner-approved
+  OFL families and the Inter development font), Core reads that file from its
+  own package directory and checks it against the SHA-256 pinned in the
+  package. A document cannot name a path, and no other file is reachable.
+  Bundled files are read at most once per process, are bounded by the
+  package's own size, and do not count toward the caller-supplied
+  `maxFonts`/`maxFontBytes` limits. Caller-supplied bytes for the same face
+  always win.
 - The expert `SceneDocument` contract is closed, bounded inert data. It accepts
   no CSS, markup, scripts, callbacks, module names, paths, URLs, external SVG,
   or host-font selection. Connector routes are numeric data and semantic
