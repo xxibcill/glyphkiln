@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 
+import GraphemeSplitter from "grapheme-splitter";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { FontRegistry } from "../src/fonts/index.js";
@@ -45,6 +46,22 @@ function typesetter(
     shortSidePx: 1080,
     layerId,
   });
+}
+
+const graphemes = new GraphemeSplitter();
+
+/**
+ * Independent oracle for `cluster-tracking@1.0.0` units: grapheme clusters
+ * (grapheme-splitter 1.0.4), plus one more unit for each sara am that does
+ * not open its grapheme, since the gap falls before its sara aa.
+ */
+function characterUnits(text: string): number {
+  return graphemes
+    .splitGraphemes(text)
+    .reduce(
+      (units, grapheme) => units + 1 + (grapheme.slice(1).includes("\u0E33") ? 1 : 0),
+      0,
+    );
 }
 
 function setLine(
@@ -188,7 +205,9 @@ describe("T08 cluster tracking on C-TH", () => {
           entry.id,
         ).toEqual(plain.glyphs.map((glyph) => glyph.id));
         // Offsets between consecutive glyphs change only at unit starts, by
-        // exactly the tracking; within a unit (base + marks) they are equal.
+        // exactly the tracking. A zero-advance glyph (a mark) never starts a
+        // unit, so it keeps its offset to its base. The gap count must equal
+        // the unit count from the text itself, independent of the setter.
         let gaps = 0;
         for (let index = 1; index < plain.glyphs.length; index += 1) {
           const before = plain.glyphs[index]!.x - plain.glyphs[index - 1]!.x;
@@ -198,10 +217,15 @@ describe("T08 cluster tracking on C-TH", () => {
             [0, Math.round(tracking * 1000) / 1000],
             `${entry.id} glyph ${index}`,
           ).toContain(delta);
+          if (plain.glyphs[index]!.advance === 0) {
+            expect(delta, `${entry.id} mark ${index} moved off its base`).toBe(0);
+          }
           if (delta !== 0) gaps += 1;
           expect(tracked.glyphs[index]!.y).toBe(plain.glyphs[index]!.y);
         }
-        expect(tracked.width).toBeCloseTo(plain.width + gaps * tracking, 6);
+        const expectedGaps = characterUnits(entry.text) - 1;
+        expect(gaps, `${entry.id} gaps at ${trackingEm} em`).toBe(expectedGaps);
+        expect(tracked.width).toBeCloseTo(plain.width + expectedGaps * tracking, 6);
         // No trailing tracking: the last glyph's advance carries no gap.
         const last = tracked.glyphs.at(-1)!;
         expect(last.advance).toBeCloseTo(plain.glyphs.at(-1)!.advance, 6);
