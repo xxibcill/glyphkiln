@@ -176,6 +176,47 @@ describe("T01 script-run shaping on C-MIX", () => {
   });
 });
 
+describe("script-matching@1.0.0 auto scale", () => {
+  it("measures both faces at the requested size, before the scale applies", () => {
+    const fontSize = 56;
+    const engine = typesetter({
+      family: "Noto Serif Thai",
+      scriptFaces: { latn: { family: "Source Serif 4", scale: "auto" } },
+    });
+    setLine(engine, "ไทย Serif", fontSize);
+    const latin = engine.usedFaces().find((face) => face.family === "Source Serif 4")!;
+    const inkHeight = (family: string, reference: string): number => {
+      const base = shaper.loadFace(registry.get(family, 400, "normal").bytes);
+      const { coordinates } = resolveCoordinates({
+        model: {},
+        weight: 400,
+        axes: shaper.variationAxes(base),
+        namedInstances: [],
+        fontSizePx: fontSize,
+        shortSidePx: 1080,
+        layerId: "test",
+        family,
+        primary: family === "Noto Serif Thai",
+      });
+      const face = shaper.instantiate(base, coordinates);
+      const ink = shaper.glyphInk(
+        face,
+        shaper.nominalGlyph(face, reference.codePointAt(0)!)!,
+      )!;
+      return (ink.yMax - Math.max(0, ink.yMin)) / shaper.metrics(face).unitsPerEm;
+    };
+    const expected =
+      Math.round(
+        (inkHeight("Noto Serif Thai", "น") / inkHeight("Source Serif 4", "x")) * 1000,
+      ) / 1000;
+    expect(latin.scale).toBe(expected);
+    // Drawn at fontSize × scale, so its optical size is the scaled size's.
+    expect(latin.coordinates["opsz"]).toBe(
+      automaticOpticalSize(fontSize * latin.scale, 1080),
+    );
+  });
+});
+
 describe("T08 cluster tracking on C-TH", () => {
   const th = corpus("c-th");
 

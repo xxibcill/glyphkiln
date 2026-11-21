@@ -25,9 +25,10 @@ export const OPTICAL_SIZE_POLICY = Object.freeze({
 
 /**
  * `script-matching@1.0.0`: `auto` scale makes the Latin x-height equal the
- * Thai body height, both measured on glyph ink (`x` and `น`) at the default
- * instance, as a factor on the non-primary face rounded to 0.001. `auto`
- * baseline shift is 0: Thai and Latin share the alphabetic baseline.
+ * Thai body height, both measured on glyph ink (`x` and `น`) on each face's
+ * instance at the requested size, before scaling, as a factor on the
+ * non-primary face rounded to 0.001. `auto` baseline shift is 0: Thai and
+ * Latin share the alphabetic baseline.
  */
 export const SCRIPT_MATCHING_POLICY = Object.freeze({
   version: SCRIPT_MATCHING_POLICY_VERSION,

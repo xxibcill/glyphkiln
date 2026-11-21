@@ -503,8 +503,11 @@ export class M1Typesetter {
   /**
    * `script-matching@1.0.0` auto scale for a non-primary face: the primary
    * face's reference ink height over this face's, using `x` for the Latin
-   * face and `น` for the Thai face, each measured on the instance it is set
-   * in at this size (so automatic optical size is accounted for).
+   * face and `น` for the Thai face. Both are measured on their instances at
+   * the requested size, before the scale applies, so automatic optical size
+   * counts at that size. The scaled face is then drawn at `fontSize * scale`,
+   * whose optical size can differ slightly; measuring there instead would
+   * make the scale depend on itself.
    */
   #scaleFor(
     entry: StackEntry,
