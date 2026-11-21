@@ -1,7 +1,9 @@
 import type { OutputFormat } from "../domain/types.js";
 import {
+  GlyphkilnError,
   LEGACY_RENDERER_VERSION,
   RENDERER_NAME,
+  RENDERER_VERSION,
   type RendererVersion,
 } from "../domain/types.js";
 import type { DesignDocument } from "../schema/index.js";
@@ -45,7 +47,12 @@ type RenderFingerprintBaseInput = {
   assetHashes: readonly string[];
   proceduralAlgorithmVersions: Readonly<Record<string, string>>;
   rendererConfiguration?: Readonly<Record<string, unknown>>;
-  /** Defaults to the legacy renderer, whose payload is unchanged. */
+  /**
+   * Derived from `rendererConfiguration`: renderer 0.6.0 when it carries the
+   * M1 typography policy (`typographyPolicy.m1`), else the legacy renderer.
+   * An explicit value must agree with that, so a payload cannot record one
+   * renderer and the other's configuration.
+   */
   rendererVersion?: RendererVersion;
 };
 
@@ -73,7 +80,7 @@ export function createRenderFingerprintPayload(input: RenderFingerprintInput) {
     template: input.document.template,
     renderer: {
       name: RENDERER_NAME,
-      version: input.rendererVersion ?? LEGACY_RENDERER_VERSION,
+      version: fingerprintRendererVersion(input),
     },
     proceduralAlgorithmVersions: input.proceduralAlgorithmVersions,
     assetHashes: [...input.assetHashes].sort(),
@@ -84,6 +91,26 @@ export function createRenderFingerprintPayload(input: RenderFingerprintInput) {
     outputFormat: input.outputFormat,
     rendererConfiguration: input.rendererConfiguration ?? RENDER_CONFIGURATION,
   };
+}
+
+function fingerprintRendererVersion(
+  input: RenderFingerprintBaseInput,
+): RendererVersion {
+  const typographyPolicy = input.rendererConfiguration?.["typographyPolicy"];
+  const m1 =
+    typeof typographyPolicy === "object" &&
+    typographyPolicy !== null &&
+    "m1" in typographyPolicy &&
+    typographyPolicy.m1 !== undefined;
+  const derived = m1 ? RENDERER_VERSION : LEGACY_RENDERER_VERSION;
+  if (input.rendererVersion !== undefined && input.rendererVersion !== derived) {
+    throw new GlyphkilnError(
+      `Renderer ${input.rendererVersion} does not match a renderer configuration ${m1 ? "with" : "without"} the M1 typography policy.`,
+      "FINGERPRINT_RENDERER_MISMATCH",
+      { rendererVersion: input.rendererVersion, expected: derived },
+    );
+  }
+  return derived;
 }
 
 function compareCanonical(

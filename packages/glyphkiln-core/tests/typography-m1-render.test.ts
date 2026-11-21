@@ -12,7 +12,12 @@ import {
   renderGraphic,
   type DesignDocument,
 } from "../src/index.js";
-import { createRenderFingerprint } from "../src/cache/fingerprint.js";
+import {
+  createRenderFingerprint,
+  createRenderFingerprintPayload,
+} from "../src/cache/fingerprint.js";
+import { RENDER_CONFIGURATION } from "../src/cache/fingerprint-contract.js";
+import { M1_TYPOGRAPHY_POLICY } from "../src/typography/typesetter.js";
 import { loadHarfBuzzShaper } from "../src/fonts/harfbuzz.js";
 import { FontRegistry } from "../src/fonts/index.js";
 import {
@@ -369,7 +374,7 @@ describe("T27: font identity v2 drives the fingerprint", () => {
         outputFormat: "svg",
         assetHashes: [],
         proceduralAlgorithmVersions: {},
-        rendererVersion: RENDERER_VERSION,
+        rendererConfiguration: M1_RENDER_CONFIGURATION,
         fonts,
       });
     const base = fingerprint([face]);
@@ -382,6 +387,74 @@ describe("T27: font identity v2 drives the fingerprint", () => {
     ]) {
       expect(fingerprint([changed])).not.toBe(base);
     }
+  });
+});
+
+const M1_RENDER_CONFIGURATION = {
+  ...RENDER_CONFIGURATION,
+  typographyPolicy: {
+    ...RENDER_CONFIGURATION.typographyPolicy,
+    m1: M1_TYPOGRAPHY_POLICY,
+  },
+};
+
+describe("fingerprint renderer identity", () => {
+  const input = {
+    document: asM1(quoteDocument()),
+    outputFormat: "svg" as const,
+    assetHashes: [],
+    proceduralAlgorithmVersions: {},
+    fontHashes: [],
+  };
+
+  it("derives the renderer from the configuration it hashes", () => {
+    expect(createRenderFingerprintPayload(input).renderer.version).toBe(
+      LEGACY_RENDERER_VERSION,
+    );
+    expect(
+      createRenderFingerprintPayload({
+        ...input,
+        rendererConfiguration: M1_RENDER_CONFIGURATION,
+      }).renderer.version,
+    ).toBe(RENDERER_VERSION);
+  });
+
+  it("rejects an explicit renderer that disagrees with the configuration", () => {
+    for (const mismatch of [
+      { ...input, rendererVersion: RENDERER_VERSION },
+      {
+        ...input,
+        rendererConfiguration: M1_RENDER_CONFIGURATION,
+        rendererVersion: LEGACY_RENDERER_VERSION,
+      },
+    ]) {
+      let caught: unknown;
+      try {
+        createRenderFingerprintPayload(mismatch);
+      } catch (error) {
+        caught = error;
+      }
+      expect((caught as GlyphkilnError).code).toBe("FINGERPRINT_RENDERER_MISMATCH");
+    }
+  });
+
+  it("recomputes a rendered M1 fingerprint from its manifest", async () => {
+    const document = asM1(quoteDocument());
+    const result = await renderGraphic(document, {
+      formats: ["svg"],
+      creationTimestamp: TIMESTAMP,
+    });
+    const output = result.outputs[0]!;
+    expect(
+      createRenderFingerprint({
+        document,
+        outputFormat: "svg",
+        assetHashes: [],
+        proceduralAlgorithmVersions: output.manifest.proceduralAlgorithmVersions,
+        fonts: output.manifest.fonts,
+        rendererConfiguration: M1_RENDER_CONFIGURATION,
+      }),
+    ).toBe(output.fingerprint);
   });
 });
 

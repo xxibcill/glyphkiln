@@ -21,3 +21,9 @@ The new template versions `quote-card@1.4.0`, `statistic-card@1.4.0` and `image-
 Legacy renders keep renderer 0.5.0, manifest 1.2.0 and Scene manifest 1.0.0, so their SVG, PNG, manifest and fingerprint bytes are unchanged.
 
 New exports: `loadTypographyEngine`, the HarfBuzz identity constants, the M1 policy constants, `LEGACY_RENDERER_VERSION`, `LEGACY_MANIFEST_VERSION`, `LEGACY_SCENE_DOCUMENT_VERSION` and `LEGACY_SCENE_RENDER_MANIFEST_VERSION`. Authoring metadata moves to 1.9.0.
+
+Consumer-facing changes:
+
+- `RENDERER_VERSION`, `MANIFEST_VERSION`, `SCENE_DOCUMENT_VERSION` and `SCENE_RENDER_MANIFEST_VERSION` now name the M1 identities (0.6.0, 1.3.0, 1.1.0, 1.1.0). Legacy renders still record the `LEGACY_*` values, so code that compares a legacy manifest with these constants must switch to the `LEGACY_*` constants, as the App does.
+- `createRenderFingerprintPayload` derives the renderer version from `rendererConfiguration`: 0.6.0 when it carries `typographyPolicy.m1`, else 0.5.0. An explicit `rendererVersion` that disagrees throws `FINGERPRINT_RENDERER_MISMATCH`. To recompute an M1 fingerprint, pass the M1 configuration.
+- Brand typography roles that set 1.8.0 font-model fields fail with `TEMPLATE_FEATURE_UNSUPPORTED` on template versions not on the M1 typography.
