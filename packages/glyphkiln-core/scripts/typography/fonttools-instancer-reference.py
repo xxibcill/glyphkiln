@@ -132,8 +132,14 @@ def main():
         }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(report, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    OUTPUT.write_bytes(gzip.compress(payload.encode("utf-8") + b"\n", 9, mtime=0))
+    content = payload.encode("utf-8") + b"\n"
+    compressed = gzip.compress(content, 9, mtime=0)
+    OUTPUT.write_bytes(compressed)
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")
+    # Pin both in scripts/typography/oracles.mjs. The JSON hash is the stable
+    # one; the gzip hash can change with the zlib build.
+    print(f"INSTANCER_REFERENCE_JSON_SHA256 {hashlib.sha256(content).hexdigest()}")
+    print(f"INSTANCER_REFERENCE_SHA256 {hashlib.sha256(compressed).hexdigest()}")
 
 
 if __name__ == "__main__":

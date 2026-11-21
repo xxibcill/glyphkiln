@@ -493,6 +493,13 @@ function boundsDelta(a, b) {
 
 export const INSTANCER_REFERENCE_SHA256 =
   "04b85cab4ad221385dcb5bcac65e1aa8f32c003b15f9aef132c5c3127953ea12";
+/**
+ * SHA-256 of the uncompressed JSON. gzip bytes depend on the zlib build that
+ * wrote them (zlib or zlib-ng), so a regenerated file can carry the same JSON
+ * under a different compressed hash; this one pins the content itself.
+ */
+export const INSTANCER_REFERENCE_JSON_SHA256 =
+  "cee9f82332f5ce7bd3cbb746c6a50308fd7f89bc44591d0b06675197bf653123";
 
 export function readInstancerReference() {
   const compressed = readFileSync(
@@ -501,7 +508,11 @@ export function readInstancerReference() {
   if (sha256(compressed) !== INSTANCER_REFERENCE_SHA256) {
     throw new Error("instancer-reference.json.gz does not match its pinned hash.");
   }
-  return JSON.parse(gunzipSync(compressed).toString("utf8"));
+  const json = gunzipSync(compressed);
+  if (sha256(json) !== INSTANCER_REFERENCE_JSON_SHA256) {
+    throw new Error("instancer-reference.json does not match its pinned hash.");
+  }
+  return JSON.parse(json.toString("utf8"));
 }
 
 /**
