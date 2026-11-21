@@ -280,7 +280,8 @@ The required starting point.
 - **Exit gate.** T09 and T10 pass, including the G-TH gold set (§10, Q3). Existing
   policies are unchanged.
 - **Version owners.** Typography policy (segmentation and opportunities, with data
-  hashes); schema (lexicon, preferred breaks); renderer, when a template opts in.
+  hashes); schema (lexicon, preferred breaks); renderer (opt-in pixels count;
+  §7 rule).
 - **Tests.** `LineBreakTest.txt`; G-TH line-breaking at 5 widths; probe
   regressions; Static Ads T04.
 
@@ -379,13 +380,20 @@ The required starting point.
 
 | Owner                            | Changes when                                                                                                                                                                           | Milestones            |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| Renderer (`RENDERER_VERSION`)    | Glyph selection, positions, outlines, SVG text serialization or raster output change for any accepted input                                                                            | M1, M2, M3–M9         |
+| Renderer (`RENDERER_VERSION`)    | Glyph selection, positions, outlines, SVG text serialization or raster output change for any input, including a new opt-in template version (rule below)                               | M1–M9                 |
 | Typography policy object         | Any algorithm or data table: shaper identity, script runs, tracking, fallback, opsz mapping, UAX #14 version, Thai dictionary, model and lexicon, composer costs, patterns, protrusion | M1–M6                 |
 | Design schema (`DesignDocument`) | New fields: axes, optical sizing, stacks, lexicon, preferred breaks, alignment and limits, hyphenation, `lang`, styles                                                                 | M1, M3, M4, M5, M7    |
 | Scene schema and Scene Kernel    | Font stacks, frames, threads, wraps, paths in `SceneDocument`                                                                                                                          | M1, M8                |
 | Manifest and Scene manifest      | Font identity v2, stack used, policy data hashes, shaper identity                                                                                                                      | M1, M2, M3, M5        |
 | Templates                        | Opt in to new policies through new exact versions; old versions keep their policies                                                                                                    | every pixel milestone |
 | Authoring metadata               | Publishes new fields and template versions                                                                                                                                             | M1, M3, M4, M7        |
+
+**Renderer rule.** A milestone that adds new pixels for any input, opt-in or
+not, bumps the renderer in the release that ships it; several milestones in one
+unreleased version share one bump. Renders of existing exact versions stay
+byte-identical and keep the renderer and manifest identity they already record,
+so the render path, not the package, chooses the recorded identity. No milestone
+repoints an existing exact version to new pixels (AGENTS.md).
 
 ## 8. Integration with the open-work plan
 
@@ -439,8 +447,10 @@ The required starting point.
 
 1. **Pixel policy for the two correctness fixes.** Gate per-run shaping and
    cluster tracking behind new template versions, as B2 does for its features, or
-   correct every render under a renderer bump? Recommended: new template versions
-   now, plus a documented advisory on old versions that use tracking with Thai.
+   correct every render under a renderer bump? The second option repoints existing
+   exact versions to new pixels, which the §7 renderer rule forbids, so it would
+   need an explicit exception. Recommended: new template versions now, plus a
+   documented advisory on old versions that use tracking with Thai.
 2. **HarfBuzz adoption.** Is about 1.3 MB of wasm and a renderer identity change
    acceptable if ADR 0019's evidence supports it?
 3. **Thai gold corpus.** Which source and licence for G-TH: an existing licensed
