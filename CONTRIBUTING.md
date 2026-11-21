@@ -5,8 +5,9 @@ licensed under Apache-2.0.
 
 ## Workflow
 
-1. Use npm 10.9.8 with Node.js 22.22.2 or newer in the Node 22 release line, or
-   Node.js 24 or newer, and run `npm ci` at the repository root. If npm must be
+1. Use npm 10.9.8 with Node.js 22.22.2 or newer in the Node 22 release line,
+   Node.js 24.15.0 or newer in the Node 24 release line, or Node.js 26 or newer,
+   and run `npm ci` at the repository root. If npm must be
    changed, install it from outside the checkout as described in the root
    README.
 2. Create a focused branch.
