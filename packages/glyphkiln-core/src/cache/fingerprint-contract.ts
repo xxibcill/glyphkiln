@@ -9,6 +9,7 @@ import {
   IMAGE_TREATMENT_POLICY_VERSION,
 } from "../assets/image-policy.js";
 import { canonicalJson } from "./canonical-json.js";
+import { templatePolicyVersions } from "./template-policies.js";
 
 export const RENDER_CONFIGURATION = Object.freeze({
   svgNumericPrecision: 3,
@@ -55,6 +56,7 @@ export function createRenderFingerprintPayload(input: RenderFingerprintInput) {
       ([key]) => key !== "id" && key !== "metadata",
     ),
   );
+  const templatePolicies = templatePolicyVersions(input.document.template);
   return {
     designDocument: pixelDocument,
     dimensions: getFormatDimensions(input.document.format),
@@ -64,6 +66,9 @@ export function createRenderFingerprintPayload(input: RenderFingerprintInput) {
       version: RENDERER_VERSION,
     },
     proceduralAlgorithmVersions: input.proceduralAlgorithmVersions,
+    // Present only for template versions that pin extra policies, so every
+    // other fingerprint keeps its exact payload.
+    ...(templatePolicies === undefined ? {} : { templatePolicies }),
     assetHashes: [...input.assetHashes].sort(),
     fonts:
       input.fonts === undefined

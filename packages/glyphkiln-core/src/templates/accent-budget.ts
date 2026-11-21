@@ -11,6 +11,9 @@ import type { Bounds, Dimensions } from "../domain/types.js";
  * centers of a square grid whose pitch is 1/270 of the canvas short side
  * (4 px on a 1080 px side). The result is deterministic for identical input.
  */
+/** Brand color-role resolution used by the B2 template versions. */
+export const COLOR_ROLE_POLICY_VERSION = "color-roles@1.0.0" as const;
+
 export const ACCENT_COVERAGE_POLICY_VERSION = "accent-coverage-grid@1.0.0" as const;
 
 export type AccentShape =

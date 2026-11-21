@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   DESIGN_DOCUMENT_RUNTIME_REFINEMENTS,
+  createRenderFingerprintPayload,
   FontRegistry,
   GlyphkilnError,
   getDesignDocumentJsonSchema,
@@ -280,6 +281,38 @@ describe("explicit template capabilities", () => {
     await expect(render(quote)).rejects.toMatchObject({
       code: "TEMPLATE_SCHEMA_VERSION_UNSUPPORTED",
     });
+  });
+});
+
+describe("B2 policy versions in the fingerprint", () => {
+  it("hashes the policies a B2 template pins and leaves other payloads unchanged", async () => {
+    const campaign = await baseline("image-led-campaign-local-square");
+    const input = {
+      outputFormat: "png" as const,
+      assetHashes: [],
+      fontHashes: [],
+      proceduralAlgorithmVersions: {},
+    };
+    expect(
+      createRenderFingerprintPayload({ ...input, document: campaign }),
+    ).toMatchObject({
+      templatePolicies: {
+        emphasis: "emphasis-runs@1.0.0",
+        openType: "opentype-settings@1.0.0",
+        sizeSetting: "size-setting@1.0.0",
+        colorRoles: "color-roles@1.0.0",
+        accentCoverage: "accent-coverage-grid@1.0.0",
+        localImageTreatment: "local-copy-scrim-v1",
+      },
+    });
+    const quote = await baseline("quote-card-roles");
+    expect(
+      createRenderFingerprintPayload({ ...input, document: quote }),
+    ).not.toHaveProperty("templatePolicies.localImageTreatment");
+    quote.template.version = "1.2.0";
+    expect(
+      createRenderFingerprintPayload({ ...input, document: quote }),
+    ).not.toHaveProperty("templatePolicies");
   });
 });
 

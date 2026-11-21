@@ -19,7 +19,11 @@ import {
   outlineRichLines,
 } from "../typography/rich-text.js";
 import { sizeSetting, type SizeSettingRole } from "../typography/size-setting.js";
-import { accentCoverage, type AccentShape } from "./accent-budget.js";
+import {
+  COLOR_ROLE_POLICY_VERSION,
+  accentCoverage,
+  type AccentShape,
+} from "./accent-budget.js";
 import type { TemplateCanvas, TextLayer } from "./shared.js";
 import type { TemplateRenderContext } from "./types.js";
 
@@ -29,7 +33,7 @@ import type { TemplateRenderContext } from "./types.js";
  * those versions pins: size-setting@1.0.0, opentype-settings@1.0.0,
  * emphasis-runs@1.0.0, color-roles@1.0.0 and accent-coverage-grid@1.0.0.
  */
-export const COLOR_ROLE_POLICY_VERSION = "color-roles@1.0.0" as const;
+export { COLOR_ROLE_POLICY_VERSION };
 export const DEFAULT_ACCENT_AREA_BUDGET = 0.08;
 
 export type ResolvedColorRoles = BrandColorRoleSet & {

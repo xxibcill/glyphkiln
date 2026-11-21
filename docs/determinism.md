@@ -19,6 +19,12 @@ The semantic-design fingerprint includes:
 - focal crop, image-treatment, and composited-contrast policy versions
 - typography algorithm, segmentation, line-breaking, and emergency grapheme
   policy versions
+- for template versions that pin extra policies, those policy versions
+  (`templatePolicies`; `quote-card@1.3.0`, `statistic-card@1.3.0` and
+  `image-led-campaign@1.2.0` pin emphasis runs, OpenType settings, the size
+  setting curve, color roles, accent coverage and, for the campaign, the local
+  copy scrim). The key is omitted for every other template, so their
+  fingerprints are unchanged.
 
 The document's request timestamp, manifest creation timestamp, document ID, and
 other non-rendering metadata do not affect pixels and are excluded. Output
