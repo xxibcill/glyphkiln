@@ -108,8 +108,16 @@ Decisions for the owner:
 
 ## Decision
 
-On 5 November 2026 the owner approved annotating their own copy (decision 1).
-The draft is in
+On 5 November 2026 the owner approved annotating their own copy (decision 1)
+and publishing it in this public repository under the repository's Apache-2.0
+licence (decisions 1 and 4). The draft is in
 [`packages/glyphkiln-core/tests/typography/gold/`](../../../packages/glyphkiln-core/tests/typography/gold/README.md).
-Decisions 2–5 are still open: the reader, the scheme, confirming the copy can
-be public, and the NECTEC contact.
+
+Still open:
+
+- decision 2, the native Thai reader and their time budget;
+- decision 3, the annotation scheme, including whether to add a syllable layer;
+- decision 5, whether to contact NECTEC about LST20;
+- whether the publication approval covers the 56 subtitle lines from files
+  named as drafts, provisional or validation copies (counted in the gold
+  README).

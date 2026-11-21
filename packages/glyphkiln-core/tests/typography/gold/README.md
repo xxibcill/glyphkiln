@@ -15,12 +15,18 @@ and the owner has accepted it. M3's exit gate must not be claimed on the draft.
 `g-th.json` has 318 lines with 2,230 acceptable break points, against the plan's
 floor of 2,000.
 
-| Source                                        | Lines | Notes                                                                      |
-| --------------------------------------------- | ----: | -------------------------------------------------------------------------- |
-| PPRS (เพื่อนไร่เพื่อนสวน) published post copy |    98 | Captions and alt text from `posts/*/output`                                |
-| PPRS published video subtitles                |   176 | Short subtitle lines from `videos/*/output/*.srt`; many end mid-sentence   |
-| Repository fixtures                           |    24 | Brief A and B fixed copy, C-EDGE and C-PROBE Thai lines (plan probes)      |
-| Written for coverage                          |    20 | Prices, `%`, `฿`, units, dates, ranges, ฯ, quotes; the source copy has few |
+| Source                              | Lines | Notes                                                                                             |
+| ----------------------------------- | ----: | ------------------------------------------------------------------------------------------------- |
+| PPRS (เพื่อนไร่เพื่อนสวน) post copy |    98 | Captions and alt text: 66 from `content-weeks/`, 24 from `videos/*/caption`, 8 from `posts/`      |
+| PPRS video subtitles                |   176 | Short lines from `videos/**/*.srt` (172) and `reel-system/validation/` (4); many end mid-sentence |
+| Repository fixtures                 |    24 | Brief A and B fixed copy, C-EDGE and C-PROBE Thai lines (plan probes)                             |
+| Written for coverage                |    20 | Prices, `%`, `฿`, units, dates, ranges, ฯ, quotes; the source copy has few                        |
+
+Each line's `source` is its path in the PPRS workspace. Some PPRS lines may never
+have been published: 56 subtitle lines come from files named as drafts (39),
+provisional (13) or validation (4). The owner approved publishing the PPRS copy
+here under Apache-2.0 on 5 November 2026; confirm that this covers those 56
+lines, or remove them before the set is accepted.
 
 Links, affiliate IDs, hashtags and duplicates were left out.
 

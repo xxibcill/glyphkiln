@@ -525,7 +525,8 @@ The required starting point.
    runtime cost is about 530 KB of wasm and JS.
 3. **Thai gold corpus.** Which source and licence for G-TH: an existing licensed
    corpus, or annotating the workspace's own Thai campaign copy? **Answered 5 November
-   2026:** annotate the owner's own copy
+   2026:** annotate the owner's own copy and publish it under the repository's
+   Apache-2.0 licence
    ([licence research](../research/thai-gold-corpus-2026-11/README.md)). A
    318-line draft, with 2,230 acceptable break points, is in
    [`tests/typography/gold/`](../../packages/glyphkiln-core/tests/typography/gold/README.md),
