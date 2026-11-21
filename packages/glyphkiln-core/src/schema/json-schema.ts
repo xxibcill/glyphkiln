@@ -42,7 +42,7 @@ export const DESIGN_DOCUMENT_RUNTIME_REFINEMENTS = [
     code: "EMPHASIS_PHRASE_IN_TEXT",
     path: "$.layers[*].emphasis[*].phrase",
     description:
-      "After whitespace normalization, each emphasis phrase must occur within one paragraph of the layer text (schema 1.7.0).",
+      "After whitespace normalization, each emphasis phrase must match as whole words within one paragraph of the layer text, without overlapping an earlier or longer match (emphasis-runs@1.0.0; schema 1.7.0).",
   },
 ] as const;
 

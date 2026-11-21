@@ -7,6 +7,10 @@
     "jsonSchemaValid": true,
     "runtimeValid": false
   },
+  "b2-emphasis-phrase-inside-word": {
+    "jsonSchemaValid": true,
+    "runtimeValid": false
+  },
   "b2-emphasis-style-unknown": {
     "jsonSchemaValid": false,
     "runtimeValid": false

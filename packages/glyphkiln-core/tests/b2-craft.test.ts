@@ -152,6 +152,48 @@ describe("DesignDocument 1.7.0 schema", () => {
       { phrase: "Good   systems", style: "strong" },
     ];
     expect(validateDesignDocument(document).success).toBe(true);
+    // Validation uses the renderer's matcher: a phrase inside a word, or one
+    // that overlaps an earlier match, can never be drawn and is rejected.
+    layer(document, "headline").emphasis = [{ phrase: "peat", style: "accent" }];
+    const insideWord = validateDesignDocument(document);
+    expect(insideWord.success).toBe(false);
+    if (!insideWord.success) {
+      expect(insideWord.problems[0]?.path).toBe("layers[2].emphasis[0].phrase");
+    }
+    layer(document, "headline").emphasis = [
+      { phrase: "the right thing", style: "accent" },
+      { phrase: "thing repeatable", style: "muted" },
+    ];
+    const overlapping = validateDesignDocument(document);
+    expect(overlapping.success).toBe(false);
+    if (!overlapping.success) {
+      expect(overlapping.problems.map((problem) => problem.path)).toEqual([
+        "layers[2].emphasis[1].phrase",
+      ]);
+    }
+  });
+
+  it("warns when a validated phrase is not drawn and keys accents to matched phrases", async () => {
+    const document = await baseline("quote-card-roles");
+    // Bypass validation the way a caller holding a parsed document could.
+    const validated = validateDesignDocument(document);
+    if (!validated.success) throw new Error("invalid baseline");
+    const headline = validated.data.layers.find(
+      (candidate) => candidate.type === "headline",
+    ) as unknown as LooseLayer;
+    headline.emphasis = [{ phrase: "peat", style: "accent" }];
+    const assets = await loadExampleAssets(document);
+    const { templateResult } = prepareGraphicScene(validated.data, { assets });
+    const issues = templateResult.qualityIssues.map((issue) => issue.code);
+    expect(issues).toContain("TEXT_EMPHASIS_PHRASE_UNMATCHED");
+    // With no matched accent phrase, the hanging mark keeps the accent.
+    const mark = templateResult.scene.elements.find(
+      (element) => element.id === "quote-mark",
+    ) as { fill?: string } | undefined;
+    expect(mark?.fill).toBeDefined();
+    expect(mark?.fill).not.toBe(
+      validated.data.brand.themes[validated.data.mode].mutedText,
+    );
   });
 
   it("bounds color roles, the accent budget, and the subject region", async () => {
@@ -716,7 +758,8 @@ describe("local image darkening", () => {
     };
     image.subjectRegion = { x: 0, y: 0, width: 1, height: 1 };
     delete layer(document, "headline").emphasis;
-    layer(document, "subtitle")["text"] = "Sculptural ceramic lighting shaped for rooms.";
+    layer(document, "subtitle")["text"] =
+      "Sculptural ceramic lighting shaped for rooms.";
     const local = await blockedIssues(document);
     image.treatment = "none";
     const untreated = await blockedIssues(document);

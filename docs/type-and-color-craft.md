@@ -34,8 +34,12 @@ like any other used face.
 
 - At most 8 phrases per text layer. Each phrase is unique and 1–200 characters,
   with no leading or trailing whitespace and no line break. After whitespace
-  normalization it must occur inside one paragraph of the layer's text; this
-  runtime refinement is `EMPHASIS_PHRASE_IN_TEXT`.
+  normalization it must match, with the renderer's own matcher below, inside
+  one paragraph of the layer's text. A phrase inside a word, or one that
+  overlaps an earlier or longer match, is rejected; this runtime refinement is
+  `EMPHASIS_PHRASE_IN_TEXT`. If a phrase is still not drawn (for example on a
+  line cut by the line limit), the warning `TEXT_EMPHASIS_PHRASE_UNMATCHED`
+  names it, and accent decisions use only the phrases that match.
 - Styles: `strong` (base weight + 200, at least 700, at most 900), `accent`
   (accent role), `strong-accent`, `italic` (the same weight in an italic face),
   and `muted` (text role). Each face must be declared in `fonts` and supplied.

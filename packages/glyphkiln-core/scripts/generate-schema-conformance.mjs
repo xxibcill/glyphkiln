@@ -72,6 +72,16 @@ const cases = [
     runtimeValid: false,
   },
   {
+    name: "b2-emphasis-phrase-inside-word",
+    document: mutateB2(b2Campaign, (document) => {
+      const headline = document.layers.find((layer) => layer.type === "headline");
+      const word = headline.text.split(/\s+/).find((candidate) => candidate.length > 4);
+      headline.emphasis = [{ phrase: word.slice(1, -1), style: "accent" }];
+    }),
+    jsonSchemaValid: true,
+    runtimeValid: false,
+  },
+  {
     name: "b2-emphasis-style-unknown",
     document: mutateB2(b2Campaign, (document) => {
       document.layers.find((layer) => layer.type === "headline").emphasis = [

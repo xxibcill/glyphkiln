@@ -4,6 +4,10 @@ import { hashCanonical } from "../cache/canonical.js";
 import { DESIGN_DOCUMENT_VERSION } from "../domain/types.js";
 import { FORMAT_IDS } from "../formats/index.js";
 import {
+  matchedEmphasisIndexes,
+  normalizeEmphasisText,
+} from "../typography/emphasis-match.js";
+import {
   assertDesignInputResources,
   getDesignInputResourceProblems,
   RENDER_RESOURCE_LIMITS,
@@ -243,9 +247,12 @@ const emphasisSpans = z
   )
   .min(1)
   .max(8)
-  .refine((spans) => new Set(spans.map((span) => span.phrase)).size === spans.length, {
-    message: "Emphasis phrases must be unique.",
-  });
+  .refine(
+    (spans) =>
+      new Set(spans.map((span) => normalizeEmphasisText(span.phrase))).size ===
+      spans.length,
+    { message: "Emphasis phrases must be unique." },
+  );
 
 /** Closed numeral styles for explicit OpenType control (1.7.0). */
 export const OPENTYPE_NUMERAL_STYLE_IDS = [
@@ -746,10 +753,7 @@ export const DesignDocumentSchema = z
     checkEmphasisPhrases(document.layers, context);
   });
 
-/** Normalize whitespace exactly as the line wrapper does before matching. */
-export function normalizeEmphasisText(text: string): string {
-  return text.trim().replace(/\s+/g, " ");
-}
+export { normalizeEmphasisText };
 
 function checkEmphasisPhrases(
   layers: readonly object[],
@@ -759,13 +763,17 @@ function checkEmphasisPhrases(
     if (!("emphasis" in layer) || !("text" in layer)) continue;
     const spans = layer.emphasis as { phrase: string }[] | undefined;
     if (spans === undefined) continue;
-    const paragraphs = String(layer.text).split(/\r?\n/).map(normalizeEmphasisText);
+    // The renderer's own matcher: whole words, earliest and longest first,
+    // never overlapping. A phrase it cannot place is rejected here.
+    const matched = matchedEmphasisIndexes(
+      String(layer.text),
+      spans.map((span) => span.phrase),
+    );
     for (const [spanIndex, span] of spans.entries()) {
-      const phrase = normalizeEmphasisText(span.phrase);
-      if (paragraphs.some((paragraph) => paragraph.includes(phrase))) continue;
+      if (matched.has(spanIndex)) continue;
       context.addIssue({
         code: "custom",
-        message: `Emphasis phrase "${span.phrase}" does not occur in the layer text.`,
+        message: `Emphasis phrase "${span.phrase}" does not occur as whole words in the layer text, or overlaps an earlier match.`,
         path: ["layers", index, "emphasis", spanIndex, "phrase"],
       });
     }

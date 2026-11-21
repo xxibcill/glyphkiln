@@ -33,6 +33,7 @@ import {
   typesetWithoutOrphan,
   type TypesetOptions,
 } from "./typeset.js";
+import { matchedEmphasisSpans } from "../typography/rich-text.js";
 import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 
 /**
@@ -327,9 +328,10 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
   },
 };
 
+/** Whether an accent emphasis phrase actually matches the layer text. */
 function hasAccentEmphasis(layer: TextLayer | undefined): boolean {
   if (layer === undefined || !("emphasis" in layer)) return false;
-  return (layer.emphasis ?? []).some(
+  return matchedEmphasisSpans(layer.text, layer.emphasis ?? []).some(
     (span) => span.style === "accent" || span.style === "strong-accent",
   );
 }
@@ -575,7 +577,12 @@ export function localScrimOpacityAt(
 }
 
 function insideRoundedRect(rect: RectElement, x: number, y: number): boolean {
-  if (x < rect.x || x >= rect.x + rect.width || y < rect.y || y >= rect.y + rect.height) {
+  if (
+    x < rect.x ||
+    x >= rect.x + rect.width ||
+    y < rect.y ||
+    y >= rect.y + rect.height
+  ) {
     return false;
   }
   const radius = Math.min(rect.radius ?? 0, rect.width / 2, rect.height / 2);

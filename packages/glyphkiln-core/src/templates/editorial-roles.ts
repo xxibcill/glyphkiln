@@ -27,6 +27,7 @@ import {
   type ResolvedColorRoles,
   type TypesetOptions,
 } from "./typeset.js";
+import { matchedEmphasisSpans } from "../typography/rich-text.js";
 import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 
 /**
@@ -87,10 +88,11 @@ function rolesCanvas(context: TemplateRenderContext): {
   };
 }
 
+/** Whether an accent emphasis phrase actually matches the layer text. */
 function hasAccentEmphasis(layer: TextLayer): boolean {
   return (
     "emphasis" in layer &&
-    (layer.emphasis ?? []).some(
+    matchedEmphasisSpans(layer.text, layer.emphasis ?? []).some(
       (span) => span.style === "accent" || span.style === "strong-accent",
     )
   );

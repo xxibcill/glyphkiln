@@ -295,6 +295,19 @@ export function addTypesetText(
       ...featureInput,
     });
     outlines = rich.map((line) => line.base);
+    const drawn = new Set(
+      rich.flatMap((line) => line.emphasis.map((run) => normalizePhrase(run.text))),
+    );
+    for (const span of prepared.spans) {
+      if (drawn.has(normalizePhrase(span.phrase))) continue;
+      canvas.qualityIssues.push({
+        code: "TEXT_EMPHASIS_PHRASE_UNMATCHED",
+        severity: "warning",
+        message: `Emphasis phrase "${span.phrase}" was not drawn in layer "${layer.id}".`,
+        layerId: layer.id,
+        details: { phrase: span.phrase, style: span.style },
+      });
+    }
     const checkedColors = new Set<string>();
     for (const [lineIndex, line] of rich.entries()) {
       for (const [runIndex, run] of line.emphasis.entries()) {
