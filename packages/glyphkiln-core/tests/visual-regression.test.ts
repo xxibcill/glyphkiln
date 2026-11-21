@@ -98,6 +98,9 @@ describe("reviewed visual baselines", () => {
         output: { sha256: string };
       };
       expect(sha256(output.bytes)).toBe(manifest.output.sha256);
+      // The whole committed manifest, so its provenance (renderer, policy,
+      // and the absence of any shaper identity) is the render's own.
+      expect(manifest).toEqual(JSON.parse(JSON.stringify(output.manifest)));
       expect(output.bytes).toEqual(baseline);
     },
     60_000,
