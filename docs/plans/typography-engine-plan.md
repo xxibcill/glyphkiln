@@ -117,7 +117,8 @@ Core is no more than 10 % worse than InDesign on each of mean absolute adjustmen
 ratio, hyphen count, runts and rag deviation (Thai: zero in-cluster breaks), and
 (b) a blind panel prefers or ties Core in ≥ 50 % of pairs. Identical line breaks
 are **not** a goal: InDesign's composer is proprietary. This gate needs the
-designer budget from owner decision D2.
+designer budget from [owner decision D2](open-work-plan.md#2-decisions-needed-from-the-owner)
+(not track item D-2).
 
 ## 3. Current state
 
@@ -242,7 +243,8 @@ The required starting point.
   tracking between typographic character units (grapheme clusters, with a cluster
   ending in sara am counted as two units, as in T08), not at line ends, so the gap
   falls between the nikhahit and sara aa, and turns optional ligatures off under
-  tracking. Both are opt-in through new template versions (§10, Q1).
+  tracking. Both are opt-in through new template versions: the recommended
+  answer to §10 Q1, provisional until the owner decides.
 - **M1c — Fallback and composite fonts.** Roles and Scene text accept an ordered
   font stack plus optional per-script faces with per-pair `scale` and
   `baselineShift`, either explicit or `auto` from measured metrics (policy
@@ -389,15 +391,18 @@ The required starting point.
 
 ## 7. Version owners
 
-| Owner                            | Changes when                                                                                                                                                                           | Milestones            |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| Renderer (`RENDERER_VERSION`)    | Glyph selection, positions, outlines, SVG text serialization or raster output change for any input, including a new opt-in template version (rule below)                               | M1–M9                 |
-| Typography policy object         | Any algorithm or data table: shaper identity, script runs, tracking, fallback, opsz mapping, UAX #14 version, Thai dictionary, model and lexicon, composer costs, patterns, protrusion | M1–M6                 |
-| Design schema (`DesignDocument`) | New fields: axes, optical sizing, stacks, lexicon, preferred breaks, alignment and limits, hyphenation, `lang`, styles                                                                 | M1, M3, M4, M5, M7    |
-| Scene schema and Scene Kernel    | Font stacks, frames, threads, wraps, paths in `SceneDocument`                                                                                                                          | M1, M8                |
-| Manifest and Scene manifest      | Font identity v2, stack used, policy data hashes, shaper identity                                                                                                                      | M1, M2, M3, M5        |
-| Templates                        | Opt in to new policies through new exact versions; old versions keep their policies                                                                                                    | every pixel milestone |
-| Authoring metadata               | Publishes new fields and template versions                                                                                                                                             | M1, M3, M4, M7        |
+This table is the source of truth. A milestone's **Version owners** bullet
+summarizes it, and where the two disagree the table wins.
+
+| Owner                            | Changes when                                                                                                                                                                           | Milestones             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Renderer (`RENDERER_VERSION`)    | Glyph selection, positions, outlines, SVG text serialization or raster output change for any input, including a new opt-in template version (rule below)                               | M1–M9                  |
+| Typography policy object         | Any algorithm or data table: shaper identity, script runs, tracking, fallback, opsz mapping, UAX #14 version, Thai dictionary, model and lexicon, composer costs, patterns, protrusion | M1–M6                  |
+| Design schema (`DesignDocument`) | New fields: axes, optical sizing, stacks, lexicon, preferred breaks, alignment and limits, hyphenation, `lang`, microtypography switches, styles                                       | M1, M3, M4, M5, M6, M7 |
+| Scene schema and Scene Kernel    | Font stacks, frames, threads, wraps, paths in `SceneDocument`                                                                                                                          | M1, M8                 |
+| Manifest and Scene manifest      | Font identity v2, stack used, policy data hashes, shaper identity, text-layer identity                                                                                                 | M1, M2, M3, M5, M9     |
+| Templates                        | Opt in to new policies through new exact versions; old versions keep their policies                                                                                                    | every pixel milestone  |
+| Authoring metadata               | Publishes new fields and template versions                                                                                                                                             | M1, M3, M4, M7         |
 
 **Renderer rule.** A milestone that adds new pixels for any input, opt-in or
 not, bumps the renderer in the release that ships it; several milestones in one
@@ -414,8 +419,9 @@ repoints an existing exact version to new pixels (AGENTS.md).
   B2's closed feature set. M6 introduces `emphasis-runs@2.0.0` because B2 shapes
   each run separately, which loses kerning and contextual shaping across a run
   boundary. When `opsz` is automatic, B2's tracking curve must be re-derived
-  (`size-setting@2.0.0`) so spacing is not corrected twice. B2's `italic` emphasis
-  on Thai should give an advisory, because Thai inline emphasis is bold.
+  (`size-setting@2.0.0`) so spacing is not corrected twice. Whether B2's `italic`
+  emphasis on Thai gives an advisory or is refused is open (§10, Q8); Thai inline
+  emphasis is conventionally bold.
 - **B3 (composition engine).** B3 measures text through M0's single `layoutText`
   API and M4's composer (candidate line sets, measured blocks) and does not grow
   its own measurement. M8's text wrap reuses B3's cutout masks and subject
@@ -424,7 +430,8 @@ repoints an existing exact version to new pixels (AGENTS.md).
 - **D-2 (Arabic, CJK).** M0's unified layout path is the "unifying the typography
   layout path" prerequisite D-2 names. M1's itemizer and the shaper interface
   reserve direction and vertical slots. Bidi, RTL and CJK composition stay in D-2,
-  triggered by owner decision D8.
+  triggered by
+  [owner decision D8](open-work-plan.md#2-decisions-needed-from-the-owner).
 - **D-6 (hyphenation, fallback stacks, more script models).** This plan schedules
   D-6: fallback stacks in M1c, script models in M3 (Thai now; Lao, Khmer and
   Myanmar through the same lattice when a brief needs them), and hyphenation in
