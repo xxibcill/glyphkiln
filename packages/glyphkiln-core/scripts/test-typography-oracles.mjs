@@ -9,6 +9,8 @@ import {
   createHarfBuzzShaper,
   createScriptItemizer,
   engineBreakOpportunities,
+  harfBuzzLanguage,
+  harfBuzzScript,
   normalizeOutline,
   parseLineBreakTest,
   readInstancerReference,
@@ -60,6 +62,20 @@ assert.deepEqual(
   "HarfBuzz reorders nikhahit before the tone mark",
 );
 assert.throws(() => harfbuzz.shape(thaiFace, { text: "a", direction: "rtl" }));
+// OpenType tags are converted, never passed through as look-alike strings.
+assert.equal(harfBuzzScript("thai"), "Thai");
+assert.equal(harfBuzzScript("latn"), "Latn");
+assert.equal(harfBuzzScript("DFLT"), "Zyyy");
+assert.equal(harfBuzzLanguage("THA "), "th");
+assert.throws(() => harfBuzzScript("dev2"), /ISO 15924/u);
+assert.throws(() => harfBuzzLanguage("XYZ"), /BCP 47/u);
+assert.deepEqual(
+  names(thaiFace, "AI ที่", "thai"),
+  harfbuzz
+    .shape(thaiFace, { text: "AI ที่", script: "thai", language: "THA" })
+    .glyphs.map((glyph) => harfbuzz.glyphOutline(thaiFace, glyph.id).name),
+);
+assert.ok(names(thaiFace, "AI ที่", "thai").includes("uni0E48.small"));
 assert.throws(() => harfbuzz.shape({ shaper: "other" }, { text: "a" }));
 const interFace = harfbuzz.loadFace(inter);
 assert.deepEqual(

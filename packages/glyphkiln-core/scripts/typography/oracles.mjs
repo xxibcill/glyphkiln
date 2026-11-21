@@ -254,8 +254,10 @@ export async function createHarfBuzzShaper() {
       buffer.addText(request.text);
       buffer.setClusterLevel(hb.ClusterLevel.CHARACTERS);
       buffer.guessSegmentProperties();
-      if (request.script !== undefined) buffer.setScript(request.script);
-      if (request.language !== undefined) buffer.setLanguage(request.language);
+      const script = harfBuzzScript(request.script);
+      if (script !== undefined) buffer.setScript(script);
+      const language = harfBuzzLanguage(request.language);
+      if (language !== undefined) buffer.setLanguage(language);
       buffer.setDirection(hb.Direction.LTR);
       const features = Object.entries(request.features ?? {}).map(
         ([tag, on]) => new hb.Feature(tag, on ? 1 : 0),
@@ -318,6 +320,39 @@ export async function createHarfBuzzShaper() {
       ];
     },
   };
+}
+
+// `ShapeRequest` carries OpenType tags (src/fonts/shaper.ts); HarfBuzz takes an
+// ISO 15924 script and a BCP 47 language and derives the OpenType tags itself.
+// Only the tags the corpora use are mapped; anything else fails closed rather
+// than reaching HarfBuzz as a look-alike string.
+const ISO_15924_BY_OPENTYPE_SCRIPT = new Map([
+  ["latn", "Latn"],
+  ["thai", "Thai"],
+  // DFLT is the default script system: shape as Common (Zyyy).
+  ["DFLT", "Zyyy"],
+]);
+const BCP_47_BY_OPENTYPE_LANGUAGE = new Map([
+  ["ENG", "en"],
+  ["THA", "th"],
+]);
+
+export function harfBuzzScript(openTypeScript) {
+  if (openTypeScript === undefined) return undefined;
+  const script = ISO_15924_BY_OPENTYPE_SCRIPT.get(openTypeScript);
+  if (script === undefined) {
+    throw new Error(`No ISO 15924 script for OpenType script "${openTypeScript}".`);
+  }
+  return script;
+}
+
+export function harfBuzzLanguage(openTypeLanguage) {
+  if (openTypeLanguage === undefined) return undefined;
+  const language = BCP_47_BY_OPENTYPE_LANGUAGE.get(openTypeLanguage.trim());
+  if (language === undefined) {
+    throw new Error(`No BCP 47 language for OpenType language "${openTypeLanguage}".`);
+  }
+  return language;
 }
 
 function svgToOutline(segment) {

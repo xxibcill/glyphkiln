@@ -30,12 +30,17 @@ export type ShapingDirection = "ltr" | "rtl" | "ttb" | "btt";
 export type ShapeRequest = {
   text: string;
   /**
-   * OpenType script tag (`latn`, `thai`). Undefined means "let the shaper
-   * choose", which is the legacy behaviour: fontkit picks the first strong
-   * script of the whole string.
+   * OpenType script tag (`latn`, `thai`, `DFLT`). Undefined means "let the
+   * shaper choose", which is the legacy behaviour: fontkit picks the first
+   * strong script of the whole string. Engines that take an ISO 15924 script
+   * instead (HarfBuzz's `hb_script_t`) must convert explicitly; OpenType and
+   * ISO 15924 tags only coincide by case for some scripts.
    */
   script?: string;
-  /** OpenType language system tag (`ENG`, `THA`). Undefined = default. */
+  /**
+   * OpenType language system tag (`ENG`, `THA`). Undefined = default. Engines
+   * that take a BCP 47 language (HarfBuzz) must convert explicitly.
+   */
   language?: string;
   direction?: ShapingDirection;
   /**
