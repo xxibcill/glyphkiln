@@ -31,8 +31,11 @@
   copy sits on the photograph again without dimming the cobalt lamp. Advisory
   findings did not change (0 → 0 quote and statistic; 1 → 1 per campaign
   format, the mark). Still open in P1: the font library and pairings (decision
-  §8.3), a light brand mark from the owner, and App defaults for the new
-  versions (owner approval).
+  §8.3); W6's decoration density budget; W5's area budgets for roles other
+  than the accent and a value-structure check; W3's optical size; a B2
+  re-render of the announcement and the carousel; the blind round that is
+  the exit evidence; a light brand mark from the owner; and App defaults for
+  the new versions (owner approval).
 
 Author: Claude (Opus 5.5) for the project owner. Sources: the owner's
 assessment ("the output is useful but not yet graphic design; it cannot beat an
