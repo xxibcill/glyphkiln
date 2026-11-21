@@ -1,6 +1,11 @@
 import { randomBytes } from "node:crypto";
 
-import { hash as argon2Hash, verify as argon2Verify } from "@node-rs/argon2";
+import {
+  type Algorithm,
+  hash as argon2Hash,
+  type Version,
+  verify as argon2Verify,
+} from "@node-rs/argon2";
 
 export const PASSWORD_POLICY = Object.freeze({
   minimumCodePoints: 12,
@@ -15,6 +20,13 @@ export const ARGON2ID_PASSWORD_PROFILE = Object.freeze({
   outputLengthBytes: 32,
   saltLengthBytes: 16,
 });
+
+// @node-rs/argon2 declares ambient const enums, which isolated modules can
+// import only as types, so the enum members cannot be referenced by name.
+/* eslint-disable @typescript-eslint/no-unsafe-enum-assignment -- Literal values of the ambient const enums. */
+const ARGON2ID_ALGORITHM: Algorithm = 2; // Algorithm.Argon2id
+const ARGON2_VERSION_0X13: Version = 1; // Version.V0x13 (version 19)
+/* eslint-enable @typescript-eslint/no-unsafe-enum-assignment */
 
 export const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=19456,t=2,p=1$Z2x5cGhraWxuLWR1bW15IQ$CUmLQRl2EXoufKWEOkEKIMQ4iXDbaNBrdHxlykyRz98";
@@ -81,12 +93,8 @@ export class Argon2idPasswordHasher implements PasswordHasher {
 
     try {
       return await argon2Hash(Buffer.from(password, "utf8"), {
-        // @node-rs/argon2 declares ambient const enums that isolated modules
-        // cannot access by name. These are Argon2id and version 0x13.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Ambient const enum value for Argon2id.
-        algorithm: 2,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Ambient const enum value for version 0x13.
-        version: 1,
+        algorithm: ARGON2ID_ALGORITHM,
+        version: ARGON2_VERSION_0X13,
         memoryCost: ARGON2ID_PASSWORD_PROFILE.memoryCostKiB,
         timeCost: ARGON2ID_PASSWORD_PROFILE.timeCost,
         parallelism: ARGON2ID_PASSWORD_PROFILE.parallelism,
