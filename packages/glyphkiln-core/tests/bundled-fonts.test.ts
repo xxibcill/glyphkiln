@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
@@ -145,5 +146,14 @@ describe("bundled OFL font library", () => {
       GlyphkilnError,
     );
     expect(registry.has("Unavailable Fixture Font", 400, "normal")).toBe(false);
+  });
+  it("hands every caller its own copy of the verified bytes", () => {
+    const first = resolveBundledFont("Kanit", 400, "normal")!;
+    first.bytes.fill(0);
+    const second = resolveBundledFont("Kanit", 400, "normal")!;
+    expect(second.bytes).not.toBe(first.bytes);
+    expect(createHash("sha256").update(second.bytes).digest("hex")).toBe(second.sha256);
+    const registry = new FontRegistry();
+    expect(registry.get("Kanit", 400, "normal").sha256).toBe(second.sha256);
   });
 });

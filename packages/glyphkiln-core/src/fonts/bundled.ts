@@ -65,6 +65,8 @@ export function bundledFontFile(
 /**
  * Resolve a bundled face to verified bytes. Bytes are read once per process
  * and checked against the pinned hash; a modified install fails closed.
+ * Each call returns its own copy, so a caller that mutates `bytes` cannot
+ * change what later renders in the process receive.
  */
 export function resolveBundledFont(
   family: string,
@@ -87,5 +89,11 @@ export function resolveBundledFont(
     bytes = read;
     bytesByFile.set(file.file, bytes);
   }
-  return { family: file.family, weight, style, sha256: file.sha256, bytes };
+  return {
+    family: file.family,
+    weight,
+    style,
+    sha256: file.sha256,
+    bytes: Uint8Array.from(bytes),
+  };
 }
