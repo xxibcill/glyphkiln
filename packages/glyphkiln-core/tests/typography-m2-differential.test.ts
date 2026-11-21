@@ -505,6 +505,9 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
       let moved = 0;
       let lines = 0;
       let overMeasured = 0;
+      // Lines whose tracked width grows by one gap per spacing glyph after
+      // the first: the gaps fall between bases only, never after a mark.
+      let betweenBases = 0;
       for (const entry of th.entries) {
         const plain = setLine(path, th.face.family, entry.text, fontSize, 0, features);
         const tracked = setLine(path, th.face.family, entry.text, fontSize, tracking);
@@ -523,6 +526,14 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
           const after = tracked.glyphs[index]!.x - tracked.glyphs[base]!.x;
           if (Math.abs(after - before) > 1e-6) moved += 1;
         }
+        const spacingGlyphs = plain.glyphs.filter(
+          (glyph, index) => glyph.advance !== 0 || index === 0,
+        ).length;
+        if (
+          Math.abs(tracked.width - plain.width - (spacingGlyphs - 1) * tracking) < 1e-6
+        ) {
+          betweenBases += 1;
+        }
         // Legacy counts a gap after every glyph but the last. On a line
         // with a mark that is more gaps than character units.
         if (!plain.glyphs.some((glyph, index) => index > 0 && glyph.advance === 0)) {
@@ -534,7 +545,7 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
           overMeasured += 1;
         }
       }
-      return { marks, moved, lines, overMeasured };
+      return { marks, moved, lines, overMeasured, betweenBases };
     };
     const legacy = tally(registry);
     const fixed = tally(engine, noLigatures);
@@ -546,6 +557,11 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
     expect(fixed.moved).toBe(0);
     expect(fixed.lines).toBe(legacy.lines);
     expect(fixed.overMeasured).toBe(0);
+    // A positive check too, so M1 ignoring tracking altogether would fail:
+    // on every line, M1 adds exactly one gap per spacing glyph after the
+    // first. Legacy does so only on lines without a mark.
+    expect(fixed.betweenBases).toBe(th.entries.length);
+    expect(legacy.betweenBases).toBe(th.entries.length - legacy.lines);
   });
 
   it("ADR 0019: sara am reordering and contextual tone marks", () => {

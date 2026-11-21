@@ -90,10 +90,10 @@ describe("M2 shaper identity", () => {
     const wasmPath = require.resolve("harfbuzzjs/dist/harfbuzz.wasm");
     const wasm = readFileSync(wasmPath);
     expect(sha256(wasm)).toBe(EXPECTED_IDENTITY.wasmSha256);
-    const manifest = JSON.parse(
+    const packageJson = JSON.parse(
       readFileSync(join(dirname(dirname(wasmPath)), "package.json"), "utf8"),
     ) as { version: string };
-    expect(manifest.version).toBe(HARFBUZZJS_VERSION);
+    expect(packageJson.version).toBe(HARFBUZZJS_VERSION);
     const hb = await import("harfbuzzjs");
     expect(hb.versionString()).toBe(HARFBUZZ_VERSION);
     expect((await loadHarfBuzzShaper()).id).toBe(EXPECTED_IDENTITY.id);
