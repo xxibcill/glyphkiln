@@ -1,0 +1,166 @@
+{
+  "id": "C-EDGE",
+  "description": "Number/unit, punctuation and break-control edges, set at narrow widths at 32 px so the break decision is exercised. `expect` states professional behaviour; snapshots record today's behaviour, defects included.",
+  "fontSize": 32,
+  "faces": {
+    "latn": {
+      "family": "Inter",
+      "weight": 400,
+      "style": "normal"
+    },
+    "thai": {
+      "family": "Noto Sans Thai",
+      "weight": 400,
+      "style": "normal"
+    }
+  },
+  "entries": [
+    {
+      "id": "edge-nbsp-km",
+      "text": "Run 100 km today",
+      "face": "latn",
+      "width": 150,
+      "expect": "NBSP must not break: 100 km stays together (T09)"
+    },
+    {
+      "id": "edge-nnbsp",
+      "text": "Total 25 %",
+      "face": "latn",
+      "width": 120,
+      "expect": "NNBSP must not break"
+    },
+    {
+      "id": "edge-wj",
+      "text": "brand⁠name stays",
+      "face": "latn",
+      "width": 110,
+      "expect": "WJ prohibits a break"
+    },
+    {
+      "id": "edge-zwsp",
+      "text": "super​califragilistic",
+      "face": "latn",
+      "width": 120,
+      "expect": "ZWSP allows a break"
+    },
+    {
+      "id": "edge-shy",
+      "text": "extra­ordinary",
+      "face": "latn",
+      "width": 100,
+      "expect": "SHY allows a break and shows a hyphen when taken"
+    },
+    {
+      "id": "edge-hard-hyphen",
+      "text": "state-of-the-art",
+      "face": "latn",
+      "width": 90,
+      "expect": "Break allowed after a hard hyphen"
+    },
+    {
+      "id": "edge-number-unit",
+      "text": "Only 49 USD",
+      "face": "latn",
+      "width": 100,
+      "expect": "Number + unit glue (tailoring)"
+    },
+    {
+      "id": "edge-percent",
+      "text": "Save 50 % now",
+      "face": "latn",
+      "width": 95,
+      "expect": "Number + percent glue"
+    },
+    {
+      "id": "edge-quote-open",
+      "text": "He said “wait” again",
+      "face": "latn",
+      "width": 110,
+      "expect": "Opening quote stays with its word"
+    },
+    {
+      "id": "edge-ellipsis",
+      "text": "And then … nothing",
+      "face": "latn",
+      "width": 110,
+      "expect": "No line starts with an ellipsis"
+    },
+    {
+      "id": "edge-em-dash",
+      "text": "Fast—really fast",
+      "face": "latn",
+      "width": 80,
+      "expect": "Break allowed around an em dash"
+    },
+    {
+      "id": "edge-slash",
+      "text": "either/or and/or",
+      "face": "latn",
+      "width": 80,
+      "expect": "Break allowed after solidus (UAX #14 SY)"
+    },
+    {
+      "id": "edge-url",
+      "text": "Visit example.com/offer today",
+      "face": "latn",
+      "width": 120,
+      "expect": "URL stays intact"
+    },
+    {
+      "id": "edge-thai-499-baht",
+      "text": "ราคาพิเศษ 499 บาท",
+      "face": "thai",
+      "width": 150,
+      "expect": "499 บาท stays together (Static Ads T04)"
+    },
+    {
+      "id": "edge-thai-mai-yamok",
+      "text": "เด็กๆ ชอบเล่น",
+      "face": "thai",
+      "width": 70,
+      "expect": "ๆ never starts a line"
+    },
+    {
+      "id": "edge-thai-paiyannoi",
+      "text": "กรุงเทพฯ มหานคร",
+      "face": "thai",
+      "width": 90,
+      "expect": "ฯ never starts a line"
+    },
+    {
+      "id": "edge-thai-percent",
+      "text": "ลดสูงสุด 25% วันนี้",
+      "face": "thai",
+      "width": 120,
+      "expect": "25% stays together"
+    },
+    {
+      "id": "edge-thai-quote",
+      "text": "คำว่า “ดีไซน์” ในภาษาไทย",
+      "face": "thai",
+      "width": 130,
+      "expect": "Quotes stay with the quoted word"
+    },
+    {
+      "id": "edge-thai-nbsp",
+      "text": "ราคา 499 บาท วันนี้",
+      "face": "thai",
+      "width": 110,
+      "expect": "NBSP must not break in Thai either"
+    },
+    {
+      "id": "edge-thai-zwsp",
+      "text": "สวัสดี​ครับทุกคน",
+      "face": "thai",
+      "width": 90,
+      "expect": "ZWSP is an explicit Thai break hint"
+    },
+    {
+      "id": "edge-thai-digits",
+      "text": "เวลา ๙.๐๐–๑๘.๐๐ น.",
+      "face": "thai",
+      "width": 120,
+      "expect": "Thai digits and dash stay readable"
+    }
+  ]
+}

@@ -11,7 +11,12 @@ import {
   safeAreaIssue,
 } from "../layout/index.js";
 import type { DesignLayer } from "../schema/index.js";
-import { fitText, type FittedText } from "../typography/index.js";
+import type { FittedText } from "../typography/index.js";
+import {
+  layoutText,
+  missingGlyphIssue,
+  type TextLayout,
+} from "../typography/layout-text.js";
 import type {
   ImageElement,
   Scene,
@@ -145,35 +150,56 @@ export function measureText(
   box: Bounds,
   options: TextFitOptions,
 ): { family: string; weight: number; lineHeight: number; fitted: FittedText } {
+  const layout = layoutTemplateText(context, layer, box, options, "measure", "left");
+  return {
+    family: layout.face.family,
+    weight: layout.face.weight,
+    lineHeight: layout.lineHeight,
+    fitted: layout.fitted!,
+  };
+}
+
+function layoutTemplateText(
+  context: TemplateRenderContext,
+  layer: TextLayer,
+  box: Bounds,
+  options: TextFitOptions,
+  detail: "measure" | "glyphs",
+  align: "left" | "center" | "right",
+): TextLayout {
   const family =
     layer.fontFamily ??
     options.family ??
     context.document.brand.typography.headlineFamily;
   const weight = layer.fontWeight ?? options.weight;
-  const lineHeight = options.lineHeight ?? 1.08;
-  const fitted = fitText({
+  return layoutText({
     text: layer.text,
     registry: context.fonts,
-    style: {
-      family,
-      weight,
-      style: "normal",
-      lineHeight,
-    },
+    face: { family, weight, style: "normal" },
     box,
-    preferredFontSize: layer.fontSize ?? options.preferredFontSize,
-    minimumFontSize: options.minimumFontSize,
-    maximumLines: Math.min(
-      layer.maxLines ?? options.maximumLines,
-      options.maximumLines,
-    ),
     layerId: layer.id,
-    ...(options.tracking === undefined ? {} : { letterSpacingEm: options.tracking }),
-    ...("keepTogether" in layer && layer.keepTogether !== undefined
-      ? { keepTogether: layer.keepTogether }
-      : {}),
+    sizing: {
+      mode: "fit",
+      preferredFontSize: layer.fontSize ?? options.preferredFontSize,
+      minimumFontSize: options.minimumFontSize,
+      maximumLines: Math.min(
+        layer.maxLines ?? options.maximumLines,
+        options.maximumLines,
+      ),
+      ...("keepTogether" in layer && layer.keepTogether !== undefined
+        ? { keepTogether: layer.keepTogether }
+        : {}),
+    },
+    setting: {
+      kind: "em",
+      lineHeight: options.lineHeight ?? 1.08,
+      ...(options.tracking === undefined ? {} : { letterSpacingEm: options.tracking }),
+    },
+    align,
+    detail,
+    renderedLineLimit: options.maximumLines,
+    coverage: "rendered-lines",
   });
-  return { family, weight, lineHeight, fitted };
 }
 
 export function addText(
@@ -195,50 +221,23 @@ export function addText(
     checkContrast?: boolean;
   },
 ): TextElement {
-  const { family, weight, lineHeight, fitted } = measureText(
-    context,
-    layer,
-    box,
-    options,
-  );
   const align = layer.align ?? options.align ?? "left";
-  const x =
-    align === "center"
-      ? box.x + box.width / 2
-      : align === "right"
-        ? box.x + box.width
-        : box.x;
-  const actualBounds = {
-    ...fitted.bounds,
-    x:
-      align === "center"
-        ? box.x + (box.width - fitted.width) / 2
-        : align === "right"
-          ? box.x + box.width - fitted.width
-          : box.x,
-  };
+  const layout = layoutTemplateText(context, layer, box, options, "glyphs", align);
+  const { family, weight } = layout.face;
+  const fitted = layout.fitted!;
+  const actualBounds = layout.bounds;
   const fill = layer.color ?? options.color ?? canvas.textColor;
-  const lines = fitted.lines.slice(0, options.maximumLines);
-  const missingCodePoints = context.fonts.missingCodePoints(
-    lines.join(""),
-    family,
-    weight,
-    "normal",
-  );
-  if (missingCodePoints.length > 0) {
-    canvas.qualityIssues.push({
-      code: "MISSING_GLYPH",
-      severity: "error",
-      message: `Font "${family}" does not cover all text in layer "${layer.id}".`,
-      layerId: layer.id,
-      details: {
-        codePoints: missingCodePoints.map(
-          (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
-        ),
-      },
-    });
+  const lines = layout.lines.map((line) => line.text);
+  if (layout.missingCodePoints.length > 0) {
+    canvas.qualityIssues.push(
+      missingGlyphIssue(
+        layer.id,
+        `Font "${family}" does not cover all text in layer "${layer.id}".`,
+        layout.missingCodePoints,
+      ),
+    );
   }
-  canvas.qualityIssues.push(...fitted.issues);
+  canvas.qualityIssues.push(...layout.issues);
   appendIssue(
     canvas.qualityIssues,
     safeAreaIssue(canvas.safeArea, actualBounds, layer.id),
@@ -253,35 +252,23 @@ export function addText(
       ),
     );
   }
-  const letterSpacing =
-    options.tracking === undefined ? undefined : options.tracking * fitted.fontSize;
+  const letterSpacing = layout.letterSpacing;
   const element: TextElement = {
     id: layer.id,
     type: "text",
-    x,
-    y: box.y,
+    x: layout.anchor.x,
+    y: layout.anchor.y,
     lines,
     fill,
     fontFamily: family,
     fontWeight: weight,
     fontStyle: "normal",
-    fontSize: fitted.fontSize,
-    lineHeight,
+    fontSize: layout.fontSize,
+    lineHeight: layout.lineHeight,
     align,
     ...(letterSpacing === undefined ? {} : { letterSpacing }),
     bounds: actualBounds,
-    outlines: context.fonts.outlineText({
-      lines,
-      family,
-      weight,
-      style: "normal",
-      fontSize: fitted.fontSize,
-      lineHeight,
-      x,
-      y: box.y,
-      align,
-      ...(letterSpacing === undefined ? {} : { letterSpacing }),
-    }),
+    outlines: layout.lines.map((line) => line.set!.outline),
   };
   canvas.scene.elements.push(element);
   canvas.evidence.text.push({
@@ -289,7 +276,7 @@ export function addText(
     bounds: { ...actualBounds },
     lineCount: lines.length,
     maximumLines: options.maximumLines,
-    fontSize: fitted.fontSize,
+    fontSize: layout.fontSize,
     overflow: fitted.issues.some((issue) => issue.code === "TEXT_OVERFLOW"),
   });
   return element;

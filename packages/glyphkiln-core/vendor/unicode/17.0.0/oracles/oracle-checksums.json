@@ -1,0 +1,16 @@
+{
+  "unicodeVersion": "17.0.0",
+  "purpose": "Development-only oracle data for the typography harness (plan M0). Never read by render code and not shipped in the package.",
+  "files": {
+    "LineBreakTest.txt.gz": {
+      "uncompressedSha256": "e69884e0dde6a8724873f885d68c52dc14518abf9ae4ca9e2283b8773db3b752",
+      "compressedSha256": "0a87e625010fac6294cc8e2e560de02fadb548537221683ff17c7a82aea3a454",
+      "compression": "gzip -n -9",
+      "header": "# LineBreakTest-17.0.0.txt / # Date: 2025-07-24, 13:28:32 GMT",
+      "source": "https://www.unicode.org/Public/17.0.0/ucd/auxiliary/LineBreakTest.txt",
+      "retrievedFrom": "https://raw.githubusercontent.com/unicode-org/unicodetools/3ff0e2bb2ff8253831cb243d2d8e26a7f9534b1c/unicodetools/data/ucd/17.0.0/auxiliary/LineBreakTest.txt",
+      "retrievedOn": "2026-11-04",
+      "license": "Unicode License v3 (see ../../LICENSE.txt)"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "corpus": "C-EDGE",
+  "entries": [
+    {
+      "id": "edge-nbsp-km",
+      "lines": ["Run 100", "km today"],
+      "width": 150
+    },
+    {
+      "id": "edge-nnbsp",
+      "lines": ["Total", "25 %"],
+      "width": 120
+    },
+    {
+      "id": "edge-wj",
+      "lines": ["brand⁠n", "ame", "stays"],
+      "width": 110
+    },
+    {
+      "id": "edge-zwsp",
+      "lines": ["super​c", "alifragili", "stic"],
+      "width": 120
+    },
+    {
+      "id": "edge-shy",
+      "lines": ["extra­o", "rdinar", "y"],
+      "width": 100
+    },
+    {
+      "id": "edge-hard-hyphen",
+      "lines": ["state-", "of-th", "e-art"],
+      "width": 90
+    },
+    {
+      "id": "edge-number-unit",
+      "lines": ["Only", "49", "USD"],
+      "width": 100
+    },
+    {
+      "id": "edge-percent",
+      "lines": ["Save", "50 %", "now"],
+      "width": 95
+    },
+    {
+      "id": "edge-quote-open",
+      "lines": ["He", "said", "“wait”", "again"],
+      "width": 110
+    },
+    {
+      "id": "edge-ellipsis",
+      "lines": ["And", "then …", "nothin", "g"],
+      "width": 110
+    },
+    {
+      "id": "edge-em-dash",
+      "lines": ["Fast", "—re", "ally", "fast"],
+      "width": 80
+    },
+    {
+      "id": "edge-slash",
+      "lines": ["eithe", "r/or", "and/", "or"],
+      "width": 80
+    },
+    {
+      "id": "edge-url",
+      "lines": ["Visit", "exampl", "e.com/", "offer", "today"],
+      "width": 120
+    },
+    {
+      "id": "edge-thai-499-baht",
+      "lines": ["ราคาพิเศษ", "499 บาท"],
+      "width": 150
+    },
+    {
+      "id": "edge-thai-mai-yamok",
+      "lines": ["เด็กๆ", "ชอบ", "เล่น"],
+      "width": 70
+    },
+    {
+      "id": "edge-thai-paiyannoi",
+      "lines": ["กรุงเทพฯ", "มหาน", "คร"],
+      "width": 90
+    },
+    {
+      "id": "edge-thai-percent",
+      "lines": ["ลดสูง", "สุด 25%", "วันนี้"],
+      "width": 120
+    },
+    {
+      "id": "edge-thai-quote",
+      "lines": ["คำว่า “", "ดีไซน์” ใน", "ภาษาไทย"],
+      "width": 130
+    },
+    {
+      "id": "edge-thai-nbsp",
+      "lines": ["ราคา", "499", "บาท", "วันนี้"],
+      "width": 110
+    },
+    {
+      "id": "edge-thai-zwsp",
+      "lines": ["สวัสดี", "​ครับ", "ทุกคน"],
+      "width": 90
+    },
+    {
+      "id": "edge-thai-digits",
+      "lines": ["เวลา", "๙.๐๐–๑๘.๐๐", "น."],
+      "width": 120
+    }
+  ],
+  "shaper": "fontkit@2.0.4"
+}

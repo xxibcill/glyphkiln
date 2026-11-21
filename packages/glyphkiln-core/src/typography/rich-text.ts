@@ -1,4 +1,10 @@
-import type { FontRegistry, OpenTypeFeatureMap } from "../fonts/index.js";
+import type {
+  FontRegistry,
+  OpenTypeFeatureMap,
+  PositionedGlyph,
+  SetSegment,
+  SetSegmentsInput,
+} from "../fonts/index.js";
 import type { TextEmphasisSpan, TextEmphasisStyleId } from "../schema/index.js";
 import type { TextMeasurer } from "./index.js";
 
@@ -153,6 +159,22 @@ export type RichLineOutline = {
     width: number;
   }[];
   width: number;
+  /** Line start (after alignment) and baseline, in px. */
+  x: number;
+  baseline: number;
+  /** Every run of the line, base and emphasized, with its glyphs. */
+  runs: RichLineRun[];
+};
+
+export type RichLineRun = {
+  text: string;
+  /** UTF-16 offset of the run in its line. */
+  start: number;
+  style: TextEmphasisStyleId | undefined;
+  face: EmphasisFace;
+  x: number;
+  width: number;
+  glyphs: PositionedGlyph[];
 };
 
 /**
@@ -160,7 +182,9 @@ export type RichLineOutline = {
  * FontRegistry.outlineText for the base face.
  */
 export function outlineRichLines(input: {
-  registry: Pick<FontRegistry, "measure" | "outlineSegments" | "ascent">;
+  registry: Pick<FontRegistry, "measure" | "ascent"> & {
+    setSegments(input: SetSegmentsInput): { segments: SetSegment[]; width: number };
+  };
   lines: readonly string[];
   spans: readonly TextEmphasisSpan[];
   family: string;
@@ -197,14 +221,16 @@ export function outlineRichLines(input: {
     const runs = splitEmphasisRuns(line, input.spans);
     const base: string[] = [];
     const emphasis: RichLineOutline["emphasis"] = [];
+    const setRuns: RichLineRun[] = [];
     let penX = lineX;
+    let start = 0;
     for (const [index, run] of runs.entries()) {
       if (index > 0) penX += letterSpacing;
       const face =
         run.style === undefined
           ? { weight: input.weight, style: "normal" as const }
           : emphasisFace(run.style, input.weight);
-      const outlined = input.registry.outlineSegments({
+      const set = input.registry.setSegments({
         segments: [{ text: run.text, weight: face.weight, style: face.style }],
         family: input.family,
         fontSize: input.fontSize,
@@ -213,20 +239,38 @@ export function outlineRichLines(input: {
         letterSpacing,
         ...(input.features === undefined ? {} : { features: input.features }),
       });
+      const segment = set.segments[0]!;
+      setRuns.push({
+        text: run.text,
+        start,
+        style: run.style,
+        face,
+        x: penX,
+        width: set.width,
+        glyphs: segment.glyphs,
+      });
+      start += run.text.length;
       if (run.style === undefined) {
-        base.push(outlined.paths[0]!);
+        base.push(segment.path);
       } else {
         emphasis.push({
           text: run.text,
           style: run.style,
           face,
-          data: outlined.paths[0]!,
+          data: segment.path,
           x: penX,
-          width: outlined.width,
+          width: set.width,
         });
       }
-      penX += outlined.width;
+      penX += set.width;
     }
-    return { base: base.filter((path) => path.length > 0).join(" "), emphasis, width };
+    return {
+      base: base.filter((path) => path.length > 0).join(" "),
+      emphasis,
+      width,
+      x: lineX,
+      baseline,
+      runs: setRuns,
+    };
   });
 }

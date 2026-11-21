@@ -38,6 +38,8 @@
     "examples:generate": "npm run build --workspace @glyphkiln/core && npm run examples:generate --workspace @glyphkiln/core && npm run render --workspace @glyphkiln/example-style-showcase",
     "text-layout-data:verify": "npm run text-layout-data:verify --workspace @glyphkiln/core",
     "text-layout-data:update": "npm run text-layout-data:update --workspace @glyphkiln/core",
+    "typography-harness:verify": "npm run typography-harness:verify --workspace @glyphkiln/core",
+    "typography-harness:update": "npm run typography-harness:update --workspace @glyphkiln/core",
     "fixtures:verify": "npm run fixtures:verify --workspace @glyphkiln/core",
     "fixtures:update": "npm run fixtures:update --workspace @glyphkiln/core",
     "scene-kernel-fixture:verify": "npm run scene-kernel-fixture:verify --workspace @glyphkiln/core",

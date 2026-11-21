@@ -28,7 +28,8 @@ import type {
   TextElement,
 } from "../renderer/scene.js";
 import { renderSceneToSvg } from "../renderer/svg.js";
-import { analyzeTextLayoutSupport, fitText } from "../typography/index.js";
+import { analyzeTextLayoutSupport } from "../typography/index.js";
+import { layoutText, missingGlyphIssue } from "../typography/layout-text.js";
 import { createSceneFingerprint, type SceneFingerprintInput } from "./fingerprint.js";
 import {
   createSceneEvidence,
@@ -459,78 +460,63 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
   }
   context.fonts.get(element.font.family, element.font.weight, element.font.style);
   context.fontKeys.add(key);
-  const missingCodePoints = context.fonts.missingCodePoints(
-    element.text,
-    element.font.family,
-    element.font.weight,
-    element.font.style,
-  );
-  if (missingCodePoints.length > 0) {
-    context.qualityIssues.push({
-      code: "MISSING_GLYPH",
-      severity: "error",
-      message: `Font "${element.font.family}" does not cover all text in scene element "${element.id}".`,
-      layerId: element.id,
-      details: {
-        codePoints: missingCodePoints.map(
-          (codePoint) => `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
-        ),
-      },
-    });
-  }
-  const fitted = fitText({
+  const layout = layoutText({
     text: element.text,
     registry: context.fonts,
-    style: {
+    face: {
       family: element.font.family,
       weight: element.font.weight,
       style: element.font.style,
+    },
+    box: element.box,
+    layerId: element.id,
+    sizing: {
+      mode: "fit",
+      preferredFontSize: element.fit.preferredFontSize,
+      minimumFontSize: element.fit.minimumFontSize,
+      maximumLines: element.fit.maximumLines,
+      ...(element.fit.keepTogether === undefined
+        ? {}
+        : { keepTogether: element.fit.keepTogether }),
+    },
+    setting: {
+      kind: "absolute",
       lineHeight: element.fit.lineHeight,
       ...(element.fit.letterSpacing === undefined
         ? {}
         : { letterSpacing: element.fit.letterSpacing }),
     },
-    box: element.box,
-    preferredFontSize: element.fit.preferredFontSize,
-    minimumFontSize: element.fit.minimumFontSize,
-    maximumLines: element.fit.maximumLines,
-    layerId: element.id,
-    ...(element.fit.keepTogether === undefined
-      ? {}
-      : { keepTogether: element.fit.keepTogether }),
-  });
-  context.qualityIssues.push(...fitted.issues);
-  const lines = fitted.lines.slice(0, element.fit.maximumLines);
-  context.textWraps.set(element.id, {
-    lineWidths: fitted.lineWidths.slice(0, lines.length),
-    brokeLongWord: fitted.brokeLongWord,
-    orphanLineCount: fitted.orphanLines.length,
-    usesBalancedLineBreaking: fitted.usesBalancedLineBreaking,
-    segmentationPolicy: fitted.segmentationPolicy,
-    segmentationPolicyVersion: fitted.segmentationPolicyVersion,
-  });
-  const y = verticallyAlignedY(element, fitted.height);
-  const x = horizontallyAlignedX(element);
-  const outlines = context.fonts.outlineText({
-    lines,
-    family: element.font.family,
-    weight: element.font.weight,
-    style: element.font.style,
-    fontSize: fitted.fontSize,
-    lineHeight: element.fit.lineHeight,
-    x,
-    y,
     align: element.fit.align,
-    ...(element.fit.letterSpacing === undefined
-      ? {}
-      : { letterSpacing: element.fit.letterSpacing }),
+    verticalAlign: element.fit.verticalAlign ?? "top",
+    detail: "glyphs",
+    renderedLineLimit: element.fit.maximumLines,
+    coverage: "source-text",
+  });
+  if (layout.missingCodePoints.length > 0) {
+    context.qualityIssues.push(
+      missingGlyphIssue(
+        element.id,
+        `Font "${element.font.family}" does not cover all text in scene element "${element.id}".`,
+        layout.missingCodePoints,
+      ),
+    );
+  }
+  context.qualityIssues.push(...layout.issues);
+  const lines = layout.lines.map((line) => line.text);
+  context.textWraps.set(element.id, {
+    lineWidths: layout.metrics.lineWidths,
+    brokeLongWord: layout.evidence.brokeLongWord,
+    orphanLineCount: layout.evidence.orphanLineCount,
+    usesBalancedLineBreaking: layout.evidence.usesBalancedLineBreaking,
+    segmentationPolicy: layout.evidence.segmentationPolicy!,
+    segmentationPolicyVersion: layout.evidence.segmentationPolicyVersion!,
   });
   context.selectableText ||= element.textMode === "outline-with-selectable-text";
   return {
     id: element.id,
     type: "text",
-    x,
-    y,
+    x: layout.anchor.x,
+    y: layout.anchor.y,
     lines,
     fill: element.fill,
     // Keep SVG metadata canonical to the scene document. The registry key is
@@ -539,56 +525,18 @@ function resolveText(element: SceneTextElement, context: ResolveContext): TextEl
     fontFamily: element.font.family,
     fontWeight: element.font.weight,
     fontStyle: element.font.style,
-    fontSize: fitted.fontSize,
+    fontSize: layout.fontSize,
     lineHeight: element.fit.lineHeight,
     align: element.fit.align,
     ...(element.fit.letterSpacing === undefined
       ? {}
       : { letterSpacing: element.fit.letterSpacing }),
-    bounds: {
-      x: alignedBoundsX(element, fitted.width),
-      y,
-      width: fitted.width,
-      height: fitted.height,
-    },
-    outlines,
+    bounds: layout.bounds,
+    outlines: layout.lines.map((line) => line.set!.outline),
     textMode: element.textMode,
     ...(element.opacity === undefined ? {} : { opacity: element.opacity }),
     ...(element.semantic === undefined ? {} : { semantic: element.semantic }),
   };
-}
-
-function horizontallyAlignedX(element: SceneTextElement): number {
-  switch (element.fit.align) {
-    case "left":
-      return element.box.x;
-    case "center":
-      return element.box.x + element.box.width / 2;
-    case "right":
-      return element.box.x + element.box.width;
-  }
-}
-
-function alignedBoundsX(element: SceneTextElement, width: number): number {
-  switch (element.fit.align) {
-    case "left":
-      return element.box.x;
-    case "center":
-      return element.box.x + (element.box.width - width) / 2;
-    case "right":
-      return element.box.x + element.box.width - width;
-  }
-}
-
-function verticallyAlignedY(element: SceneTextElement, height: number): number {
-  switch (element.fit.verticalAlign ?? "top") {
-    case "top":
-      return element.box.y;
-    case "middle":
-      return element.box.y + Math.max(0, (element.box.height - height) / 2);
-    case "bottom":
-      return element.box.y + Math.max(0, element.box.height - height);
-  }
 }
 
 function resolveConnector(

@@ -1,0 +1,1011 @@
+{
+  "id": "C-MIX",
+  "description": "200 mixed Thai/Latin/digit lines composed deterministically from 10 Thai phrases, 10 Latin terms, 10 figure groups and 10 patterns (index arithmetic only, no randomness). Patterns 0, 3 and 5 start with Latin, which is where the one-script-per-line defect shows. Set in Noto Sans Thai, which also covers Basic Latin.",
+  "face": {
+    "family": "Noto Sans Thai",
+    "weight": 400,
+    "style": "normal"
+  },
+  "entries": [
+    {
+      "id": "mix-001",
+      "text": "AI ลดราคา",
+      "pattern": 0
+    },
+    {
+      "id": "mix-002",
+      "text": "ใหม่ล่าสุด LINE",
+      "pattern": 1
+    },
+    {
+      "id": "mix-003",
+      "text": "ส่วนลดพิเศษBlack Friday",
+      "pattern": 2
+    },
+    {
+      "id": "mix-004",
+      "text": "QR Code สั่งซื้อที่ 25%",
+      "pattern": 3
+    },
+    {
+      "id": "mix-005",
+      "text": "ดาวน์โหลด x2 iPhone 17",
+      "pattern": 4
+    },
+    {
+      "id": "mix-006",
+      "text": "“5G” ใช้งานง่ายกับ",
+      "pattern": 5
+    },
+    {
+      "id": "mix-007",
+      "text": "ที่ป้ญู (Shopee) 2026",
+      "pattern": 6
+    },
+    {
+      "id": "mix-008",
+      "text": "09:00 น. จองตั๋วผ่าน",
+      "pattern": 7
+    },
+    {
+      "id": "mix-009",
+      "text": "Wi-Fi: ราคาเริ่มต้นๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-010",
+      "text": "ฟรีค่าจัดส่ง – App Store 1,299.-",
+      "pattern": 9
+    },
+    {
+      "id": "mix-011",
+      "text": "ลดราคา Glyphkiln",
+      "pattern": 1
+    },
+    {
+      "id": "mix-012",
+      "text": "ใหม่ล่าสุดWi-Fi",
+      "pattern": 2
+    },
+    {
+      "id": "mix-013",
+      "text": "App Store ส่วนลดพิเศษ 3 วัน",
+      "pattern": 3
+    },
+    {
+      "id": "mix-014",
+      "text": "สั่งซื้อที่ 2026 AI",
+      "pattern": 4
+    },
+    {
+      "id": "mix-015",
+      "text": "“LINE” ดาวน์โหลด",
+      "pattern": 5
+    },
+    {
+      "id": "mix-016",
+      "text": "ใช้งานง่ายกับ (Black Friday) 100 km",
+      "pattern": 6
+    },
+    {
+      "id": "mix-017",
+      "text": "1,299.- ที่ป้ญู",
+      "pattern": 7
+    },
+    {
+      "id": "mix-018",
+      "text": "iPhone 17: จองตั๋วผ่านๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-019",
+      "text": "ราคาเริ่มต้น – 5G No. 1",
+      "pattern": 9
+    },
+    {
+      "id": "mix-020",
+      "text": "Shopee ฟรีค่าจัดส่ง",
+      "pattern": 0
+    },
+    {
+      "id": "mix-021",
+      "text": "ลดราคาiPhone 17",
+      "pattern": 2
+    },
+    {
+      "id": "mix-022",
+      "text": "5G ใหม่ล่าสุด 09:00 น.",
+      "pattern": 3
+    },
+    {
+      "id": "mix-023",
+      "text": "ส่วนลดพิเศษ 100 km Shopee",
+      "pattern": 4
+    },
+    {
+      "id": "mix-024",
+      "text": "“Glyphkiln” สั่งซื้อที่",
+      "pattern": 5
+    },
+    {
+      "id": "mix-025",
+      "text": "ดาวน์โหลด (Wi-Fi) 499 บาท",
+      "pattern": 6
+    },
+    {
+      "id": "mix-026",
+      "text": "No. 1 ใช้งานง่ายกับ",
+      "pattern": 7
+    },
+    {
+      "id": "mix-027",
+      "text": "AI: ที่ป้ญูๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-028",
+      "text": "จองตั๋วผ่าน – LINE 25%",
+      "pattern": 9
+    },
+    {
+      "id": "mix-029",
+      "text": "Black Friday ราคาเริ่มต้น",
+      "pattern": 0
+    },
+    {
+      "id": "mix-030",
+      "text": "ฟรีค่าจัดส่ง QR Code",
+      "pattern": 1
+    },
+    {
+      "id": "mix-031",
+      "text": "LINE ลดราคา 1,299.-",
+      "pattern": 3
+    },
+    {
+      "id": "mix-032",
+      "text": "ใหม่ล่าสุด 499 บาท Black Friday",
+      "pattern": 4
+    },
+    {
+      "id": "mix-033",
+      "text": "“QR Code” ส่วนลดพิเศษ",
+      "pattern": 5
+    },
+    {
+      "id": "mix-034",
+      "text": "สั่งซื้อที่ (iPhone 17) 24/7",
+      "pattern": 6
+    },
+    {
+      "id": "mix-035",
+      "text": "25% ดาวน์โหลด",
+      "pattern": 7
+    },
+    {
+      "id": "mix-036",
+      "text": "Shopee: ใช้งานง่ายกับๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-037",
+      "text": "ที่ป้ญู – Glyphkiln 3 วัน",
+      "pattern": 9
+    },
+    {
+      "id": "mix-038",
+      "text": "Wi-Fi จองตั๋วผ่าน",
+      "pattern": 0
+    },
+    {
+      "id": "mix-039",
+      "text": "ราคาเริ่มต้น App Store",
+      "pattern": 1
+    },
+    {
+      "id": "mix-040",
+      "text": "ฟรีค่าจัดส่งAI",
+      "pattern": 2
+    },
+    {
+      "id": "mix-041",
+      "text": "ลดราคา 24/7 Wi-Fi",
+      "pattern": 4
+    },
+    {
+      "id": "mix-042",
+      "text": "“App Store” ใหม่ล่าสุด",
+      "pattern": 5
+    },
+    {
+      "id": "mix-043",
+      "text": "ส่วนลดพิเศษ (AI) x2",
+      "pattern": 6
+    },
+    {
+      "id": "mix-044",
+      "text": "3 วัน สั่งซื้อที่",
+      "pattern": 7
+    },
+    {
+      "id": "mix-045",
+      "text": "Black Friday: ดาวน์โหลดๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-046",
+      "text": "ใช้งานง่ายกับ – QR Code 09:00 น.",
+      "pattern": 9
+    },
+    {
+      "id": "mix-047",
+      "text": "iPhone 17 ที่ป้ญู",
+      "pattern": 0
+    },
+    {
+      "id": "mix-048",
+      "text": "จองตั๋วผ่าน 5G",
+      "pattern": 1
+    },
+    {
+      "id": "mix-049",
+      "text": "ราคาเริ่มต้นShopee",
+      "pattern": 2
+    },
+    {
+      "id": "mix-050",
+      "text": "Glyphkiln ฟรีค่าจัดส่ง No. 1",
+      "pattern": 3
+    },
+    {
+      "id": "mix-051",
+      "text": "“5G” ลดราคา",
+      "pattern": 5
+    },
+    {
+      "id": "mix-052",
+      "text": "ใหม่ล่าสุด (Shopee) 2026",
+      "pattern": 6
+    },
+    {
+      "id": "mix-053",
+      "text": "09:00 น. ส่วนลดพิเศษ",
+      "pattern": 7
+    },
+    {
+      "id": "mix-054",
+      "text": "Wi-Fi: สั่งซื้อที่ๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-055",
+      "text": "ดาวน์โหลด – App Store 1,299.-",
+      "pattern": 9
+    },
+    {
+      "id": "mix-056",
+      "text": "AI ใช้งานง่ายกับ",
+      "pattern": 0
+    },
+    {
+      "id": "mix-057",
+      "text": "ที่ป้ญู LINE",
+      "pattern": 1
+    },
+    {
+      "id": "mix-058",
+      "text": "จองตั๋วผ่านBlack Friday",
+      "pattern": 2
+    },
+    {
+      "id": "mix-059",
+      "text": "QR Code ราคาเริ่มต้น 25%",
+      "pattern": 3
+    },
+    {
+      "id": "mix-060",
+      "text": "ฟรีค่าจัดส่ง x2 iPhone 17",
+      "pattern": 4
+    },
+    {
+      "id": "mix-061",
+      "text": "ลดราคา (Black Friday) 100 km",
+      "pattern": 6
+    },
+    {
+      "id": "mix-062",
+      "text": "1,299.- ใหม่ล่าสุด",
+      "pattern": 7
+    },
+    {
+      "id": "mix-063",
+      "text": "iPhone 17: ส่วนลดพิเศษๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-064",
+      "text": "สั่งซื้อที่ – 5G No. 1",
+      "pattern": 9
+    },
+    {
+      "id": "mix-065",
+      "text": "Shopee ดาวน์โหลด",
+      "pattern": 0
+    },
+    {
+      "id": "mix-066",
+      "text": "ใช้งานง่ายกับ Glyphkiln",
+      "pattern": 1
+    },
+    {
+      "id": "mix-067",
+      "text": "ที่ป้ญูWi-Fi",
+      "pattern": 2
+    },
+    {
+      "id": "mix-068",
+      "text": "App Store จองตั๋วผ่าน 3 วัน",
+      "pattern": 3
+    },
+    {
+      "id": "mix-069",
+      "text": "ราคาเริ่มต้น 2026 AI",
+      "pattern": 4
+    },
+    {
+      "id": "mix-070",
+      "text": "“LINE” ฟรีค่าจัดส่ง",
+      "pattern": 5
+    },
+    {
+      "id": "mix-071",
+      "text": "No. 1 ลดราคา",
+      "pattern": 7
+    },
+    {
+      "id": "mix-072",
+      "text": "AI: ใหม่ล่าสุดๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-073",
+      "text": "ส่วนลดพิเศษ – LINE 25%",
+      "pattern": 9
+    },
+    {
+      "id": "mix-074",
+      "text": "Black Friday สั่งซื้อที่",
+      "pattern": 0
+    },
+    {
+      "id": "mix-075",
+      "text": "ดาวน์โหลด QR Code",
+      "pattern": 1
+    },
+    {
+      "id": "mix-076",
+      "text": "ใช้งานง่ายกับiPhone 17",
+      "pattern": 2
+    },
+    {
+      "id": "mix-077",
+      "text": "5G ที่ป้ญู 09:00 น.",
+      "pattern": 3
+    },
+    {
+      "id": "mix-078",
+      "text": "จองตั๋วผ่าน 100 km Shopee",
+      "pattern": 4
+    },
+    {
+      "id": "mix-079",
+      "text": "“Glyphkiln” ราคาเริ่มต้น",
+      "pattern": 5
+    },
+    {
+      "id": "mix-080",
+      "text": "ฟรีค่าจัดส่ง (Wi-Fi) 499 บาท",
+      "pattern": 6
+    },
+    {
+      "id": "mix-081",
+      "text": "Shopee: ลดราคาๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-082",
+      "text": "ใหม่ล่าสุด – Glyphkiln 3 วัน",
+      "pattern": 9
+    },
+    {
+      "id": "mix-083",
+      "text": "Wi-Fi ส่วนลดพิเศษ",
+      "pattern": 0
+    },
+    {
+      "id": "mix-084",
+      "text": "สั่งซื้อที่ App Store",
+      "pattern": 1
+    },
+    {
+      "id": "mix-085",
+      "text": "ดาวน์โหลดAI",
+      "pattern": 2
+    },
+    {
+      "id": "mix-086",
+      "text": "LINE ใช้งานง่ายกับ 1,299.-",
+      "pattern": 3
+    },
+    {
+      "id": "mix-087",
+      "text": "ที่ป้ญู 499 บาท Black Friday",
+      "pattern": 4
+    },
+    {
+      "id": "mix-088",
+      "text": "“QR Code” จองตั๋วผ่าน",
+      "pattern": 5
+    },
+    {
+      "id": "mix-089",
+      "text": "ราคาเริ่มต้น (iPhone 17) 24/7",
+      "pattern": 6
+    },
+    {
+      "id": "mix-090",
+      "text": "25% ฟรีค่าจัดส่ง",
+      "pattern": 7
+    },
+    {
+      "id": "mix-091",
+      "text": "ลดราคา – QR Code 09:00 น.",
+      "pattern": 9
+    },
+    {
+      "id": "mix-092",
+      "text": "iPhone 17 ใหม่ล่าสุด",
+      "pattern": 0
+    },
+    {
+      "id": "mix-093",
+      "text": "ส่วนลดพิเศษ 5G",
+      "pattern": 1
+    },
+    {
+      "id": "mix-094",
+      "text": "สั่งซื้อที่Shopee",
+      "pattern": 2
+    },
+    {
+      "id": "mix-095",
+      "text": "Glyphkiln ดาวน์โหลด No. 1",
+      "pattern": 3
+    },
+    {
+      "id": "mix-096",
+      "text": "ใช้งานง่ายกับ 24/7 Wi-Fi",
+      "pattern": 4
+    },
+    {
+      "id": "mix-097",
+      "text": "“App Store” ที่ป้ญู",
+      "pattern": 5
+    },
+    {
+      "id": "mix-098",
+      "text": "จองตั๋วผ่าน (AI) x2",
+      "pattern": 6
+    },
+    {
+      "id": "mix-099",
+      "text": "3 วัน ราคาเริ่มต้น",
+      "pattern": 7
+    },
+    {
+      "id": "mix-100",
+      "text": "Black Friday: ฟรีค่าจัดส่งๆ",
+      "pattern": 8
+    },
+    {
+      "id": "mix-101",
+      "text": "AI ลดราคา 499 บาท",
+      "pattern": 0
+    },
+    {
+      "id": "mix-102",
+      "text": "ใหม่ล่าสุด LINE 25%",
+      "pattern": 1
+    },
+    {
+      "id": "mix-103",
+      "text": "ส่วนลดพิเศษBlack Friday 2026",
+      "pattern": 2
+    },
+    {
+      "id": "mix-104",
+      "text": "QR Code สั่งซื้อที่ 25% 1,299.-",
+      "pattern": 3
+    },
+    {
+      "id": "mix-105",
+      "text": "ดาวน์โหลด x2 iPhone 17 24/7",
+      "pattern": 4
+    },
+    {
+      "id": "mix-106",
+      "text": "“5G” ใช้งานง่ายกับ 3 วัน",
+      "pattern": 5
+    },
+    {
+      "id": "mix-107",
+      "text": "ที่ป้ญู (Shopee) 2026 100 km",
+      "pattern": 6
+    },
+    {
+      "id": "mix-108",
+      "text": "09:00 น. จองตั๋วผ่าน No. 1",
+      "pattern": 7
+    },
+    {
+      "id": "mix-109",
+      "text": "Wi-Fi: ราคาเริ่มต้นๆ x2",
+      "pattern": 8
+    },
+    {
+      "id": "mix-110",
+      "text": "ฟรีค่าจัดส่ง – App Store 1,299.- 09:00 น.",
+      "pattern": 9
+    },
+    {
+      "id": "mix-111",
+      "text": "ลดราคา Glyphkiln 499 บาท",
+      "pattern": 1
+    },
+    {
+      "id": "mix-112",
+      "text": "ใหม่ล่าสุดWi-Fi 25%",
+      "pattern": 2
+    },
+    {
+      "id": "mix-113",
+      "text": "App Store ส่วนลดพิเศษ 3 วัน 2026",
+      "pattern": 3
+    },
+    {
+      "id": "mix-114",
+      "text": "สั่งซื้อที่ 2026 AI 1,299.-",
+      "pattern": 4
+    },
+    {
+      "id": "mix-115",
+      "text": "“LINE” ดาวน์โหลด 24/7",
+      "pattern": 5
+    },
+    {
+      "id": "mix-116",
+      "text": "ใช้งานง่ายกับ (Black Friday) 100 km 3 วัน",
+      "pattern": 6
+    },
+    {
+      "id": "mix-117",
+      "text": "1,299.- ที่ป้ญู 100 km",
+      "pattern": 7
+    },
+    {
+      "id": "mix-118",
+      "text": "iPhone 17: จองตั๋วผ่านๆ No. 1",
+      "pattern": 8
+    },
+    {
+      "id": "mix-119",
+      "text": "ราคาเริ่มต้น – 5G No. 1 x2",
+      "pattern": 9
+    },
+    {
+      "id": "mix-120",
+      "text": "Shopee ฟรีค่าจัดส่ง 09:00 น.",
+      "pattern": 0
+    },
+    {
+      "id": "mix-121",
+      "text": "ลดราคาiPhone 17 499 บาท",
+      "pattern": 2
+    },
+    {
+      "id": "mix-122",
+      "text": "5G ใหม่ล่าสุด 09:00 น. 25%",
+      "pattern": 3
+    },
+    {
+      "id": "mix-123",
+      "text": "ส่วนลดพิเศษ 100 km Shopee 2026",
+      "pattern": 4
+    },
+    {
+      "id": "mix-124",
+      "text": "“Glyphkiln” สั่งซื้อที่ 1,299.-",
+      "pattern": 5
+    },
+    {
+      "id": "mix-125",
+      "text": "ดาวน์โหลด (Wi-Fi) 499 บาท 24/7",
+      "pattern": 6
+    },
+    {
+      "id": "mix-126",
+      "text": "No. 1 ใช้งานง่ายกับ 3 วัน",
+      "pattern": 7
+    },
+    {
+      "id": "mix-127",
+      "text": "AI: ที่ป้ญูๆ 100 km",
+      "pattern": 8
+    },
+    {
+      "id": "mix-128",
+      "text": "จองตั๋วผ่าน – LINE 25% No. 1",
+      "pattern": 9
+    },
+    {
+      "id": "mix-129",
+      "text": "Black Friday ราคาเริ่มต้น x2",
+      "pattern": 0
+    },
+    {
+      "id": "mix-130",
+      "text": "ฟรีค่าจัดส่ง QR Code 09:00 น.",
+      "pattern": 1
+    },
+    {
+      "id": "mix-131",
+      "text": "LINE ลดราคา 1,299.- 499 บาท",
+      "pattern": 3
+    },
+    {
+      "id": "mix-132",
+      "text": "ใหม่ล่าสุด 499 บาท Black Friday 25%",
+      "pattern": 4
+    },
+    {
+      "id": "mix-133",
+      "text": "“QR Code” ส่วนลดพิเศษ 2026",
+      "pattern": 5
+    },
+    {
+      "id": "mix-134",
+      "text": "สั่งซื้อที่ (iPhone 17) 24/7 1,299.-",
+      "pattern": 6
+    },
+    {
+      "id": "mix-135",
+      "text": "25% ดาวน์โหลด 24/7",
+      "pattern": 7
+    },
+    {
+      "id": "mix-136",
+      "text": "Shopee: ใช้งานง่ายกับๆ 3 วัน",
+      "pattern": 8
+    },
+    {
+      "id": "mix-137",
+      "text": "ที่ป้ญู – Glyphkiln 3 วัน 100 km",
+      "pattern": 9
+    },
+    {
+      "id": "mix-138",
+      "text": "Wi-Fi จองตั๋วผ่าน No. 1",
+      "pattern": 0
+    },
+    {
+      "id": "mix-139",
+      "text": "ราคาเริ่มต้น App Store x2",
+      "pattern": 1
+    },
+    {
+      "id": "mix-140",
+      "text": "ฟรีค่าจัดส่งAI 09:00 น.",
+      "pattern": 2
+    },
+    {
+      "id": "mix-141",
+      "text": "ลดราคา 24/7 Wi-Fi 499 บาท",
+      "pattern": 4
+    },
+    {
+      "id": "mix-142",
+      "text": "“App Store” ใหม่ล่าสุด 25%",
+      "pattern": 5
+    },
+    {
+      "id": "mix-143",
+      "text": "ส่วนลดพิเศษ (AI) x2 2026",
+      "pattern": 6
+    },
+    {
+      "id": "mix-144",
+      "text": "3 วัน สั่งซื้อที่ 1,299.-",
+      "pattern": 7
+    },
+    {
+      "id": "mix-145",
+      "text": "Black Friday: ดาวน์โหลดๆ 24/7",
+      "pattern": 8
+    },
+    {
+      "id": "mix-146",
+      "text": "ใช้งานง่ายกับ – QR Code 09:00 น. 3 วัน",
+      "pattern": 9
+    },
+    {
+      "id": "mix-147",
+      "text": "iPhone 17 ที่ป้ญู 100 km",
+      "pattern": 0
+    },
+    {
+      "id": "mix-148",
+      "text": "จองตั๋วผ่าน 5G No. 1",
+      "pattern": 1
+    },
+    {
+      "id": "mix-149",
+      "text": "ราคาเริ่มต้นShopee x2",
+      "pattern": 2
+    },
+    {
+      "id": "mix-150",
+      "text": "Glyphkiln ฟรีค่าจัดส่ง No. 1 09:00 น.",
+      "pattern": 3
+    },
+    {
+      "id": "mix-151",
+      "text": "“5G” ลดราคา 499 บาท",
+      "pattern": 5
+    },
+    {
+      "id": "mix-152",
+      "text": "ใหม่ล่าสุด (Shopee) 2026 25%",
+      "pattern": 6
+    },
+    {
+      "id": "mix-153",
+      "text": "09:00 น. ส่วนลดพิเศษ 2026",
+      "pattern": 7
+    },
+    {
+      "id": "mix-154",
+      "text": "Wi-Fi: สั่งซื้อที่ๆ 1,299.-",
+      "pattern": 8
+    },
+    {
+      "id": "mix-155",
+      "text": "ดาวน์โหลด – App Store 1,299.- 24/7",
+      "pattern": 9
+    },
+    {
+      "id": "mix-156",
+      "text": "AI ใช้งานง่ายกับ 3 วัน",
+      "pattern": 0
+    },
+    {
+      "id": "mix-157",
+      "text": "ที่ป้ญู LINE 100 km",
+      "pattern": 1
+    },
+    {
+      "id": "mix-158",
+      "text": "จองตั๋วผ่านBlack Friday No. 1",
+      "pattern": 2
+    },
+    {
+      "id": "mix-159",
+      "text": "QR Code ราคาเริ่มต้น 25% x2",
+      "pattern": 3
+    },
+    {
+      "id": "mix-160",
+      "text": "ฟรีค่าจัดส่ง x2 iPhone 17 09:00 น.",
+      "pattern": 4
+    },
+    {
+      "id": "mix-161",
+      "text": "ลดราคา (Black Friday) 100 km 499 บาท",
+      "pattern": 6
+    },
+    {
+      "id": "mix-162",
+      "text": "1,299.- ใหม่ล่าสุด 25%",
+      "pattern": 7
+    },
+    {
+      "id": "mix-163",
+      "text": "iPhone 17: ส่วนลดพิเศษๆ 2026",
+      "pattern": 8
+    },
+    {
+      "id": "mix-164",
+      "text": "สั่งซื้อที่ – 5G No. 1 1,299.-",
+      "pattern": 9
+    },
+    {
+      "id": "mix-165",
+      "text": "Shopee ดาวน์โหลด 24/7",
+      "pattern": 0
+    },
+    {
+      "id": "mix-166",
+      "text": "ใช้งานง่ายกับ Glyphkiln 3 วัน",
+      "pattern": 1
+    },
+    {
+      "id": "mix-167",
+      "text": "ที่ป้ญูWi-Fi 100 km",
+      "pattern": 2
+    },
+    {
+      "id": "mix-168",
+      "text": "App Store จองตั๋วผ่าน 3 วัน No. 1",
+      "pattern": 3
+    },
+    {
+      "id": "mix-169",
+      "text": "ราคาเริ่มต้น 2026 AI x2",
+      "pattern": 4
+    },
+    {
+      "id": "mix-170",
+      "text": "“LINE” ฟรีค่าจัดส่ง 09:00 น.",
+      "pattern": 5
+    },
+    {
+      "id": "mix-171",
+      "text": "No. 1 ลดราคา 499 บาท",
+      "pattern": 7
+    },
+    {
+      "id": "mix-172",
+      "text": "AI: ใหม่ล่าสุดๆ 25%",
+      "pattern": 8
+    },
+    {
+      "id": "mix-173",
+      "text": "ส่วนลดพิเศษ – LINE 25% 2026",
+      "pattern": 9
+    },
+    {
+      "id": "mix-174",
+      "text": "Black Friday สั่งซื้อที่ 1,299.-",
+      "pattern": 0
+    },
+    {
+      "id": "mix-175",
+      "text": "ดาวน์โหลด QR Code 24/7",
+      "pattern": 1
+    },
+    {
+      "id": "mix-176",
+      "text": "ใช้งานง่ายกับiPhone 17 3 วัน",
+      "pattern": 2
+    },
+    {
+      "id": "mix-177",
+      "text": "5G ที่ป้ญู 09:00 น. 100 km",
+      "pattern": 3
+    },
+    {
+      "id": "mix-178",
+      "text": "จองตั๋วผ่าน 100 km Shopee No. 1",
+      "pattern": 4
+    },
+    {
+      "id": "mix-179",
+      "text": "“Glyphkiln” ราคาเริ่มต้น x2",
+      "pattern": 5
+    },
+    {
+      "id": "mix-180",
+      "text": "ฟรีค่าจัดส่ง (Wi-Fi) 499 บาท 09:00 น.",
+      "pattern": 6
+    },
+    {
+      "id": "mix-181",
+      "text": "Shopee: ลดราคาๆ 499 บาท",
+      "pattern": 8
+    },
+    {
+      "id": "mix-182",
+      "text": "ใหม่ล่าสุด – Glyphkiln 3 วัน 25%",
+      "pattern": 9
+    },
+    {
+      "id": "mix-183",
+      "text": "Wi-Fi ส่วนลดพิเศษ 2026",
+      "pattern": 0
+    },
+    {
+      "id": "mix-184",
+      "text": "สั่งซื้อที่ App Store 1,299.-",
+      "pattern": 1
+    },
+    {
+      "id": "mix-185",
+      "text": "ดาวน์โหลดAI 24/7",
+      "pattern": 2
+    },
+    {
+      "id": "mix-186",
+      "text": "LINE ใช้งานง่ายกับ 1,299.- 3 วัน",
+      "pattern": 3
+    },
+    {
+      "id": "mix-187",
+      "text": "ที่ป้ญู 499 บาท Black Friday 100 km",
+      "pattern": 4
+    },
+    {
+      "id": "mix-188",
+      "text": "“QR Code” จองตั๋วผ่าน No. 1",
+      "pattern": 5
+    },
+    {
+      "id": "mix-189",
+      "text": "ราคาเริ่มต้น (iPhone 17) 24/7 x2",
+      "pattern": 6
+    },
+    {
+      "id": "mix-190",
+      "text": "25% ฟรีค่าจัดส่ง 09:00 น.",
+      "pattern": 7
+    },
+    {
+      "id": "mix-191",
+      "text": "ลดราคา – QR Code 09:00 น. 499 บาท",
+      "pattern": 9
+    },
+    {
+      "id": "mix-192",
+      "text": "iPhone 17 ใหม่ล่าสุด 25%",
+      "pattern": 0
+    },
+    {
+      "id": "mix-193",
+      "text": "ส่วนลดพิเศษ 5G 2026",
+      "pattern": 1
+    },
+    {
+      "id": "mix-194",
+      "text": "สั่งซื้อที่Shopee 1,299.-",
+      "pattern": 2
+    },
+    {
+      "id": "mix-195",
+      "text": "Glyphkiln ดาวน์โหลด No. 1 24/7",
+      "pattern": 3
+    },
+    {
+      "id": "mix-196",
+      "text": "ใช้งานง่ายกับ 24/7 Wi-Fi 3 วัน",
+      "pattern": 4
+    },
+    {
+      "id": "mix-197",
+      "text": "“App Store” ที่ป้ญู 100 km",
+      "pattern": 5
+    },
+    {
+      "id": "mix-198",
+      "text": "จองตั๋วผ่าน (AI) x2 No. 1",
+      "pattern": 6
+    },
+    {
+      "id": "mix-199",
+      "text": "3 วัน ราคาเริ่มต้น x2",
+      "pattern": 7
+    },
+    {
+      "id": "mix-200",
+      "text": "Black Friday: ฟรีค่าจัดส่งๆ 09:00 น.",
+      "pattern": 8
+    }
+  ]
+}

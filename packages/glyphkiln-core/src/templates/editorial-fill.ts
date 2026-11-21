@@ -12,6 +12,7 @@ import {
   type TextFitOptions,
   type TextLayer,
 } from "./shared.js";
+import { layoutText } from "../typography/layout-text.js";
 import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
 
 /**
@@ -222,17 +223,17 @@ export function addHangingQuoteMark(
 ): void {
   const family = context.document.brand.typography.headlineFamily;
   const outline = (fontSize: number, x: number, y: number): string =>
-    context.fonts.outlineText({
-      lines: ["“"],
-      family,
-      weight: 700,
-      style: "normal",
-      fontSize,
-      lineHeight: 1,
-      x,
-      y,
+    layoutText({
+      text: "“",
+      registry: context.fonts,
+      face: { family, weight: 700, style: "normal" },
+      box: { x, y, width: 0, height: 0 },
+      layerId: input.id,
+      sizing: { mode: "fixed", fontSize },
+      setting: { kind: "absolute", lineHeight: 1 },
       align: "left",
-    })[0]!;
+      detail: "glyphs",
+    }).lines[0]!.set!.outline;
   const probe = pathDataBounds(outline(100, 0, 0));
   if (probe === null || probe.height <= 0) return;
   const fontSize = (100 * input.inkHeight) / probe.height;
