@@ -465,6 +465,39 @@ describe("rich-text emphasis", () => {
     ]);
   });
 
+  it("finds word edges in every spaced script and keeps marks with their letters", () => {
+    const accent = (phrase: string) => [{ phrase, style: "accent" as const }];
+    // Arabic: a whole word matches, the same letters inside a word do not.
+    expect(splitEmphasisRuns("في العالم", accent("العالم"))).toEqual([
+      { text: "في " },
+      { text: "العالم", style: "accent" },
+    ]);
+    expect(splitEmphasisRuns("بالعالم", accent("عالم"))).toEqual([{ text: "بالعالم" }]);
+    // Hebrew and Devanagari are spaced scripts too.
+    expect(splitEmphasisRuns("שלום עולם", accent("לום"))).toEqual([
+      { text: "שלום עולם" },
+    ]);
+    expect(splitEmphasisRuns("नमस्ते दुनिया", accent("दुनिया"))).toEqual([
+      { text: "नमस्ते " },
+      { text: "दुनिया", style: "accent" },
+    ]);
+    // A decomposed letter is never split from its combining mark.
+    const decomposed = "cafe\u0301 noir";
+    expect(splitEmphasisRuns(decomposed, accent("cafe"))).toEqual([
+      { text: decomposed },
+    ]);
+    expect(splitEmphasisRuns(decomposed, accent("cafe\u0301"))).toEqual([
+      { text: "cafe\u0301", style: "accent" },
+      { text: " noir" },
+    ]);
+    // Scripts without spaces match anywhere, astral Han included.
+    expect(splitEmphasisRuns("東京𠀋都", accent("𠀋"))).toEqual([
+      { text: "東京" },
+      { text: "𠀋", style: "accent" },
+      { text: "都" },
+    ]);
+  });
+
   it("chooses closed faces from the base weight", () => {
     expect(emphasisFace("strong", 400)).toEqual({ weight: 700, style: "normal" });
     expect(emphasisFace("strong-accent", 800)).toEqual({

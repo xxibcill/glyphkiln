@@ -6,12 +6,18 @@
  * Scanning left to right, the earliest match wins; at the same start the
  * longer phrase wins, then the earlier-declared one. Matches never overlap.
  * A phrase edge that is a word character must not touch another word
- * character, so "art" does not match inside "start".
+ * character, so "art" does not match inside "start". Word characters are
+ * letters, combining marks and decimal digits of scripts written with spaces
+ * between words; a mark therefore stays with its base letter, so a
+ * decomposed "e" + U+0301 is never cut. Scripts written without spaces (Thai,
+ * Lao, Khmer, Myanmar, Han and kana) have no word edges and match anywhere.
  *
  * This module has no imports so the schema can depend on it.
  */
 
-const WORD_CHARACTER = /[\p{Script=Latin}\p{Script=Greek}\p{Script=Cyrillic}\p{Nd}]/u;
+const LETTER_MARK_OR_DIGIT = /^[\p{L}\p{M}\p{Nd}]$/u;
+const UNSPACED_SCRIPT =
+  /^[\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]$/u;
 
 export type EmphasisCandidate<T> = { phrase: string; value: T };
 
@@ -81,9 +87,29 @@ export function matchedEmphasisIndexes(
 
 function isWordBoundary(line: string, start: number, phrase: string): boolean {
   const end = start + phrase.length;
-  const before = start > 0 ? line[start - 1]! : "";
-  const after = end < line.length ? line[end]! : "";
-  if (WORD_CHARACTER.test(phrase[0]!) && WORD_CHARACTER.test(before)) return false;
-  if (WORD_CHARACTER.test(phrase.at(-1)!) && WORD_CHARACTER.test(after)) return false;
+  const before = codePointBefore(line, start);
+  const after = codePointAt(line, end);
+  const first = codePointAt(phrase, 0);
+  const last = codePointBefore(phrase, phrase.length);
+  if (isWordCharacter(first) && isWordCharacter(before)) return false;
+  if (isWordCharacter(last) && isWordCharacter(after)) return false;
   return true;
+}
+
+function isWordCharacter(character: string): boolean {
+  return LETTER_MARK_OR_DIGIT.test(character) && !UNSPACED_SCRIPT.test(character);
+}
+
+/** The whole code point starting at a UTF-16 index ("" at the end). */
+function codePointAt(text: string, index: number): string {
+  const codePoint = text.codePointAt(index);
+  return codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+}
+
+/** The whole code point ending just before a UTF-16 index ("" at the start). */
+function codePointBefore(text: string, index: number): string {
+  if (index <= 0) return "";
+  const low = text.charCodeAt(index - 1);
+  const start = index >= 2 && low >= 0xdc00 && low <= 0xdfff ? index - 2 : index - 1;
+  return codePointAt(text, start);
 }

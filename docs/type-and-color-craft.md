@@ -49,9 +49,13 @@ like any other used face.
   error `TEXT_EMPHASIS_FACE_UNAVAILABLE`.
 - Emphasis phrases are kept together, so a phrase is never split across lines.
   Matching runs left to right. The earliest match wins; at the same start the
-  longer phrase wins. A phrase edge that is a Latin, Greek or Cyrillic letter or
-  a digit must not touch another such character, so "art" does not match inside
-  "start".
+  longer phrase wins. A phrase edge that is a letter, combining mark or digit
+  of a script written with spaces must not touch another such character, so
+  "art" does not match inside "start", Arabic "عالم" does not match inside
+  "بالعالم", and a decomposed "e" + U+0301 is never cut from its mark. Thai,
+  Lao, Khmer, Myanmar, Han and kana have no word edges and match anywhere.
+  Matching compares code points exactly; it does not apply Unicode
+  normalization, so write the phrase in the same form as the text.
 - Each emphasized run is set in its own face on the line's baseline, and the
   wrapper measures runs at their real widths. Kerning does not apply across a
   run boundary.
