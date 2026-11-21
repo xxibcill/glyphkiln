@@ -31,6 +31,18 @@ const b2Statistic = JSON.parse(
     "utf8",
   ),
 );
+const m1Quote = withM1Headline(
+  JSON.parse(
+    await readFile(new URL("tests/visual/m1/quote-card-m1.design.json", root), "utf8"),
+  ),
+);
+/** DesignDocument 1.8.0 font-model fields on the quote-card@1.4.0 headline. */
+function withM1Headline(document) {
+  const headline = document.layers.find((layer) => layer.type === "headline");
+  headline.axes = { wght: 500 };
+  headline.opticalSizing = "auto";
+  return document;
+}
 function mutateB2(source, callback) {
   const document = structuredClone(source);
   callback(document);
@@ -198,6 +210,31 @@ const cases = [
     runtimeValid: false,
   },
 
+  {
+    name: "m1-font-model-valid",
+    document: structuredClone(m1Quote),
+    jsonSchemaValid: true,
+    runtimeValid: true,
+  },
+  {
+    name: "m1-font-model-legacy",
+    document: { ...structuredClone(m1Quote), schemaVersion: "1.7.0" },
+    jsonSchemaValid: false,
+    runtimeValid: false,
+  },
+  {
+    name: "m1-axes-limit",
+    document: mutateB2(m1Quote, (document) => {
+      const layer = document.layers.find((candidate) => candidate.type === "headline");
+      layer.axes = Object.fromEntries(
+        ["wght", "wdth", "opsz", "slnt", "ital", "GRAD", "XTRA", "YOPQ", "YTUC"].map(
+          (tag) => [tag, 1],
+        ),
+      );
+    }),
+    jsonSchemaValid: true,
+    runtimeValid: false,
+  },
   {
     name: "valid",
     document: structuredClone(base),

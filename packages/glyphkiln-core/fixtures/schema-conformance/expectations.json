@@ -35,6 +35,9 @@
     "jsonSchemaValid": false,
     "runtimeValid": false
   },
+  "m1-font-model-valid": { "jsonSchemaValid": true, "runtimeValid": true },
+  "m1-font-model-legacy": { "jsonSchemaValid": false, "runtimeValid": false },
+  "m1-axes-limit": { "jsonSchemaValid": true, "runtimeValid": false },
   "valid": { "jsonSchemaValid": true, "runtimeValid": true },
   "duplicate-layer-id": { "jsonSchemaValid": true, "runtimeValid": false },
   "quiet-region-sum": { "jsonSchemaValid": true, "runtimeValid": false },

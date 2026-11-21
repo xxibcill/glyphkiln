@@ -522,6 +522,18 @@ export const SCENE_DOCUMENT_RUNTIME_REFINEMENTS = [
     description:
       "Every string serialized into SVG must contain only XML 1.0 characters.",
   },
+  {
+    code: "SCENE_FIELD_REQUIRES_VERSION",
+    path: "$..font",
+    description:
+      "Text font fields axes, namedInstance, opticalSizing, opsz, fallback and scriptFaces need SceneDocument 1.1.0.",
+  },
+  {
+    code: "FONT_AXES_LIMIT",
+    path: "$..font.axes",
+    description:
+      "Scene text may set at most eight variation axes (SceneDocument 1.1.0).",
+  },
 ] as const;
 
 export function validateSceneDocument(input: unknown): SceneValidationResult {

@@ -44,6 +44,12 @@ export const DESIGN_DOCUMENT_RUNTIME_REFINEMENTS = [
     description:
       "After whitespace normalization, each emphasis phrase must occur within one paragraph of the layer text (schema 1.7.0).",
   },
+  {
+    code: "FONT_AXES_LIMIT",
+    path: "$..axes",
+    description:
+      "A text layer or brand typography role may set at most eight variation axes (schema 1.8.0).",
+  },
 ] as const;
 
 export function getDesignDocumentJsonSchema(): object {

@@ -293,6 +293,7 @@ describe("design document schema", () => {
       expect.arrayContaining([
         expect.objectContaining({ code: "UNIQUE_LAYER_IDS" }),
         expect.objectContaining({ code: "QUIET_REGION_HORIZONTAL_BOUNDS" }),
+        expect.objectContaining({ code: "FONT_AXES_LIMIT" }),
       ]),
     );
     const validateJsonSchema = new Ajv2020().compile(schema);

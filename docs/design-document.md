@@ -48,7 +48,9 @@ Schema `1.8.0` adds the M1 font model: text layers may set `axes`,
 `namedInstance`, `opticalSizing` and `opsz`, and roles may also set an ordered
 `fallback` stack and `scriptFaces` (`latn`, `thai`), each with a `scale` and
 `baselineShift`. Only template versions with the `fontModel` capability
-implement the layer fields. See [Typography M1](typography-m1.md).
+implement the layer fields. The runtime refinement `FONT_AXES_LIMIT` caps
+`axes` at eight tags, which JSON Schema alone does not enforce. See
+[Typography M1](typography-m1.md).
 
 ## Layer union
 

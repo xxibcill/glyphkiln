@@ -63,6 +63,8 @@ describe("SceneDocument v1 schema", () => {
         "SCENE_TRANSFORM_CONSTRAINTS",
         "SCENE_CONNECTOR_REFERENCES",
         "SCENE_READING_ORDER_REFERENCES",
+        "SCENE_FIELD_REQUIRES_VERSION",
+        "FONT_AXES_LIMIT",
       ]),
     );
     expect(validateJsonSchema(validScene())).toBe(true);
