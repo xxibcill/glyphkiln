@@ -8,7 +8,7 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 const probe = new URL("./print-typography-harness.mjs", import.meta.url);
 const EXPECTED_HARNESS_SHA256 =
-  "3727cdacc60a413218370bb074d5dd975c234d4301edcdb52201ebc20507978f";
+  "3ca08e219aa414d161692788edd8e64fb67478016b9a4edcc0192d4effa0938a";
 const [first, second] = await Promise.all([runProbe(), runProbe()]);
 
 assert.equal(first.stderr, "");

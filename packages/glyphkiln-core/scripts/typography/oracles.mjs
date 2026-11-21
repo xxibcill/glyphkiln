@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 
-import { segmentThaiText } from "../../dist/typography/index.js";
+import { segmentParagraph } from "../../dist/typography/segmentation.js";
 
 const PACKAGE_ROOT = new URL("../../", import.meta.url);
 const ORACLE_DIRECTORY = "vendor/unicode/17.0.0/oracles/";
@@ -70,26 +70,34 @@ export function parseLineBreakTest(source = readLineBreakTest()) {
 }
 
 /**
- * Break opportunities of the current engine, in code-point positions. Today a
- * line may start at the first non-space after a run of `\s` (which wrongly
- * includes NBSP), and inside a Thai token at each BudouX-th 0.7.0 boundary.
- * This mirrors `segmentation.ts` without its whitespace normalisation, which
- * only changes the spaces themselves.
+ * Break opportunities of the current engine, in code-point positions of
+ * `text`: every unit boundary of `segmentParagraph` (the units the wrapper
+ * places lines on). Today that is the first non-space after a run of `\s`
+ * (which wrongly includes NBSP) and each BudouX-th 0.7.0 boundary inside a
+ * Thai token. `segmentParagraph` trims and collapses whitespace first; units
+ * start at non-space characters, which normalisation keeps in order, so each
+ * unit start maps back to the same non-space character of `text`.
  */
 export function engineBreakOpportunities(text) {
-  const opportunities = new Set();
-  for (const match of text.matchAll(/\S+/gu)) {
-    if (match.index > 0) opportunities.add(match.index);
-    if (!/[฀-๿]/u.test(match[0])) continue;
-    let offset = match.index;
-    for (const [index, segment] of segmentThaiText(match[0]).entries()) {
-      if (index > 0) opportunities.add(offset);
-      offset += segment.length;
-    }
-  }
+  const { text: normalized, units } = segmentParagraph(text, []);
+  const sourceOffsets = nonSpaceOffsets(text);
+  const rankInNormalized = new Map(
+    nonSpaceOffsets(normalized).map((offset, rank) => [offset, rank]),
+  );
+  const opportunities = new Set(
+    units.slice(1).map((unit) => sourceOffsets[rankInNormalized.get(unit.start)]),
+  );
   return [...opportunities]
     .map((offset) => [...text.slice(0, offset)].length)
     .sort((left, right) => left - right);
+}
+
+function nonSpaceOffsets(text) {
+  const offsets = [];
+  for (let offset = 0; offset < text.length; offset += 1) {
+    if (!/\s/u.test(text[offset])) offsets.push(offset);
+  }
+  return offsets;
 }
 
 /** Conformance of the current engine with LineBreakTest.txt (T09 baseline). */

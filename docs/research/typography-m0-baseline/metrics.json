@@ -183,11 +183,11 @@
     "Noto Sans Thai": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8"
   },
   "lineBreakTest": {
-    "breakPrecision": 0.7583,
-    "breakRecall": 0.6214,
+    "breakPrecision": 0.7956,
+    "breakRecall": 0.5207,
     "cases": 19338,
-    "passRate": 0.6535,
-    "passing": 12637,
+    "passRate": 0.6364,
+    "passing": 12307,
     "sha256": "e69884e0dde6a8724873f885d68c52dc14518abf9ae4ca9e2283b8773db3b752",
     "source": "LineBreakTest-17.0.0.txt"
   },

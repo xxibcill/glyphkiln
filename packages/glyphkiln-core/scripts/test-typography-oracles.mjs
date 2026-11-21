@@ -24,6 +24,10 @@ assert.deepEqual(parseLineBreakTest("× 0041 × 0020 ÷ 0042 ÷\t#  A SP B\n# co
 ]);
 assert.deepEqual(engineBreakOpportunities("Run 100 km"), [4, 8]);
 assert.deepEqual(engineBreakOpportunities("กรุงเทพมหานคร"), [8, 11]);
+// The real segmenter trims: no opportunity before the first unit, and
+// collapsed whitespace still maps back to source positions.
+assert.deepEqual(engineBreakOpportunities(" A\u00a0\u00a0B"), [4]);
+assert.deepEqual(engineBreakOpportunities("😀 B"), [2]);
 
 // Script itemizer over Unicode 17 Scripts.txt.
 const itemize = createScriptItemizer();

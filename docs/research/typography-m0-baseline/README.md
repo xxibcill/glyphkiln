@@ -132,5 +132,5 @@ Largest glyph x shift between a paint-only styled layout and the unstyled one
 ## Unicode line breaking (T09 oracle)
 
 Current break opportunities against `LineBreakTest-17.0.0.txt` (SHA-256 `e69884e0dde6a8724873f885d68c52dc14518abf9ae4ca9e2283b8773db3b752`):
-**12637 of 19338** cases (65.3 %) match exactly; break recall
-62.1 %, precision 75.8 %. T09 requires 100 %.
+**12307 of 19338** cases (63.6 %) match exactly; break recall
+52.1 %, precision 79.6 %. T09 requires 100 %.
