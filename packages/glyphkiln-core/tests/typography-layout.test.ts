@@ -77,6 +77,22 @@ describe("fontkit shaper", () => {
     expect(latin.glyphs.map((glyph) => glyph.cluster)).toEqual([0, 1, 3]);
   });
 
+  it("keeps cluster evidence independent of earlier outline calls", () => {
+    const lines = ["กรุงเทพมหานคร", "ที่ป้ญู", "น้ำ", "Office AVAWAY Type"];
+    for (const bytes of [thaiBytes, interBytes]) {
+      const fresh = lines.map((text) =>
+        fontkitShaper.shape(fontkitShaper.loadFace(bytes), { text }),
+      );
+      const face = fontkitShaper.loadFace(bytes);
+      // Outline glyphs before anything on this face has shaped them.
+      const outlined = Array.from({ length: 120 }, (_, index) =>
+        fontkitShaper.glyphOutline(face, index + 1),
+      );
+      expect(outlined.some((outline) => outline.commands.length > 0)).toBe(true);
+      expect(lines.map((text) => fontkitShaper.shape(face, { text }))).toEqual(fresh);
+    }
+  });
+
   it("applies explicit features on top of the defaults", () => {
     const face = fontkitShaper.loadFace(interBytes);
     const kerned = fontkitShaper.shape(face, { text: "AV" });

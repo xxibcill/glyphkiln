@@ -122,6 +122,9 @@ export const FONTKIT_SHAPER_ID = "fontkit@2.0.4" as const;
 
 type FontkitFace = ShaperFace & { readonly font: Font };
 
+/** fontkit 2.0.4's per-font glyph object cache (private, pinned version). */
+type FontkitGlyphCache = { _glyphs: Record<number, unknown> };
+
 /**
  * The shaper behind every existing policy. It reproduces the pre-M0 calls
  * exactly: without a script, `face.layout(text)` or `face.layout(text,
@@ -179,7 +182,31 @@ export const fontkitShaper: Shaper = {
 };
 
 function wrap(font: Font): FontkitFace {
+  keepCodePointsInGlyphCache(font);
   return Object.freeze({ shaper: FONTKIT_SHAPER_ID, font });
+}
+
+/**
+ * fontkit caches one glyph object per id, carrying the code points of the call
+ * that first created it, and toShapedRun derives clusters from those code
+ * points. Outlining calls `getGlyph(id)` with none, and so does fontkit itself
+ * for the components of a composite glyph. A glyph first created that way
+ * would make every later run on the face fold it into the previous cluster,
+ * so cluster evidence would depend on what was outlined before. Requests
+ * without code points therefore never populate the cache. The glyph data, and
+ * so every outline and advance, is identical either way.
+ */
+function keepCodePointsInGlyphCache(font: Font): void {
+  const cache = (font as unknown as FontkitGlyphCache)._glyphs;
+  const getGlyph = font.getGlyph.bind(font);
+  font.getGlyph = (glyphId: number, codePoints: number[] = []) => {
+    if (codePoints.length > 0 || cache[glyphId] !== undefined) {
+      return getGlyph(glyphId, codePoints);
+    }
+    const glyph = getGlyph(glyphId, codePoints);
+    Reflect.deleteProperty(cache, glyphId);
+    return glyph;
+  };
 }
 
 function unwrap(face: ShaperFace): Font {
