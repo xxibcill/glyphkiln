@@ -30,7 +30,14 @@ const gold = JSON.parse(
 const strip = (value: string) => value.replace(/[/|]/g, "").replace(/_/g, " ");
 const acceptable = (value: string) => (value.match(/[/| ]/g) ?? []).length;
 const COMBINING = /\p{M}/u;
-const LATIN_OR_DIGIT = /[A-Za-z0-9]/;
+// Thai vowels that are letters (Lo), not marks, but still bind to a consonant.
+const THAI_LEADING_VOWEL = /[เแโใไ]/;
+const THAI_FOLLOWING_VOWEL = /[ะาำๅ]/;
+const THAI_KARAN = "\u0E4C";
+const LATIN_OR_DIGIT = /[A-Za-z\p{Nd}]/u;
+// Units the draft glues to their amount; extend when a new unit is glued.
+const AMOUNT_UNIT_BREAK =
+  /\p{Nd}[/| ](?:บาท|ซม\.|กก\.|มล\.|ลิตร|ชม\.|ชิ้น|วัน|เดือน|ปี|น\.)(?!\p{Script=Thai})/u;
 
 describe("G-TH gold set", () => {
   it("restores every source text exactly from its annotation", () => {
@@ -41,16 +48,28 @@ describe("G-TH gold set", () => {
     }
   });
 
-  it("places markers only between characters, never inside a cluster or a Latin word", () => {
+  it("places markers only between characters, never inside a Thai syllable cluster, a Latin word or a number", () => {
     for (const line of gold.lines) {
       for (const match of line.gold.matchAll(/[/|]/g)) {
         const before = /.$/u.exec(line.gold.slice(0, match.index))?.[0];
         const after = /^./u.exec(line.gold.slice(match.index + 1))?.[0];
+        const afterNext = /^.(.)/u.exec(line.gold.slice(match.index + 1))?.[1];
         expect(before, `${line.id} starts with a marker`).toBeDefined();
         expect(after, `${line.id} ends with a marker`).toBeDefined();
         expect(/[\s/|_]/.test(before!), `${line.id} doubled marker`).toBe(false);
         expect(/[\s/|_]/.test(after!), `${line.id} doubled marker`).toBe(false);
         expect(COMBINING.test(after!), `${line.id} break before a mark`).toBe(false);
+        expect(
+          THAI_LEADING_VOWEL.test(before!),
+          `${line.id} break after a leading vowel`,
+        ).toBe(false);
+        expect(
+          THAI_FOLLOWING_VOWEL.test(after!),
+          `${line.id} break before a following vowel`,
+        ).toBe(false);
+        expect(afterNext === THAI_KARAN, `${line.id} break before a silent final`).toBe(
+          false,
+        );
         expect(
           LATIN_OR_DIGIT.test(before!) && LATIN_OR_DIGIT.test(after!),
           `${line.id} break inside a Latin word or number`,
@@ -94,11 +113,26 @@ describe("G-TH gold set", () => {
     expect(all.some((value) => value.includes("ๆ"))).toBe(true);
     expect(all.some((value) => value.includes("ฯ"))).toBe(true);
     expect(all.some((value) => value.includes("%"))).toBe(true);
-    expect(all.some((value) => /[0-9]_บาท/.test(value))).toBe(true);
+    expect(all.some((value) => /\p{Nd}_บาท/u.test(value))).toBe(true);
     expect(all.some((value) => value.includes("“"))).toBe(true);
     expect(all).toContain("กรุงเทพมหานคร");
     expect(all).toContain("โปรโมชั่น/พิเศษ");
-    // ๆ never starts a line: no break directly before it.
-    expect(all.some((value) => /[/| ]ๆ/.test(value))).toBe(false);
+  });
+
+  it("annotates every T10 edge rule as a non-break", () => {
+    const forbidden: [string, RegExp][] = [
+      ["break before ๆ", /[/| ]ๆ/],
+      ["break before ฯ", /[/|]ฯ/],
+      ["break before %", /[/| ]%/],
+      ["break after an opening quote", /[“‘][/| ]/],
+      ["break before a closing quote", /[/| ][”’]/],
+      ["break between ฿ and its amount", /฿[/| ]\p{Nd}/u],
+      ["break between an amount and its unit", AMOUNT_UNIT_BREAK],
+    ];
+    for (const line of gold.lines) {
+      for (const [rule, pattern] of forbidden) {
+        expect(pattern.test(line.gold), `${line.id}: ${rule}`).toBe(false);
+      }
+    }
   });
 });
