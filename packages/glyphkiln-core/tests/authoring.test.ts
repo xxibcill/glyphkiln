@@ -154,9 +154,16 @@ describe("AI-ready authoring metadata", () => {
   it("stays aligned with runtime template requirements and formats", () => {
     for (const contract of Object.values(AUTHORING_TEMPLATE_REGISTRY)) {
       const template = getTemplate({
+        schemaVersion: contract.compatibleSchemaVersions.at(-1),
         template: contract.template,
         format: contract.compatibleFormats[0],
       } as DesignDocument);
+      if (template.minimumSchemaVersion !== undefined) {
+        // Metadata never advertises a schema the runtime would refuse.
+        expect(contract.compatibleSchemaVersions[0]).toBe(
+          template.minimumSchemaVersion,
+        );
+      }
       const publishedLayerTypes = [
         ...contract.optionalDecorativeLayers,
         ...contract.contentRoles.map((role) => role.layerType),

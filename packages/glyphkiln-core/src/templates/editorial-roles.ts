@@ -156,7 +156,10 @@ export const quoteCardRolesTemplate: TemplateDefinition = {
   requiredLayers: ["headline", "attribution"],
   supportedLayers: ["background", "procedural-decoration", "headline", "attribution"],
   supportedFormats: COMMON_FORMATS,
+  minimumSchemaVersion: "1.7.0",
   capabilities: {
+    colorRoles: true,
+    decorationJob: true,
     textEmphasis: ["headline"],
     openTypeFeatures: ["headline", "attribution"],
   },
@@ -271,7 +274,10 @@ export const statisticCardRolesTemplate: TemplateDefinition = {
   requiredLayers: ["statistic"],
   supportedLayers: ["background", "procedural-decoration", "headline", "statistic"],
   supportedFormats: COMMON_FORMATS,
+  minimumSchemaVersion: "1.7.0",
   capabilities: {
+    colorRoles: true,
+    decorationJob: true,
     textEmphasis: ["headline"],
     openTypeFeatures: ["headline"],
   },

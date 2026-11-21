@@ -11,10 +11,12 @@ ship only in new exact template versions:
 | `statistic-card@1.3.0`     | emphasis (headline), OpenType (headline; tabular lining trend by default), size setting, color roles, accent budget, decoration with a job only |
 | `image-led-campaign@1.2.0` | emphasis (headline, subtitle), OpenType, size setting, color roles, accent budget, `subjectRegion`, local scrims                                |
 
-All three require DesignDocument `1.7.0`. Earlier versions, including
+All three require DesignDocument `1.7.0`; an older document that selects one
+fails with `TEMPLATE_SCHEMA_VERSION_UNSUPPORTED`. Earlier versions, including
 `quote-card@1.2.0`, `statistic-card@1.2.0` and `image-led-campaign@1.0.x/1.1.x`,
-keep their exact pixels. A visible layer that uses a 1.7.0 field on a version
-that does not implement it fails with the error
+keep their exact pixels. A 1.7.0 field on a version that does not implement it
+(brand `colorRoles`, or `emphasis`, `openType`, decoration `job`,
+`subjectRegion` or a local treatment on a visible layer) fails with the error
 `TEMPLATE_FEATURE_UNSUPPORTED`. The field is never silently ignored. The App
 still defaults to the earlier template versions.
 

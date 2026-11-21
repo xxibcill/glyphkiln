@@ -59,7 +59,10 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
   supportedLayers: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedLayers,
   supportedFormats: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.supportedFormats,
   requiredAssetFits: IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT.requiredAssetFits,
+  minimumSchemaVersion: "1.7.0",
   capabilities: {
+    colorRoles: true,
+    decorationJob: true,
     textEmphasis: ["headline", "subtitle"],
     openTypeFeatures: ["headline", "subtitle", "eyebrow", "cta"],
     localImageTreatments: true,

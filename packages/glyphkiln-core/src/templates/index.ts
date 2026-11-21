@@ -4,7 +4,11 @@ import {
   problemSolutionTemplate,
   offerUrgencyTemplate,
 } from "./static-ad-families.js";
-import { GlyphkilnError, type QualityIssue } from "../domain/types.js";
+import {
+  GlyphkilnError,
+  SUPPORTED_DESIGN_DOCUMENT_VERSIONS,
+  type QualityIssue,
+} from "../domain/types.js";
 import type { DesignDocument, TemplateId } from "../schema/index.js";
 import {
   balancedEditorialCampaignTemplate,
@@ -104,6 +108,22 @@ export function getTemplate(document: DesignDocument): TemplateDefinition {
       { supportedVersion: currentTemplate.version },
     );
   }
+  if (
+    template.minimumSchemaVersion !== undefined &&
+    SUPPORTED_DESIGN_DOCUMENT_VERSIONS.indexOf(document.schemaVersion) <
+      SUPPORTED_DESIGN_DOCUMENT_VERSIONS.indexOf(template.minimumSchemaVersion)
+  ) {
+    throw new GlyphkilnError(
+      `Template "${template.id}@${template.version}" requires DesignDocument ${template.minimumSchemaVersion} or later; the document is ${document.schemaVersion}.`,
+      "TEMPLATE_SCHEMA_VERSION_UNSUPPORTED",
+      {
+        templateId: template.id,
+        templateVersion: template.version,
+        schemaVersion: document.schemaVersion,
+        minimumSchemaVersion: template.minimumSchemaVersion,
+      },
+    );
+  }
   if (!template.supportedFormats.includes(document.format)) {
     throw new GlyphkilnError(
       `Template "${template.id}" does not support format "${document.format}".`,
@@ -169,7 +189,7 @@ export function checkTemplateRequirements(
       });
     }
   }
-  issues.push(...checkTemplateCapabilities(visibleLayers, template));
+  issues.push(...checkTemplateCapabilities(document, visibleLayers, template));
   for (const requirement of template.requiredAssetFits ?? []) {
     const layer = visibleLayers.find(
       (candidate) => candidate.type === requirement.layerType,
@@ -194,6 +214,7 @@ export function checkTemplateRequirements(
 }
 
 function checkTemplateCapabilities(
+  document: DesignDocument,
   visibleLayers: readonly DesignDocument["layers"][number][],
   template: TemplateDefinition,
 ): QualityIssue[] {
@@ -213,7 +234,31 @@ function checkTemplateCapabilities(
       },
     });
   };
+  if (
+    "colorRoles" in document.brand &&
+    document.brand.colorRoles !== undefined &&
+    capabilities.colorRoles !== true
+  ) {
+    issues.push({
+      code: "TEMPLATE_FEATURE_UNSUPPORTED",
+      severity: "error",
+      message: `Template "${template.id}@${template.version}" does not implement brand "colorRoles".`,
+      details: {
+        templateId: template.id,
+        templateVersion: template.version,
+        feature: "colorRoles",
+      },
+    });
+  }
   for (const layer of visibleLayers) {
+    if (
+      layer.type === "procedural-decoration" &&
+      "job" in layer &&
+      layer.job !== undefined &&
+      capabilities.decorationJob !== true
+    ) {
+      unsupported(layer.id, layer.type, "job");
+    }
     if ("emphasis" in layer && layer.emphasis !== undefined) {
       if (!(capabilities.textEmphasis ?? []).some((type) => type === layer.type)) {
         unsupported(layer.id, layer.type, "emphasis");

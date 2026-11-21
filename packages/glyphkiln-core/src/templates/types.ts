@@ -1,5 +1,8 @@
 import type { AssetRegistry } from "../assets/index.js";
-import type { QualityIssue } from "../domain/types.js";
+import type {
+  QualityIssue,
+  SUPPORTED_DESIGN_DOCUMENT_VERSIONS,
+} from "../domain/types.js";
 import type { FontRegistry } from "../fonts/index.js";
 import type { FormatId } from "../formats/index.js";
 import type { DesignDocument, DesignLayer, TemplateId } from "../schema/index.js";
@@ -45,6 +48,12 @@ export type TemplateDefinition = {
    * TEMPLATE_FEATURE_UNSUPPORTED instead of being silently ignored.
    */
   capabilities?: TemplateCapabilities;
+  /**
+   * Oldest DesignDocument schema this exact version accepts. Versions built on
+   * 1.7.0 fields set it, so an older document cannot select them and silently
+   * lose a field it cannot express (such as a decoration job).
+   */
+  minimumSchemaVersion?: (typeof SUPPORTED_DESIGN_DOCUMENT_VERSIONS)[number];
   constraints: {
     headlineMaximumLines: number;
     safeAreaBehavior: string;
@@ -61,4 +70,8 @@ export type TemplateCapabilities = {
   openTypeFeatures?: readonly TemplateTextLayerType[];
   localImageTreatments?: boolean;
   subjectRegion?: boolean;
+  /** Brand `colorRoles` and `accentAreaBudget` drive the composition. */
+  colorRoles?: boolean;
+  /** Procedural decoration `job` decides whether decoration is drawn. */
+  decorationJob?: boolean;
 };

@@ -224,6 +224,10 @@ describe("explicit template capabilities", () => {
       issues.filter((issue) => issue.code === "TEMPLATE_FEATURE_UNSUPPORTED"),
     ).toEqual([
       expect.objectContaining({
+        layerId: "contours",
+        details: expect.objectContaining({ feature: "job" }) as unknown,
+      }),
+      expect.objectContaining({
         layerId: "quote",
         details: expect.objectContaining({ feature: "emphasis" }) as unknown,
       }),
@@ -245,6 +249,37 @@ describe("explicit template capabilities", () => {
         "emphasis",
       ]);
     }
+  });
+
+  it("rejects brand color roles on versions that ignore them", async () => {
+    const statistic = await baseline("statistic-card-roles");
+    expect("colorRoles" in statistic.brand).toBe(true);
+    statistic.template.version = "1.2.0";
+    for (const candidate of statistic.layers as LooseLayer[]) {
+      delete candidate.emphasis;
+      delete candidate.openType;
+      delete candidate["job"];
+    }
+    const issues = await blockedIssues(statistic);
+    expect(
+      issues
+        .filter((issue) => issue.code === "TEMPLATE_FEATURE_UNSUPPORTED")
+        .map((issue) => issue.details?.["feature"]),
+    ).toEqual(["colorRoles"]);
+  });
+
+  it("requires DesignDocument 1.7.0 for the versions built on it", async () => {
+    const quote = await baseline("quote-card-roles");
+    quote.schemaVersion = "1.6.0";
+    for (const candidate of quote.layers as LooseLayer[]) {
+      delete candidate.emphasis;
+      delete candidate.openType;
+      delete candidate["job"];
+    }
+    expect(validateDesignDocument(quote).success).toBe(true);
+    await expect(render(quote)).rejects.toMatchObject({
+      code: "TEMPLATE_SCHEMA_VERSION_UNSUPPORTED",
+    });
   });
 });
 
