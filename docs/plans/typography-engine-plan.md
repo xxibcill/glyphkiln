@@ -102,10 +102,10 @@ InDesign, Illustrator and Figma.
 
 ### 2.2 Levels
 
-- **L1 Correct text:** T01, T05, T08, T09, T10, T27, T29 and T30. Nothing visibly
+- **L1 Correct text:** T01, T05, T08, T09, T10, T27 and T29. Nothing visibly
   wrong in any script Core accepts.
-- **L2 Professional paragraph:** L1 plus T02–T04, T06, T07 and T11–T17. Paragraph
-  quality on par with InDesign's composition settings.
+- **L2 Professional paragraph:** L1 plus T02–T04, T06, T07, T11–T17 and T30.
+  Paragraph quality on par with InDesign's composition settings.
 - **L3 Professional layout:** L2 plus T18–T26 and T28.
 
 ### 2.3 Reference comparison (final gate)
@@ -193,6 +193,10 @@ Dependency order:
 M3 may start after M0 in parallel with M1, since segmentation and the font model
 touch different files.
 
+Every P row has an owning exit gate. T29 is cross-cutting: from M0 on, each
+milestone's exit gate includes T29 for the issue codes that milestone adds, and
+M0's harness checks that every listed event yields a located `QualityIssue`.
+
 ### M0 — Harness, shaper interface and one text path (no pixel change)
 
 - **Scope.** (1) Unify the four text call paths behind one internal
@@ -222,7 +226,8 @@ The required starting point.
 - **M1a — Axes and optical size.** Design schema 1.8.0 adds a closed `axes` map
   (registered `wght`, `wdth`, `opsz`, `slnt`, `ital`, plus custom axes present in
   the font's `fvar`), `namedInstance`, and `opticalSizing: auto | none` with an
-  optional explicit `opsz`. Brand typography roles gain the same fields. Policy
+  optional explicit `opsz`. Brand typography roles gain the same fields. B2's
+  closed OpenType feature set widens to T02's list. Policy
   `optical-size-auto@1.0.0` sets `opsz` to 0.75 × `s`, clamped to the axis range,
   where `s` is the type size in px at B2's 1080 px short-side reference (CSS
   96 px = 72 pt). The owner must confirm this mapping (§10, Q6). Policy
@@ -241,10 +246,10 @@ The required starting point.
   Diagnostics name the stack tried. Scene schema 1.1.0 gains the same stack.
 - **Depends on.** M0; B2's remaining task of bundling the approved fonts (not
   duplicated here).
-- **Exit gate.** T01 (in the form ADR 0019's shaper selects), T03, T04, T05,
-  T06, T08 and T27 pass. If the ADR keeps fontkit, the allowlisted T01
-  differences carry to M2 or to the known limitations; M1 does not wait for a
-  shaper switch. Pre-1.8.0 documents
+- **Exit gate.** T01 (in the form ADR 0019's shaper selects), T02 (same form),
+  T03, T04, T05, T06, T08 and T27 pass. If the ADR keeps fontkit, the
+  allowlisted T01 and T02 differences carry to M2 or to the known limitations;
+  M1 does not wait for a shaper switch. Pre-1.8.0 documents
   and Scene 1.0.0 are byte-identical. The approved Thai–Latin pairings render
   brief A of the benchmark set and the Kilnform quote without findings, and a
   reviewer inspects the new baselines.
