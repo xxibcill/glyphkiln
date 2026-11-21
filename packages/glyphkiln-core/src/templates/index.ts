@@ -178,6 +178,7 @@ export function checkTemplateRequirements(
     }
   }
   issues.push(...checkTemplateCapabilities(visibleLayers, template));
+  issues.push(...checkRoleFontModel(document, template));
   for (const requirement of template.requiredAssetFits ?? []) {
     const layer = visibleLayers.find(
       (candidate) => candidate.type === requirement.layerType,
@@ -195,6 +196,50 @@ export function checkTemplateRequirements(
         layerType: requirement.layerType,
         expected: requirement.fit,
         actual: layer.fit,
+      },
+    });
+  }
+  return issues;
+}
+
+const ROLE_FONT_MODEL_FIELDS = [
+  "axes",
+  "namedInstance",
+  "opticalSizing",
+  "opsz",
+  "fallback",
+  "scriptFaces",
+] as const;
+
+/**
+ * Brand typography roles may carry the 1.8.0 font model, but only templates
+ * on the M1 typography read it. On any other version the fields would have
+ * no effect, so they fail explicitly, like the layer fields.
+ */
+function checkRoleFontModel(
+  document: DesignDocument,
+  template: TemplateDefinition,
+): QualityIssue[] {
+  if (template.typography === "m1") return [];
+  const typography = document.brand.typography;
+  if (!("roles" in typography) || typography.roles === undefined) return [];
+  const issues: QualityIssue[] = [];
+  for (const [role, definition] of Object.entries(typography.roles)) {
+    const values = definition as Readonly<Record<string, unknown>>;
+    const fields = ROLE_FONT_MODEL_FIELDS.filter(
+      (field) => values[field] !== undefined,
+    );
+    if (fields.length === 0) continue;
+    issues.push({
+      code: "TEMPLATE_FEATURE_UNSUPPORTED",
+      severity: "error",
+      message: `Template "${template.id}@${template.version}" does not implement the font model (${fields.join(", ")}) on the "${role}" typography role.`,
+      details: {
+        templateId: template.id,
+        templateVersion: template.version,
+        role,
+        fields,
+        feature: "fontModel",
       },
     });
   }

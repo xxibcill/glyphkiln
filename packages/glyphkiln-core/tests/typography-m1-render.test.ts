@@ -157,6 +157,34 @@ describe("M1 template versions (Q1 provisional: opt in by new versions)", () => 
     ).resolves.toBeDefined();
   });
 
+  it("rejects 1.8.0 font-model role fields on versions that do not read them", async () => {
+    const m1 = thaiStackDocument({ scale: "auto" }, { opticalSizing: "none" });
+    const legacy = {
+      ...m1,
+      template: { ...m1.template, version: "1.3.0" },
+    } as DesignDocument;
+    const error: unknown = await renderGraphic(legacy).catch(
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(GlyphkilnError);
+    const issues = (error as GlyphkilnError).details?.["issues"] as {
+      code: string;
+      details?: { role?: string; fields?: string[] };
+    }[];
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: "TEMPLATE_FEATURE_UNSUPPORTED",
+        details: expect.objectContaining({
+          role: "display",
+          fields: ["opticalSizing", "fallback"],
+        }) as unknown,
+      }),
+    );
+    await expect(
+      renderGraphic(m1, { creationTimestamp: TIMESTAMP }),
+    ).resolves.toBeDefined();
+  });
+
   it("sets a Thai quote through a role fallback stack and reports the stack tried", async () => {
     const document = thaiStackDocument();
     const brand = document.brand as { typography: object };
