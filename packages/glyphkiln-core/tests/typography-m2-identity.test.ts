@@ -129,13 +129,23 @@ describe("M2 shaper identity", () => {
         expect(text, path).not.toMatch(/harfbuzz/i);
       }
     }
-    // The M1 visual baselines: 18 Scene 1.1.0 and 9 template renders.
-    expect(m1.every((path) => path.includes("tests/visual/m1/"))).toBe(true);
-    expect(m1).toHaveLength(27);
+    // The M1 visual baselines (18 Scene 1.1.0 and 9 template renders) and the
+    // 6 M3 candidates, which set text with the same M1 engine.
+    expect(
+      m1.every(
+        (path) =>
+          path.includes("tests/visual/m1/") || path.includes("tests/visual/m3/"),
+      ),
+    ).toBe(true);
+    expect(m1.filter((path) => path.includes("tests/visual/m1/"))).toHaveLength(27);
+    expect(m1.filter((path) => path.includes("tests/visual/m3/"))).toHaveLength(6);
     expect([...templates].sort()).toEqual([
       "image-led-campaign@1.3.0",
+      "image-led-campaign@1.4.0",
       "quote-card@1.4.0",
+      "quote-card@1.5.0",
       "statistic-card@1.4.0",
+      "statistic-card@1.5.0",
     ]);
     // Legacy baselines, examples, fixtures, deliverables and qualification
     // outputs, at renderer 0.5.0 and older.
