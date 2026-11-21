@@ -8,6 +8,7 @@ import {
 } from "../domain/types.js";
 import { M1_TYPOGRAPHY_POLICY } from "../typography/typesetter.js";
 import { canonicalJson } from "../cache/canonical-json.js";
+import { LEGACY_SCENE_DOCUMENT_VERSION } from "./types.js";
 import { fontReferenceKey } from "../fonts/key.js";
 import type { ManifestAsset, ManifestFont } from "../provenance/index.js";
 import type { SceneDocument } from "./types.js";
@@ -77,7 +78,7 @@ export function createSceneFingerprintPayload(input: SceneFingerprintInput) {
     assets: usedAssets,
     fonts: usedFonts,
   };
-  const legacy = input.document.schemaVersion === "1.0.0";
+  const legacy = input.document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION;
   return {
     sceneDocument: pixelDocument,
     sceneKernelVersion: SCENE_KERNEL_VERSION,

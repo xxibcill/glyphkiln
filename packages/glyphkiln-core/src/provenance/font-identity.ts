@@ -1,6 +1,7 @@
 import { GlyphkilnError } from "../domain/types.js";
 import { fontReferenceKey } from "../fonts/key.js";
 import type { UsedFace } from "../typography/typesetter.js";
+import type { ManifestFontV2, ManifestTextStack } from "./index.js";
 
 /** The text and group shape the collector walks (template and Scene trees). */
 type FaceBearingElement = {
@@ -23,7 +24,6 @@ function flattenTextElements(
   }
   return out;
 }
-import type { ManifestFontV2, ManifestTextStack } from "./index.js";
 
 /**
  * Font identity v2: every face the M1 typesetter drew with, in scene order,

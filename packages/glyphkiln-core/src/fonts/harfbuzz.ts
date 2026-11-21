@@ -230,10 +230,13 @@ function createShaper(hb: HarfBuzzModule): HarfBuzzShaper {
       const clusterStarts = [...new Set(infos.map((info) => info.cluster))].sort(
         (left, right) => left - right,
       );
+      // Each cluster ends where the next larger cluster starts.
+      const clusterEnds = new Map<number, number>();
+      for (const [index, cluster] of clusterStarts.entries()) {
+        clusterEnds.set(cluster, clusterStarts[index + 1] ?? request.text.length);
+      }
       const glyphs: ShapedGlyph[] = infos.map((info) => {
-        const next =
-          clusterStarts.find((cluster) => cluster > info.cluster) ??
-          request.text.length;
+        const next = clusterEnds.get(info.cluster)!;
         return {
           id: info.codepoint,
           cluster: info.cluster,

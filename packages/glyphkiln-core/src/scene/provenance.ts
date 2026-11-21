@@ -23,6 +23,7 @@ import {
 import { validateSceneDocument } from "./schema.js";
 import { createSceneFingerprint, SCENE_KERNEL_VERSION } from "./fingerprint.js";
 import { flattenElements } from "./flatten.js";
+import { LEGACY_SCENE_DOCUMENT_VERSION } from "./types.js";
 import { fontReferenceKey } from "../fonts/key.js";
 import type { SceneDocument, SceneElement } from "./types.js";
 
@@ -92,7 +93,7 @@ export type CreateSceneRenderManifestInput = {
 export function createSceneRenderManifest(
   input: CreateSceneRenderManifestInput,
 ): SceneRenderManifest {
-  const legacy = input.document.schemaVersion === "1.0.0";
+  const legacy = input.document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION;
   return {
     manifestVersion: legacy
       ? LEGACY_SCENE_RENDER_MANIFEST_VERSION
@@ -166,7 +167,7 @@ export function verifySceneReproduction(input: {
   const document = validation.data;
   const issues: QualityIssue[] = [];
   const sceneHash = hashCanonical(document);
-  const legacy = document.schemaVersion === "1.0.0";
+  const legacy = document.schemaVersion === LEGACY_SCENE_DOCUMENT_VERSION;
   const expectedManifestVersion = legacy
     ? LEGACY_SCENE_RENDER_MANIFEST_VERSION
     : SCENE_RENDER_MANIFEST_VERSION;
