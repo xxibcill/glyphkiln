@@ -595,12 +595,15 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
         }
       >;
     };
-    const inter = reference.fonts["Inter-Variable.ttf"]!;
-    const bytes = registry.get("Inter", 400, "normal").bytes;
-    const worst = (use: typeof fontkitShaper | HarfBuzzShaper) => {
-      const base = use.loadFace(bytes);
+    const worst = (
+      use: typeof fontkitShaper | HarfBuzzShaper,
+      file: string,
+      family: string,
+    ) => {
+      const font = reference.fonts[file]!;
+      const base = use.loadFace(registry.get(family, 400, "normal").bytes);
       const ids = new Map<string, number>();
-      for (const name of inter.glyphNames) {
+      for (const name of font.glyphNames) {
         const character =
           name === "ampersand"
             ? "&"
@@ -609,10 +612,14 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
               : name.startsWith("uni")
                 ? String.fromCodePoint(Number.parseInt(name.slice(3), 16))
                 : name;
-        ids.set(name, use.shape(base, { text: character }).glyphs[0]!.id);
+        const shaped = use.shape(base, { text: character }).glyphs;
+        expect(shaped, `${family} ${name}`).toHaveLength(1);
+        expect(use.glyphOutline(base, shaped[0]!.id).name, family).toBe(name);
+        ids.set(name, shaped[0]!.id);
       }
       let delta = 0;
-      for (const row of inter.rows) {
+      let compared = 0;
+      for (const row of font.rows) {
         const face = use.instantiate(base, { [row.axis]: row.value });
         for (const [name, glyph] of Object.entries(row.glyphs)) {
           const actual = use
@@ -620,21 +627,30 @@ describe("M2: the known fontkit defects are fixed on M1 and kept on legacy", () 
             .commands.filter((command) => command.command !== "closePath")
             .flatMap((command) => command.args);
           const expected = glyph.float.flatMap(([, args]) => args);
-          for (
-            let index = 0;
-            index < Math.min(actual.length, expected.length);
-            index += 1
-          ) {
+          // The same point count, so an empty or truncated outline fails
+          // here rather than passing with a delta of 0.
+          const label = `${family} ${name} ${row.axis}=${row.value}`;
+          expect(expected.length, label).toBeGreaterThan(0);
+          expect(actual.length, label).toBe(expected.length);
+          for (const [index, value] of actual.entries()) {
             delta = Math.max(
               delta,
-              (Math.abs(actual[index]! - expected[index]!) * 1000) / inter.unitsPerEm,
+              (Math.abs(value - expected[index]!) * 1000) / font.unitsPerEm,
             );
           }
+          compared += 1;
         }
       }
+      expect(compared, family).toBe(font.rows.length * font.glyphNames.length);
       return delta;
     };
-    expect(worst(fontkitShaper)).toBeGreaterThan(0.2);
-    expect(worst(shaper)).toBeLessThanOrEqual(0.01);
+    // Inter, and Noto Sans Thai, the ADR's worst fontkit case.
+    for (const [file, family] of [
+      ["Inter-Variable.ttf", "Inter"],
+      ["NotoSansThai[wdth,wght].ttf", "Noto Sans Thai"],
+    ] as const) {
+      expect(worst(fontkitShaper, file, family), family).toBeGreaterThan(0.2);
+      expect(worst(shaper, file, family), family).toBeLessThanOrEqual(0.01);
+    }
   }, 60_000);
 });

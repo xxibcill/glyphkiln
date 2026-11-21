@@ -45,8 +45,10 @@ correct fontkit output.
 
 ## Known fontkit defects
 
-Each is asserted on both production paths: fixed on M1, still present on
-legacy, where it is kept for byte identity.
+Each is asserted as fixed on M1 and still present on legacy, where it is
+kept for byte identity. The shaping defects go through both production paths
+(`FontRegistry` and the M1 typesetter). Instancing is checked on the two
+shapers directly, against the reference outlines.
 
 - **§3.1 one script per line.** `AI ที่ป้ญู` gets `uni0E48.small`,
   `uni0E49.narrow` and `uni0E0D.less` on M1 only. The Thai-only control line
@@ -58,7 +60,8 @@ legacy, where it is kept for byte identity.
   adds gaps only between character units.
 - **ADR 0019 sara am and tone-mark forms**, **`seven`→`eight`** and **instanced
   outlines.** Against the fontTools 4.60.1 reference, fontkit is off by more
-  than 0.2/1000 em on Inter, and HarfBuzz by at most 0.01.
+  than 0.2/1000 em on Inter and on Noto Sans Thai, and HarfBuzz by at most
+  0.01. Every outline must have the reference's point count.
 
 The other §3.1 defects are not shaper defects, and M1 does not claim them: NBSP
 breaks, BudouX boundaries inside syllables, and Thai line edges. They belong
