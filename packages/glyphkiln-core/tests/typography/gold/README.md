@@ -13,7 +13,11 @@ and the owner has accepted it. M3's exit gate must not be claimed on the draft.
 ## What it holds
 
 `g-th.json` has 318 lines with 2,229 acceptable break points, against the plan's
-floor of 2,000.
+floor of 2,000 annotated boundaries. Of these, 1,939 are `/` markers between two
+non-space characters and 290 are plain spaces. Any line breaker already breaks at
+a space, so the floor is met only if spaces count. Whether they do is an owner
+decision, to settle before T10 is claimed. Without them, the set needs 61
+more marked boundaries.
 
 | Source                              | Lines | Notes                                                                                             |
 | ----------------------------------- | ----: | ------------------------------------------------------------------------------------------------- |

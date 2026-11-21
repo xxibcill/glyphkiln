@@ -84,6 +84,8 @@ describe("G-TH gold set", () => {
   });
 
   it("meets the plan's size floor of 2,000 annotated boundaries", () => {
+    // Counts plain spaces as boundaries. Whether spaces count towards the T10
+    // floor is an open owner decision; see gold/README.md.
     expect(gold.counts.acceptableBoundaries).toBeGreaterThanOrEqual(2000);
   });
 

@@ -528,7 +528,8 @@ The required starting point.
    2026:** annotate the owner's own copy and publish it under the repository's
    Apache-2.0 licence
    ([licence research](../research/thai-gold-corpus-2026-11/README.md)). A
-   318-line draft, with 2,229 acceptable break points, is in
+   318-line draft, with 2,229 acceptable break points (1,939 marked and 290 at
+   spaces; whether spaces count towards the 2,000 floor is still open), is in
    [`tests/typography/gold/`](../../packages/glyphkiln-core/tests/typography/gold/README.md),
    awaiting the native reader's correction.
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures
