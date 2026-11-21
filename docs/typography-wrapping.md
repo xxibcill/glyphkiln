@@ -1,8 +1,9 @@
 # Typography wrapping
 
 Core typography algorithm `2.0.0` added deterministic Thai-aware wrapping while
-preserving the existing Latin layout contract. The current algorithm is `2.0.1`,
-which measures tracking from shaped glyphs.
+preserving the existing Latin layout contract. Algorithm `2.0.1` measures
+tracking from shaped glyphs. [Versioned determinism](#versioned-determinism)
+lists the current policy.
 
 ## Segmentation
 
