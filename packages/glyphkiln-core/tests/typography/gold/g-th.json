@@ -19,9 +19,9 @@
   },
   "counts": {
     "lines": 318,
-    "acceptableBoundaries": 2229,
-    "glued": 45,
-    "correctedLines": 98
+    "acceptableBoundaries": 2228,
+    "glued": 46,
+    "correctedLines": 99
   },
   "lines": [
     {
@@ -65,9 +65,9 @@
       "source": "pprs/posts/PPRS-KAPRAO-RIGHTS-20261023/r001/caption",
       "kind": "caption",
       "text": "ข้อมูล ณ 23 ตุลาคม 2569",
-      "gold": "ข้อมูล ณ 23 ตุลาคม 2569",
+      "gold": "ข้อมูล ณ 23_ตุลาคม 2569",
       "machine": "ข้อมูล ณ 23 ตุลาคม 2569",
-      "review": "claude-checked"
+      "review": "claude-corrected"
     },
     {
       "id": "gth-0006",

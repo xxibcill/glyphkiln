@@ -12,9 +12,9 @@ and the owner has accepted it. M3's exit gate must not be claimed on the draft.
 
 ## What it holds
 
-`g-th.json` has 318 lines with 2,229 acceptable break points, against the plan's
+`g-th.json` has 318 lines with 2,228 acceptable break points, against the plan's
 floor of 2,000 annotated boundaries. Of these, 1,939 are `/` markers between two
-non-space characters and 290 are plain spaces. Any line breaker already breaks at
+non-space characters and 289 are plain spaces. Any line breaker already breaks at
 a space, so the floor is met only if spaces count. Whether they do is an owner
 decision, to settle before T10 is claimed. Without them, the set needs 61
 more marked boundaries.
@@ -59,13 +59,14 @@ a fixed compound (รายละเอียด, ผลไม้, ต้นก�
    gives word boundaries. Fixed rules then keep things together: no break
    before ๆ, ฯ or closing punctuation, after an opening quote, or between a
    number and its unit, `%` or `฿`.
-2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 98
-   lines and `claude-checked` on the rest). It removed 124 machine breaks and
-   added the missing ones:
+2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 99
+   lines and `claude-checked` on the rest). Against the machine pass it
+   removed 134 break markers, added 12 and turned 3 spaces into glue:
    - breaks inside a syllable, such as คอม/เมน/ต์, ลิ/งก์, ผลอ/ยู่, เป็นก/ระ/ถาง
      and โปร/โม/ชั่/นพิ/เศษ;
    - splits inside a word, such as ราย/ละเอียด, มะเขือ/เทศ and เครื่อง/มือ;
-   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`).
+   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`,
+     `23_ตุลาคม`).
 
 ## For the native reader
 
