@@ -134,6 +134,13 @@ describe("fontkit shaper", () => {
     expect(() => fontkitShaper.loadFace(new Uint8Array([0, 1, 2, 3]))).toThrow();
   });
 
+  it("names the fontkit version the package pins", () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    expect(FONTKIT_SHAPER_ID).toBe(`fontkit@${manifest.dependencies["fontkit"]}`);
+  });
+
   it("is the registry's shaper", () => {
     expect(registry().shaperId).toBe(FONTKIT_SHAPER_ID);
   });

@@ -131,7 +131,8 @@ function predictedCoverage(
   // Pre-M0 behaviour, kept exactly: the prediction sets the fitted lines in
   // the base face at the fitted size, without OpenType features or emphasis.
   const layout = layoutText({
-    text: fitted.lines.join(" "),
+    // Fixed sizing sets `lines`; the text is those lines, newline-separated.
+    text: fitted.lines.join("\n"),
     registry: context.fonts,
     face: {
       family:

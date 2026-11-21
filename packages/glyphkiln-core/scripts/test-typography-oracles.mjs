@@ -1,6 +1,7 @@
 // Self-tests for the development-only typography oracles (plan M0). Offline:
 // every input is vendored and hash-checked.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { fontkitShaper } from "../dist/fonts/shaper.js";
 import { loadFontBytes } from "./typography/harness.mjs";
@@ -11,6 +12,7 @@ import {
   engineBreakOpportunities,
   harfBuzzLanguage,
   harfBuzzScript,
+  HARFBUZZJS_VERSION,
   normalizeOutline,
   parseLineBreakTest,
   readInstancerReference,
@@ -52,6 +54,10 @@ assert.deepEqual(
 // HarfBuzz behind the Shaper interface.
 const harfbuzz = await createHarfBuzzShaper();
 assert.match(harfbuzz.id, /^harfbuzzjs@1\.6\.4\/harfbuzz@\d+\.\d+\.\d+$/u);
+const manifest = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+);
+assert.equal(HARFBUZZJS_VERSION, manifest.devDependencies.harfbuzzjs);
 const { inter, thai } = loadFontBytes();
 const thaiFace = harfbuzz.loadFace(thai);
 const names = (face, text, script) =>

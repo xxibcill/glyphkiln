@@ -201,9 +201,7 @@ export class FontRegistry {
         text: line,
         ...(input.features === undefined ? {} : { features: input.features }),
       });
-      const lineWidth =
-        run.advanceWidth * scale +
-        Math.max(0, run.glyphs.length - 1) * (input.letterSpacing ?? 0);
+      const lineWidth = setWidth(run, scale, input.letterSpacing ?? 0);
       const lineX =
         input.align === "center"
           ? input.x - lineWidth / 2
@@ -266,8 +264,7 @@ export class FontRegistry {
         scale,
         letterSpacing,
       );
-      const width =
-        run.advanceWidth * scale + Math.max(0, run.glyphs.length - 1) * letterSpacing;
+      const width = setWidth(run, scale, letterSpacing);
       segments.push({ path: set.path, x: penX, width, glyphs: set.glyphs });
       penX += width;
     }
@@ -414,6 +411,15 @@ export class FontRegistry {
       }
     }
   }
+}
+
+/**
+ * Width of a run as set by setLines and setSegments, in px. `measure` keeps
+ * its own `(advanceWidth / unitsPerEm) * fontSize` form: the two round
+ * differently in floating point, and each is pinned by existing baselines.
+ */
+function setWidth(run: ShapedRun, scale: number, letterSpacing: number): number {
+  return run.advanceWidth * scale + Math.max(0, run.glyphs.length - 1) * letterSpacing;
 }
 
 function serializePath(
