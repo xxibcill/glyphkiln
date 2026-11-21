@@ -370,9 +370,9 @@ async function main(verify) {
   const deterministic = {
     shapers: { fontkit: fontkitShaper.id, harfbuzz: harfbuzz.id },
     harfbuzzWasmSha256: sha256(
-      await readFile(
-        new URL("../../../node_modules/harfbuzzjs/dist/harfbuzz.wasm", import.meta.url),
-      ),
+      // Resolved through the package's own `exports`, so the hash does not
+      // depend on where the package manager placed harfbuzzjs.
+      await readFile(new URL(import.meta.resolve("harfbuzzjs/dist/harfbuzz.wasm"))),
     ),
     agreement: agreement(fontkitShaper, harfbuzz),
     defects: defectProbes(fontkitShaper, harfbuzz),
