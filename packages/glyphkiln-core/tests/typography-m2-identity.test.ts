@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join, relative } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
@@ -29,14 +30,6 @@ const EXPECTED_IDENTITY = {
 };
 
 const REPOSITORY = fileURLToPath(new URL("../../../", import.meta.url));
-const SKIPPED = new Set([
-  ".git",
-  "node_modules",
-  "dist",
-  "coverage",
-  ".next",
-  ".turbo",
-]);
 
 type Manifest = {
   manifestVersion: string;
@@ -45,37 +38,39 @@ type Manifest = {
   typographyPolicy?: { m1?: { shaper?: unknown } };
 };
 
-/** Every committed JSON file that is a render manifest, by repository path. */
+/**
+ * Every committed JSON file that is a render manifest, by repository path.
+ * The candidates come from `git ls-files`, so untracked render output and
+ * nested worktrees (such as `.claude/worktrees/*`) are never counted.
+ */
 function committedManifests(): Map<string, { manifest: Manifest; text: string }> {
   const found = new Map<string, { manifest: Manifest; text: string }>();
-  const walk = (directory: string): void => {
-    for (const name of readdirSync(directory).sort()) {
-      if (SKIPPED.has(name)) continue;
-      const path = join(directory, name);
-      if (statSync(path).isDirectory()) {
-        walk(path);
-        continue;
-      }
-      if (!name.endsWith(".json")) continue;
-      const text = readFileSync(path, "utf8");
-      if (!text.includes('"manifestVersion"')) continue;
-      let value: unknown;
-      try {
-        value = JSON.parse(text);
-      } catch {
-        continue;
-      }
-      if (
-        typeof value === "object" &&
-        value !== null &&
-        "manifestVersion" in value &&
-        "renderer" in value
-      ) {
-        found.set(relative(REPOSITORY, path), { manifest: value as Manifest, text });
-      }
+  const tracked = execFileSync("git", ["ls-files", "-z", "--", "*.json"], {
+    cwd: REPOSITORY,
+    encoding: "utf8",
+    maxBuffer: 64 * 1_048_576,
+  })
+    .split("\0")
+    .filter((path) => path !== "")
+    .sort();
+  for (const path of tracked) {
+    const text = readFileSync(join(REPOSITORY, path), "utf8");
+    if (!text.includes('"manifestVersion"')) continue;
+    let value: unknown;
+    try {
+      value = JSON.parse(text);
+    } catch {
+      continue;
     }
-  };
-  walk(REPOSITORY);
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      "manifestVersion" in value &&
+      "renderer" in value
+    ) {
+      found.set(path, { manifest: value as Manifest, text });
+    }
+  }
   return found;
 }
 
