@@ -7,7 +7,7 @@
     "/": "acceptable line break between two non-space characters",
     "|": "preferred line break between two non-space characters (reserved; none marked in the draft)",
     " ": "a space: acceptable line break",
-    "_": "a space where a line break is not acceptable (amount + unit, ค่อย ๆ, dates, ranges)",
+    "_": "a space where a line break is not acceptable (amount + unit, ค่อย ๆ, abbreviated dates, ranges)",
     "unmarked": "no line break is acceptable between two adjacent characters with no marker"
   },
   "machinePass": {
@@ -19,9 +19,9 @@
   },
   "counts": {
     "lines": 318,
-    "acceptableBoundaries": 2228,
-    "glued": 46,
-    "correctedLines": 99
+    "acceptableBoundaries": 2229,
+    "glued": 45,
+    "correctedLines": 98
   },
   "lines": [
     {
@@ -65,9 +65,9 @@
       "source": "pprs/posts/PPRS-KAPRAO-RIGHTS-20261023/r001/caption",
       "kind": "caption",
       "text": "ข้อมูล ณ 23 ตุลาคม 2569",
-      "gold": "ข้อมูล ณ 23_ตุลาคม 2569",
+      "gold": "ข้อมูล ณ 23 ตุลาคม 2569",
       "machine": "ข้อมูล ณ 23 ตุลาคม 2569",
-      "review": "claude-corrected"
+      "review": "claude-checked"
     },
     {
       "id": "gth-0006",

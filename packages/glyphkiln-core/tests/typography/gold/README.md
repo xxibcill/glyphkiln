@@ -12,9 +12,9 @@ and the owner has accepted it. M3's exit gate must not be claimed on the draft.
 
 ## What it holds
 
-`g-th.json` has 318 lines with 2,228 acceptable break points, against the plan's
+`g-th.json` has 318 lines with 2,229 acceptable break points, against the plan's
 floor of 2,000 annotated boundaries. Of these, 1,939 are `/` markers between two
-non-space characters and 289 are plain spaces. Any line breaker already breaks at
+non-space characters and 290 are plain spaces. Any line breaker already breaks at
 a space, so the floor is met only if spaces count. Whether they do is an owner
 decision, to settle before T10 is claimed. Without them, the set needs 61
 more marked boundaries.
@@ -46,6 +46,9 @@ Each line keeps the exact `text` and a `gold` annotation of the same text:
 | `_`       | A space where a line break is **not** acceptable (`499_บาท`, `ค่อย_ๆ`, `31_ต.ค.`) |
 | no marker | No line break is acceptable between the two characters                            |
 
+Dates are glued only where the month is abbreviated (`31_ต.ค.`). Whether a full
+month name may break from its day (`23 ตุลาคม`) is left to the native reader.
+
 Removing `/` and `|` and turning `_` back into a space must give `text` exactly.
 `tests/typography-gth.test.ts` checks this and the rest of the structure.
 
@@ -59,14 +62,13 @@ a fixed compound (รายละเอียด, ผลไม้, ต้นก�
    gives word boundaries. Fixed rules then keep things together: no break
    before ๆ, ฯ or closing punctuation, after an opening quote, or between a
    number and its unit, `%` or `฿`.
-2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 99
+2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 98
    lines and `claude-checked` on the rest). Against the machine pass it
-   removed 134 break markers, added 12 and turned 3 spaces into glue:
+   removed 134 break markers, added 12 and turned 2 spaces into glue:
    - breaks inside a syllable, such as คอม/เมน/ต์, ลิ/งก์, ผลอ/ยู่, เป็นก/ระ/ถาง
      and โปร/โม/ชั่/นพิ/เศษ;
    - splits inside a word, such as ราย/ละเอียด, มะเขือ/เทศ and เครื่อง/มือ;
-   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`,
-     `23_ตุลาคม`).
+   - missed breaks (จะ/โต) and missed glue (`3–5_วัน`, `30_x_45_ซม.`).
 
 ## For the native reader
 
