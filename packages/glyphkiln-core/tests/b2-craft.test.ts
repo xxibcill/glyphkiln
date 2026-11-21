@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -549,6 +550,77 @@ describe("rich-text emphasis", () => {
     expect((await blockedIssues(document)).map((issue) => issue.code)).toContain(
       "TEXT_EMPHASIS_FACE_UNAVAILABLE",
     );
+  });
+});
+
+describe("emphasis face checks", () => {
+  it("checks glyph coverage and OpenType features in each emphasis face", async () => {
+    const document = await baseline("quote-card-roles");
+    const quote = layer(document, "headline");
+    quote["text"] =
+      "Good systems make the right thing repeatable → without making the result feel repetitive.";
+    quote.emphasis = [{ phrase: "repeatable →", style: "strong" }];
+    quote.openType = { caseSensitiveForms: true };
+    // Noto Sans Thai has Latin letters but no arrow and no "case" feature;
+    // registered as the 900 face of a test family it stands in for an
+    // incomplete bold face. (Inter is not used: its faces alias every weight.)
+    quote["fontFamily"] = "Probe";
+    const inter = new Uint8Array(
+      await readFile(resolve("assets/fonts/Inter-Variable.ttf")),
+    );
+    const noto = new Uint8Array(
+      await readFile(resolve("fixtures/scene-thai/font/NotoSansThai.ttf")),
+    );
+    const hash = (bytes: Uint8Array) =>
+      createHash("sha256").update(bytes).digest("hex");
+    const probe = [
+      { family: "Probe", weight: 700, style: "normal" as const, bytes: inter },
+      { family: "Probe", weight: 900, style: "normal" as const, bytes: noto },
+    ].map((font) => ({ ...font, sha256: hash(font.bytes) }));
+    document.fonts.push(
+      ...probe.map((font) => ({
+        family: font.family,
+        weight: font.weight,
+        style: font.style,
+        sha256: font.sha256,
+      })),
+    );
+    const validated = validateDesignDocument(document);
+    if (!validated.success) throw new Error("invalid document");
+    const assets = await loadExampleAssets(document);
+    let issues: QualityIssue[] = [];
+    try {
+      prepareGraphicScene(validated.data, { assets, fonts: probe });
+    } catch (error) {
+      if (!(error instanceof GlyphkilnError)) throw error;
+      issues = (error.details?.["issues"] ?? []) as QualityIssue[];
+    }
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: "MISSING_GLYPH",
+        layerId: "quote",
+        details: expect.objectContaining({
+          fontWeight: 900,
+          codePoints: ["U+2192"],
+        }) as unknown,
+      }),
+    );
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: "OPENTYPE_FEATURE_UNAVAILABLE",
+        details: expect.objectContaining({ weight: 900, tag: "case" }) as unknown,
+      }),
+    );
+    // The base face covers the arrow and has "case": no base-face reports.
+    expect(
+      issues.filter(
+        (issue) =>
+          (issue.code === "MISSING_GLYPH" ||
+            issue.code === "OPENTYPE_FEATURE_UNAVAILABLE") &&
+          issue.details?.["weight"] !== 900 &&
+          issue.details?.["fontWeight"] !== 900,
+      ),
+    ).toEqual([]);
   });
 });
 

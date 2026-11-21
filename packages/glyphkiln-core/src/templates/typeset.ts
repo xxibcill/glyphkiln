@@ -159,6 +159,33 @@ function prepare(
       },
     });
   }
+  // Emphasis runs are shaped in their own faces, so each distinct face is
+  // checked for the requested features as well.
+  const checkedFaces = new Set([`${weight}\u0000normal`]);
+  for (const span of spans) {
+    const face = emphasisFace(span.style, weight);
+    const faceKey = `${face.weight}\u0000${face.style}`;
+    if (checkedFaces.has(faceKey)) continue;
+    checkedFaces.add(faceKey);
+    for (const request of requestedOpenTypeFeatures(layerOpenType)) {
+      if (context.fonts.hasFeature(family, face.weight, face.style, request.tag)) {
+        continue;
+      }
+      issues.push({
+        code: "OPENTYPE_FEATURE_UNAVAILABLE",
+        severity: "warning",
+        message: `Emphasis face "${family}" ${face.weight} ${face.style} has no "${request.tag}" feature; "${request.setting}" is not applied there.`,
+        layerId: layer.id,
+        details: {
+          family,
+          weight: face.weight,
+          style: face.style,
+          setting: request.setting,
+          tag: request.tag,
+        },
+      });
+    }
+  }
   const measurer =
     spans.length > 0
       ? createEmphasisMeasurer(context.fonts, spans, features)
@@ -299,6 +326,46 @@ export function addTypesetText(
       ...featureInput,
     });
     outlines = rich.map((line) => line.base);
+    const missingByFace = new Map<
+      string,
+      { weight: number; style: "normal" | "italic"; codePoints: Set<number> }
+    >();
+    for (const line of rich) {
+      for (const run of line.emphasis) {
+        const missingInRun = context.fonts.missingCodePoints(
+          run.text,
+          family,
+          run.face.weight,
+          run.face.style,
+        );
+        if (missingInRun.length === 0) continue;
+        const faceKey = `${run.face.weight}\u0000${run.face.style}`;
+        const entry = missingByFace.get(faceKey) ?? {
+          ...run.face,
+          codePoints: new Set<number>(),
+        };
+        for (const codePoint of missingInRun) entry.codePoints.add(codePoint);
+        missingByFace.set(faceKey, entry);
+      }
+    }
+    for (const face of missingByFace.values()) {
+      canvas.qualityIssues.push({
+        code: "MISSING_GLYPH",
+        severity: "error",
+        message: `Emphasis face "${family}" ${face.weight} ${face.style} does not cover all emphasized text in layer "${layer.id}".`,
+        layerId: layer.id,
+        details: {
+          fontWeight: face.weight,
+          fontStyle: face.style,
+          codePoints: [...face.codePoints]
+            .sort((left, right) => left - right)
+            .map(
+              (codePoint) =>
+                `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
+            ),
+        },
+      });
+    }
     const drawn = new Set(
       rich.flatMap((line) => line.emphasis.map((run) => normalizePhrase(run.text))),
     );
