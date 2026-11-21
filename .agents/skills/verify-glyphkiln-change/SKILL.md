@@ -17,6 +17,8 @@ regenerating artifacts merely to make checks pass.
 4. Determine whether the change affects repository skills, agent harnesses,
    pixels, schemas, Unicode data, fixtures, examples, package exports, licenses,
    migrations, standalone packaging, deployment, or dependencies.
+5. For typography, shaping, line-breaking, or bundled-font changes, select the
+   **Typography checks** in the verification matrix.
 
 ## Run focused checks
 

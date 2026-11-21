@@ -51,9 +51,10 @@ Core `0.4.0` was qualified and published as a signed GitHub source release on
 
 Core `0.5.0` adds the first brand-fidelity vertical slice: schema `1.4.0`
 typography roles, focal crops and treatments, composited contrast evidence, and
-`image-led-campaign@1.0.0`. Renderer `0.4.0` owns the shared pixel changes;
-manifest `1.2.0`, typography algorithm `2.0.0`, and text-layout diagnostics
-`unicode-17.0.0/ltr-horizontal-v1` remain unchanged. Pinned color normalization
+`image-led-campaign@1.0.0`. Renderer `0.4.0` owns the shared pixel changes, and
+typography algorithm `2.0.1` measures tracking from shaped glyphs. Manifest
+`1.2.0` and text-layout diagnostics `unicode-17.0.0/ltr-horizontal-v1` remain
+unchanged. Pinned color normalization
 and three-brand product acceptance remain follow-up brand-fidelity work.
 
 Core `0.6.0` and `0.7.0` complete the bounded campaign coordination,
