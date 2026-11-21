@@ -12,6 +12,9 @@ import {
   renderGraphic,
   type DesignDocument,
 } from "../src/index.js";
+import { createRenderFingerprint } from "../src/cache/fingerprint.js";
+import { loadHarfBuzzShaper } from "../src/fonts/harfbuzz.js";
+import { FontRegistry } from "../src/fonts/index.js";
 import {
   LEGACY_SCENE_RENDER_MANIFEST_VERSION,
   SCENE_RENDER_MANIFEST_VERSION,
@@ -155,31 +158,8 @@ describe("M1 template versions (Q1 provisional: opt in by new versions)", () => 
   });
 
   it("sets a Thai quote through a role fallback stack and reports the stack tried", async () => {
-    const document = asM1(quoteDocument());
+    const document = thaiStackDocument();
     const brand = document.brand as { typography: object };
-    brand.typography = {
-      ...brand.typography,
-      headlineFamily: "IBM Plex Sans",
-      roles: {
-        display: {
-          family: "IBM Plex Sans",
-          weight: 700,
-          lineHeight: 1.1,
-          tracking: 0,
-          fallback: [{ family: "IBM Plex Sans Thai", scale: "auto" }],
-        },
-      },
-    };
-    document.fonts = [
-      ...document.fonts,
-      declare("IBM Plex Sans", 700),
-      declare("IBM Plex Sans Thai", 700),
-    ];
-    document.layers = document.layers.map((layer) =>
-      layer.id === "quote"
-        ? { ...layer, text: "วางแผน AI Pilot ให้ชัด", emphasis: undefined }
-        : layer,
-    );
     const result = await renderGraphic(document, {
       formats: ["svg"],
       creationTimestamp: TIMESTAMP,
@@ -238,6 +218,144 @@ function scene(version: "1.0.0" | "1.1.0", font: Record<string, unknown>) {
     readingOrder: ["headline"],
   };
 }
+
+/** quote-card@1.4.0 with Thai copy set through an IBM Plex role fallback. */
+function thaiStackDocument(
+  fallback: Record<string, unknown> = { scale: "auto" },
+  display: Record<string, unknown> = {},
+): DesignDocument {
+  const document = asM1(quoteDocument());
+  const brand = document.brand as { typography: object };
+  brand.typography = {
+    ...brand.typography,
+    headlineFamily: "IBM Plex Sans",
+    roles: {
+      display: {
+        family: "IBM Plex Sans",
+        weight: 700,
+        lineHeight: 1.1,
+        tracking: 0,
+        fallback: [{ family: "IBM Plex Sans Thai", ...fallback }],
+        ...display,
+      },
+    },
+  };
+  document.fonts = [
+    ...document.fonts,
+    declare("IBM Plex Sans", 700),
+    declare("IBM Plex Sans Thai", 700),
+  ];
+  document.layers = document.layers.map((layer) =>
+    layer.id === "quote"
+      ? { ...layer, text: "วางแผน AI Pilot ให้ชัด", emphasis: undefined }
+      : layer,
+  );
+  return document;
+}
+
+function withQuoteLayer(
+  document: DesignDocument,
+  fields: Record<string, unknown>,
+): DesignDocument {
+  return {
+    ...document,
+    layers: document.layers.map((layer) =>
+      layer.id === "quote" ? { ...layer, ...fields } : layer,
+    ),
+  } as DesignDocument;
+}
+
+async function identityOf(document: DesignDocument) {
+  const result = await renderGraphic(document, {
+    formats: ["svg"],
+    creationTimestamp: TIMESTAMP,
+  });
+  const output = result.outputs[0]!;
+  if (output.manifest.manifestVersion !== "1.3.0")
+    throw new Error("expected manifest 1.3.0");
+  return {
+    fingerprint: output.fingerprint,
+    fonts: output.manifest.fonts,
+    textStacks: output.manifest.textStacks,
+  };
+}
+
+describe("T27: font identity v2 drives the fingerprint", () => {
+  it("changes the recorded identity and fingerprint for each font-model input", async () => {
+    const shaper = await loadHarfBuzzShaper();
+    const inter = shaper.loadFace(new FontRegistry().get("Inter", 700).bytes);
+    const instance = shaper
+      .namedInstances(inter)
+      .find((candidate) => candidate.coordinates["wght"] !== 700)!;
+    const latin = asM1(quoteDocument());
+    const variants: [string, DesignDocument, DesignDocument][] = [
+      ["explicit opsz", latin, withQuoteLayer(latin, { opsz: 20 })],
+      ["optical sizing off", latin, withQuoteLayer(latin, { opticalSizing: "none" })],
+      ["explicit axis", latin, withQuoteLayer(latin, { axes: { wght: 640 } })],
+      [
+        "named instance",
+        latin,
+        withQuoteLayer(latin, { namedInstance: instance.name }),
+      ],
+      ["fallback scale", thaiStackDocument(), thaiStackDocument({ scale: 1.25 })],
+      [
+        "fallback baseline shift",
+        thaiStackDocument(),
+        thaiStackDocument({ scale: "auto", baselineShift: 0.05 }),
+      ],
+      [
+        "stack role",
+        thaiStackDocument(),
+        thaiStackDocument(
+          { scale: "auto" },
+          {
+            fallback: undefined,
+            scriptFaces: { thai: { family: "IBM Plex Sans Thai", scale: "auto" } },
+          },
+        ),
+      ],
+    ];
+    for (const [name, before, after] of variants) {
+      const left = await identityOf(before);
+      const right = await identityOf(after);
+      expect(right.fonts, name).not.toEqual(left.fonts);
+      expect(right.fingerprint, name).not.toBe(left.fingerprint);
+    }
+  });
+
+  it("hashes font identity v2 itself, not only the document", () => {
+    const document = asM1(quoteDocument());
+    const face = {
+      family: "Inter",
+      weight: 700,
+      style: "normal",
+      sha256: bundledFontFile("Inter", 700, "normal")?.sha256 ?? "0".repeat(64),
+      coordinates: { opsz: 32, wght: 700 },
+      role: "primary",
+      scale: 1,
+      baselineShift: 0,
+    };
+    const fingerprint = (fonts: (typeof face & { namedInstance?: string })[]) =>
+      createRenderFingerprint({
+        document,
+        outputFormat: "svg",
+        assetHashes: [],
+        proceduralAlgorithmVersions: {},
+        rendererVersion: RENDERER_VERSION,
+        fonts,
+      });
+    const base = fingerprint([face]);
+    for (const changed of [
+      { ...face, coordinates: { opsz: 20, wght: 700 } },
+      { ...face, namedInstance: "Bold" },
+      { ...face, role: "fallback" },
+      { ...face, scale: 1.25 },
+      { ...face, baselineShift: 0.05 },
+    ]) {
+      expect(fingerprint([changed])).not.toBe(base);
+    }
+  });
+});
 
 describe("Scene 1.1.0", () => {
   it("rejects M1 font fields in Scene 1.0.0 and undeclared stack faces", () => {
