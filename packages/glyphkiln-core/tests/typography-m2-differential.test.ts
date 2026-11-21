@@ -312,6 +312,21 @@ function proveKind(kind: Kind, difference: Difference): void {
           expect(isMark(name) && isMark(difference.m1Names[index]!), label).toBe(true);
         }
       }
+      // Positions: every spacing glyph keeps its legacy position and the
+      // line keeps its width, so only the marks moved.
+      const spacing = (line: SetLine, lineNames: readonly string[]) =>
+        line.glyphs.filter((_, index) => !isMark(lineNames[index]!));
+      expect(
+        same(
+          spacing(difference.legacy, difference.legacyNames),
+          spacing(difference.m1, difference.m1Names),
+        ),
+        label,
+      ).toBe(true);
+      expect(
+        Math.abs(difference.m1.width - difference.legacy.width),
+        label,
+      ).toBeLessThanOrEqual(POSITION_TOLERANCE);
       return;
     }
     case "inter-endash-case": {
@@ -336,6 +351,21 @@ function proveKind(kind: Kind, difference: Difference): void {
           .shape(fk, { text, features: { calt: true } })
           .glyphs.map((glyph) => fontkitShaper.glyphOutline(fk, glyph.id).name);
       expect(hbNames(difference.text, false), label).toEqual(difference.legacyNames);
+      // Positions too: the M1 path with calt off reproduces the legacy line
+      // exactly, so nothing but the calt substitution differs.
+      const caltOff = setLine(
+        m1("Inter"),
+        "Inter",
+        difference.text,
+        shaper.metrics(hb).unitsPerEm,
+        0,
+        { calt: false },
+      );
+      expect(same(caltOff.glyphs, difference.legacy.glyphs), label).toBe(true);
+      // And the M1 line itself sits exactly there: `endash.case` changes the
+      // outline, not the placement.
+      expect(difference.m1.glyphs.length, label).toBe(caltOff.glyphs.length);
+      expect(samePositions(difference.m1.glyphs, caltOff.glyphs), label).toBe(true);
       expect(hbNames("5–2")).toContain("endash.case");
       expect(fkNames("5–2")).toContain("endash.case");
       expect(hbNames("5 – 2")).toContain("endash.case");
