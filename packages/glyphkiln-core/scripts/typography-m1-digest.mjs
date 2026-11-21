@@ -19,6 +19,7 @@
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 const EXPECTED_M1_DIGEST =
@@ -115,13 +116,9 @@ function hash(text) {
 
 async function main() {
   const run = () =>
-    promisify(execFile)(
-      process.execPath,
-      [new URL(import.meta.url).pathname, "--child"],
-      {
-        maxBuffer: 64 * 1_048_576,
-      },
-    );
+    promisify(execFile)(process.execPath, [fileURLToPath(import.meta.url), "--child"], {
+      maxBuffer: 64 * 1_048_576,
+    });
   const [first, second] = await Promise.all([run(), run()]);
   const digest = hash(first.stdout);
   const environment = `node ${process.version}, ${process.platform}-${process.arch}`;
