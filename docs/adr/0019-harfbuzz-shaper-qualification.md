@@ -211,6 +211,14 @@ remaining conditions:
   (−29), under `DFLT` and `latn` alike, and fontkit gives −29 under `latn`.
   HarfBuzz is correct. `tests/typography-m1.test.ts` pins both values.
 
+- **What the wasm hash proves.** Core hashes `harfbuzz.wasm` before it
+  imports harfbuzzjs, whose entry point then reads and compiles the file
+  again; it cannot be handed the verified bytes. The check therefore catches
+  a wrong or corrupted install, not a hostile one: a writer to
+  `node_modules` could swap the file between the reads or change the
+  unhashed JS glue. A read-only install and isolated rendering are the
+  boundary for that.
+
 harfbuzzjs is now a runtime dependency of `@glyphkiln/core`. It is loaded
 lazily, so legacy renders never load it. See [Typography M1](../typography-m1.md).
 

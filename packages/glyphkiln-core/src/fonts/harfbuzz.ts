@@ -87,6 +87,14 @@ let loading: Promise<HarfBuzzShaper> | undefined;
 /**
  * Load the pinned HarfBuzz build once per process. The wasm bytes are hashed
  * before harfbuzzjs reads them, and the embedded HarfBuzz version must match.
+ *
+ * This detects a wrong or corrupted install, so a render never records a
+ * shaper identity it did not run. It is not a defence against someone who
+ * can write to `node_modules`: harfbuzzjs reads the wasm file again itself
+ * (its entry point initializes the module on import and takes no bytes), so
+ * a file swapped between the two reads would pass, and the JS glue is not
+ * hashed at all. Isolated rendering (`renderGraphicIsolated`) and a
+ * read-only install are the boundary for that threat.
  */
 export async function loadHarfBuzzShaper(): Promise<HarfBuzzShaper> {
   if (loaded !== undefined) return loaded;
