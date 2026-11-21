@@ -480,6 +480,21 @@ repoints an existing exact version to new pixels (AGENTS.md).
   Mitigation: bounded nodes, cached shaping, a documented size search order.
 - **Data licences.** Record a licence for each pattern file, dictionary and model
   before admission.
+- **Font licences.** Bundling the approved families redistributes them. Admit a
+  face only with its licence (OFL or equivalent) recorded in Core's
+  `THIRD_PARTY_LICENSES.json`, respect Reserved Font Names when instancing or
+  subsetting, and confirm that the licence allows embedding font subsets in PDF
+  before M9.
+- **Bundle size.** Fonts, harfbuzzjs (about 1.3 MB), the Thai dictionary and
+  model, Unicode tables and hyphenation patterns all grow Core's package. Record
+  `pack:core:dry-run` packed and unpacked sizes at each milestone gate, set a
+  budget in ADR 0019, and decide before M1 whether fonts ship in Core's tarball
+  or in a separate package. Keep the App's client bundle free of shaper and data
+  tables unless a browser helper needs them.
+- **No fetching.** Wasm modules, fonts and data tables load only from package
+  bytes, verified by hash; nothing is fetched at install or render time
+  (AGENTS.md). A test asserts that the render path makes no network or file
+  access outside the package.
 - **Wasm determinism** is a strong expectation, not yet a measurement. Test it on
   every platform before switching.
 
