@@ -19,7 +19,10 @@ OpenType, HarfBuzz, ICU/ICU4X, Typst, TeX, Pango/libthai, SkParagraph, CoreText,
 DirectWrite, BudouX, fontkit, OFL, WCAG), a 33-row capability matrix, a Thai
 engine guide and a deterministic-engine design guide. Local probes on the same
 day measured the defects quoted in §3.1. Documented facts and inference are kept
-apart there; this plan marks its own judgments as recommendations.
+apart there; this plan marks its own judgments as recommendations. The vault is
+not in the repository, so reviewers cannot check it yet: M0 commits a summary
+under `docs/research/typography-engines-2026-11/` with the source list and
+dates, the capability matrix and the probe scripts behind §3.1.
 
 ## 1. Summary
 
@@ -281,6 +284,9 @@ The required starting point.
   class, and a breach needs an owner decision, not a retry.
 - **Version owners.** Renderer; typography policy (shaper identity); manifest
   records the shaper.
+- **Tests.** Differential corpus (fontkit against HarfBuzz) with a reviewed
+  allowlist; cross-platform byte tests on Linux and macOS, Node 22 and 24;
+  shaper identity in every new manifest; budget report.
 
 ### M3 — Break opportunities and Thai segmentation 2.0
 
@@ -288,8 +294,9 @@ The required starting point.
   keeps NBSP, NNBSP, ZWSP, WJ and SHY. Tailorings: Thai through the segmenter;
   number + unit and currency glue; Thai line edges (ๆ, ฯ, quotes, `%`). The hybrid
   Thai segmenter (`thai-segmentation-hybrid@1.0.0`) adds a bounded document or
-  brand `lexicon` (schema 1.8.x). `keepTogether` gains `preferBreakAfter` phrases
-  (DQ W3 "semantic line breaks").
+  brand `lexicon` (schema 1.8.0 if still unreleased when M3 lands, else the next
+  minor version). `keepTogether` gains `preferBreakAfter` phrases (DQ W3
+  "semantic line breaks").
 - **Exit gate.** T09 and T10 pass, including the G-TH gold set (§10, Q3). Existing
   policies are unchanged.
 - **Version owners.** Typography policy (segmentation and opportunities, with data
@@ -323,6 +330,9 @@ The required starting point.
 - **Exit gate.** T14.
 - **Version owners.** Typography policy (patterns and limits); schema (`lang`,
   hyphenation settings); renderer.
+- **Tests.** The pattern package's test words; limit and SHY fixtures; Thai
+  never hyphenated; pattern hash in the fingerprint; C-PARA hyphen and runt
+  metrics.
 
 ### M6 — Microtypography and run-aware shaping
 
@@ -332,6 +342,8 @@ The required starting point.
   face change (`emphasis-runs@2.0.0`; B2's `1.0.0` stays exact).
 - **Exit gate.** T07, T16 and T17.
 - **Version owners.** Typography policy; renderer; schema switches.
+- **Tests.** Protrusion table values per glyph; ink-edge deviation fixtures;
+  glyph-scale bounds in evidence; kerning across paint-only run boundaries.
 
 ### M7 — Style system and paragraph furniture
 
@@ -342,6 +354,8 @@ The required starting point.
 - **Exit gate.** T18–T23.
 - **Version owners.** Schema (styles are a substantial contract; consider a
   separate `TextStyle` sub-schema version); renderer; authoring metadata.
+- **Tests.** Style resolution table and `basedOn` cycle rejection; pattern-kind
+  fixtures and bounds; tab, list, drop-cap, trim and baseline-grid geometry.
 
 ### M8 — Text flow and shaped layout
 
@@ -352,6 +366,8 @@ The required starting point.
 - **Exit gate.** The cross-frame part of T15, T24, T25 and T26.
 - **Version owners.** Scene schema (frames, threads, wraps, paths); renderer;
   Scene manifest.
+- **Tests.** Text conservation across frames; column balance; widow and orphan
+  fixtures; raster exclusion check at 2×; path-origin and tangent fixtures.
 
 ### M9 — Output and accessibility
 
@@ -362,6 +378,8 @@ The required starting point.
 - **Exit gate.** T28 (and T31 if taken).
 - **Version owners.** Renderer (SVG serialization); manifest; the future PDF
   output contract.
+- **Tests.** Companion-text positions and `xml:lang`; with PDF, pinned
+  `pdftotext` extraction in reading order, including Thai and ligatures.
 
 ### M10 — Professional-parity qualification
 
