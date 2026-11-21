@@ -6,7 +6,8 @@ what is done, where it lives, what is verified, what the owner has decided, and
 what to do next. The plan says _what_ to build. This file says _where things
 stand_.
 
-Last updated: 11 November 2026, after M3 (head `d8e616d`).
+Last updated: 21 November 2026, after rebasing M3 (head `7caf029`) onto the
+review fixes in #76.
 
 **Keep it current.** At the end of every slice or milestone, update the
 milestone table, the branch stack, the version ledger and "Next step", in the
@@ -19,8 +20,8 @@ same push as the work.
 | M0 Harness, `Shaper`, one text path      | Done; exit gate met               | `claude/typography-m0` / #72           | `230dc5c` | [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md) accepted               |
 | M1 Font model on HarfBuzz, bundled fonts | Done; **baselines await review**  | `claude/typography-m1` / #73           | `6af27d0` | [typography-m1.md](../typography-m1.md)                                         |
 | M2 Shaper-switch close-out               | Done; exit gate met               | `claude/typography-m2` / #75           | `1631052` | [typography-m2.md](../typography-m2.md)                                         |
-| Housekeeping, Q3 research, G-TH draft    | Done; **G-TH awaits Thai reader** | `claude/typography-housekeeping` / #76 | `5a5ad56` | [gold/README.md](../../packages/glyphkiln-core/tests/typography/gold/README.md) |
-| M3 Line breaking, Thai segmentation      | Done; **T10 not claimed**         | `claude/typography-m3` / #77           | `d8e616d` | [typography-m3.md](../typography-m3.md)                                         |
+| Housekeeping, Q3 research, G-TH draft    | Done; **G-TH awaits Thai reader** | `claude/typography-housekeeping` / #76 | `3276c93` | [gold/README.md](../../packages/glyphkiln-core/tests/typography/gold/README.md) |
+| M3 Line breaking, Thai segmentation      | Done; **T10 not claimed**         | `claude/typography-m3` / #77           | `7caf029` | [typography-m3.md](../typography-m3.md)                                         |
 | M4 Paragraph composer, justification     | **Next**                          | —                                      | —         | Plan §5 M4                                                                      |
 | M5 Hyphenation                           | Not started                       | —                                      | —         | Needs Q5 for non-English languages                                              |
 | M6 Microtypography, run-aware shaping    | Not started                       | —                                      | —         |                                                                                 |
@@ -62,8 +63,8 @@ main
 | M0     | Full gate, Node 22 (timeouts only); determinism on 22 and 24 | Full gate, Node 24.16.0: pass                                        |
 | M1     | Full gate, Node 22 (timeouts only)                           | Full gate, Node 24.16.0: pass, after the readability fix (`6af27d0`) |
 | M2     | Full gate, Node 22; digest on Node 22 and 24                 | Full gate and digest, Node 22.23.1: pass                             |
-| #76    | Lint only (docs)                                             | Lint, typecheck, `typography-gth` test (data + docs)                 |
-| M3     | Full gate, Node 22 (timeouts only; see below)                | **Not run yet.** Reproduce the 3 new Thai PNGs in `tests/visual/m3/` |
+| #76    | Lint only (docs)                                             | Full gate, Node 24.16.0: pass (Core coverage with a longer timeout)  |
+| M3     | Full gate, Node 22 (timeouts only; see below)                | Full gate, Node 24.16.0: pass; the 3 Thai PNGs in `visual/m3/` match |
 
 M1 HarfBuzz output is byte-identical on Linux x64 and macOS arm64 under Node
 22 and 24 (`npm run typography-m1-digest` →
@@ -106,9 +107,14 @@ schema version. Check `docs/versioning.md` before relying on that.
    separate fonts package.
 4. **Q1** (fixes only in new template versions) and **Q6** (optical size from
    the 1080 px reference): both applied provisionally.
-5. **G-TH:** name the native Thai reader; they also review the Thai unit list
-   and the segmenter's 47-word supplement. **T10 cannot be claimed until this
-   is done.** A syllable layer was not requested.
+5. **G-TH:** name the native Thai reader; they also review the Thai unit list,
+   the segmenter's 47-word supplement and full-month dates (`23 ตุลาคม`).
+   **T10 cannot be claimed until this is done.** Also decide whether plain
+   spaces count towards the 2,000 floor (1,939 marked boundaries without them),
+   whether the publication approval covers the 56 draft, provisional and
+   validation subtitle lines, and whether to add a syllable layer (scheme
+   decision 3 in the
+   [licence research](../research/thai-gold-corpus-2026-11/README.md)).
 6. Plan **Q4, Q5, Q7, Q8** (plan §10).
 7. Optional: raise the inline timeouts of the slow render tests (below).
 
