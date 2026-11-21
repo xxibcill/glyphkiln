@@ -17,7 +17,12 @@ import type { SceneDocument } from "../../../src/scene/index.js";
  * - One baseline for each new M1 template version.
  */
 
-type Family = { family: string; weight: number; thai: boolean };
+type Family = {
+  family: string;
+  weight: number;
+  thai: boolean;
+  style?: "normal" | "italic";
+};
 
 export const FAMILY_SPECIMENS: readonly Family[] = [
   { family: "IBM Plex Sans Thai", weight: 400, thai: true },
@@ -33,6 +38,11 @@ export const FAMILY_SPECIMENS: readonly Family[] = [
   { family: "Source Serif 4", weight: 400, thai: false },
   { family: "IBM Plex Mono", weight: 400, thai: false },
 ];
+
+/** The bundled italic at 400 of each family that ships one. */
+export const ITALIC_SPECIMENS: readonly Family[] = FAMILY_SPECIMENS.filter(
+  (family) => bundledFontFile(family.family, 400, "italic") !== undefined,
+).map((family) => ({ ...family, style: "italic" as const }));
 
 /**
  * Provisional Thai–Latin pairings (owner review pending): each Thai family
@@ -103,12 +113,14 @@ export const PAIRINGS: readonly Pairing[] = [
 
 const INTER_SHA256 = "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031";
 
-function declaration(family: string, weight: number) {
+function declaration(
+  family: string,
+  weight: number,
+  style: "normal" | "italic" = "normal",
+) {
   const sha256 =
-    family === "Inter"
-      ? INTER_SHA256
-      : bundledFontFile(family, weight, "normal")!.sha256;
-  return { family, weight, style: "normal" as const, sha256 };
+    family === "Inter" ? INTER_SHA256 : bundledFontFile(family, weight, style)!.sha256;
+  return { family, weight, style, sha256 };
 }
 
 function uniqueDeclarations(faces: readonly [string, number][]) {
@@ -163,11 +175,9 @@ function text(
 }
 
 export function familySpecimen(family: Family): SceneDocument {
-  const font = {
-    family: family.family,
-    weight: family.weight,
-    style: "normal" as const,
-  };
+  const style = family.style ?? "normal";
+  const font = { family: family.family, weight: family.weight, style };
+  const label = style === "italic" ? `${family.family} Italic` : family.family;
   const lines = family.thai
     ? [
         "ให้ชัด AI",
@@ -177,14 +187,14 @@ export function familySpecimen(family: Family): SceneDocument {
     : ["Glyphkiln", "Light should give a room", "Office AVAWAY 0123456789 — 499 €"];
   return {
     schemaVersion: "1.1.0",
-    id: `m1-specimen-${family.family.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    id: `m1-specimen-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     seed: "typography-m1",
     dimensions: { width: 1080, height: 1080 },
-    title: `${family.family} specimen`,
-    description: `${family.family} at 112, 56 and 36 px on the M1 typography.`,
+    title: `${label} specimen`,
+    description: `${label} at 112, 56 and 36 px on the M1 typography.`,
     backgroundColor: "#F4F0E6",
     assets: [],
-    fonts: [declaration(family.family, family.weight)],
+    fonts: [declaration(family.family, family.weight, style)],
     elements: [
       text(
         "size-112",

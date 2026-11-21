@@ -19,6 +19,7 @@ import {
 import { loadExampleAssets } from "./helpers.js";
 import {
   FAMILY_SPECIMENS,
+  ITALIC_SPECIMENS,
   PAIRINGS,
   briefA,
   familySpecimen,
@@ -99,6 +100,13 @@ async function upgradedBaseline(name: string, version: "1.3.0" | "1.4.0") {
 export const M1_VISUAL_CASES: readonly Case[] = [
   ...FAMILY_SPECIMENS.map((family): Case => ({
     name: `specimen-${slug(family.family)}`,
+    kind: "scene",
+    document: () => familySpecimen(family),
+    noFindings: true,
+    deliveryWidths: [PHONE_WIDTH],
+  })),
+  ...ITALIC_SPECIMENS.map((family): Case => ({
+    name: `specimen-${slug(family.family)}-italic`,
     kind: "scene",
     document: () => familySpecimen(family),
     noFindings: true,

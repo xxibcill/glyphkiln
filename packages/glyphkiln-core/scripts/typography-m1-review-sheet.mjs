@@ -46,7 +46,8 @@ function describeFaces(manifest) {
       const coordinates = Object.entries(face.coordinates)
         .map(([tag, value]) => `${tag} ${value}`)
         .join(", ");
-      return `${face.family} ${face.weight} (${face.role}${face.scale === 1 ? "" : `, scale ${face.scale}`}${coordinates.length > 0 ? `; ${coordinates}` : ""}; ${face.scripts.join("+")})`;
+      const style = face.style === "italic" ? " italic" : "";
+      return `${face.family} ${face.weight}${style} (${face.role}${face.scale === 1 ? "" : `, scale ${face.scale}`}${coordinates.length > 0 ? `; ${coordinates}` : ""}; ${face.scripts.join("+")})`;
     })
     .join("<br>");
 }
@@ -67,7 +68,7 @@ function describeCraft(records) {
 const GROUPS = [
   [
     "specimen-",
-    "Family specimens: 112, 56 and 36 px (36 px tracked +1.8 px, 0.05 em) on Scene 1.1.0, 1080 × 1080",
+    "Family specimens, roman and (where bundled) italic at 400: 112, 56 and 36 px (36 px tracked +1.8 px, 0.05 em) on Scene 1.1.0, 1080 × 1080",
   ],
   [
     "brief-a-",

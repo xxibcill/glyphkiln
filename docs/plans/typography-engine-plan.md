@@ -298,7 +298,8 @@ The required starting point.
       large enough to read on a phone (x-height ≥ 5.5 px at 360 px; brief A
       also at its 400 px view). One finding is accepted for review: the
       Source Serif 4 attribution at 5.38 px.
-    - Baselines exist for every approved family at three sizes.
+    - Baselines exist for every approved family at three sizes, at 400 roman
+      and, for the nine families that bundle one, 400 italic.
     - The reviewer step is open: see the
       [review sheet](../research/typography-m1-baselines/README.md).
   - **Metrics.** [Before/after](../research/typography-m1-metrics/README.md):
