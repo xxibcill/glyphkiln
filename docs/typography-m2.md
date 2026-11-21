@@ -78,7 +78,7 @@ Noto Sans Thai stack. It fails unless both processes match the pinned digest.
 | ----------- | ------- | ------------------------------------------------------------------ | ------------------------ |
 | Linux x64   | 22.23.4 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 | Linux x64   | 24.22.1 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
-| macOS arm64 | 24.16.0 | not run with this script; the baselines matched in M1              | byte-identical (M1)      |
+| macOS arm64 | 24.16.0 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 | macOS arm64 | 22.23.1 | `8aef70cfe3a1d671c04a6dd5854b8ba1adff471c687641407d446dc298e72007` | byte-identical           |
 
 The macOS + Node 22 row was run on the owner's Mac on 5 November 2026: macOS
@@ -96,6 +96,12 @@ npm ci && npm run typography-m1-digest
 ```bash
 cd packages/glyphkiln-core && npx vitest run tests/visual-m1.test.ts
 ```
+
+The macOS + Node 24 row was added in review on 21 November 2026: macOS
+arm64, Node 24.16.0, npm 10.9.8, from a clean `npm ci` of `1631052`. The
+digest matched in two fresh processes, and both visual suites (all 79 cases,
+including the 27 M1 baselines) passed. The digest also matched there under
+Node 22.23.1.
 
 ## Budgets
 
