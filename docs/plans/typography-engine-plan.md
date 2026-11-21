@@ -188,10 +188,14 @@ performance and byte-stability evidence.
 
 ## 5. Milestones
 
-Dependency order:
-`M0 → M1 → (M2) → M3 → M4 → M5, M6 → M7 → M8 → M9 → M10`.
-M3 may start after M0 in parallel with M1, since segmentation and the font model
-touch different files.
+Dependencies:
+
+- M1 and M3 depend on M0 and may run in parallel, since the font model and
+  segmentation touch different files.
+- M2 depends only on ADR 0019 at the end of M0. If the ADR picks HarfBuzz, M1 is
+  built on it and M2 shrinks to legacy retention, landing with or after M1.
+- M4 depends on M1 and M3; M5 and M6 depend on M4 and may run in parallel.
+- M7 depends on M5 and M6, M8 on M7, M9 on M8, and M10 on all of them.
 
 Every P row has an owning exit gate. T29 is cross-cutting: from M0 on, each
 milestone's exit gate includes T29 for the issue codes that milestone adds, and
