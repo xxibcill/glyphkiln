@@ -154,6 +154,33 @@ next to the product rather than on it, and darkens only where the copy is:
   fade, and none inside the subject. Copy that has to overlap the subject
   (`COPY_OVER_SUBJECT`) is therefore checked against the untreated photograph.
 
+## Public API
+
+`@glyphkiln/core` exports these closed ID lists and types for 1.7.0 authoring
+and validation:
+
+- ID lists: `TEXT_EMPHASIS_STYLE_IDS`, `OPENTYPE_NUMERAL_STYLE_IDS`,
+  `BRAND_COLOR_ROLE_IDS`, `DECORATION_JOB_IDS`, `LOCAL_IMAGE_TREATMENT_IDS`.
+- Types: `TextEmphasisSpan`, `TextEmphasisStyleId`, `OpenTypeFeatureSettings`,
+  `BrandColorRoles`, `BrandColorRoleSet`, `DecorationJobId`,
+  `LocalImageTreatmentId`, `LegacyImageTreatmentId` (the 1.0.0–1.6.0
+  treatments) and `NormalizedRegion` (the shape of `subjectRegion` and
+  `quietRegion`). `ImageTreatmentId` now covers both treatment families.
+
+Template authors also see these additions:
+
+- `TemplateDefinition.capabilities` lists the 1.7.0 fields a version
+  implements.
+- `TemplateDefinition.minimumSchemaVersion` sets the oldest document schema it
+  accepts.
+- `FitTextOptions.settingAtSize` and `FittedText.setting` carry the size curve.
+- `PathElement.glyphRun` carries emphasis-run font provenance. It never
+  serializes.
+
+`DesignDocument` is a union of eight schema versions. TypeScript can report
+"union type that is too complex" (TS2590) when code pushes into
+`document.layers`; cast it to `DesignLayer[]` first.
+
 ## Known limits
 
 - Kerning does not apply across emphasis run boundaries. Emphasis needs the

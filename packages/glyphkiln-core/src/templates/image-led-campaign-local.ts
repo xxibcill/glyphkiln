@@ -17,6 +17,7 @@ import type {
 } from "../schema/index.js";
 import type { AccentShape } from "./accent-budget.js";
 import { IMAGE_LED_CAMPAIGN_TEMPLATE_CONTRACT } from "./image-led-campaign-contract.js";
+import { typographyRoles } from "./image-led-campaign.js";
 import {
   addAsset,
   addFocalImage,
@@ -34,7 +35,7 @@ import {
   type TypesetOptions,
 } from "./typeset.js";
 import { matchedEmphasisSpans } from "../typography/rich-text.js";
-import type { TemplateDefinition, TemplateRenderContext } from "./types.js";
+import type { TemplateDefinition } from "./types.js";
 
 /**
  * image-led-campaign@1.2.0: full-bleed photograph with copy set beside the
@@ -339,22 +340,6 @@ function hasAccentEmphasis(layer: TextLayer | undefined): boolean {
   return matchedEmphasisSpans(layer.text, layer.emphasis ?? []).some(
     (span) => span.style === "accent" || span.style === "strong-accent",
   );
-}
-
-function typographyRoles(context: TemplateRenderContext): {
-  display: BrandTypographyRole | undefined;
-  body: BrandTypographyRole | undefined;
-  label: BrandTypographyRole | undefined;
-} {
-  const typography = context.document.brand.typography;
-  if (!("roles" in typography) || typography.roles === undefined) {
-    return { display: undefined, body: undefined, label: undefined };
-  }
-  return {
-    display: typography.roles.display,
-    body: typography.roles.body,
-    label: typography.roles.label,
-  };
 }
 
 /** The subject region mapped from source-image space onto the canvas. */

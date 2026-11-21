@@ -339,7 +339,7 @@ function reviewCompositionVariant(
     ({ id }) => id === slide.compositionVariantId,
   );
   if (declaredVariant !== undefined) {
-    const variant = member.compositionVariants[0]!.id;
+    const variant = defaultCompositionVariant(member);
     if (!["1.1.0", "1.1.1"].includes(slide.document.template.version)) return variant;
     if (slide.document.template.id === "image-led-campaign") return `${variant}:split`;
     return slide.document.layers.some(
@@ -356,7 +356,22 @@ function reviewCompositionVariant(
       slide.document.id,
     ),
   );
-  return member.compositionVariants[0]!.id;
+  return defaultCompositionVariant(member);
+}
+
+/** The first declared variant; every registered family member declares one. */
+function defaultCompositionVariant(member: {
+  template: { id: string; version: string };
+  compositionVariants: readonly { id: string }[];
+}): string {
+  const first = member.compositionVariants[0];
+  if (first === undefined) {
+    throw new GlyphkilnError(
+      `${member.template.id}@${member.template.version} declares no composition variant.`,
+      "CAMPAIGN_FAMILY_INVALID",
+    );
+  }
+  return first.id;
 }
 
 export function createCarouselDeliverySidecar(input: unknown): CarouselDeliverySidecar {

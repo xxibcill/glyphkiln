@@ -1,4 +1,5 @@
 import type { Bounds, QualityIssue } from "../domain/types.js";
+import { fontReferenceKey } from "../fonts/key.js";
 import { contrastIssue, safeAreaIssue } from "../layout/index.js";
 import type {
   BrandColorRoleSet,
@@ -130,8 +131,8 @@ function prepare(
     });
   }
   const declared = new Set(
-    context.document.fonts.map(
-      (font) => `${font.family}\u0000${font.weight}\u0000${font.style}`,
+    context.document.fonts.map((font) =>
+      fontReferenceKey(font.family, font.weight, font.style),
     ),
   );
   const requestedSpans = "emphasis" in layer ? (layer.emphasis ?? []) : [];
@@ -140,7 +141,7 @@ function prepare(
     const face = emphasisFace(span.style, weight);
     const available =
       context.fonts.has(family, face.weight, face.style) &&
-      declared.has(`${family}\u0000${face.weight}\u0000${face.style}`);
+      declared.has(fontReferenceKey(family, face.weight, face.style));
     if (available) {
       spans.push(span);
       continue;

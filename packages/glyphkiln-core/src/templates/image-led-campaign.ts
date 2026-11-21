@@ -198,13 +198,14 @@ function createImageLedCampaignTemplate(
   };
 }
 
-type RoleSet = {
+export type RoleSet = {
   display: BrandTypographyRole | undefined;
   body: BrandTypographyRole | undefined;
   label: BrandTypographyRole | undefined;
 };
 
-function typographyRoles(context: TemplateRenderContext): RoleSet {
+/** Brand typography roles for display, body and label copy, when declared. */
+export function typographyRoles(context: TemplateRenderContext): RoleSet {
   const typography = context.document.brand.typography;
   if (!("roles" in typography) || typography.roles === undefined) {
     return { display: undefined, body: undefined, label: undefined };
