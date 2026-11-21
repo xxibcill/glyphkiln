@@ -26,6 +26,13 @@ export function inspectImageTextContrast(input: {
   foreground: string;
   sceneBackground: string;
   treatment: ImageTreatmentId;
+  /**
+   * Opacity of the treatment actually drawn at a canvas point. Local
+   * treatments are feathered and masked out of the subject, so their opacity
+   * varies across the text box. Without it the treatment's nominal opacity is
+   * used everywhere, as for the global scrims.
+   */
+  treatmentOpacityAt?: (x: number, y: number) => number;
 }): ContrastEvidence {
   const raster = input.raster;
   const treatment = treatmentFill(input.treatment);
@@ -62,8 +69,12 @@ export function inspectImageTextContrast(input: {
         alpha: raster.data[offset + 3]! / 255,
       };
       const sourceOverScene = composite(source, parseHex(input.sceneBackground));
+      const opacity =
+        input.treatmentOpacityAt === undefined
+          ? treatment.opacity
+          : input.treatmentOpacityAt(canvasX, canvasY);
       const composed = composite(
-        { ...parseHex(treatment.color), alpha: treatment.opacity },
+        { ...parseHex(treatment.color), alpha: opacity },
         sourceOverScene,
       );
       const background = toHex(composed);

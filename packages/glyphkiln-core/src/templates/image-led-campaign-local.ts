@@ -273,6 +273,7 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
       );
     }
 
+    const scrimLayers: RectElement[] = [];
     if (treatment === "local-dark-scrim" || treatment === "local-light-scrim") {
       // The copy stack and a distant CTA get separate scrims, so the area
       // between them is not darkened.
@@ -297,16 +298,24 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
         ),
       );
       canvas.scene.elements.splice(imageIndex, 0, ...scrim);
+      scrimLayers.push(...scrim);
     }
     for (const text of texts) {
-      addCompositedContrast(canvas, raster, focal.crop, treatment, text);
+      addCompositedContrast(canvas, raster, focal.crop, treatment, text, scrimLayers);
     }
     for (const run of emphasis) {
-      addCompositedContrast(canvas, raster, focal.crop, treatment, {
-        id: run.id,
-        fill: run.fill,
-        bounds: run.glyphRun!.bounds,
-      });
+      addCompositedContrast(
+        canvas,
+        raster,
+        focal.crop,
+        treatment,
+        {
+          id: run.id,
+          fill: run.fill,
+          bounds: run.glyphRun!.bounds,
+        },
+        scrimLayers,
+      );
     }
     enforceAccentBudget(
       canvas,
@@ -536,6 +545,46 @@ export function localScrim(
   return layers;
 }
 
+/**
+ * Opacity the stacked scrim layers composite to at a canvas point: each layer
+ * that covers the point (inside its rounded rectangle and outside its subject
+ * exclusion) contributes its own opacity. Inside the subject this is 0, so
+ * copy over the product is checked against the untreated photograph.
+ */
+export function localScrimOpacityAt(
+  layers: readonly RectElement[],
+  x: number,
+  y: number,
+): number {
+  let transmitted = 1;
+  for (const layer of layers) {
+    if (!insideRoundedRect(layer, x, y)) continue;
+    const excluded = layer.exclusion?.bounds;
+    if (
+      excluded !== undefined &&
+      x >= excluded.x &&
+      x < excluded.x + excluded.width &&
+      y >= excluded.y &&
+      y < excluded.y + excluded.height
+    ) {
+      continue;
+    }
+    transmitted *= 1 - (layer.opacity ?? 1);
+  }
+  return 1 - transmitted;
+}
+
+function insideRoundedRect(rect: RectElement, x: number, y: number): boolean {
+  if (x < rect.x || x >= rect.x + rect.width || y < rect.y || y >= rect.y + rect.height) {
+    return false;
+  }
+  const radius = Math.min(rect.radius ?? 0, rect.width / 2, rect.height / 2);
+  if (radius <= 0) return true;
+  const cornerX = Math.min(Math.max(x, rect.x + radius), rect.x + rect.width - radius);
+  const cornerY = Math.min(Math.max(y, rect.y + radius), rect.y + rect.height - radius);
+  return (x - cornerX) ** 2 + (y - cornerY) ** 2 <= radius ** 2;
+}
+
 /** Gap between two rectangles along the axis that separates them (0 if they touch). */
 function separation(a: Bounds, b: Bounds): number {
   const dx = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width), 0);
@@ -581,6 +630,7 @@ function addCompositedContrast(
   crop: ReturnType<typeof addFocalImage>["crop"],
   treatment: ImageTreatmentId,
   text: { id: string; fill: string; bounds: Bounds },
+  scrimLayers: readonly RectElement[],
 ): void {
   const evidence = inspectImageTextContrast({
     layerId: text.id,
@@ -590,6 +640,12 @@ function addCompositedContrast(
     foreground: text.fill,
     sceneBackground: canvas.backgroundColor,
     treatment,
+    ...(scrimLayers.length === 0
+      ? {}
+      : {
+          treatmentOpacityAt: (x: number, y: number) =>
+            localScrimOpacityAt(scrimLayers, x, y),
+        }),
   });
   canvas.evidence.contrast.push(evidence);
   if (evidence.minimumRatio >= evidence.minimumRequired) return;

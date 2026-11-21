@@ -139,7 +139,10 @@ next to the product rather than on it, and darkens only where the copy is:
   are identical to the untreated photograph (tested). A CTA far from the copy
   stack gets its own scrim.
 - Global `dark-scrim` and `light-scrim` keep their 1.0.x meaning. Composited
-  contrast is checked at the local scrim's full opacity.
+  contrast for a local scrim uses the opacity the stacked layers actually
+  draw at each sample point: full strength over the copy block, less in the
+  fade, and none inside the subject. Copy that has to overlap the subject
+  (`COPY_OVER_SUBJECT`) is therefore checked against the untreated photograph.
 
 ## Known limits
 

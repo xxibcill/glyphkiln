@@ -20,7 +20,11 @@ import { prepareGraphicScene, renderSceneToSvg } from "../src/renderer/index.js"
 import type { TemplateCanvas } from "../src/templates/shared.js";
 import { enforceAccentBudget } from "../src/templates/typeset.js";
 import { accentCoverage, pathEdges } from "../src/templates/accent-budget.js";
-import { copyRegion, localScrim } from "../src/templates/image-led-campaign-local.js";
+import {
+  copyRegion,
+  localScrim,
+  localScrimOpacityAt,
+} from "../src/templates/image-led-campaign-local.js";
 import {
   requestedOpenTypeFeatures,
   resolveOpenTypeFeatures,
@@ -690,6 +694,41 @@ describe("local image darkening", () => {
     expect(result.qualityIssues.map((issue) => issue.code)).toContain(
       "COPY_OVER_SUBJECT",
     );
+  });
+
+  it("checks contrast against the scrim actually drawn, not inside the subject", async () => {
+    const scrim = localScrim(
+      "scrim",
+      "local-dark-scrim",
+      { x: 100, y: 100, width: 300, height: 200 },
+      { x: 600, y: 100, width: 300, height: 600 },
+      { x: 0, y: 0, width: 1080, height: 1080 },
+      1,
+    );
+    expect(localScrimOpacityAt(scrim, 250, 200)).toBeCloseTo(0.6, 3);
+    expect(localScrimOpacityAt(scrim, 700, 300)).toBe(0);
+    expect(localScrimOpacityAt(scrim, 1070, 1070)).toBe(0);
+
+    const document = await baseline("image-led-campaign-local-square");
+    const image = layer(document, "image") as {
+      subjectRegion?: unknown;
+      treatment?: string;
+    };
+    image.subjectRegion = { x: 0, y: 0, width: 1, height: 1 };
+    delete layer(document, "headline").emphasis;
+    layer(document, "subtitle")["text"] = "Sculptural ceramic lighting shaped for rooms.";
+    const local = await blockedIssues(document);
+    image.treatment = "none";
+    const untreated = await blockedIssues(document);
+    const lowContrast = (issues: QualityIssue[]) =>
+      issues
+        .filter((issue) => issue.code === "LOW_TEXT_CONTRAST")
+        .map((issue) => issue.layerId)
+        .sort();
+    // The scrim is masked out of a subject that covers the copy, so the copy
+    // is exactly as legible as on the untreated photograph.
+    expect(lowContrast(local)).toEqual(["cta", "eyebrow", "headline", "subtitle"]);
+    expect(lowContrast(local)).toEqual(lowContrast(untreated));
   });
 
   it("keeps the global scrims of earlier versions and renders deterministically", async () => {
