@@ -47,8 +47,8 @@ to a network or skip its database and storage setup.
 
 ## Develop the repository
 
-Use Node.js 22.22.2 or newer within the Node 22 release line, or Node.js 24 or
-newer, with npm 10.9.8. The repository's `.nvmrc` selects the tested Node 22
+Use Node.js 22.22.2 or newer within the Node 22 release line, Node.js 24.15.0 or
+newer within the Node 24 release line, or Node.js 26 or newer, with npm 10.9.8. The repository's `.nvmrc` selects the tested Node 22
 development version.
 
 If your npm version differs, install npm 10.9.8 globally while your shell is in
