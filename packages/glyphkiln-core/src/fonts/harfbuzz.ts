@@ -163,7 +163,13 @@ function createShaper(hb: HarfBuzzModule): HarfBuzzShaper {
     loadFace(bytes) {
       const blob = new hb.Blob(bytes);
       const face = new hb.Face(blob, 0);
-      if (face.upem === 0) {
+      // HarfBuzz never fails to create a face: unparseable bytes give the
+      // empty face, whose upem still reads as 1000. A face without `head`
+      // and `maxp` is not an OpenType face.
+      if (
+        !face.referenceTable("head")?.byteLength ||
+        !face.referenceTable("maxp")?.byteLength
+      ) {
         throw new GlyphkilnError(
           "Font bytes could not be parsed as an OpenType face.",
           "FONT_PARSE_FAILED",
@@ -326,7 +332,7 @@ function createShaper(hb: HarfBuzzModule): HarfBuzzShaper {
  * `Z`. The close already draws that segment, so it is dropped; the geometry
  * is unchanged and paths stay shorter.
  */
-function dropClosingLines(
+export function dropClosingLines(
   segments: readonly { type: string; values: number[] }[],
 ): OutlineCommand[] {
   const commands: OutlineCommand[] = [];
