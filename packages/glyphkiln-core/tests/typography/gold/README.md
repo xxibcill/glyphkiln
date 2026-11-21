@@ -12,7 +12,7 @@ and the owner has accepted it. M3's exit gate must not be claimed on the draft.
 
 ## What it holds
 
-`g-th.json` has 318 lines with 2,230 acceptable break points, against the plan's
+`g-th.json` has 318 lines with 2,229 acceptable break points, against the plan's
 floor of 2,000.
 
 | Source                              | Lines | Notes                                                                                             |
@@ -55,7 +55,7 @@ a fixed compound (รายละเอียด, ผลไม้, ต้นก�
    gives word boundaries. Fixed rules then keep things together: no break
    before ๆ, ฯ or closing punctuation, after an opening quote, or between a
    number and its unit, `%` or `฿`.
-2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 97
+2. **Claude's correction** (`gold` field; `review` is `claude-corrected` on 98
    lines and `claude-checked` on the rest). It removed 124 machine breaks and
    added the missing ones:
    - breaks inside a syllable, such as คอม/เมน/ต์, ลิ/งก์, ผลอ/ยู่, เป็นก/ระ/ถาง

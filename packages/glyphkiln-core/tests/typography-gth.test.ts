@@ -59,6 +59,17 @@ describe("G-TH gold set", () => {
     }
   });
 
+  it("never allows a break inside a numeric range", () => {
+    // Owner decision (5 November 2026): numeric ranges never break, in Latin
+    // or Thai digits, on either side of the range dash.
+    const rangeBreak = /\p{Nd}[/| ]?[-–—][/| ]\p{Nd}|\p{Nd}[/| ][-–—]\p{Nd}/u;
+    for (const line of gold.lines) {
+      expect(rangeBreak.test(line.gold), `${line.id} breaks a numeric range`).toBe(
+        false,
+      );
+    }
+  });
+
   it("has unique sequential ids and the recorded counts", () => {
     expect(gold.lines.map((line) => line.id)).toEqual(
       gold.lines.map((_, index) => `gth-${String(index + 1).padStart(4, "0")}`),
