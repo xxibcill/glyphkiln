@@ -304,6 +304,14 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
       canvas.scene.elements.splice(imageIndex, 0, ...scrim);
       scrimLayers.push(...scrim);
     }
+    // Demote over-budget accent runs first, so contrast is measured (and
+    // recorded as evidence) for the colors that are actually drawn.
+    enforceAccentBudget(
+      canvas,
+      roles,
+      accentShapes,
+      emphasis.filter((element) => element.fill === roles.accent),
+    );
     for (const text of texts) {
       addCompositedContrast(canvas, raster, focal.crop, treatment, text, scrimLayers);
     }
@@ -321,12 +329,6 @@ export const imageLedCampaignLocalTemplate: TemplateDefinition = {
         scrimLayers,
       );
     }
-    enforceAccentBudget(
-      canvas,
-      roles,
-      accentShapes,
-      emphasis.filter((element) => element.fill === roles.accent),
-    );
     return finishTemplate(canvas);
   },
 };

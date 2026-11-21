@@ -947,6 +947,51 @@ describe("local image darkening", () => {
     expect(lowContrast(local)).toEqual(lowContrast(untreated));
   });
 
+  it("measures contrast for emphasis in the color left after the accent budget", async () => {
+    const document = await baseline("image-led-campaign-local-square");
+    const theme = document.brand.themes[document.mode];
+    const roleSet = {
+      ground: theme.background,
+      figure: theme.text,
+      text: theme.mutedText,
+      accent: document.brand.palette.accent,
+      signal: theme.text,
+    };
+    (document.brand as Record<string, unknown>)["colorRoles"] = {
+      light: roleSet,
+      dark: roleSet,
+      accentAreaBudget: 0.01,
+    };
+    // Accent every word so the accent ink (about 3%) exceeds the 1% budget.
+    layer(document, "headline").emphasis = ["Light,", "fired", "into", "form."].map(
+      (phrase) => ({ phrase, style: "accent" }),
+    );
+    const validated = validateDesignDocument(document);
+    if (!validated.success) throw new Error("invalid document");
+    const { templateResult } = prepareGraphicScene(validated.data, {
+      assets: await loadExampleAssets(document),
+    });
+    expect(templateResult.qualityIssues.map((issue) => issue.code)).toContain(
+      "ACCENT_BUDGET_APPLIED",
+    );
+    const drawn = new Map(
+      templateResult.scene.elements
+        .filter((element) => element.id.startsWith("headline-emphasis-"))
+        .map((element) => [element.id, (element as { fill: string }).fill]),
+    );
+    expect(new Set(drawn.values())).toEqual(new Set([roleSet.accent, roleSet.figure]));
+    const evidence = templateResult.evidence.contrast.filter((entry) =>
+      entry.layerId.startsWith("headline-emphasis-"),
+    );
+    expect(evidence).toHaveLength(drawn.size);
+    // Contrast is measured for the color each run is finally drawn in.
+    for (const entry of evidence) {
+      expect(entry.foreground.toUpperCase()).toBe(
+        drawn.get(entry.layerId)!.toUpperCase(),
+      );
+    }
+  });
+
   it("keeps the global scrims of earlier versions and renders deterministically", async () => {
     const document = await baseline("image-led-campaign-local-landscape");
     (layer(document, "image") as { treatment?: string }).treatment = "dark-scrim";
