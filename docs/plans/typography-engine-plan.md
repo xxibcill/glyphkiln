@@ -460,8 +460,10 @@ The required starting point.
 2. **HarfBuzz adoption.** Is about 1.3 MB of wasm and a renderer identity change
    acceptable if ADR 0019's evidence supports it? **Answered 4 November
    2026:** yes. The owner accepted
-   [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md); the measured
-   runtime cost is about 530 KB of wasm and JS.
+   [ADR 0019](../adr/0019-harfbuzz-shaper-qualification.md), including its
+   measured runtime cost of about 530 KB of wasm and JS. The 1.3 MB in the
+   question is the unpacked package, which also holds an unused
+   `harfbuzz-subset.wasm` (ADR 0019, Cost).
 3. **Thai gold corpus.** Which source and licence for G-TH: an existing licensed
    corpus, or annotating the workspace's own Thai campaign copy?
 4. **InDesign reference set.** Can a designer with InDesign set the 24 fixtures

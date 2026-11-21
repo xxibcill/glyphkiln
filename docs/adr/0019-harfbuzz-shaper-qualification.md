@@ -4,9 +4,8 @@ Status: accepted
 
 Proposed 4 November 2026 at the end of typography milestone M0 and **accepted by
 the owner on 4 November 2026**, including plan question Q2 (the runtime size)
-([plan](../plans/typography-engine-plan.md) §4, §5 M0 item 6). The owner accepts
-or rejects it. Nothing in this ADR changes pixels; it decides which shaper new
-typography policies use from M1.
+([plan](../plans/typography-engine-plan.md) §4, §5 M0 item 6). Nothing in this
+ADR changes pixels; it decides which shaper new typography policies use from M1.
 
 ## Context
 
