@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 
 import GraphemeSplitter from "grapheme-splitter";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { FontRegistry } from "../src/fonts/index.js";
 import { loadHarfBuzzShaper, type HarfBuzzShaper } from "../src/fonts/harfbuzz.js";
@@ -14,7 +14,11 @@ import {
 } from "../src/typography/font-model.js";
 import { createTypesetter, loadTypographyEngine } from "../src/typography/engine.js";
 import { itemizeScripts, scriptOf } from "../src/typography/script-runs.js";
-import type { M1Typesetter } from "../src/typography/typesetter.js";
+import {
+  SHAPER_FACE_CACHE_LIMITS,
+  shaperFaceCacheSizes,
+  type M1Typesetter,
+} from "../src/typography/typesetter.js";
 
 type Corpus = {
   face: { family: string; weight: number };
@@ -214,6 +218,31 @@ describe("script-matching@1.0.0 auto scale", () => {
     expect(latin.coordinates["opsz"]).toBe(
       automaticOpticalSize(fontSize * latin.scale, 1080),
     );
+  });
+});
+
+describe("process-wide shaper faces", () => {
+  it("loads each font into wasm once across typesetters and stays bounded", () => {
+    const loadFace = vi.spyOn(shaper, "loadFace");
+    try {
+      const first = setLine(typesetter({ family: "Trirong" }, "a"), "ไทย", 64);
+      const second = setLine(typesetter({ family: "Trirong" }, "b"), "ไทย", 64);
+      expect(second.glyphs).toEqual(first.glyphs);
+      expect(loadFace).toHaveBeenCalledTimes(1);
+    } finally {
+      loadFace.mockRestore();
+    }
+    // Each explicit weight is its own instance; more than the bound fit.
+    for (let index = 0; index < SHAPER_FACE_CACHE_LIMITS.instances + 20; index += 1) {
+      setLine(
+        typesetter({ family: "Source Serif 4", axes: { wght: 300 + index } }),
+        "Serif",
+        64,
+      );
+    }
+    const sizes = shaperFaceCacheSizes();
+    expect(sizes.faces).toBeLessThanOrEqual(SHAPER_FACE_CACHE_LIMITS.faces);
+    expect(sizes.instances).toBe(SHAPER_FACE_CACHE_LIMITS.instances);
   });
 });
 

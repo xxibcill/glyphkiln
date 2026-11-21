@@ -84,6 +84,48 @@ function isIgnorable(character: string): boolean {
 
 const splitter = new GraphemeSplitter();
 
+/**
+ * Process-wide HarfBuzz faces and variation instances, keyed by the font's
+ * SHA-256 (computed from its bytes by FontRegistry, so content-addressed)
+ * and, for instances, the coordinates. `loadFace` copies the whole font into
+ * wasm memory, and wasm memory never shrinks, so one copy per font serves
+ * every text layer and render. Least recently used entries are dropped past
+ * the bounds; harfbuzzjs frees them when they are collected. Faces and their
+ * outline caches depend only on bytes and coordinates, so sharing them
+ * cannot change output.
+ */
+export const SHAPER_FACE_CACHE_LIMITS = Object.freeze({ faces: 32, instances: 256 });
+
+class BoundedCache<V> {
+  readonly #entries = new Map<string, V>();
+  public constructor(readonly limit: number) {}
+  public get size(): number {
+    return this.#entries.size;
+  }
+  public get(key: string, create: () => V): V {
+    const existing = this.#entries.get(key);
+    if (existing !== undefined) {
+      this.#entries.delete(key);
+      this.#entries.set(key, existing);
+      return existing;
+    }
+    const value = create();
+    this.#entries.set(key, value);
+    if (this.#entries.size > this.limit) {
+      this.#entries.delete(this.#entries.keys().next().value!);
+    }
+    return value;
+  }
+}
+
+const baseFaces = new BoundedCache<ShaperFace>(SHAPER_FACE_CACHE_LIMITS.faces);
+const faceInstances = new BoundedCache<ShaperFace>(SHAPER_FACE_CACHE_LIMITS.instances);
+
+/** Current sizes of the process-wide face caches (for tests and budgets). */
+export function shaperFaceCacheSizes(): { faces: number; instances: number } {
+  return { faces: baseFaces.size, instances: faceInstances.size };
+}
+
 export type FaceRole = "primary" | "fallback" | `script:${ScriptFaceTag}`;
 
 /** One face actually used to draw text (manifest font identity v2). */
@@ -389,7 +431,10 @@ export class M1Typesetter {
   #baseFace(font: ResolvedFont): ShaperFace {
     let face = this.#baseFaces.get(font.sha256!);
     if (face === undefined) {
-      face = this.#options.shaper.loadFace(font.bytes);
+      const { shaper } = this.#options;
+      face = baseFaces.get(`${shaper.id}\u0000${font.sha256!}`, () =>
+        shaper.loadFace(font.bytes),
+      );
       this.#baseFaces.set(font.sha256!, face);
     }
     return face;
@@ -448,10 +493,13 @@ export class M1Typesetter {
     let face = this.#rawInstances.get(key);
     if (face === undefined) {
       const base = this.#baseFace(font);
+      const { shaper } = this.#options;
       face =
         Object.keys(coordinates).length === 0
           ? base
-          : this.#options.shaper.instantiate(base, coordinates);
+          : faceInstances.get(`${shaper.id}\u0000${key}`, () =>
+              shaper.instantiate(base, coordinates),
+            );
       this.#rawInstances.set(key, face);
     }
     return face;
